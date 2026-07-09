@@ -550,6 +550,7 @@ const SaveJobInput = z.object({
         id: z.string().optional(),
         description: z.string().trim().max(300),
         hours: z.number().min(0).max(1000),
+        costCents: z.number().int().min(0).optional().default(0),
         rateCents: z.number().int().min(0),
         technicianId: z.string().nullable().optional(),
       }),
@@ -560,7 +561,7 @@ const SaveJobInput = z.object({
       z.object({
         id: z.string().optional(),
         brand: z.string().trim().max(100).nullable().optional(),
-        description: z.string().trim().max(300),
+        description: z.string().trim().max(500),
         partNumber: z.string().trim().max(100).nullable().optional(),
         quantity: z.number().int().min(0).max(9999),
         costCents: z.number().int().min(0),
@@ -602,12 +603,14 @@ export async function saveJob(raw: SaveJobInput): Promise<EstimateResult> {
     }),
     ...d.laborLines.map((l, i) => {
       const totalCents = Math.round(l.hours * l.rateCents);
+      const costCents = l.costCents ?? 0;
       return l.id
         ? prisma.laborLine.updateMany({
             where: { id: l.id, jobId: d.jobId, shopId },
             data: {
               description: l.description,
               hours: l.hours,
+              costCents,
               rateCents: l.rateCents,
               totalCents,
               technicianId: l.technicianId ?? null,
@@ -620,6 +623,7 @@ export async function saveJob(raw: SaveJobInput): Promise<EstimateResult> {
               jobId: d.jobId,
               description: l.description,
               hours: l.hours,
+              costCents,
               rateCents: l.rateCents,
               totalCents,
               technicianId: l.technicianId ?? null,

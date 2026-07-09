@@ -24,49 +24,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
-import { CAR_MAKES } from "@/lib/vehicle-makes";
+import { parseYmmSearch } from "@/lib/parse-ymm-search";
 import { decodeVin, lookupPlate, createVehicle } from "@/server/actions/vehicles";
-
-function parseYmmSearch(query: string): Partial<VehicleFormData> | null {
-  const match = query.trim().match(/^(\d{4})\s+(.+)$/);
-  if (!match) return null;
-
-  const year = Number(match[1]);
-  if (year < 1980 || year > new Date().getFullYear() + 1) return null;
-
-  const tokens = match[2].trim().split(/\s+/);
-  if (tokens.length < 2) return null;
-
-  let make = "";
-  let modelStart = 1;
-
-  for (let len = Math.min(3, tokens.length - 1); len >= 1; len--) {
-    const candidate = tokens.slice(0, len).join(" ");
-    const found = CAR_MAKES.find((m) => m.toLowerCase() === candidate.toLowerCase());
-    if (found) {
-      make = found;
-      modelStart = len;
-      break;
-    }
-  }
-
-  if (!make) make = tokens[0];
-  else if (modelStart === 1 && !CAR_MAKES.some((m) => m.toLowerCase() === tokens[0].toLowerCase())) {
-    make = tokens[0];
-    modelStart = 1;
-  }
-
-  const model = tokens.slice(modelStart).join(" ");
-  if (!model) return null;
-
-  return {
-    year,
-    make,
-    model,
-    trim: "",
-    vehicleDisplayName: [year, make, model].join(" "),
-  };
-}
 
 export function AddVehicleDialog({
   customerId,
@@ -77,6 +36,7 @@ export function AddVehicleDialog({
   onOpenChange,
   initialLookup = "",
   initialPlateState = "NY",
+  initialFields,
 }: {
   customerId: string;
   customerName?: string;
@@ -86,6 +46,8 @@ export function AddVehicleDialog({
   onOpenChange?: (open: boolean) => void;
   initialLookup?: string;
   initialPlateState?: string;
+  /** When set (e.g. from intake lookup click), apply decoded fields without re-search. */
+  initialFields?: Partial<VehicleFormData> | null;
 }) {
   const [internalOpen, setInternalOpen] = useState(false);
   const isControlled = controlledOpen !== undefined;
@@ -160,7 +122,11 @@ export function AddVehicleDialog({
         applyLookupResult({
           ...emptyVehicleForm(state),
           ...vehicleForm,
-          ...ymm,
+          year: ymm.year,
+          make: ymm.make,
+          model: ymm.model,
+          trim: "",
+          vehicleDisplayName: [ymm.year, ymm.make, ymm.model].join(" "),
           plateState: state,
         });
         setLookupNote(null);
@@ -193,15 +159,38 @@ export function AddVehicleDialog({
       const prefillLookup = initialLookup.trim();
       const prefillPlateState = initialPlateState || "NY";
       resetForm(prefillLookup, prefillPlateState);
-      const key = prefillLookup.replace(/\s/g, "");
-      if (key) runSearchFor(key, prefillPlateState);
+      if (initialFields && (initialFields.year || initialFields.make || initialFields.model || initialFields.vin)) {
+        const base = emptyVehicleForm(prefillPlateState);
+        const year = initialFields.year ?? null;
+        const make = initialFields.make ?? "";
+        const model = initialFields.model ?? "";
+        const trim = initialFields.trim ?? "";
+        applyLookupResult({
+          ...base,
+          ...initialFields,
+          year,
+          make,
+          model,
+          trim,
+          vin: initialFields.vin ?? "",
+          plate: initialFields.plate ?? (/^[A-Z0-9]{2,8}$/i.test(prefillLookup) ? prefillLookup.toUpperCase() : ""),
+          plateState: initialFields.plateState || prefillPlateState,
+          vehicleDisplayName:
+            initialFields.vehicleDisplayName ||
+            [year, make, model, trim].filter(Boolean).join(" "),
+        });
+        setSearchQuery(prefillLookup || initialFields.vin || "");
+      } else {
+        const key = prefillLookup.replace(/\s/g, "");
+        if (key) runSearchFor(key, prefillPlateState);
+      }
     }
     if (!open && wasOpenRef.current) {
       resetForm();
     }
     wasOpenRef.current = open;
     // eslint-disable-next-line react-hooks/exhaustive-deps -- run once per open/close transition
-  }, [open, initialLookup, initialPlateState]);
+  }, [open, initialLookup, initialPlateState, initialFields]);
 
   useEffect(() => {
     setVehicleForm((prev) => ({ ...prev, plateState: headerPlateState }));

@@ -9,7 +9,6 @@ import { useEffect, useMemo, useState } from "react";
 import Link from "next/link";
 import {
   BarChart3,
-  Car,
   ChevronDown,
   ChevronRight,
   CreditCard,
@@ -453,12 +452,10 @@ function VehicleSpecsRailSection({
   canEdit: boolean;
 }) {
   const ctx = useEstimateLabContextDrawerOptional();
-  const [open, setOpen] = useState(true);
 
   useEffect(() => {
     if (!ctx) return;
     ctx.registerOpenVehicleSpecs(() => {
-      setOpen(true);
       requestAnimationFrame(() => {
         document.getElementById("estimate-lab-vehicle-specs")?.scrollIntoView({
           behavior: "smooth",
@@ -470,22 +467,9 @@ function VehicleSpecsRailSection({
   }, [ctx]);
 
   return (
-    <Collapsible
-      id="estimate-lab-vehicle-specs"
-      open={open}
-      onOpenChange={setOpen}
-      className="border-b border-border last:border-0"
-    >
-      <CollapsibleTrigger className="ro-sidebar-accordion-trigger group flex w-full items-center gap-2 bg-slate-50/80 px-3 py-2.5 text-left text-[13px] font-semibold tracking-tight text-brand-navy">
-        <Car className="ro-sidebar-accordion-icon size-4 shrink-0 text-brand-navy/70" />
-        <span className="min-w-0 flex-1 truncate">Vehicle specs</span>
-        <ChevronRight className="size-4 shrink-0 text-muted-foreground group-data-[state=open]:hidden" />
-        <ChevronDown className="hidden size-4 shrink-0 text-brand-navy group-data-[state=open]:block" />
-      </CollapsibleTrigger>
-      <CollapsibleContent className="ro-sidebar-accordion-content overflow-hidden bg-white p-0">
-        <EstimateLabVehicleSpecsSection data={vehicleSpecs} canEdit={canEdit} />
-      </CollapsibleContent>
-    </Collapsible>
+    <div id="estimate-lab-vehicle-specs" className="border-b border-border last:border-0 bg-white">
+      <EstimateLabVehicleSpecsSection data={vehicleSpecs} canEdit={canEdit} />
+    </div>
   );
 }
 
@@ -771,10 +755,27 @@ export function EstimateLabRightRailLive(
     [ctx.mergedJobs],
   );
 
+  const laborCostCents = useMemo(
+    () =>
+      ctx.mergedJobs.reduce(
+        (sum, j) =>
+          sum +
+          j.laborLines
+            .filter((l) => l.authorized)
+            .reduce(
+              (c, l) =>
+                c + ("costCents" in l && typeof l.costCents === "number" ? l.costCents : 0),
+              0,
+            ),
+        0,
+      ),
+    [ctx.mergedJobs],
+  );
+
   const profitability = useMemo((): EstimateLabProfitability => {
     const laborCents = ctx.totals.laborCents;
     const partsCents = ctx.totals.partsCents;
-    const laborGpCents = laborCents;
+    const laborGpCents = laborCents - laborCostCents;
     const partsGpCents = partsCents - partsCostCents;
 
     return {
@@ -783,7 +784,7 @@ export function EstimateLabRightRailLive(
       gpPerHourCents: laborHours > 0 ? Math.round(ctx.totals.gpCents / laborHours) : null,
       gpGoalCents,
       laborGpCents,
-      laborGpPct: laborCents > 0 ? 100 : null,
+      laborGpPct: laborCents > 0 ? (laborGpCents / laborCents) * 100 : null,
       partsGpCents,
       partsGpPct: partsCents > 0 ? (partsGpCents / partsCents) * 100 : null,
       totalRevenueCents: ctx.totals.totalCents,
@@ -797,6 +798,7 @@ export function EstimateLabRightRailLive(
     ctx.totals.partsCents,
     ctx.totals.totalCents,
     laborHours,
+    laborCostCents,
     partsCostCents,
     gpGoalCents,
   ]);

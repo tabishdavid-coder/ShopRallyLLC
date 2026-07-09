@@ -17,7 +17,6 @@ import { EstimateRoAdjustments } from "@/components/repair-order/estimate-ro-adj
 import { parseApprovalSignature } from "@/lib/approval-signature";
 import { isEstimateEditable } from "@/lib/estimate-editable";
 import { EstimateActionToastProvider } from "@/components/repair-order/estimate-action-toast";
-import { ApprovalSignaturePanel } from "@/components/repair-order/approval-signature-panel";
 import { EstimateLabDisplayProvider } from "@/components/estimate-building/estimate-lab-display-context";
 import { EstimateLabLiveTotalsBar } from "@/components/estimate-building/estimate-lab-live-totals-bar";
 import { EstimateLabToolbar } from "@/components/estimate-building/estimate-lab-toolbar";
@@ -29,6 +28,7 @@ import { EstimateLabRoHeader } from "@/components/estimate-building/estimate-lab
 import { EstimateLabContextDrawerProvider } from "@/components/estimate-building/estimate-lab-context-drawer-provider";
 import { EstimateLabContextDeeplink } from "@/components/estimate-building/estimate-lab-context-deeplink";
 import { EstimateLabContextHeader } from "@/components/estimate-building/estimate-lab-context-header";
+import { EstimateLabOdometerBar } from "@/components/estimate-building/estimate-lab-odometer-bar";
 import { EstimateLabWorkTabs } from "@/components/estimate-building/estimate-lab-work-tabs";
 import { EstimateLabActivityTab } from "@/components/estimate-building/estimate-lab-activity-tab";
 import { EstimateLabInspectionsTab } from "@/components/estimate-building/estimate-lab-inspections-tab";
@@ -361,11 +361,14 @@ export async function EstimateBuildingLabPanel({
         vehicleSpecs={vehicleSpecsBundle}
       />
 
-      {approvalSignature ? (
-        <div className={cn("shrink-0 pt-2", isLab ? "px-4" : "px-3 md:px-4")}>
-          <ApprovalSignaturePanel info={approvalSignature} />
-        </div>
-      ) : null}
+      <EstimateLabOdometerBar
+        roId={ro.id}
+        mileageIn={ro.mileageIn}
+        mileageOut={ro.mileageOut}
+        odometerNotWorking={ro.odometerNotWorking}
+        canEdit={canEdit}
+        reqOdometer={sidebarOptions.reqOdometer}
+      />
 
       {!canEdit && hasJobs ? (
         <div
@@ -442,6 +445,7 @@ export async function EstimateBuildingLabPanel({
                       feeTemplates={allFeeTemplates.map(({ autoApply: _, ...t }) => t)}
                       discountTemplates={discountTemplates}
                       approvedVia={ro.approvedVia}
+                      approvalSignature={approvalSignature}
                       cannedJobCategories={cannedJobCategories}
                       embedded
                       jobsLayout={jobsLayout}

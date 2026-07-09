@@ -5,9 +5,9 @@ import { useRouter } from "next/navigation";
 import {
   AlertCircle,
   ArrowLeft,
-  BookOpen,
   ChevronRight,
   Copy,
+  ListTree,
   Loader2,
   Receipt,
   Search,
@@ -524,7 +524,7 @@ export function QuickLaborGuidePanel({
       >
         <div className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1">
           <div className="flex min-w-0 items-center gap-1.5">
-            <BookOpen className="size-3.5 shrink-0 text-[#00A9FF]" />
+            <ListTree className="size-3.5 shrink-0 text-[#00A9FF]" />
             <h2 className="text-xs font-semibold text-[#1E3A56] sm:text-sm">Labor reference</h2>
           </div>
           <span className="inline-flex items-center gap-1 text-[10px] text-muted-foreground">
@@ -775,7 +775,7 @@ export function QuickLaborGuidePanel({
         {!selectedHit && !request.trim() && !selectedSubcategory && !generating ? (
           embedded ? null : (
             <div className="flex flex-1 flex-col items-center justify-center gap-1.5 p-6 text-center text-sm text-muted-foreground">
-              <BookOpen className="size-6 text-brand-light" />
+              <ListTree className="size-6 text-brand-light" />
               <p className="max-w-sm text-xs">
                 Search for a job or browse by system to see labor hours.
               </p>

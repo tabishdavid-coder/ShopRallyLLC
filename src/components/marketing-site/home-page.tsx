@@ -225,7 +225,7 @@ export function HomePageContent({ foundingSpotsClaimed = 0 }: { foundingSpotsCla
                   DASHBOARD_PLAN_COPY.featuresAllTiers,
                   DVI_PLAN_COPY.featuresAllTiers,
                   LABOR_PLAN_COPY.featuresIgnition,
-                  "Canned jobs & markup matrices on Pro+"
+                  "Canned jobs & markup matrices on Pro+",
                   "PartsTech integration & inventory",
                   "Customer approval links via SMS",
                 ].map((item) => (

@@ -3,8 +3,8 @@
 import { useState, useTransition, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import {
-  BookOpen,
   CalendarClock,
+  ListTree,
   DollarSign,
   Loader2,
   Percent,
@@ -85,7 +85,7 @@ export function EstimateJobLauncher({
       id: "labor-guide",
       label: "Search Labor Book",
       description: "Find flat-rate operations and build a job with labor lines.",
-      icon: <BookOpen className="size-5 text-brand-navy" />,
+      icon: <ListTree className="size-5 text-brand-navy" />,
     },
     {
       id: "canned",

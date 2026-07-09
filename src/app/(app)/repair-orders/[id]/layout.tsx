@@ -3,9 +3,7 @@ import { headers } from "next/headers";
 
 import { getRoSidebarOptions } from "@/server/ro-sidebar-options";
 import { getCustomerTagNames } from "@/server/actions/customer-settings";
-import { getLastTireOrderSize } from "@/server/actions/vehicle-specs";
 import { getRepairOrder } from "@/server/repair-order";
-import { getVehicleMaintenanceMemory } from "@/server/vehicle-maintenance-memory";
 import { getShopId } from "@/lib/shop";
 import { vehicleSpecsView } from "@/lib/vehicle-specs-view";
 import { buildAllowedRoTabSegments, roTabSegmentFromPathname } from "@/lib/crm-access";
@@ -51,14 +49,12 @@ export default async function RepairOrderLayout({
 
   const isEstimateWorkspace = isRoEstimateLikeWorkspacePath(pathname);
 
-  const [sidebarOptions, customerTags, membership, vehicleSpecs, lastTireOrder, maintenanceMemory] =
+  const [sidebarOptions, customerTags, membership, vehicleSpecs] =
     await Promise.all([
       getRoSidebarOptions(shopId),
       getCustomerTagNames(),
       getRoMembershipPanelContext(shopId, ro),
       Promise.resolve(vehicleSpecsView(ro.vehicle)),
-      getLastTireOrderSize(shopId, ro.vehicleId),
-      getVehicleMaintenanceMemory(shopId, ro.vehicleId, { excludeRoId: ro.id }),
     ]);
 
   const approvable =
@@ -156,8 +152,6 @@ export default async function RepairOrderLayout({
               options={sidebarOptions}
               customerTags={customerTags}
               vehicleSpecs={vehicleSpecs}
-              lastTireOrder={lastTireOrder}
-              maintenanceMemory={maintenanceMemory}
             />
             )
           }

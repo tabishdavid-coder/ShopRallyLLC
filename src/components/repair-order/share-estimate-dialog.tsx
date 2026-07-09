@@ -83,7 +83,7 @@ export function ShareEstimateDialog({
   useEffect(() => {
     if (link) {
       setMessage(
-        `Hello ${customerFirstName || "there"}, your estimate from ${shopName} is ready ${link}`,
+        `Hello ${customerFirstName || "there"}, your estimate from ${shopName} is ready. Review the work, acknowledge the shop terms, and approve: ${link}`,
       );
     }
   }, [link, customerFirstName, shopName]);

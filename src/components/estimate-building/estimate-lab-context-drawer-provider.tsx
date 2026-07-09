@@ -70,22 +70,24 @@ export function EstimateLabContextDrawerProvider({
 }: DrawerProviderProps) {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [drawerTab, setDrawerTab] = useState<ContextDrawerTab>("profile");
+  const [autoOpenSpecs, setAutoOpenSpecs] = useState(false);
   const vehicleSpecsOpRef = useMemo(() => ({ current: null as (() => void) | null }), []);
   const messagesOpRef = useMemo(() => ({ current: null as (() => void) | null }), []);
 
-  const openDrawer = useCallback((tab: ContextDrawerTab) => {
+  const openDrawer = useCallback((tab: ContextDrawerTab, opts?: { autoOpenSpecs?: boolean }) => {
     setDrawerTab(tab);
+    setAutoOpenSpecs(Boolean(opts?.autoOpenSpecs));
     setDrawerOpen(true);
   }, []);
 
   const value = useMemo<DrawerContextValue>(
     () => ({
-      openDrawer,
+      openDrawer: (tab) => openDrawer(tab),
       openCustomerHistory: () => openDrawer("orders"),
       openMessages: () => messagesOpRef.current?.(),
       openVehicleSpecs: () => {
         if (vehicleSpecsOpRef.current) vehicleSpecsOpRef.current();
-        else openDrawer("vehicles");
+        else openDrawer("vehicles", { autoOpenSpecs: true });
       },
       registerOpenVehicleSpecs: (fn) => {
         vehicleSpecsOpRef.current = fn;
@@ -102,9 +104,15 @@ export function EstimateLabContextDrawerProvider({
       {children}
       <EstimateLabContextDrawer
         open={drawerOpen}
-        onOpenChange={setDrawerOpen}
+        onOpenChange={(next) => {
+          setDrawerOpen(next);
+          if (!next) setAutoOpenSpecs(false);
+        }}
         tab={drawerTab}
-        onTabChange={setDrawerTab}
+        onTabChange={(tab) => {
+          setDrawerTab(tab);
+          if (tab !== "vehicles") setAutoOpenSpecs(false);
+        }}
         customer={customer}
         customerId={customerId}
         vehicle={vehicle}
@@ -118,6 +126,7 @@ export function EstimateLabContextDrawerProvider({
         paymentData={paymentData}
         appointmentEmployees={appointmentEmployees}
         defaultAppointmentDurationMins={defaultAppointmentDurationMins}
+        autoOpenSpecs={autoOpenSpecs}
       />
     </EstimateLabContextDrawerContext.Provider>
   );

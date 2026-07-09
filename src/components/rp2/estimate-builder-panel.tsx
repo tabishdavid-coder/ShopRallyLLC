@@ -19,7 +19,6 @@ import { parseApprovalSignature } from "@/lib/approval-signature";
 import { isEstimateEditable } from "@/lib/estimate-editable";
 import { EstimateActionToastProvider } from "@/components/repair-order/estimate-action-toast";
 import { EstimateLaborGuideShell } from "@/components/estimate-building/estimate-labor-guide-shell";
-import { ApprovalSignaturePanel } from "@/components/repair-order/approval-signature-panel";
 import { EstimateWorkflowSummary } from "@/components/rp2/estimate-workflow-summary";
 import { RO_STATUS_PILL } from "@/lib/ro-status";
 import { Badge } from "@/components/ui/badge";
@@ -157,6 +156,7 @@ export async function EstimateBuilderPanel({ roId }: { roId: string }) {
                 fees={ro.fees}
                 discounts={ro.discounts}
                 approvedVia={ro.approvedVia}
+                approvalSignature={approvalSignature}
                 cannedJobCategories={cannedJobCategories}
                 embedded
               />
@@ -245,12 +245,6 @@ export async function EstimateBuilderPanel({ roId }: { roId: string }) {
             ) : null}
           </div>
         </div>
-
-        {approvalSignature ? (
-          <div className="shrink-0 px-4 pt-2">
-            <ApprovalSignaturePanel info={approvalSignature} />
-          </div>
-        ) : null}
 
         {!canEdit && hasJobs ? (
           <div className="mx-4 mt-2 shrink-0 rounded-lg border border-border bg-muted/30 px-3 py-1.5 text-xs text-muted-foreground">

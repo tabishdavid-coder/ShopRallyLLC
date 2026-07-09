@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -15,6 +15,7 @@ import {
   Loader2,
   Plus,
   Receipt,
+  Search,
   Shield,
   Tag,
 } from "lucide-react";
@@ -31,6 +32,14 @@ import {
 } from "@/components/customers/customer-form-shared";
 import { CrmFormField } from "@/components/crm/crm-form-field";
 import { AddVehicleDialog } from "@/components/vehicles/add-vehicle-dialog";
+import {
+  US_STATE_CODES,
+  US_STATE_NAMES,
+} from "@/components/vehicles/create-vehicle-form";
+import {
+  usePlateVinLookup,
+  type VehicleLookupFields,
+} from "@/components/vehicles/use-plate-vin-lookup";
 import { NewAppointmentDialog } from "@/components/appointments/new-appointment-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -337,34 +346,65 @@ function VehicleAccordionCard({
   customerId,
   currentRoVehicleId,
   roId,
+  roMileageIn = null,
+  roOdometerNotWorking = false,
   preloadedSpecs,
   canEdit,
+  autoOpenSpecs = false,
   onSaved,
 }: {
   vehicle: EstimateContextDrawerVehicle;
   customerId: string;
   currentRoVehicleId: string | null;
   roId?: string;
+  roMileageIn?: number | null;
+  roOdometerNotWorking?: boolean;
   preloadedSpecs: EstimateLabVehicleSpecsBundle | null;
   canEdit: boolean;
+  autoOpenSpecs?: boolean;
   onSaved: () => void;
 }) {
-  const [open, setOpen] = useState(vehicle.id === currentRoVehicleId);
+  const [open, setOpen] = useState(vehicle.id === currentRoVehicleId || autoOpenSpecs);
   const [specsOpen, setSpecsOpen] = useState(false);
   const [specsData, setSpecsData] = useState<EstimateLabVehicleSpecsBundle | null>(
     vehicle.id === currentRoVehicleId ? preloadedSpecs : null,
   );
   const [specsError, setSpecsError] = useState<string | null>(null);
+  const autoSpecsRequested = useRef(false);
   const [vin, setVin] = useState(vehicle.vin ?? "");
   const [year, setYear] = useState(vehicle.year != null ? String(vehicle.year) : "");
   const [make, setMake] = useState(vehicle.make ?? "");
   const [model, setModel] = useState(vehicle.model ?? "");
   const [trim, setTrim] = useState(vehicle.trim ?? "");
   const [plate, setPlate] = useState(vehicle.plate ?? "");
-  const [plateState, setPlateState] = useState(vehicle.plateState ?? "");
+  const [plateState, setPlateState] = useState(vehicle.plateState ?? "NY");
+  const [engine, setEngine] = useState(vehicle.engine ?? "");
+  const [transmission, setTransmission] = useState(vehicle.transmission ?? "");
+  const [drivetrain, setDrivetrain] = useState(vehicle.drivetrain ?? "");
+  const [bodyClass, setBodyClass] = useState(vehicle.bodyClass ?? "");
+  const [decodedData, setDecodedData] = useState<unknown | undefined>(undefined);
+  const [saveError, setSaveError] = useState<string | null>(null);
   const [pending, start] = useTransition();
   const [specsPending, startSpecs] = useTransition();
-  const title = vehicleTitle(vehicle);
+  const {
+    pending: lookupPending,
+    error: lookupError,
+    note: lookupNote,
+    clearMessages,
+    lookupByPlate,
+    lookupByVin,
+  } = usePlateVinLookup();
+  const title = vehicleTitle({
+    ...vehicle,
+    year: year.trim() ? Number(year) : null,
+    make: make || null,
+    model: model || null,
+    trim: trim || null,
+  });
+  const vinNormalized = vin.trim().replace(/\s/g, "").toUpperCase();
+  const canDecodeVin = vinNormalized.length === 17;
+  const canLookupPlate = plate.trim().length > 0;
+  const busy = pending || lookupPending;
 
   useEffect(() => {
     setVin(vehicle.vin ?? "");
@@ -373,14 +413,105 @@ function VehicleAccordionCard({
     setModel(vehicle.model ?? "");
     setTrim(vehicle.trim ?? "");
     setPlate(vehicle.plate ?? "");
-    setPlateState(vehicle.plateState ?? "");
-  }, [vehicle]);
+    setPlateState(vehicle.plateState ?? "NY");
+    setEngine(vehicle.engine ?? "");
+    setTransmission(vehicle.transmission ?? "");
+    setDrivetrain(vehicle.drivetrain ?? "");
+    setBodyClass(vehicle.bodyClass ?? "");
+    setDecodedData(undefined);
+    setSaveError(null);
+    clearMessages();
+  }, [vehicle, clearMessages]);
 
   useEffect(() => {
     if (vehicle.id === currentRoVehicleId && preloadedSpecs) {
       setSpecsData(preloadedSpecs);
     }
   }, [vehicle.id, currentRoVehicleId, preloadedSpecs]);
+
+  useEffect(() => {
+    if (!autoOpenSpecs) {
+      autoSpecsRequested.current = false;
+      return;
+    }
+    if (autoSpecsRequested.current) return;
+    if (currentRoVehicleId && vehicle.id !== currentRoVehicleId) return;
+    autoSpecsRequested.current = true;
+    setOpen(true);
+    if (specsData || preloadedSpecs) {
+      if (preloadedSpecs && !specsData) setSpecsData(preloadedSpecs);
+      setSpecsOpen(true);
+      return;
+    }
+    setSpecsError(null);
+    startSpecs(async () => {
+      const res = await fetchVehicleSpecsBundle(vehicle.id, {
+        excludeRoId: vehicle.id === currentRoVehicleId && roId ? roId : undefined,
+      });
+      if (res.ok) {
+        setSpecsData(res.data);
+        setSpecsOpen(true);
+      } else {
+        setSpecsError(res.error);
+      }
+    });
+  }, [
+    autoOpenSpecs,
+    currentRoVehicleId,
+    preloadedSpecs,
+    roId,
+    specsData,
+    vehicle.id,
+  ]);
+
+  function currentLookupFields(): VehicleLookupFields {
+    return {
+      vin,
+      year: year.trim() ? Number(year) : null,
+      make: make || null,
+      model: model || null,
+      trim: trim || null,
+      engine: engine || null,
+      transmission: transmission || null,
+      drivetrain: drivetrain || null,
+      bodyClass: bodyClass || null,
+      decodedData,
+    };
+  }
+
+  function applyLookup(fields: VehicleLookupFields, resolvedVin: string | null) {
+    if (resolvedVin) setVin(resolvedVin);
+    if (fields.year != null) setYear(String(fields.year));
+    if (fields.make) setMake(fields.make);
+    if (fields.model) setModel(fields.model);
+    if (fields.trim) setTrim(fields.trim);
+    if (fields.engine) setEngine(fields.engine);
+    if (fields.transmission) setTransmission(fields.transmission);
+    if (fields.drivetrain) setDrivetrain(fields.drivetrain);
+    if (fields.bodyClass) setBodyClass(fields.bodyClass);
+    if (fields.decodedData !== undefined) setDecodedData(fields.decodedData);
+  }
+
+  function runVinDecode(raw?: string) {
+    if (!canEdit) return;
+    lookupByVin(
+      raw ?? vin,
+      currentLookupFields(),
+      ({ vin: resolvedVin, fields }) => applyLookup(fields, resolvedVin),
+      { overwrite: true },
+    );
+  }
+
+  function runPlateLookup() {
+    if (!canEdit) return;
+    lookupByPlate(
+      plateState,
+      plate,
+      currentLookupFields(),
+      ({ vin: resolvedVin, fields }) => applyLookup(fields, resolvedVin),
+      { overwrite: true },
+    );
+  }
 
   function toggleSpecs() {
     if (specsOpen) {
@@ -407,9 +538,10 @@ function VehicleAccordionCard({
 
   function save() {
     if (!canEdit) return;
+    setSaveError(null);
     start(async () => {
       const parsedYear = year.trim() ? Number(year) : null;
-      await updateVehicle({
+      const res = await updateVehicle({
         id: vehicle.id,
         customerId,
         vin: vin.trim() ? vin.trim().toUpperCase() : undefined,
@@ -418,17 +550,23 @@ function VehicleAccordionCard({
         model: model.trim() || undefined,
         trim: trim.trim() || undefined,
         plate: plate.trim() || undefined,
-        plateState: plateState.trim() || undefined,
+        plateState: plate.trim() ? plateState.trim() || undefined : undefined,
         unitNumber: vehicle.unitNumber,
         notes: vehicle.notes,
-        engine: vehicle.engine,
-        transmission: vehicle.transmission,
-        drivetrain: vehicle.drivetrain,
-        bodyClass: vehicle.bodyClass,
+        engine: engine.trim() || null,
+        transmission: transmission.trim() || null,
+        drivetrain: drivetrain.trim() || null,
+        bodyClass: bodyClass.trim() || null,
         tireSizeFront: null,
         tireSizeRear: null,
+        decodedData,
       });
-      onSaved();
+      if (res.ok) {
+        clearMessages();
+        onSaved();
+      } else {
+        setSaveError(res.error);
+      }
     });
   }
 
@@ -440,6 +578,8 @@ function VehicleAccordionCard({
       /* ignore */
     }
   }
+
+  const displayError = saveError ?? lookupError;
 
   return (
     <div className="overflow-hidden rounded-lg border border-border/80 bg-white shadow-sm">
@@ -458,6 +598,13 @@ function VehicleAccordionCard({
         ) : null}
         {vehicle.id === currentRoVehicleId ? (
           <Badge className="shrink-0 bg-brand-navy/10 text-[10px] text-brand-navy hover:bg-brand-navy/10">On RO</Badge>
+        ) : null}
+        {vehicle.id === currentRoVehicleId && (roOdometerNotWorking || roMileageIn != null) ? (
+          <span className="shrink-0 text-[10px] tabular-nums text-muted-foreground">
+            {roOdometerNotWorking
+              ? "Odo N/W"
+              : `${roMileageIn!.toLocaleString("en-US")} mi`}
+          </span>
         ) : null}
       </button>
 
@@ -509,18 +656,18 @@ function VehicleAccordionCard({
 
           <div className="grid grid-cols-4 gap-3">
             <CrmFormField label="Year">
-              <Input value={year} onChange={(e) => setYear(e.target.value.replace(/\D/g, "").slice(0, 4))} disabled={!canEdit || pending} className={DRAWER_FIELD} />
+              <Input value={year} onChange={(e) => setYear(e.target.value.replace(/\D/g, "").slice(0, 4))} disabled={!canEdit || busy} className={DRAWER_FIELD} />
             </CrmFormField>
             <CrmFormField label="Make">
-              <Input value={make} onChange={(e) => setMake(e.target.value)} disabled={!canEdit || pending} className={DRAWER_FIELD} />
+              <Input value={make} onChange={(e) => setMake(e.target.value)} disabled={!canEdit || busy} className={DRAWER_FIELD} />
             </CrmFormField>
             <CrmFormField label="Model" className="col-span-2">
-              <Input value={model} onChange={(e) => setModel(e.target.value)} disabled={!canEdit || pending} className={DRAWER_FIELD} />
+              <Input value={model} onChange={(e) => setModel(e.target.value)} disabled={!canEdit || busy} className={DRAWER_FIELD} />
             </CrmFormField>
           </div>
 
           <CrmFormField label="Trim">
-            <Input value={trim} onChange={(e) => setTrim(e.target.value)} disabled={!canEdit || pending} className={DRAWER_FIELD} />
+            <Input value={trim} onChange={(e) => setTrim(e.target.value)} disabled={!canEdit || busy} className={DRAWER_FIELD} />
           </CrmFormField>
 
           <CrmFormField label="Vehicle name (customer-facing)">
@@ -529,25 +676,104 @@ function VehicleAccordionCard({
 
           <div className="flex items-end gap-2">
             <CrmFormField label="VIN" className="min-w-0 flex-1">
-              <Input value={vin} onChange={(e) => setVin(e.target.value.toUpperCase())} disabled={!canEdit || pending} className={cn(DRAWER_FIELD, "font-mono text-xs")} />
+              <Input
+                value={vin}
+                onChange={(e) => {
+                  setVin(e.target.value.toUpperCase());
+                  clearMessages();
+                  setSaveError(null);
+                }}
+                onBlur={() => {
+                  if (canEdit && canDecodeVin) runVinDecode(vin);
+                }}
+                maxLength={17}
+                placeholder="17-character VIN"
+                disabled={!canEdit || busy}
+                className={cn(DRAWER_FIELD, "font-mono text-xs uppercase")}
+              />
             </CrmFormField>
+            {canEdit && canDecodeVin ? (
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="mb-0.5 h-8 shrink-0 border-brand-navy/25 text-brand-navy hover:bg-brand-navy/[0.04]"
+                disabled={busy}
+                onClick={() => runVinDecode()}
+              >
+                {lookupPending ? <Loader2 className="size-3.5 animate-spin" /> : "Decode"}
+              </Button>
+            ) : null}
             <Button type="button" variant="outline" size="icon-sm" className="mb-0.5 shrink-0" onClick={copyVin} disabled={!vin} aria-label="Copy VIN">
               <Copy className="size-3.5" />
             </Button>
           </div>
 
-          <div className="grid grid-cols-2 gap-3">
+          <div className="grid grid-cols-[1fr_88px] gap-3">
             <CrmFormField label="License plate">
-              <Input value={plate} onChange={(e) => setPlate(e.target.value.toUpperCase())} disabled={!canEdit || pending} className={DRAWER_FIELD} />
+              <Input
+                value={plate}
+                onChange={(e) => {
+                  setPlate(e.target.value.toUpperCase());
+                  clearMessages();
+                  setSaveError(null);
+                }}
+                placeholder="e.g. ABC1234"
+                disabled={!canEdit || busy}
+                className={cn(DRAWER_FIELD, "font-mono uppercase")}
+              />
             </CrmFormField>
-            <CrmFormField label="Registration state">
-              <Input value={plateState} onChange={(e) => setPlateState(e.target.value.toUpperCase())} disabled={!canEdit || pending} className={DRAWER_FIELD} />
+            <CrmFormField label="State">
+              <Select
+                value={plateState || "NY"}
+                onValueChange={(v) => {
+                  setPlateState(v);
+                  clearMessages();
+                }}
+                disabled={!canEdit || busy}
+              >
+                <SelectTrigger className={DRAWER_FIELD}>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {US_STATE_CODES.map((s) => (
+                    <SelectItem key={s} value={s}>
+                      {US_STATE_NAMES[s] ?? s}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </CrmFormField>
           </div>
 
+          {canEdit && canLookupPlate ? (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="h-8 gap-1.5 border-brand-navy/25 text-brand-navy hover:bg-brand-navy/[0.04]"
+              disabled={busy}
+              onClick={runPlateLookup}
+            >
+              {lookupPending ? (
+                <Loader2 className="size-3.5 animate-spin" />
+              ) : (
+                <Search className="size-3.5" />
+              )}
+              Look up VIN
+            </Button>
+          ) : null}
+
+          {lookupNote ? (
+            <p className="text-xs text-emerald-700">{lookupNote}</p>
+          ) : null}
+          {displayError ? (
+            <p className="text-xs text-brand-red">{displayError}</p>
+          ) : null}
+
           {canEdit ? (
             <div className="flex justify-end pt-1">
-              <Button type="button" className="bg-brand-navy hover:bg-brand-navy/90" disabled={pending} onClick={save}>
+              <Button type="button" className="bg-brand-navy hover:bg-brand-navy/90" disabled={busy} onClick={save}>
                 {pending ? <Loader2 className="size-4 animate-spin" /> : "Update"}
               </Button>
             </div>
@@ -564,8 +790,11 @@ export function DrawerVehiclesTab({
   customerName,
   currentRoVehicleId,
   roId,
+  roMileageIn = null,
+  roOdometerNotWorking = false,
   vehicleSpecs,
   canEdit,
+  autoOpenSpecs = false,
   onSaved,
 }: {
   vehicles: EstimateContextDrawerVehicle[];
@@ -573,8 +802,12 @@ export function DrawerVehiclesTab({
   customerName: string;
   currentRoVehicleId: string | null;
   roId?: string;
+  /** Current RO odometer in — shown on the vehicle marked On RO. */
+  roMileageIn?: number | null;
+  roOdometerNotWorking?: boolean;
   vehicleSpecs: EstimateLabVehicleSpecsBundle | null;
   canEdit: boolean;
+  autoOpenSpecs?: boolean;
   onSaved: () => void;
 }) {
   return (
@@ -603,10 +836,16 @@ export function DrawerVehiclesTab({
             customerId={customerId}
             currentRoVehicleId={currentRoVehicleId}
             roId={roId}
+            roMileageIn={v.id === currentRoVehicleId ? roMileageIn : null}
+            roOdometerNotWorking={v.id === currentRoVehicleId ? roOdometerNotWorking : false}
             preloadedSpecs={
               v.id === currentRoVehicleId && vehicleSpecs?.vehicleId === v.id ? vehicleSpecs : null
             }
             canEdit={canEdit}
+            autoOpenSpecs={
+              autoOpenSpecs &&
+              (!currentRoVehicleId || v.id === currentRoVehicleId)
+            }
             onSaved={onSaved}
           />
         ))

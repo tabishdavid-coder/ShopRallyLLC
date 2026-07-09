@@ -7,7 +7,7 @@ import { prisma } from "@/db/client";
  * of the app only sees our own models (project convention).
  *
  * Credential model:
- *  - Platform env: PARTSTECH_PARTNER_ID (ShopRally SMS partner ID)
+ *  - Platform env: PARTSTECH_PARTNER_ID (ShopRally PartsTech partner ID)
  *  - Per shop (ShopIntegration): username + apiKey (+ optional partnerId override)
  *
  * Live when partner + user + key resolve from shop config and/or env; else mock.

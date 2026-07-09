@@ -32,6 +32,7 @@ export type JobEditDraft = {
   laborLines: {
     id?: string;
     hours: number;
+    costCents?: number;
     rateCents: number;
     totalCents?: number;
     lastField?: "hours" | "rate" | "total";
@@ -139,6 +140,32 @@ export function EstimateSelectionProvider({
     [mergedJobs, drafts],
   );
 
+  const laborCostCents = useMemo(
+    () =>
+      mergedJobs.reduce((s, j) => {
+        const draft = drafts[j.id];
+        if (draft) {
+          return (
+            s +
+            draft.laborLines
+              .filter((l) => l.authorized !== false)
+              .reduce((x, l) => x + (l.costCents ?? 0), 0)
+          );
+        }
+        return (
+          s +
+          j.laborLines
+            .filter((l) => l.authorized)
+            .reduce(
+              (x, l) =>
+                x + ("costCents" in l && typeof l.costCents === "number" ? l.costCents : 0),
+              0,
+            )
+        );
+      }, 0),
+    [mergedJobs, drafts],
+  );
+
   const totals = useMemo(
     () =>
       computeRoTotals(
@@ -190,6 +217,7 @@ export function EstimateSelectionProvider({
           })),
         },
         partsCostCents,
+        laborCostCents,
       ),
     [
       mergedJobs,
@@ -202,6 +230,7 @@ export function EstimateSelectionProvider({
       taxOnFees,
       taxCapCents,
       partsCostCents,
+      laborCostCents,
       drafts,
       selection,
     ],

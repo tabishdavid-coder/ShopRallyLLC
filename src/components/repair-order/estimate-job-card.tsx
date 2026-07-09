@@ -15,9 +15,8 @@ import {
   Wand2,
   CheckCircle2,
   Info,
-  BookOpen,
+  ListTree,
   Wrench,
-  Calculator,
   FolderPlus,
   MoreVertical,
   Save,
@@ -29,6 +28,10 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Badge } from "@/components/ui/badge";
+import {
+  ApprovalSignatureBadge,
+  type ApprovalSignatureInfo,
+} from "@/components/repair-order/approval-signature-panel";
 import { formatCents } from "@/lib/format";
 import { jobAuthState } from "@/lib/ro-totals";
 import {
@@ -99,6 +102,8 @@ type LaborRow = {
   id?: string;
   description: string;
   hours: number;
+  /** Shop cost for this labor line (cents) — independent of customer rate. */
+  costCents: number;
   rateCents: number;
   totalCents?: number;
   lastField?: "hours" | "rate" | "total";
@@ -107,12 +112,20 @@ type LaborRow = {
   authorized?: boolean;
   sortOrder?: number;
 };
+
+/** Display labor hours as a clean decimal (e.g. 0.8, 1.5) — avoid float noise / clipping. */
+function formatLaborHours(hours: number): string {
+  if (!Number.isFinite(hours) || hours === 0) return "";
+  return String(parseFloat(hours.toFixed(3)));
+}
 type PartFamilyType = Exclude<InlineLineType, "labor" | "fee" | "discount">;
 
 type PartRow = {
   id?: string;
   brand: string;
   description: string;
+  /** Extra notes under the part — stored as description line 2+ (no PartLine.details column). */
+  details: string;
   partNumber: string;
   quantity: number;
   costCents: number;
@@ -126,6 +139,20 @@ type PartRow = {
   /** Inline type picker — Part, Tire, Sublet, Hazardous, Other (UI until persisted). */
   lineType?: "part" | "tire" | "sublet" | "hazardous" | "other";
 };
+
+/** Split persisted description into name + additional details (newline-separated). */
+function splitPartDesc(full: string): { description: string; details: string } {
+  const i = full.indexOf("\n");
+  if (i < 0) return { description: full, details: "" };
+  return { description: full.slice(0, i), details: full.slice(i + 1) };
+}
+
+function joinPartDesc(description: string, details: string): string {
+  const d = description.trimEnd();
+  const extra = details.trim();
+  if (!extra) return d;
+  return d ? `${d}\n${extra}` : extra;
+}
 
 const TEKMETRIC_PART_TYPES: PartFamilyType[] = PART_FAMILY_LINE_TYPES.filter(
   (t): t is PartFamilyType => t !== "other",
@@ -144,12 +171,16 @@ const LAB_LINE_ACTION =
  * (and remove) align vertically. Parts has Cost; Labor uses an empty spacer of the same width.
  */
 const COL_GRIP = "w-8";
-const COL_TYPE = "w-[7.5rem]";
-const COL_QTY = "w-16";
+/** Wide enough for Labor Book / Part triggers (icon + label + chevron) without clipping. */
+const COL_TYPE = "w-[9rem]";
+/** Hours / Qty — wide enough for decimals like 0.80 without clipping. */
+const COL_QTY = "w-[4.5rem]";
 const COL_COST = "w-28";
 const COL_RATE = "w-28";
 const COL_TOTAL = "w-28";
-const COL_REMOVE = "w-7";
+/** Shared Labor/Parts remove column — fixed width so X buttons stack vertically. */
+const COL_REMOVE = "w-8";
+const REMOVE_CELL = cn(COL_REMOVE, "px-1 text-center align-middle");
 
 function MatrixStatusPill({
   label,
@@ -233,6 +264,7 @@ function newLaborRow(baseRateCents: number, laborTiers: LaborTier[]): LaborRow {
   const base: LaborRow = {
     description: "",
     hours: 0,
+    costCents: 0,
     rateCents: baseRateCents,
   };
   if (laborTiers.length > 0) {
@@ -245,6 +277,7 @@ function newPartRow(partTiers: PartTier[]): PartRow {
   const base: PartRow = {
     brand: "",
     description: "",
+    details: "",
     partNumber: "",
     quantity: 1,
     costCents: 0,
@@ -285,11 +318,12 @@ function totals(labor: LaborRow[], parts: PartRow[], taxBps: number) {
   const activeParts = parts.filter((p) => p.authorized !== false);
   const laborTotal = activeLabor.reduce((s, l) => s + laborLineTotal(l), 0);
   const partsTotal = activeParts.reduce((s, p) => s + partLineTotal(p), 0);
+  const laborCost = activeLabor.reduce((s, l) => s + l.costCents, 0);
   const partsCost = activeParts.reduce((s, p) => s + p.costCents * p.quantity, 0);
   const subtotal = laborTotal + partsTotal;
   const laborTax = Math.round((laborTotal * taxBps) / 10000);
   const partsTax = Math.round((partsTotal * taxBps) / 10000);
-  const gp = laborTotal + (partsTotal - partsCost);
+  const gp = laborTotal - laborCost + (partsTotal - partsCost);
   const hours = activeLabor.reduce((s, l) => s + l.hours, 0);
   return {
     laborTotal,
@@ -316,6 +350,7 @@ export function EstimateJobCard({
   technicians = [],
   roId,
   customerApproved = false,
+  approvalSignature = null,
   jobFees = [],
   jobDiscounts = [],
   feeTemplates = [],
@@ -342,6 +377,8 @@ export function EstimateJobCard({
   technicians?: Technician[];
   roId: string;
   customerApproved?: boolean;
+  /** When set, Approved badge opens signature / terms details. */
+  approvalSignature?: ApprovalSignatureInfo | null;
   jobFees?: JobAdj[];
   jobDiscounts?: JobAdj[];
   feeTemplates?: AdjustTemplate[];
@@ -391,6 +428,24 @@ export function EstimateJobCard({
   const labAutoSaveSkip = useRef(true);
 
   const isLab = variant === "lab";
+
+  function renderApprovedBadge(extraClassName?: string) {
+    if (!customerApproved) return null;
+    if (approvalSignature) {
+      return <ApprovalSignatureBadge info={approvalSignature} className={extraClassName} />;
+    }
+    return (
+      <Badge
+        className={cn(
+          "gap-1 bg-emerald-600 text-[10px] text-white hover:bg-emerald-600",
+          extraClassName,
+        )}
+      >
+        <CheckCircle2 className="size-3" /> Approved
+      </Badge>
+    );
+  }
+
   /** Tekmetric tables — stronger dividers so each job card reads clearly on slate canvas. */
   const jobEdge = isLab ? "border-slate-300" : "border-slate-400/75";
   const jobDivider = isLab ? "border-border/70" : "border-slate-300";
@@ -406,6 +461,7 @@ export function EstimateJobCard({
     id: l.id,
     description: l.description,
     hours: l.hours,
+    costCents: "costCents" in l && typeof l.costCents === "number" ? l.costCents : 0,
     rateCents: l.rateCents,
     authorized: l.authorized,
     technicianId: l.technicianId,
@@ -416,23 +472,27 @@ export function EstimateJobCard({
       laborTiers,
     ),
   }));
-  const initialParts: PartRow[] = job.partLines.map((p, i) => ({
-    id: p.id,
-    brand: p.brand ?? "",
-    description: p.description,
-    partNumber: p.partNumber ?? "",
-    quantity: p.quantity,
-    costCents: p.costCents,
-    retailCents: p.retailCents,
-    source: p.source,
-    authorized: p.authorized,
-    sortOrder: p.sortOrder ?? i + initialLabor.length,
-    lineType: "part",
-    usePartMatrix: inferPartMatrixMode(
-      { costCents: p.costCents, retailCents: p.retailCents },
-      partTiers,
-    ),
-  }));
+  const initialParts: PartRow[] = job.partLines.map((p, i) => {
+    const { description, details } = splitPartDesc(p.description);
+    return {
+      id: p.id,
+      brand: p.brand ?? "",
+      description,
+      details,
+      partNumber: p.partNumber ?? "",
+      quantity: p.quantity,
+      costCents: p.costCents,
+      retailCents: p.retailCents,
+      source: p.source,
+      authorized: p.authorized,
+      sortOrder: p.sortOrder ?? i + initialLabor.length,
+      lineType: "part",
+      usePartMatrix: inferPartMatrixMode(
+        { costCents: p.costCents, retailCents: p.retailCents },
+        partTiers,
+      ),
+    };
+  });
 
   const [name, setName] = useState(job.name);
   const [note, setNote] = useState(job.note ?? "");
@@ -471,6 +531,7 @@ export function EstimateJobCard({
         laborLines: labor.map((l) => ({
           id: l.id,
           hours: l.hours,
+          costCents: l.costCents,
           rateCents: l.rateCents,
           totalCents: l.totalCents,
           lastField: l.lastField,
@@ -551,6 +612,7 @@ export function EstimateJobCard({
         // back to the job name so the field never renders blank.
         description: line.description.trim() || job.name,
         hours: line.hours,
+        costCents: 0,
         rateCents: baseRateCents,
       };
       if (laborTiers.length > 0) {
@@ -659,13 +721,14 @@ export function EstimateJobCard({
           id: l.id,
           description: l.description,
           hours: l.hours,
+          costCents: l.costCents,
           rateCents: l.rateCents,
           technicianId: l.technicianId ?? null,
         })),
         partLines: parts.map((p) => ({
           id: p.id,
           brand: p.brand || null,
-          description: p.description,
+          description: joinPartDesc(p.description, p.details),
           partNumber: p.partNumber || null,
           quantity: p.quantity,
           costCents: p.costCents,
@@ -700,13 +763,14 @@ export function EstimateJobCard({
           id: l.id,
           description: l.description,
           hours: l.hours,
+          costCents: l.costCents,
           rateCents: l.rateCents,
           technicianId: l.technicianId ?? null,
         })),
         partLines: parts.map((p) => ({
           id: p.id,
           brand: p.brand || null,
-          description: p.description,
+          description: joinPartDesc(p.description, p.details),
           partNumber: p.partNumber || null,
           quantity: p.quantity,
           costCents: p.costCents,
@@ -855,9 +919,7 @@ export function EstimateJobCard({
             <span className="min-w-0 flex-1 truncate font-semibold text-foreground">{job.name}</span>
             {variant === "lab" ? (
               customerApproved ? (
-                <Badge className="gap-1 bg-emerald-600 text-[10px] text-white hover:bg-emerald-600">
-                  <CheckCircle2 className="size-3" /> Approved
-                </Badge>
+                renderApprovedBadge()
               ) : job.authorized ? (
                 <Badge variant="outline" className="border-emerald-500/50 bg-emerald-50 text-[10px] text-emerald-800">
                   Authorized
@@ -868,11 +930,7 @@ export function EstimateJobCard({
                 </Badge>
               )
             ) : null}
-            {variant !== "lab" && customerApproved ? (
-              <Badge className="gap-1 bg-emerald-600 text-[10px] text-white hover:bg-emerald-600">
-                <CheckCircle2 className="size-3" /> Approved
-              </Badge>
-            ) : null}
+            {variant !== "lab" ? renderApprovedBadge() : null}
             <div className="ml-auto flex shrink-0 items-center gap-1">
               {canEdit ? (
                 <>
@@ -991,9 +1049,7 @@ export function EstimateJobCard({
               placeholder="Job name"
             />
             {customerApproved ? (
-              <Badge className="hidden gap-1 bg-emerald-600 text-[10px] text-white hover:bg-emerald-600 sm:inline-flex">
-                <CheckCircle2 className="size-3" /> Approved
-              </Badge>
+              renderApprovedBadge("hidden sm:inline-flex")
             ) : job.authorized ? (
               <Badge variant="outline" className="hidden border-emerald-500/50 bg-emerald-50 text-[10px] text-emerald-800 sm:inline-flex">
                 Authorized
@@ -1138,11 +1194,10 @@ export function EstimateJobCard({
                 {editing ? <th className={cn(COL_TYPE, "text-left font-medium", cellPad)}>Type</th> : null}
                 <th className={cn(cellPad, "text-left font-medium")}>Labor</th>
                 <th className={cn(COL_QTY, "text-right font-medium", cellPad)}>Hours</th>
-                {/* Spacer matches Parts Cost so Rate/Total/X align with Retail/Total/X */}
-                <th className={cn(COL_COST, cellPad)} aria-hidden />
+                <th className={cn(COL_COST, "text-right font-medium", cellPad)}>Cost</th>
                 <th className={cn(COL_RATE, "text-right font-medium", cellPad)}>Rate</th>
                 <th className={cn(COL_TOTAL, "text-right font-medium", cellPad)}>Total</th>
-                {editing ? <th className={COL_REMOVE} /> : null}
+                {editing ? <th className={cn(COL_REMOVE, cellPad)} /> : null}
               </tr>
             </thead>
             <tbody>
@@ -1191,8 +1246,8 @@ export function EstimateJobCard({
                       <Input
                         type="text"
                         inputMode="decimal"
-                        value={draftValue(fieldDrafts, `l${i}-hours`, l.hours ? String(l.hours) : "")}
-                        onFocus={() => focusFieldDraft(`l${i}-hours`, l.hours ? String(l.hours) : "")}
+                        value={draftValue(fieldDrafts, `l${i}-hours`, formatLaborHours(l.hours))}
+                        onFocus={() => focusFieldDraft(`l${i}-hours`, formatLaborHours(l.hours))}
                         onChange={(e) => {
                           const v = e.target.value;
                           if (!isDecimalInput(v)) return;
@@ -1212,15 +1267,58 @@ export function EstimateJobCard({
                           );
                           clearFieldDraft(key);
                         }}
-                        className="h-8 w-full min-w-0 text-right"
+                        className="h-8 w-full min-w-0 text-right tabular-nums"
+                        aria-label="Labor hours"
                       />
                     ) : (
-                      <span className={l.authorized === false ? "text-foreground/45 line-through" : undefined}>
-                        {l.hours.toFixed(2)}
+                      <span
+                        className={cn(
+                          "inline-block w-full text-right tabular-nums",
+                          l.authorized === false ? "text-foreground/45 line-through" : undefined,
+                        )}
+                      >
+                        {l.hours ? formatLaborHours(l.hours) : "0"}
                       </span>
                     )}
                   </td>
-                  <td className="px-3 py-1.5" aria-hidden />
+                  <td
+                    className={cn(
+                      "px-3 py-1.5 text-right tabular-nums",
+                      l.authorized === false && !editing ? "text-foreground/45 line-through" : "",
+                    )}
+                  >
+                    {editing ? (
+                      <Input
+                        type="text"
+                        inputMode="decimal"
+                        value={draftValue(fieldDrafts, `l${i}-cost`, dollars(l.costCents))}
+                        onFocus={() => focusFieldDraft(`l${i}-cost`, dollars(l.costCents))}
+                        onChange={(e) => {
+                          const v = e.target.value;
+                          if (!isDecimalInput(v)) return;
+                          setFieldDraft(`l${i}-cost`, v);
+                          const cents = parseOptionalCents(v);
+                          if (cents !== null) {
+                            setLabor((rows) =>
+                              rows.map((r, j) => (j === i ? { ...r, costCents: cents } : r)),
+                            );
+                          }
+                        }}
+                        onBlur={(e) => {
+                          const key = `l${i}-cost`;
+                          const cents = parseOptionalCents(e.target.value) ?? 0;
+                          setLabor((rows) =>
+                            rows.map((r, j) => (j === i ? { ...r, costCents: cents } : r)),
+                          );
+                          clearFieldDraft(key);
+                        }}
+                        className="h-8 w-full min-w-0 text-right tabular-nums"
+                        aria-label="Labor cost"
+                      />
+                    ) : (
+                      formatCents(l.costCents)
+                    )}
+                  </td>
                   <td className="px-3 py-1.5 text-right tabular-nums">
                     {editing ? (
                       (() => {
@@ -1296,50 +1394,35 @@ export function EstimateJobCard({
                       })()
                     )}
                   </td>
-                  <td className="px-3 py-2 text-right tabular-nums">
+                  <td className="px-3 py-1.5 text-right tabular-nums">
                     {editing ? (
-                      (() => {
-                        const matrixOn =
-                          laborTiers.length > 0 &&
-                          (l.useLaborMatrix === true ||
-                            (l.useLaborMatrix !== false &&
-                              isLaborMatrixApplied(l, baseRateCents, laborTiers)));
-                        if (matrixOn) {
-                          return (
-                            <span className="text-sm font-medium tabular-nums text-foreground">
-                              {formatCents(laborLineTotal(l))}
-                            </span>
+                      <Input
+                        type="text"
+                        inputMode="decimal"
+                        value={draftValue(fieldDrafts, `l${i}-total`, dollars(laborLineTotal(l)))}
+                        onFocus={() => focusFieldDraft(`l${i}-total`, dollars(laborLineTotal(l)))}
+                        onChange={(e) => {
+                          const v = e.target.value;
+                          if (!isDecimalInput(v)) return;
+                          setFieldDraft(`l${i}-total`, v);
+                          const cents = parseOptionalCents(v);
+                          if (cents !== null) {
+                            setLabor((rows) =>
+                              rows.map((r, j) => (j === i ? patchLaborLine(r, "total", cents, calcOpts) : r)),
+                            );
+                          }
+                        }}
+                        onBlur={(e) => {
+                          const key = `l${i}-total`;
+                          const cents = parseOptionalCents(e.target.value) ?? 0;
+                          setLabor((rows) =>
+                            rows.map((r, j) => (j === i ? patchLaborLine(r, "total", cents, calcOpts) : r)),
                           );
-                        }
-                        return (
-                          <Input
-                            type="text"
-                            inputMode="decimal"
-                            value={draftValue(fieldDrafts, `l${i}-total`, dollars(laborLineTotal(l)))}
-                            onFocus={() => focusFieldDraft(`l${i}-total`, dollars(laborLineTotal(l)))}
-                            onChange={(e) => {
-                              const v = e.target.value;
-                              if (!isDecimalInput(v)) return;
-                              setFieldDraft(`l${i}-total`, v);
-                              const cents = parseOptionalCents(v);
-                              if (cents !== null) {
-                                setLabor((rows) =>
-                                  rows.map((r, j) => (j === i ? patchLaborLine(r, "total", cents, calcOpts) : r)),
-                                );
-                              }
-                            }}
-                            onBlur={(e) => {
-                              const key = `l${i}-total`;
-                              const cents = parseOptionalCents(e.target.value) ?? 0;
-                              setLabor((rows) =>
-                                rows.map((r, j) => (j === i ? patchLaborLine(r, "total", cents, calcOpts) : r)),
-                              );
-                              clearFieldDraft(key);
-                            }}
-                            className="h-8 w-full min-w-0 text-right"
-                          />
-                        );
-                      })()
+                          clearFieldDraft(key);
+                        }}
+                        className="h-8 w-full min-w-0 text-right tabular-nums"
+                        aria-label="Labor total"
+                      />
                     ) : (
                       <span className={l.authorized === false ? "text-foreground/45 line-through" : undefined}>
                         {formatCents(laborLineTotal(l))}
@@ -1347,8 +1430,13 @@ export function EstimateJobCard({
                     )}
                   </td>
                   {editing ? (
-                    <td className="px-2">
-                      <button type="button" onClick={() => setLabor((rows) => rows.filter((_, j) => j !== i))} aria-label="Remove labor">
+                    <td className={REMOVE_CELL}>
+                      <button
+                        type="button"
+                        onClick={() => setLabor((rows) => rows.filter((_, j) => j !== i))}
+                        aria-label="Remove labor"
+                        className="inline-flex size-7 items-center justify-center"
+                      >
                         <X className="size-4 text-muted-foreground hover:text-destructive" />
                       </button>
                     </td>
@@ -1375,7 +1463,7 @@ export function EstimateJobCard({
                 onClick={addLaborLookup}
                 title="Labor Book — search flat-rate operations"
               >
-                <BookOpen className="size-4" /> Labor Book
+                <ListTree className="size-4" /> Labor Book
               </Button>
               <Button
                 variant="ghost"
@@ -1401,7 +1489,7 @@ export function EstimateJobCard({
                   <th className={cn(COL_COST, "text-right font-medium", cellPad)}>Cost</th>
                   <th className={cn(COL_RATE, "text-right font-medium", cellPad)}>Retail</th>
                   <th className={cn(COL_TOTAL, "text-right font-medium", cellPad)}>Total</th>
-                  {editing ? <th className={COL_REMOVE} /> : null}
+                  {editing ? <th className={cn(COL_REMOVE, cellPad)} /> : null}
                 </tr>
               </thead>
               <tbody>
@@ -1519,10 +1607,15 @@ export function EstimateJobCard({
                               placeholder="Part number"
                             />
                             <Input
+                              value={p.details}
+                              onChange={(e) =>
+                                setParts((rows) =>
+                                  rows.map((r, j) => (j === i ? { ...r, details: e.target.value } : r)),
+                                )
+                              }
                               className="h-8 text-xs"
                               placeholder="Additional details"
-                              disabled
-                              title="Additional details — coming soon"
+                              aria-label="Additional details"
                             />
                           </div>
                         </div>
@@ -1544,6 +1637,9 @@ export function EstimateJobCard({
                           </span>
                           {p.partNumber ? (
                             <div className="text-xs text-muted-foreground">{p.partNumber}</div>
+                          ) : null}
+                          {p.details ? (
+                            <div className="text-xs text-muted-foreground">{p.details}</div>
                           ) : null}
                         </div>
                       )}
@@ -1582,18 +1678,6 @@ export function EstimateJobCard({
                     </td>
                     <td className={cn(isLab ? cellPadSm : "px-3 py-1.5", "text-right tabular-nums", p.authorized === false && !editing ? "text-foreground/45 line-through" : "")}>
                       {editing ? (
-                        <div className="flex items-center justify-end gap-1">
-                          {!isLab ? (
-                            <button
-                              type="button"
-                              disabled
-                              title="Cost calculator — coming soon"
-                              className="rounded p-0.5 text-muted-foreground/50"
-                              aria-label="Cost calculator"
-                            >
-                              <Calculator className="size-3.5" />
-                            </button>
-                          ) : null}
                           <Input
                             type="text"
                             inputMode="decimal"
@@ -1620,7 +1704,6 @@ export function EstimateJobCard({
                             }}
                             className={cn(inputH, "w-full min-w-0 text-right")}
                           />
-                        </div>
                       ) : (
                         formatCents(p.costCents)
                       )}
@@ -1721,15 +1804,21 @@ export function EstimateJobCard({
                             );
                             clearFieldDraft(key);
                           }}
-                          className="h-8 w-full min-w-0 text-right"
+                          className="h-8 w-full min-w-0 text-right tabular-nums"
+                          aria-label="Part total"
                         />
                       ) : (
                         formatCents(partLineTotal(p))
                       )}
                     </td>
                     {editing ? (
-                      <td className="px-2">
-                        <button onClick={() => setParts((rows) => rows.filter((_, j) => j !== i))} aria-label="Remove part">
+                      <td className={REMOVE_CELL}>
+                        <button
+                          type="button"
+                          onClick={() => setParts((rows) => rows.filter((_, j) => j !== i))}
+                          aria-label="Remove part"
+                          className="inline-flex size-7 items-center justify-center"
+                        >
                           <X className="size-4 text-muted-foreground hover:text-destructive" />
                         </button>
                       </td>

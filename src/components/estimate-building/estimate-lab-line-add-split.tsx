@@ -1,6 +1,6 @@
 "use client";
 
-import { Plus, Search, Wrench, BookOpen } from "lucide-react";
+import { Plus, Search, Wrench, ListTree } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
@@ -28,7 +28,7 @@ export function EstimateLabLineAddSplit({
     : "h-7 rounded-md border border-brand-navy/25 bg-white px-2 text-[10px]";
 
   const lookupLabel = kind === "labor" ? "Labor lookup" : "Parts lookup";
-  const LookupIcon = kind === "labor" ? BookOpen : Search;
+  const LookupIcon = kind === "labor" ? ListTree : Search;
 
   return (
     <div

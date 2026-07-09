@@ -39,7 +39,7 @@ function QuickAction({
   children: React.ReactNode;
 }) {
   const className =
-    "inline-flex size-6 shrink-0 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-brand-navy";
+    "inline-flex size-7 shrink-0 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-brand-navy";
 
   if (href) {
     return (
@@ -83,18 +83,18 @@ function CopyFieldButton({ value, label }: { value: string; label: string }) {
 
   return (
     <QuickAction label={copied ? "Copied" : label} onClick={onCopy}>
-      {copied ? <Check className="size-3" /> : <Copy className="size-3" />}
+      {copied ? <Check className="size-3.5" /> : <Copy className="size-3.5" />}
     </QuickAction>
   );
 }
 
 const CONTEXT_CARD =
-  "group flex h-8 min-w-0 shrink-0 cursor-pointer items-center gap-1.5 rounded-md border-2 border-brand-navy/30 bg-white px-2.5 text-left shadow-sm transition-all hover:border-brand-navy/50 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-navy/30";
+  "group flex min-h-11 min-w-0 shrink-0 cursor-pointer items-center gap-2 rounded-md border-2 border-brand-navy/30 bg-white px-3 py-2.5 text-left shadow-sm transition-all hover:border-brand-navy/50 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-navy/30";
 
 function ContextCardChevron() {
   return (
     <span className="flex shrink-0 items-center self-center pl-0.5 text-muted-foreground group-hover:text-brand-navy">
-      <ChevronRight className="size-3.5" aria-hidden />
+      <ChevronRight className="size-4" aria-hidden />
     </span>
   );
 }
@@ -112,8 +112,8 @@ export function EstimateLabContextStack({
   customer,
   customerId,
   vehicle,
-  mileageIn: _mileageIn,
-  odometerNotWorking: _odometerNotWorking,
+  mileageIn,
+  odometerNotWorking,
   canEdit: _canEdit,
   drawerData: _drawerData,
   vehicleSpecs: _vehicleSpecs,
@@ -137,6 +137,11 @@ export function EstimateLabContextStack({
 
   const vehicleLabel = formatVehicleContextLabel(vehicle);
   const vinDisplay = vehicle?.vin ? splitVinForDisplay(vehicle.vin) : null;
+  const mileageLabel = odometerNotWorking
+    ? "Odo N/W"
+    : mileageIn != null
+      ? `${mileageIn.toLocaleString("en-US")} mi`
+      : null;
 
   function openDrawerTab(tab: ContextDrawerTab) {
     ctx?.openDrawer(tab);
@@ -156,18 +161,18 @@ export function EstimateLabContextStack({
             aria-label={`Open customer profile for ${displayName || "customer"}`}
           >
             <UserRound
-              className="size-3.5 shrink-0 text-brand-navy/80 group-hover:text-brand-navy"
+              className="size-4.5 shrink-0 text-brand-navy/80 group-hover:text-brand-navy"
               aria-hidden
             />
             <div className="min-w-0 flex-1">
-              <span className="block min-w-0 truncate text-xs">
+              <span className="block min-w-0 truncate text-base leading-snug">
                 <span className="font-semibold text-brand-navy">{displayName || "Customer"}</span>
                 {phoneFormatted ? (
                   <>
-                    <span className="mx-1 text-muted-foreground/45" aria-hidden>
+                    <span className="mx-1.5 text-muted-foreground/45" aria-hidden>
                       ·
                     </span>
-                    <span className="font-normal tabular-nums text-muted-foreground">{phoneFormatted}</span>
+                    <span className="text-sm font-normal tabular-nums text-muted-foreground">{phoneFormatted}</span>
                   </>
                 ) : null}
               </span>
@@ -183,11 +188,11 @@ export function EstimateLabContextStack({
               {customer.phone ? (
                 SMS_ENABLED && ctx ? (
                   <QuickAction label="Text customer" onClick={() => ctx.openMessages()}>
-                    <MessageSquare className="size-3" />
+                    <MessageSquare className="size-3.5" />
                   </QuickAction>
                 ) : customer.phone ? (
                   <QuickAction label="Text customer" href={smsPhoneHref(customer.phone)}>
-                    <MessageSquare className="size-3" />
+                    <MessageSquare className="size-3.5" />
                   </QuickAction>
                 ) : null
               ) : null}
@@ -212,10 +217,10 @@ export function EstimateLabContextStack({
               aria-label={`Open vehicles for ${vehicleLabel.full || "vehicle"}`}
             >
               <Car
-                className="size-3.5 shrink-0 text-brand-navy/80 group-hover:text-brand-navy"
+                className="size-4.5 shrink-0 text-brand-navy/80 group-hover:text-brand-navy"
                 aria-hidden
               />
-              <div className="flex min-w-0 flex-1 items-center overflow-hidden text-xs">
+              <div className="flex min-w-0 flex-1 items-center overflow-hidden text-base leading-snug">
                 <span
                   className="truncate font-semibold text-brand-navy"
                   title={vehicleLabel.full}
@@ -224,32 +229,42 @@ export function EstimateLabContextStack({
                 </span>
                 {vinDisplay ? (
                   <>
-                    <span className="mx-1 shrink-0 text-muted-foreground/45" aria-hidden>
+                    <span className="mx-1.5 shrink-0 text-muted-foreground/45" aria-hidden>
                       ·
                     </span>
                     <VinDisplay
                       vin={vinDisplay.full}
-                      className="shrink-0 text-[13px] font-normal"
+                      className="shrink-0 text-sm font-normal"
                     />
                     <CopyFieldButton value={vinDisplay.full} label="Copy VIN" />
                   </>
                 ) : null}
                 {vehicle.plate ? (
                   <>
-                    <span className="mx-1 shrink-0 text-muted-foreground/45" aria-hidden>
+                    <span className="mx-1.5 shrink-0 text-muted-foreground/45" aria-hidden>
                       ·
                     </span>
-                    <span className="shrink-0 font-normal text-muted-foreground">{vehicle.plate}</span>
+                    <span className="shrink-0 text-sm font-normal text-muted-foreground">{vehicle.plate}</span>
                     <CopyFieldButton value={vehicle.plate} label="Copy plate" />
                   </>
                 ) : null}
                 {vehicle.plateState ? (
                   <>
-                    <span className="mx-1 shrink-0 text-muted-foreground/45" aria-hidden>
+                    <span className="mx-1.5 shrink-0 text-muted-foreground/45" aria-hidden>
                       ·
                     </span>
-                    <span className="shrink-0 font-normal text-muted-foreground">
+                    <span className="shrink-0 text-sm font-normal text-muted-foreground">
                       {vehicle.plateState}
+                    </span>
+                  </>
+                ) : null}
+                {mileageLabel ? (
+                  <>
+                    <span className="mx-1.5 shrink-0 text-muted-foreground/45" aria-hidden>
+                      ·
+                    </span>
+                    <span className="shrink-0 text-sm font-normal tabular-nums text-muted-foreground">
+                      {mileageLabel}
                     </span>
                   </>
                 ) : null}
@@ -264,10 +279,10 @@ export function EstimateLabContextStack({
               tabIndex={0}
               onClick={() => openDrawerTab("vehicles")}
               onKeyDown={(e) => onCardKeyDown(e, () => openDrawerTab("vehicles"))}
-              className="flex min-w-0 flex-1 items-center gap-2 text-xs text-muted-foreground"
+              className="flex min-w-0 flex-1 items-center gap-2 text-base text-muted-foreground"
               aria-label="Open vehicles — no vehicle on this RO"
             >
-              <Car className="size-3.5 shrink-0 text-brand-navy/75" aria-hidden />
+              <Car className="size-4.5 shrink-0 text-brand-navy/75" aria-hidden />
               No vehicle
             </div>
             <ContextCardChevron />

@@ -7,6 +7,7 @@ import { EstimateJobCard } from "@/components/repair-order/estimate-job-card";
 import { EstimateLabJobsDndList } from "@/components/estimate-building/estimate-lab-jobs-dnd-list";
 import { EstimateJobsHeader } from "@/components/repair-order/estimate-jobs-header";
 import { useEstimateSelection } from "@/components/repair-order/estimate-selection-context";
+import type { ApprovalSignatureInfo } from "@/components/repair-order/approval-signature-panel";
 import type { AdjustTemplate } from "@/components/estimate-building/estimate-lab-adjustment-shared";
 import type { Technician } from "@/server/staff";
 import type { RepairOrderDetail } from "@/server/repair-order";
@@ -31,6 +32,7 @@ export function EstimateJobsList({
   feeTemplates = [],
   discountTemplates = [],
   approvedVia,
+  approvalSignature = null,
   cannedJobCategories = [],
   embedded = false,
   variant = "default",
@@ -51,6 +53,7 @@ export function EstimateJobsList({
   feeTemplates?: AdjustTemplate[];
   discountTemplates?: AdjustTemplate[];
   approvedVia?: string | null;
+  approvalSignature?: ApprovalSignatureInfo | null;
   cannedJobCategories?: string[];
   embedded?: boolean;
   variant?: "default" | "lab";
@@ -103,6 +106,7 @@ export function EstimateJobsList({
           feeTemplates={feeTemplates}
           discountTemplates={discountTemplates}
           approvedVia={approvedVia}
+          approvalSignature={approvalSignature}
           onToggleJob={toggleJob}
           onToggleLabor={toggleLabor}
           onTogglePart={togglePart}
@@ -128,6 +132,7 @@ export function EstimateJobsList({
             technicians={technicians}
             roId={roId}
             customerApproved={approvedVia === "CUSTOMER" && Boolean(job.approvedAt)}
+            approvalSignature={approvalSignature}
             jobFees={fees.filter((f) => f.jobId === job.id)}
             jobDiscounts={discounts.filter((d) => d.jobId === job.id)}
             feeTemplates={feeTemplates}

@@ -61,8 +61,13 @@ export type RoTotalsResult = {
   gpPct: number;
 };
 
-/** Sum authorized lines only, then apply fees/discounts/tax like the server. */
-export function computeRoTotals(input: RoTotalsInput, partsCostCents = 0): RoTotalsResult {
+/** Sum authorized lines only, then apply fees/discounts/tax like the server.
+ *  `partsCostCents` / `laborCostCents` are shop costs for GP (not customer price). */
+export function computeRoTotals(
+  input: RoTotalsInput,
+  partsCostCents = 0,
+  laborCostCents = 0,
+): RoTotalsResult {
   let labor = 0;
   let parts = 0;
   let taxableLabor = 0;
@@ -114,7 +119,7 @@ export function computeRoTotals(input: RoTotalsInput, partsCostCents = 0): RoTot
 
   const subtotal = labor + parts;
   const total = labor + parts + supplies - discountTotal + feesTotal + tax;
-  const gpCents = labor + (parts - partsCostCents);
+  const gpCents = labor - laborCostCents + (parts - partsCostCents);
   const gpPct = subtotal > 0 ? (gpCents / subtotal) * 100 : 0;
 
   return {

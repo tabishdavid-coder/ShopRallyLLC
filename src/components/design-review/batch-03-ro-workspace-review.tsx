@@ -247,7 +247,7 @@ export function Batch03RoWorkspaceReview() {
         fix="specLinkClass(lightTheme) on recalls, tire last-order, and maintenance links when deck is light."
         files={["src/components/repair-order/ro-vehicle-specs-panel.tsx"]}
         liveHref="/repair-orders"
-        testSteps="Open RO overview — expand Vehicle specs / Tires / Recalls accordions; links should be readable navy/subtle, not white-on-light."
+        testSteps="Open RO overview — expand Specs / Recalls accordions; links should be readable navy/subtle, not white-on-light."
         before={
           <p className="text-brand-red">White-ish links on light sidebar — hard to read.</p>
         }

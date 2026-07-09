@@ -22,6 +22,7 @@ import { CSS } from "@dnd-kit/utilities";
 
 import type { AdjustTemplate } from "@/components/estimate-building/estimate-lab-adjustment-shared";
 import { EstimateJobCard } from "@/components/repair-order/estimate-job-card";
+import type { ApprovalSignatureInfo } from "@/components/repair-order/approval-signature-panel";
 import { reorderJobs } from "@/server/actions/estimate";
 import type { RepairOrderDetail } from "@/server/repair-order";
 import { cn } from "@/lib/utils";
@@ -68,6 +69,7 @@ export function EstimateLabJobsDndList({
   feeTemplates = [],
   discountTemplates = [],
   approvedVia,
+  approvalSignature = null,
   onToggleJob,
   onToggleLabor,
   onTogglePart,
@@ -82,6 +84,7 @@ export function EstimateLabJobsDndList({
   feeTemplates?: AdjustTemplate[];
   discountTemplates?: AdjustTemplate[];
   approvedVia?: string | null;
+  approvalSignature?: ApprovalSignatureInfo | null;
   onToggleJob: (jobId: string, auth: boolean) => void;
   onToggleLabor: (jobId: string, lineId: string, auth: boolean) => void;
   onTogglePart: (jobId: string, lineId: string, auth: boolean) => void;
@@ -99,6 +102,7 @@ export function EstimateLabJobsDndList({
   | "onToggleLabor"
   | "onTogglePart"
   | "customerApproved"
+  | "approvalSignature"
   | "onOpenParts"
 >) {
   const router = useRouter();
@@ -149,6 +153,7 @@ export function EstimateLabJobsDndList({
       roId,
       canEdit,
       customerApproved: approvedVia === "CUSTOMER" && Boolean(job.approvedAt),
+      approvalSignature,
       jobFees: fees.filter((f) => f.jobId === job.id),
       jobDiscounts: discounts.filter((d) => d.jobId === job.id),
       feeTemplates,

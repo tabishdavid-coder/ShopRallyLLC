@@ -86,7 +86,7 @@ export function ShareInvoiceDialog({
   useEffect(() => {
     if (link) {
       setMessage(
-        `Hello ${customerFirstName || "there"}, your invoice${invoiceNumber ? ` #${invoiceNumber}` : ""} from ${shopName} is ready: ${link}`,
+        `Hello ${customerFirstName || "there"}, your invoice${invoiceNumber ? ` #${invoiceNumber}` : ""} from ${shopName} is ready. View the invoice and customer acknowledgment: ${link}`,
       );
     }
   }, [link, customerFirstName, shopName, invoiceNumber]);

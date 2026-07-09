@@ -223,6 +223,8 @@ export function EstimateLabContextDrawer({
 
   defaultAppointmentDurationMins,
 
+  autoOpenSpecs = false,
+
   source = roId ? "estimate" : "customers",
 
 }: {
@@ -260,6 +262,9 @@ export function EstimateLabContextDrawer({
   appointmentEmployees: { id: string; name: string }[];
 
   defaultAppointmentDurationMins: number;
+
+  /** When true and Vehicles tab is active, expand pull-spec for the RO vehicle. */
+  autoOpenSpecs?: boolean;
 
   source?: CustomerDrawerSource;
 
@@ -367,7 +372,7 @@ export function EstimateLabContextDrawer({
 
   const subtitle = hasRoContext && roNumber != null
 
-    ? `RO #${roNumber} · Estimate workspace`
+    ? `RO #${roNumber}`
 
     : "Customer profile";
 
@@ -633,9 +638,15 @@ export function EstimateLabContextDrawer({
 
                       roId={roId}
 
+                      roMileageIn={_mileageIn}
+
+                      roOdometerNotWorking={_odometerNotWorking}
+
                       vehicleSpecs={vehicleSpecs}
 
                       canEdit={canEdit}
+
+                      autoOpenSpecs={autoOpenSpecs}
 
                       onSaved={() => reload(true)}
 

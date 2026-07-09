@@ -1,6 +1,6 @@
 "use client";
 
-import { BookOpen, ChevronDown, Package, Wrench } from "lucide-react";
+import { BookOpen, ChevronDown, ListTree, Package, Wrench } from "lucide-react";
 
 import {
   DropdownMenu,
@@ -110,7 +110,8 @@ export function EstimateLineTypeMenu({
   );
 
   const resolvedTypeOptions: InlineLineType[] = typeOptions ?? defaultTypeOptions(menuScope);
-  const isLaborBookTrigger = menuScope === "labor";
+  /** Labor + Part Type columns share the same compact navy trigger (job-card Type column). */
+  const useMatchedTypeTrigger = menuScope === "labor" || menuScope === "part";
 
   if (!editing) {
     return (
@@ -118,12 +119,11 @@ export function EstimateLineTypeMenu({
     );
   }
 
-  /** Part / all — bordered select. Labor — ghost Labor Book (matches EstimateJobCard footer). */
-  const triggerClass = isLaborBookTrigger
+  /** Labor Book / Part type — matched size + subtle weight. Fee/discount "all" stays bordered. */
+  const triggerClass = useMatchedTypeTrigger
     ? cn(
-        "inline-flex items-center gap-1.5 rounded-md border border-transparent bg-transparent px-1.5 text-xs font-semibold uppercase tracking-wide text-brand-navy",
-        "hover:bg-brand-light/10 hover:text-brand-navy",
-        size === "table" ? "h-7" : "h-7 w-full justify-start",
+        "inline-flex h-7 w-full min-w-0 items-center gap-2 rounded-md border border-brand-navy/15 bg-brand-navy/[0.03] px-2 text-xs font-semibold uppercase tracking-wide text-brand-navy",
+        "hover:border-brand-navy/25 hover:bg-brand-light/10 hover:text-brand-navy",
       )
     : size === "table"
       ? "flex h-8 w-full min-w-16 items-center justify-between gap-0.5 rounded-md border border-input bg-background px-1.5 text-xs font-medium text-brand-navy hover:bg-muted/40"
@@ -141,8 +141,8 @@ export function EstimateLineTypeMenu({
 
   if (!hasGuideMenu) {
     return (
-      <div className={cn("flex items-center gap-1", size === "table" && "w-full")}>
-        {!isLaborBookTrigger && showWrenchIcon ? (
+      <div className={cn("flex min-w-0 items-center gap-1", size === "table" && "w-full")}>
+        {!useMatchedTypeTrigger && showWrenchIcon ? (
           <Wrench className="size-3.5 shrink-0 text-muted-foreground" aria-hidden />
         ) : null}
         <select
@@ -168,22 +168,28 @@ export function EstimateLineTypeMenu({
   const openLaborGuide = h.onLaborFromGuide ?? h.onLaborFromCatalog;
 
   return (
-    <div className={cn("flex items-center gap-1", size === "table" && "w-full min-w-0")}>
-      {!isLaborBookTrigger && showWrenchIcon ? (
+    <div className={cn("flex min-w-0 items-center gap-1", (size === "table" || useMatchedTypeTrigger) && "w-full")}>
+      {!useMatchedTypeTrigger && showWrenchIcon ? (
         <Wrench className="size-3.5 shrink-0 text-muted-foreground" aria-hidden />
       ) : null}
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
           <button type="button" className={triggerClass} aria-label={ariaLabel}>
-            {isLaborBookTrigger ? (
+            {menuScope === "labor" ? (
               <>
-                <BookOpen className="size-3.5 shrink-0" aria-hidden />
-                <span className="truncate">Labor Book</span>
+                <ListTree className="size-3.5 shrink-0" aria-hidden />
+                <span className="min-w-0 flex-1 truncate text-left">Labor Book</span>
+                <ChevronDown className="size-3 shrink-0 opacity-60" aria-hidden />
+              </>
+            ) : menuScope === "part" ? (
+              <>
+                <Package className="size-3.5 shrink-0" aria-hidden />
+                <span className="min-w-0 flex-1 truncate text-left">{label}</span>
                 <ChevronDown className="size-3 shrink-0 opacity-60" aria-hidden />
               </>
             ) : (
               <>
-                <span className="truncate">{label}</span>
+                <span className="min-w-0 flex-1 truncate text-left">{label}</span>
                 <ChevronDown className="size-3 shrink-0 opacity-60" aria-hidden />
               </>
             )}
@@ -215,11 +221,11 @@ export function EstimateLineTypeMenu({
               {openLaborGuide ? (
                 <>
                   <DropdownMenuItem className="gap-2 text-xs" onSelect={openLaborGuide}>
-                    <BookOpen className="size-3.5 shrink-0 text-brand-navy" aria-hidden />
+                    <ListTree className="size-3.5 shrink-0 text-brand-navy" aria-hidden />
                     Add labor from catalog
                   </DropdownMenuItem>
                   <DropdownMenuItem className="gap-2 text-xs" onSelect={openLaborGuide}>
-                    <BookOpen className="size-3.5 shrink-0 text-brand-navy" aria-hidden />
+                    <ListTree className="size-3.5 shrink-0 text-brand-navy" aria-hidden />
                     Add labor from Labor Book
                   </DropdownMenuItem>
                 </>

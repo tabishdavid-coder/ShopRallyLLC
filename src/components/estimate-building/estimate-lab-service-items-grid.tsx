@@ -129,6 +129,8 @@ type LaborRow = {
   id?: string;
   description: string;
   hours: number;
+  /** Shop cost for this labor line (cents) — independent of customer rate. */
+  costCents: number;
   rateCents: number;
   totalCents?: number;
   lastField?: "hours" | "rate" | "total";
@@ -182,6 +184,12 @@ function parseOptionalFloat(s: string): number | null {
 function parseOptionalCents(s: string): number | null {
   const n = parseOptionalFloat(s);
   return n === null ? null : Math.round(n * 100);
+}
+
+/** Clean labor hours display (e.g. 0.8, 1.5) — avoid float noise / glyph clipping. */
+function formatLaborHours(hours: number): string {
+  if (!Number.isFinite(hours) || hours === 0) return "";
+  return String(parseFloat(hours.toFixed(3)));
 }
 
 function itemKey(row: { id?: string }, kind: "labor" | "part", index: number) {
@@ -307,7 +315,7 @@ function splitMerged(merged: MergedItem[]): { labor: LaborRow[]; parts: PartRow[
 }
 
 function newLaborRow(baseRateCents: number, laborTiers: LaborTier[]): LaborRow {
-  const base: LaborRow = { description: "", hours: 0, rateCents: baseRateCents };
+  const base: LaborRow = { description: "", hours: 0, costCents: 0, rateCents: baseRateCents };
   if (laborTiers.length > 0) {
     return applyLaborMatrixRow({ ...base, useLaborMatrix: true }, baseRateCents, laborTiers);
   }
@@ -334,6 +342,7 @@ function laborFromPart(row: PartRow, baseRateCents: number, laborTiers: LaborTie
   const base: LaborRow = {
     description: row.description,
     hours: 1,
+    costCents: 0,
     rateCents: baseRateCents,
     authorized: row.authorized,
   };
@@ -521,7 +530,7 @@ function InlineQtyCell({
         onCommit(e.target.value);
         clearFieldDraft(draftKey);
       }}
-      className={cn(LAB_INPUT_FLAT, "w-full text-right")}
+      className={cn(LAB_INPUT_FLAT, "w-full min-w-0 text-right tabular-nums")}
     />
   );
 }
@@ -986,13 +995,10 @@ export function EstimateLabServiceItemsGrid({
                 )}
               </div>
               <div className={LAB_GRID_NUM_BORDERED}>
-                <InlinePlaceholderCell />
-              </div>
-              <div className={LAB_GRID_NUM_BORDERED}>
                 {editing ? (
                   <InlineQtyCell
                     draftKey={`${draftPrefix}-hours`}
-                    value={l.hours ? String(l.hours) : ""}
+                    value={formatLaborHours(l.hours)}
                     fieldDrafts={fieldDrafts}
                     focusFieldDraft={focusFieldDraft}
                     setFieldDraft={setFieldDraft}
@@ -1005,9 +1011,33 @@ export function EstimateLabServiceItemsGrid({
                     }}
                   />
                 ) : (
-                  <span className={cn("inline-flex h-7 w-full items-center justify-end text-xs", lineThrough)}>
-                    {l.hours.toFixed(2)}
+                  <span
+                    className={cn(
+                      "inline-flex h-7 w-full min-w-0 items-center justify-end overflow-visible text-xs tabular-nums",
+                      lineThrough,
+                    )}
+                  >
+                    {l.hours ? formatLaborHours(l.hours) : "0"}
                   </span>
+                )}
+              </div>
+              <div className={LAB_GRID_NUM_BORDERED}>
+                {editing ? (
+                  <InlineMoneyCell
+                    draftKey={`${draftPrefix}-cost`}
+                    valueCents={l.costCents}
+                    fieldDrafts={fieldDrafts}
+                    focusFieldDraft={focusFieldDraft}
+                    setFieldDraft={setFieldDraft}
+                    clearFieldDraft={clearFieldDraft}
+                    onCommitCents={(cents) =>
+                      updateAt(index, (m) =>
+                        m.kind === "labor" ? { ...m, row: { ...m.row, costCents: cents } } : m,
+                      )
+                    }
+                  />
+                ) : (
+                  <ReadOnlyMoney cents={l.costCents} className={lineThrough} />
                 )}
               </div>
               <div className={LAB_GRID_NUM_BORDERED}>
@@ -1407,7 +1437,7 @@ export function EstimateLabServiceItemsGrid({
               <span className={cn(LAB_GRID_BORDER, "px-1 text-left")}>Type</span>
               <span className={cn(LAB_GRID_BORDER, "px-1 text-left")}>Name</span>
               <span className={cn(LAB_GRID_BORDER, "px-1 text-left")}>Description</span>
-              <span className={cn(LAB_GRID_BORDER, "px-1 text-right")}>Qty</span>
+              <span className={cn(LAB_GRID_BORDER, "px-1 text-right")}>Qty / Hrs</span>
               <span className={cn(LAB_GRID_BORDER, "px-1 text-right")}>Cost</span>
               <span className={cn(LAB_GRID_BORDER, "px-1 text-right")}>Price</span>
               <span className={cn(LAB_GRID_BORDER, "px-1 text-right")}>Amount</span>

@@ -10,6 +10,21 @@ This version has breaking changes — APIs, conventions, and file structure may 
 >
 > The sibling **`karvio/`** folder is a legacy platform fork — do not develop shop CRM there.
 
+## ShopRally marketing website — **primary** (2026-07-09)
+
+**Landing, pricing, features, launch, demo** → this repo only until the user says otherwise.
+
+| | |
+|---|---|
+| **Routes** | `/`, `/pricing`, `/features`, `/launch`, `/demo` |
+| **Components** | `src/components/marketing-site/`, `src/components/pricing/` |
+| **Copy** | `docs/GROWTH-POSITIONING.md`, `src/lib/plans.ts` |
+| **Rule** | `.cursor/rules/shoprally-marketing-primary.mdc` |
+
+Do not use **`karvio/`** for marketing work unless explicitly syncing.
+
+---
+
 ## ShopRallyCRM (Dev 3031) — active
 
 **Purpose:** Build and maintain the merged ShopRally CRM — AutopilotShell + Tekmetric IA + jobs layout toggle.

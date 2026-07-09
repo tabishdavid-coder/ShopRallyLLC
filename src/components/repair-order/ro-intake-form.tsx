@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import {
   Search,
@@ -51,8 +51,14 @@ import {
 import { AddCustomerDialog } from "@/components/customers/add-customer-dialog";
 import { CustomerSearchResults } from "@/components/customers/customer-search-results";
 import { AddVehicleDialog } from "@/components/vehicles/add-vehicle-dialog";
+import {
+  resolveVehicleFromPlate,
+  resolveVehicleFromVin,
+  type VehicleLookupFields,
+} from "@/components/vehicles/use-plate-vin-lookup";
 import { searchCustomers, getCustomerVehicles, getCustomerPick } from "@/server/actions/pickers";
 import type { CustomerPick, VehiclePick } from "@/lib/picker-types";
+import { parseYmmSearch, type ParsedYmm } from "@/lib/parse-ymm-search";
 import { createRepairOrder } from "@/server/actions/repair-orders";
 import { saveLaborRates } from "@/server/actions/ro-settings";
 import { customerDisplayName, formatCents } from "@/lib/format";
@@ -69,6 +75,27 @@ import {
   quickLaborVehicleLookupKey,
   readQuickLaborRoPrefill,
 } from "@/lib/quick-labor-ro-prefill";
+
+/** Default plate-lookup state when the intake UI has no State field. */
+const DEFAULT_PLATE_STATE = "NY";
+
+type VehicleLookupHit = {
+  id: string;
+  source: "plate" | "vin" | "ymm";
+  title: string;
+  subtitle: string;
+  lookup: string;
+  fields: VehicleLookupFields & {
+    plate?: string;
+    plateState?: string;
+  };
+};
+
+type DetectedVehicleQuery =
+  | { kind: "vin"; value: string }
+  | { kind: "plate"; value: string }
+  | { kind: "ymm"; value: string; ymm: ParsedYmm }
+  | { kind: "text"; value: string };
 
 function searchToPrefill(q: string): CustomerPrefill | undefined {
   const s = q.trim();
@@ -95,6 +122,94 @@ function vehicleShortLabel(v: VehiclePick) {
 function vehiclePlateLine(v: VehiclePick) {
   if (v.plate) return `${v.plate}${v.plateState ? ` ${v.plateState}` : ""}`;
   return "N/A";
+}
+
+function normalizeLookupToken(value: string) {
+  return value.trim().toUpperCase().replace(/[\s-]/g, "");
+}
+
+/**
+ * Classify a single vehicle search box value:
+ * - 17-char VIN charset → VIN decode
+ * - "2014 Honda Accord"-style → YMM parse
+ * - 2–8 alphanumeric (no spaces) → plate lookup (uses shop default state)
+ * - otherwise → free-text garage filter only
+ */
+function detectVehicleQuery(raw: string): DetectedVehicleQuery {
+  const trimmed = raw.trim();
+  if (!trimmed) return { kind: "text", value: "" };
+
+  const normalized = normalizeLookupToken(trimmed);
+  if (/^[A-HJ-NPR-Z0-9]{17}$/i.test(normalized)) {
+    return { kind: "vin", value: normalized };
+  }
+
+  const ymm = parseYmmSearch(trimmed);
+  if (ymm) return { kind: "ymm", value: trimmed, ymm };
+
+  // Plate-like: compact alnum token, not a year-led phrase.
+  if (/^[A-Z0-9]{2,8}$/i.test(normalized) && !/^\d{4}\b/.test(trimmed)) {
+    return { kind: "plate", value: normalized };
+  }
+
+  return { kind: "text", value: trimmed };
+}
+
+function filterGarageByQuery(list: VehiclePick[], query: string): VehiclePick[] {
+  const detected = detectVehicleQuery(query);
+  if (!detected.value) return [];
+
+  const plateKey = detected.kind === "plate" ? detected.value : "";
+  const vinKey =
+    detected.kind === "vin"
+      ? detected.value
+      : detected.kind === "text" && /^[A-HJ-NPR-Z0-9]{6,17}$/i.test(normalizeLookupToken(detected.value))
+        ? normalizeLookupToken(detected.value)
+        : "";
+  const ymmParsed = detected.kind === "ymm" ? detected.ymm : parseYmmSearch(detected.value);
+  const ymmTokens = detected.value
+    .toLowerCase()
+    .split(/\s+/)
+    .filter((t) => t.length >= 2);
+
+  // Also match plate substring when the user typed a plate-like fragment inside text.
+  const loosePlate =
+    !plateKey && detected.kind === "text" ? normalizeLookupToken(detected.value) : "";
+
+  return list.filter((v) => {
+    if (plateKey || (loosePlate.length >= 2 && loosePlate.length <= 8)) {
+      const key = plateKey || loosePlate;
+      const vp = normalizeLookupToken(v.plate ?? "");
+      if (vp && (vp.includes(key) || key.includes(vp))) return true;
+    }
+    if (vinKey) {
+      const vv = normalizeLookupToken(v.vin ?? "");
+      if (vv && (vv.includes(vinKey) || vinKey.includes(vv) || vv.endsWith(vinKey.slice(-8)))) {
+        return true;
+      }
+    }
+    if (ymmParsed) {
+      const yearOk = v.year == null || v.year === ymmParsed.year;
+      const makeOk =
+        !v.make || v.make.toLowerCase().includes(ymmParsed.make.toLowerCase());
+      const modelOk =
+        !v.model || v.model.toLowerCase().includes(ymmParsed.model.toLowerCase());
+      if (yearOk && makeOk && modelOk && (v.year || v.make || v.model)) return true;
+    } else if (ymmTokens.length > 0) {
+      const hay = [v.year, v.make, v.model, v.trim, v.plate, v.vin]
+        .filter(Boolean)
+        .join(" ")
+        .toLowerCase();
+      if (ymmTokens.every((t) => hay.includes(t))) return true;
+    }
+    return false;
+  });
+}
+
+function lookupHitTitle(fields: VehicleLookupFields) {
+  return (
+    [fields.year, fields.make, fields.model, fields.trim].filter(Boolean).join(" ") || "Vehicle found"
+  );
 }
 
 const INTAKE_INPUT_CLASS =
@@ -186,8 +301,17 @@ export function RoIntakeForm({
   const [addCustomerOpen, setAddCustomerOpen] = useState(false);
   const [addVehicleOpen, setAddVehicleOpen] = useState(false);
   const [addVehiclePrefill, setAddVehiclePrefill] = useState("");
-  const [vehicleLookupQuery, setVehicleLookupQuery] = useState("");
-  const [vehicleLookupState, setVehicleLookupState] = useState("NY");
+  const [addVehicleFields, setAddVehicleFields] = useState<
+    (VehicleLookupFields & { plate?: string; plateState?: string }) | null
+  >(null);
+  /** Plate decode uses shop default state — no State field in the intake UI. */
+  const vehicleLookupState = DEFAULT_PLATE_STATE;
+  const [vehicleQuery, setVehicleQuery] = useState("");
+  const [vehicleOpen, setVehicleOpen] = useState(false);
+  const [garageHits, setGarageHits] = useState<VehiclePick[]>([]);
+  const [lookupHits, setLookupHits] = useState<VehicleLookupHit[]>([]);
+  const [lookupSearching, setLookupSearching] = useState(false);
+  const [lookupNote, setLookupNote] = useState<string | null>(null);
   const [custQuery, setCustQuery] = useState("");
   const [custResults, setCustResults] = useState<CustomerPick[]>([]);
   const [custOpen, setCustOpen] = useState(false);
@@ -206,6 +330,9 @@ export function RoIntakeForm({
   const [notes, setNotes] = useState("");
   const [laborGuideCarPrefill, setLaborGuideCarPrefill] = useState<QuickLaborVehicle | null>(null);
   const [intakeDetailsOpen, setIntakeDetailsOpen] = useState(true);
+  const concernSectionRef = useRef<HTMLDivElement | null>(null);
+  const concernInputRef = useRef<HTMLTextAreaElement | null>(null);
+  const lookupSeqRef = useRef(0);
 
   const [error, setError] = useState<string | null>(null);
   const [creating, startCreate] = useTransition();
@@ -215,6 +342,9 @@ export function RoIntakeForm({
   const selectedVehicle = vehicleId
     ? vehicles.find((v) => v.id === vehicleId) ?? null
     : null;
+
+  const hasVehicleLookupInput = vehicleQuery.trim().length >= 2;
+  const detectedVehicleQuery = detectVehicleQuery(vehicleQuery);
 
   useEffect(() => {
     if (customer || custQuery.trim().length < 2) {
@@ -249,12 +379,120 @@ export function RoIntakeForm({
     const prefill = readQuickLaborRoPrefill();
     if (!prefill) return;
     const lookup = quickLaborVehicleLookupKey(prefill.vehicle);
-    if (lookup) setVehicleLookupQuery(lookup);
-    if (prefill.vehicle.plateState) setVehicleLookupState(prefill.vehicle.plateState);
+    if (lookup) setVehicleQuery(lookup);
     if (prefill.concern) setConcerns([prefill.concern]);
     setLaborGuideCarPrefill(prefill.vehicle);
     clearQuickLaborRoPrefill();
   }, [fromQuickLabor]);
+
+  useEffect(() => {
+    if (!customer || !hasVehicleLookupInput) {
+      setGarageHits([]);
+      return;
+    }
+    setGarageHits(filterGarageByQuery(vehicles, vehicleQuery));
+  }, [customer, vehicles, vehicleQuery, hasVehicleLookupInput]);
+
+  useEffect(() => {
+    if (!customer || !hasVehicleLookupInput) {
+      setLookupHits([]);
+      setLookupNote(null);
+      setLookupSearching(false);
+      return;
+    }
+
+    const detected = detectVehicleQuery(vehicleQuery);
+    // External decode only for VIN / plate / structured YMM — not free text.
+    if (detected.kind === "text") {
+      setLookupHits([]);
+      setLookupNote(null);
+      setLookupSearching(false);
+      return;
+    }
+
+    const seq = ++lookupSeqRef.current;
+
+    const t = setTimeout(() => {
+      void (async () => {
+        setLookupSearching(true);
+        setLookupNote(null);
+        const nextHits: VehicleLookupHit[] = [];
+
+        try {
+          if (detected.kind === "vin") {
+            const vin = detected.value;
+            const res = await resolveVehicleFromVin(vin, {}, { overwrite: true });
+            if (seq !== lookupSeqRef.current) return;
+            if (res.ok) {
+              nextHits.push({
+                id: `vin:${vin}`,
+                source: "vin",
+                title: lookupHitTitle(res.result.fields),
+                subtitle: `VIN ${vin}`,
+                lookup: vin,
+                fields: res.result.fields,
+              });
+            } else {
+              setLookupNote(res.error);
+            }
+          } else if (detected.kind === "plate") {
+            const plate = detected.value;
+            const res = await resolveVehicleFromPlate(
+              vehicleLookupState,
+              plate,
+              {},
+              { overwrite: true },
+            );
+            if (seq !== lookupSeqRef.current) return;
+            if (res.ok) {
+              nextHits.push({
+                id: `plate:${vehicleLookupState}:${normalizeLookupToken(plate)}`,
+                source: "plate",
+                title: lookupHitTitle(res.result.fields),
+                subtitle: `Plate ${plate.toUpperCase()} · ${vehicleLookupState}${
+                  res.result.vin ? ` · VIN ${res.result.vin}` : ""
+                }`,
+                lookup: plate.toUpperCase(),
+                fields: {
+                  ...res.result.fields,
+                  vin: res.result.vin ?? res.result.fields.vin,
+                  plate: plate.toUpperCase(),
+                  plateState: vehicleLookupState,
+                },
+              });
+            } else {
+              setLookupNote(res.error);
+            }
+          } else if (detected.kind === "ymm") {
+            const { ymm } = detected;
+            const fields: VehicleLookupFields = {
+              year: ymm.year,
+              make: ymm.make,
+              model: ymm.model,
+            };
+            nextHits.push({
+              id: `ymm:${ymm.year}:${ymm.make}:${ymm.model}`.toLowerCase(),
+              source: "ymm",
+              title: lookupHitTitle(fields),
+              subtitle: "Year / Make / Model — click to add & continue",
+              lookup: `${ymm.year} ${ymm.make} ${ymm.model}`,
+              fields,
+            });
+          }
+
+          if (seq !== lookupSeqRef.current) return;
+          setLookupHits(nextHits);
+        } finally {
+          if (seq === lookupSeqRef.current) setLookupSearching(false);
+        }
+      })();
+    }, 400);
+
+    return () => {
+      clearTimeout(t);
+      lookupSeqRef.current += 1;
+    };
+  }, [customer, vehicleQuery, vehicleLookupState, hasVehicleLookupInput]);
 
   function loadVehicles(customerId: string, selectId?: string) {
     startLoadVehicles(async () => {
@@ -291,6 +529,7 @@ export function RoIntakeForm({
     setCustomer(null);
     setVehicles([]);
     setVehicleId(null);
+    clearVehicleLookups();
   }
 
   useEffect(() => {
@@ -324,33 +563,112 @@ export function RoIntakeForm({
     };
   }, [initialCustomerId, initialVehicleId, customer, laborGuideCarPrefill, startLoadVehicles]);
 
-  function selectVehicle(id: string) {
+  function advanceToConcerns() {
+    requestAnimationFrame(() => {
+      concernSectionRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+      concernInputRef.current?.focus();
+    });
+  }
+
+  function selectVehicle(id: string, opts?: { advance?: boolean }) {
     setVehicleId(id);
+    if (opts?.advance !== false) advanceToConcerns();
   }
 
   function clearVehicle() {
     setVehicleId(null);
   }
 
+  function clearVehicleLookups() {
+    setVehicleQuery("");
+    setVehicleOpen(false);
+    setGarageHits([]);
+    setLookupHits([]);
+    setLookupNote(null);
+  }
+
   function onVehicleCreated(id: string) {
     if (!customer) return;
     loadVehicles(customer.id, id);
     setAddVehicleOpen(false);
-    setVehicleLookupQuery("");
+    clearVehicleLookups();
+    advanceToConcerns();
   }
 
   function openAddCustomer() {
     setAddCustomerOpen(true);
   }
 
-  function openAddVehicle(raw: string) {
+  function openAddVehicle(
+    raw: string,
+    fields?: (VehicleLookupFields & { plate?: string; plateState?: string }) | null,
+  ) {
     setAddVehiclePrefill(raw);
+    setAddVehicleFields(fields ?? null);
     setAddVehicleOpen(true);
   }
 
+  function selectLookupHit(hit: VehicleLookupHit) {
+    // Prefer an existing garage vehicle that matches the decoded identity.
+    const garageMatch =
+      garageHits.find((v) => {
+        if (hit.source === "vin" && hit.fields.vin && v.vin) {
+          return normalizeLookupToken(v.vin) === normalizeLookupToken(hit.fields.vin);
+        }
+        if (hit.source === "plate" && v.plate) {
+          return normalizeLookupToken(v.plate) === normalizeLookupToken(hit.lookup);
+        }
+        if (hit.source === "ymm") {
+          return (
+            v.year === hit.fields.year &&
+            (v.make ?? "").toLowerCase() === (hit.fields.make ?? "").toLowerCase() &&
+            (v.model ?? "").toLowerCase().includes((hit.fields.model ?? "").toLowerCase())
+          );
+        }
+        return false;
+      }) ??
+      vehicles.find((v) => {
+        if (hit.source === "vin" && hit.fields.vin && v.vin) {
+          return normalizeLookupToken(v.vin) === normalizeLookupToken(hit.fields.vin);
+        }
+        if (hit.source === "plate" && v.plate) {
+          return normalizeLookupToken(v.plate) === normalizeLookupToken(hit.lookup);
+        }
+        return false;
+      }) ??
+      null;
+
+    if (garageMatch) {
+      selectVehicle(garageMatch.id);
+      clearVehicleLookups();
+      return;
+    }
+
+    // New vehicle path: open Add dialog with plate/VIN/YMM + decoded fields prefilled.
+    openAddVehicle(hit.lookup, {
+      ...hit.fields,
+      vin: hit.fields.vin ?? (hit.source === "vin" ? hit.lookup : hit.fields.vin),
+      plate: hit.source === "plate" ? hit.lookup : hit.fields.plate,
+      plateState: hit.source === "plate" ? vehicleLookupState : hit.fields.plateState,
+    });
+  }
+
   function handleAddVehicleOpenChange(open: boolean) {
-    setAddVehicleOpen(open);
-    if (!open) setAddVehiclePrefill("");
+    if (open) {
+      // Manual Add click: seed dialog from the single search box when not already set by a hit.
+      if (!addVehicleFields) {
+        const detected = detectVehicleQuery(vehicleQuery);
+        if (detected.kind === "vin") setAddVehiclePrefill(detected.value);
+        else if (detected.kind === "plate") setAddVehiclePrefill(detected.value);
+        else if (detected.kind === "ymm") setAddVehiclePrefill(detected.value);
+        else if (vehicleQuery.trim()) setAddVehiclePrefill(vehicleQuery.trim());
+      }
+      setAddVehicleOpen(true);
+      return;
+    }
+    setAddVehicleOpen(false);
+    setAddVehiclePrefill("");
+    setAddVehicleFields(null);
   }
 
   const customerPrefill = searchToPrefill(custQuery);
@@ -366,6 +684,7 @@ export function RoIntakeForm({
     setCustomer(null);
     setVehicles([]);
     setVehicleId(null);
+    clearVehicleLookups();
     setCustQuery("");
     setCustResults([]);
     setCustOpen(false);
@@ -419,10 +738,15 @@ export function RoIntakeForm({
       return setError("Marketing source is required.");
     }
     startCreate(async () => {
+      const milesRaw = mileageIn.trim();
+      const milesParsed = milesRaw ? Number(milesRaw) : null;
       const res = await createRepairOrder({
         customerId: customer.id,
         vehicleId,
-        mileageIn: odometerNotWorking ? null : (mileageIn ? Number(mileageIn) : null),
+        mileageIn:
+          odometerNotWorking || milesParsed == null || !Number.isFinite(milesParsed)
+            ? null
+            : Math.trunc(milesParsed),
         odometerNotWorking,
         appointmentOption,
         laborRateCents,
@@ -467,6 +791,24 @@ export function RoIntakeForm({
       onOpenChange={handleAddVehicleOpenChange}
       initialLookup={addVehiclePrefill}
       initialPlateState={vehicleLookupState}
+      initialFields={
+        addVehicleFields
+          ? {
+              year: addVehicleFields.year ?? null,
+              make: addVehicleFields.make ?? "",
+              model: addVehicleFields.model ?? "",
+              trim: addVehicleFields.trim ?? "",
+              vin: addVehicleFields.vin ?? "",
+              engine: addVehicleFields.engine ?? "",
+              transmission: addVehicleFields.transmission ?? "",
+              drivetrain: addVehicleFields.drivetrain ?? "",
+              bodyClass: addVehicleFields.bodyClass ?? "",
+              plate: addVehicleFields.plate ?? "",
+              plateState: addVehicleFields.plateState || vehicleLookupState,
+              decodedData: addVehicleFields.decodedData,
+            }
+          : null
+      }
       trigger={addVehicleTrigger}
     />
   ) : (
@@ -669,12 +1011,12 @@ export function RoIntakeForm({
               <IntakeSectionCard
                 step={2}
                 title="Vehicle"
-                subtitle="Select from garage or add with plate/VIN lookup"
+                subtitle="Search plate, VIN, or year/make/model — or pick from the garage"
               >
                 <div className="space-y-3">
                   {laborGuideCarPrefill ? (
-                    <div className="rounded-none border border-brand-orange/25 bg-brand-orange/5 px-3 py-2.5 text-sm">
-                      <p className="text-[11px] font-semibold uppercase tracking-wide text-brand-orange/80">
+                    <div className="rounded-none border border-brand-light/40 bg-brand-light/10 px-3 py-2.5 text-sm">
+                      <p className="text-[11px] font-semibold uppercase tracking-wide text-brand-navy/70">
                         From Labor Book
                       </p>
                       <p className="font-medium text-foreground">{quickLaborVehicleLabel(laborGuideCarPrefill)}</p>
@@ -686,15 +1028,165 @@ export function RoIntakeForm({
                     </div>
                   ) : null}
 
-                  {loadingVehicles ? (
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <Loader2 className="size-4 animate-spin" /> Loading vehicles…
+                  {selectedVehicle ? (
+                    <div className="flex items-center justify-between gap-2 rounded-none border border-brand-light/40 bg-brand-light/10 px-3 py-2.5 text-sm">
+                      <div className="min-w-0">
+                        <p className="font-medium text-brand-navy">{vehicleShortLabel(selectedVehicle)}</p>
+                        <p className="truncate text-xs text-muted-foreground">
+                          {vehiclePlateLine(selectedVehicle)}
+                          {selectedVehicle.vin ? ` · VIN …${selectedVehicle.vin.slice(-8)}` : ""}
+                        </p>
+                      </div>
+                      <button type="button" onClick={clearVehicle} aria-label="Clear vehicle">
+                        <X className="size-4 text-muted-foreground hover:text-foreground" />
+                      </button>
                     </div>
                   ) : (
+                    <div
+                      className={cn(
+                        "flex flex-col gap-2 sm:flex-row sm:items-center",
+                        !customer && "pointer-events-none opacity-50",
+                      )}
+                    >
+                      <div className="relative min-w-0 flex-1">
+                        <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+                        {lookupSearching ? (
+                          <Loader2 className="absolute right-3 top-1/2 size-4 -translate-y-1/2 animate-spin text-muted-foreground" />
+                        ) : null}
+                        <Input
+                          value={vehicleQuery}
+                          onChange={(e) => {
+                            setVehicleQuery(e.target.value);
+                            setVehicleOpen(true);
+                          }}
+                          onFocus={() => setVehicleOpen(true)}
+                          onKeyDown={(e) => {
+                            if (e.key !== "Enter") return;
+                            e.preventDefault();
+                            if (garageHits[0]) {
+                              selectVehicle(garageHits[0].id);
+                              clearVehicleLookups();
+                            } else if (lookupHits[0]) {
+                              selectLookupHit(lookupHits[0]);
+                            } else if (customer && vehicleQuery.trim().length >= 2) {
+                              openAddVehicle(vehicleQuery.trim());
+                            }
+                          }}
+                          placeholder={
+                            customer
+                              ? "Search plate, VIN, or year/make/model…"
+                              : "Select a customer first…"
+                          }
+                          disabled={!customer}
+                          className={cn(
+                            INTAKE_INPUT_CLASS,
+                            "pl-9",
+                            lookupSearching && "pr-9",
+                          )}
+                          autoComplete="off"
+                        />
+                        {customer &&
+                        vehicleOpen &&
+                        hasVehicleLookupInput ? (
+                          <div className="absolute z-20 mt-1 max-h-72 w-full overflow-y-auto rounded-none border border-[#eaecf0] bg-popover shadow-md">
+                            {garageHits.length > 0 ? (
+                              <div>
+                                <p className="border-b border-[#eaecf0] bg-brand-navy/[0.04] px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-brand-navy/70">
+                                  Garage matches
+                                </p>
+                                <ul className="divide-y divide-[#eaecf0]">
+                                  {garageHits.map((v) => (
+                                    <li key={v.id}>
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          selectVehicle(v.id);
+                                          clearVehicleLookups();
+                                        }}
+                                        className="flex w-full flex-col gap-0.5 px-3 py-2.5 text-left transition-colors hover:bg-brand-light/15"
+                                      >
+                                        <span className="text-sm font-medium text-brand-navy">
+                                          {vehicleShortLabel(v)}
+                                        </span>
+                                        <span className="text-xs text-muted-foreground">
+                                          {vehiclePlateLine(v)}
+                                          {v.vin ? ` · VIN …${v.vin.slice(-8)}` : ""}
+                                        </span>
+                                      </button>
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            ) : null}
+
+                            {lookupHits.length > 0 ? (
+                              <div>
+                                <p className="border-b border-[#eaecf0] bg-brand-light/20 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-wide text-brand-navy/70">
+                                  Lookup results
+                                </p>
+                                <ul className="divide-y divide-[#eaecf0]">
+                                  {lookupHits.map((hit) => (
+                                    <li key={hit.id}>
+                                      <button
+                                        type="button"
+                                        onClick={() => selectLookupHit(hit)}
+                                        className="flex w-full flex-col gap-0.5 px-3 py-2.5 text-left transition-colors hover:bg-brand-light/15"
+                                      >
+                                        <span className="text-sm font-medium text-brand-navy">
+                                          {hit.title}
+                                        </span>
+                                        <span className="text-xs text-muted-foreground">
+                                          {hit.subtitle}
+                                        </span>
+                                      </button>
+                                    </li>
+                                  ))}
+                                </ul>
+                              </div>
+                            ) : null}
+
+                            {!lookupSearching &&
+                            garageHits.length === 0 &&
+                            lookupHits.length === 0 ? (
+                              <div className="space-y-1 px-3 py-2.5">
+                                {lookupNote ? (
+                                  <p className="text-xs text-brand-red">{lookupNote}</p>
+                                ) : null}
+                                <button
+                                  type="button"
+                                  onClick={() => openAddVehicle(vehicleQuery.trim())}
+                                  className="flex w-full items-center gap-1.5 text-left text-sm font-medium text-brand-orange hover:underline"
+                                >
+                                  <Plus className="size-3.5 shrink-0" />
+                                  Add new vehicle
+                                  {detectedVehicleQuery.kind !== "text"
+                                    ? ` for “${vehicleQuery.trim()}”`
+                                    : ""}
+                                </button>
+                              </div>
+                            ) : null}
+                          </div>
+                        ) : null}
+                      </div>
+                      {sharedAddVehicleDialog}
+                    </div>
+                  )}
+
+                  {!customer ? (
+                    <p className="text-xs text-muted-foreground">
+                      Select a customer first to search vehicles.
+                    </p>
+                  ) : null}
+
+                  {loadingVehicles ? (
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Loader2 className="size-4 animate-spin" /> Loading garage…
+                    </div>
+                  ) : customer && vehicles.length > 0 && !selectedVehicle ? (
                     <div className="flex min-w-0 flex-col gap-2 sm:flex-row sm:items-center">
                       <Select
                         value={vehicleId ?? ""}
-                        onValueChange={selectVehicle}
+                        onValueChange={(id) => selectVehicle(id)}
                         disabled={!customer || vehicles.length === 0}
                       >
                         <SelectTrigger
@@ -704,17 +1196,7 @@ export function RoIntakeForm({
                           )}
                         >
                           <Car className="size-4 shrink-0 text-muted-foreground" />
-                          <SelectValue
-                            placeholder={
-                              !customer
-                                ? "Select a customer first"
-                                : vehicles.length === 0
-                                  ? "No vehicles — add one"
-                                  : "Select a vehicle"
-                            }
-                          >
-                            {selectedVehicle ? vehicleShortLabel(selectedVehicle) : null}
-                          </SelectValue>
+                          <SelectValue placeholder="Or select from garage" />
                         </SelectTrigger>
                         <SelectContent className="max-w-[min(100vw-2rem,28rem)]">
                           {vehicles.map((v) => (
@@ -724,18 +1206,19 @@ export function RoIntakeForm({
                           ))}
                         </SelectContent>
                       </Select>
-                      {sharedAddVehicleDialog}
                     </div>
-                  )}
+                  ) : null}
 
-                  {customer && vehicles.length === 0 && !loadingVehicles ? (
+                  {customer && vehicles.length === 0 && !loadingVehicles && !hasVehicleLookupInput ? (
                     <p className="text-xs text-muted-foreground">
-                      No vehicles on file — use Add new vehicle or search plate/VIN in the add dialog.
+                      No vehicles on file — search by plate, VIN, or year/make/model, or add a new
+                      vehicle.
                     </p>
                   ) : null}
                 </div>
               </IntakeSectionCard>
 
+              <div ref={concernSectionRef}>
               <IntakeSectionCard
                 step={3}
                 title="Customer concerns"
@@ -743,6 +1226,7 @@ export function RoIntakeForm({
               >
                 <div className="space-y-3">
                   <Textarea
+                    ref={concernInputRef}
                     value={concernInput}
                     onChange={(e) => setConcernInput(e.target.value.slice(0, 1000))}
                     onKeyDown={(e) => {
@@ -784,6 +1268,7 @@ export function RoIntakeForm({
                   ) : null}
                 </div>
               </IntakeSectionCard>
+              </div>
             </div>
 
             <aside className="flex w-full shrink-0 lg:w-[320px]">

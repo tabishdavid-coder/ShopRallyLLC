@@ -29,8 +29,6 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { formatCents, customerDisplayName } from "@/lib/format";
 import { parseApprovalSignature } from "@/lib/approval-signature";
 import type { VehicleSpecsView } from "@/lib/vehicle-specs-view";
-import type { VehicleMaintenanceMemoryView } from "@/lib/vehicle-maintenance-specs";
-import type { LastTireOrderSize } from "@/server/actions/vehicle-specs";
 import { RoVehicleSpecsPanel } from "@/components/repair-order/ro-vehicle-specs-panel";
 import type { RepairOrderDetail } from "@/server/repair-order";
 import type { RoSidebarOptions } from "@/server/ro-sidebar-options";
@@ -203,15 +201,11 @@ export function RoContextDeck({
   options,
   customerTags = [],
   vehicleSpecs,
-  lastTireOrder,
-  maintenanceMemory,
 }: {
   ro: RepairOrderDetail;
   options: RoSidebarOptions;
   customerTags?: string[];
   vehicleSpecs: VehicleSpecsView;
-  lastTireOrder: LastTireOrderSize | null;
-  maintenanceMemory: VehicleMaintenanceMemoryView;
 }) {
   const v = ro.vehicle;
   const c = ro.customer;
@@ -473,6 +467,22 @@ export function RoContextDeck({
                 />
                 <DetailRow label="Time In" value={fmtDateTime(ro.createdAt)} />
                 <DetailRow
+                  label="Odometer In"
+                  value={
+                    <EditableValue
+                      value={
+                        ro.odometerNotWorking
+                          ? "Not working"
+                          : ro.mileageIn != null
+                            ? fmtMiles(ro.mileageIn)
+                            : null
+                      }
+                      emptyLabel="Add"
+                      onEdit={open("mileageIn")}
+                    />
+                  }
+                />
+                <DetailRow
                   label="Odometer Out"
                   value={
                     <EditableValue
@@ -577,10 +587,6 @@ export function RoContextDeck({
                 <RoVehicleSpecsPanel
                   vehicleId={v.id}
                   specs={vehicleSpecs}
-                  tireSizeFront={v.tireSizeFront ?? null}
-                  tireSizeRear={v.tireSizeRear ?? null}
-                  lastTireOrder={lastTireOrder}
-                  maintenanceMemory={maintenanceMemory}
                   lightTheme
                 />
               </>

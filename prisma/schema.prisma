@@ -1420,6 +1420,8 @@ model LaborLine {
   jobId        String
   description  String
   hours        Float   @default(0)
+  /// Shop cost for this labor line (cents) — tech wage / burden; independent of customer rate.
+  costCents    Int     @default(0)
   rateCents    Int     @default(0)
   totalCents   Int     @default(0)
   authorized   Boolean @default(true) // included in estimate / WIP totals
