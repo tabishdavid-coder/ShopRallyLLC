@@ -12,6 +12,10 @@ import {
 } from "@/lib/labor-catalog-mode";
 import type { LaborGuideHit } from "@/lib/labor-guide-types";
 import { LABOR_GUIDE_PROMPT_VERSION } from "@/lib/labor-guide-prompt";
+import {
+  applyLaborHoursFloor,
+  shouldCalibrateLaborDataSource,
+} from "@/lib/labor-hours-calibration";
 import { normalizeAssemblyHit } from "@/lib/labor-guide-assembly-rules";
 import {
   legacyVehicleKey,
@@ -139,24 +143,38 @@ function rowSearchText(row: {
 }
 
 function cachedRowToHit(row: LaborOperationRow, vehicle: LaborVehicle): LaborGuideHit {
+  const raw = {
+    jobName: row.jobName,
+    queryText: row.queryText,
+    unitLabel: row.unitLabel,
+    unitsOnVehicle: row.unitsOnVehicle,
+    laborHoursPerUnit: row.laborHoursPerUnit,
+    laborOperations: row.laborOperations,
+    notes: row.notes ?? "",
+  };
+  const calibrated =
+    row.motorApplicationId == null && shouldCalibrateLaborDataSource(row.dataSource)
+      ? applyLaborHoursFloor(raw).suggestion
+      : raw;
   const totalHours =
-    row.unitLabel.toLowerCase() === "vehicle"
-      ? row.laborHoursPerUnit
-      : row.laborHoursPerUnit * row.unitsOnVehicle;
+    calibrated.unitLabel.toLowerCase() === "vehicle"
+      ? calibrated.laborHoursPerUnit
+      : calibrated.laborHoursPerUnit * calibrated.unitsOnVehicle;
   return {
     id: `cache:${row.id}`,
     laborOperationId: row.id,
-    jobName: row.jobName,
-    queryText: row.queryText,
+    jobName: calibrated.jobName,
+    queryText: calibrated.queryText,
     totalHours,
-    laborHoursPerUnit: row.laborHoursPerUnit,
-    unitLabel: row.unitLabel,
-    unitsOnVehicle: row.unitsOnVehicle,
-    laborOperations: row.laborOperations,
-    notes: row.notes ?? undefined,
+    laborHoursPerUnit: calibrated.laborHoursPerUnit,
+    unitLabel: calibrated.unitLabel,
+    unitsOnVehicle: calibrated.unitsOnVehicle,
+    laborOperations: calibrated.laborOperations,
+    notes: calibrated.notes || undefined,
     source: "cached",
     vehicleMatch: vehicleMatchLabel(row, vehicle),
     confidenceScore: row.confidenceScore ?? 0.5,
+    dataSource: row.dataSource ?? undefined,
   };
 }
 
@@ -305,8 +323,22 @@ export async function lookupLaborSuggestion(
     .filter((row) => storedRowMatchesVehicle(row, vehicle))
     .sort((a, b) => vehicleKeyMatchRank(b.vehicleKey) - vehicleKeyMatchRank(a.vehicleKey))[0];
 
+  const existingDsEarly = (existing?.dataSource ?? "").toLowerCase();
+  const isAiSourced =
+    !existingDsEarly ||
+    existingDsEarly.startsWith("ai_") ||
+    existingDsEarly === "ai" ||
+    existingDsEarly === "ai_estimate";
+  // Prompt bumps (e.g. bearing hour calibration) invalidate AI rows immediately;
+  // MOTOR / shop-curated rows keep age-based TTL only.
+  const promptStale =
+    isAiSourced &&
+    existing != null &&
+    (existing.promptVersion ?? null) !== LABOR_GUIDE_PROMPT_VERSION;
   const fresh =
-    existing && Date.now() - existing.refreshedAt.getTime() < TTL_MS;
+    existing &&
+    !promptStale &&
+    Date.now() - existing.refreshedAt.getTime() < TTL_MS;
 
   if (existing && fresh && storedRowMatchesVehicle(existing, vehicle)) {
     const existingDs = (existing.dataSource ?? "").toLowerCase();
@@ -452,8 +484,11 @@ function toSuggestion(row: {
   notes: string | null;
   confidenceScore?: number | null;
   reasoningSummary?: string | null;
+  queryText?: string | null;
+  dataSource?: string | null;
+  motorApplicationId?: number | null;
 }): LaborSuggestion {
-  return {
+  const raw: LaborSuggestion = {
     jobName: row.jobName,
     unitLabel: row.unitLabel,
     unitsOnVehicle: row.unitsOnVehicle,
@@ -463,19 +498,27 @@ function toSuggestion(row: {
     confidenceScore: row.confidenceScore ?? 0.5,
     reasoningSummary: row.reasoningSummary ?? "",
   };
+  if (row.motorApplicationId != null || !shouldCalibrateLaborDataSource(row.dataSource)) return raw;
+  return applyLaborHoursFloor({
+    ...raw,
+    queryText: row.queryText ?? undefined,
+  }).suggestion;
 }
 
 /** Map a LaborSuggestion to the column set we persist. */
 function fromSuggestion(s: LaborSuggestion, dataSource = "ai_first_principles") {
+  const calibrated = shouldCalibrateLaborDataSource(dataSource)
+    ? applyLaborHoursFloor(s).suggestion
+    : s;
   return {
-    jobName: s.jobName,
-    unitLabel: s.unitLabel,
-    unitsOnVehicle: s.unitsOnVehicle,
-    laborHoursPerUnit: s.laborHoursPerUnit,
-    laborOperations: s.laborOperations,
-    notes: s.notes || null,
-    confidenceScore: s.confidenceScore,
-    reasoningSummary: s.reasoningSummary || null,
+    jobName: calibrated.jobName,
+    unitLabel: calibrated.unitLabel,
+    unitsOnVehicle: calibrated.unitsOnVehicle,
+    laborHoursPerUnit: calibrated.laborHoursPerUnit,
+    laborOperations: calibrated.laborOperations,
+    notes: calibrated.notes || null,
+    confidenceScore: calibrated.confidenceScore,
+    reasoningSummary: calibrated.reasoningSummary || null,
     dataSource,
     promptVersion: LABOR_GUIDE_PROMPT_VERSION,
   };

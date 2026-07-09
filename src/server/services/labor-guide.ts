@@ -9,6 +9,7 @@ import {
   LABOR_GUIDE_RETRY_SYSTEM_PROMPT,
   LABOR_GUIDE_SYSTEM_PROMPT,
 } from "@/lib/labor-guide-prompt";
+import { applyLaborHoursFloor } from "@/lib/labor-hours-calibration";
 import type { MotorRagExample } from "@/server/services/motor/motor-ai-context";
 
 /**
@@ -38,7 +39,9 @@ export const LaborSuggestionSchema = z.object({
     ),
   laborHoursPerUnit: z
     .number()
-    .describe("Estimated flat-rate labor hours to do ONE unit, e.g. 0.7 per strut."),
+    .describe(
+      "Industry book-time flat-rate hours to do ONE unit, e.g. 1.5-2.5 per strut or 2.2-2.7 per front hub/bearing corner.",
+    ),
   laborOperations: z
     .array(z.string())
     .describe("The labor operations performed, one per line"),
@@ -142,6 +145,23 @@ function formatMotorRagBlock(examples: MotorRagExample[]): string {
   return `\n\nLicensed MOTOR application examples for this vehicle (use as hour anchors; adjust for scope):\n${lines.join("\n")}`;
 }
 
+function correctionPrompt(
+  basePrompt: string,
+  parsed: LaborSuggestion,
+  raisedFrom: number,
+  floorLabel: string,
+): string {
+  const total =
+    parsed.unitLabel.toLowerCase() === "vehicle"
+      ? parsed.laborHoursPerUnit
+      : parsed.laborHoursPerUnit * parsed.unitsOnVehicle;
+  return `${basePrompt}
+
+Your previous estimate was ${raisedFrom.toFixed(2)} hr/unit (${total.toFixed(2)} total) for "${parsed.jobName}", which is below ShopRally's internal book-time calibration for ${floorLabel}.
+
+Regenerate the same operation as realistic industry book time. Do not simply return a safety-floor note; revise the laborHoursPerUnit, unitLabel, unitsOnVehicle, operations, confidence, and reasoning so the estimate reflects full R&R access and the requested vehicle/scope. Return JSON only.`;
+}
+
 async function callLaborModel(
   system: string,
   userContent: string,
@@ -181,5 +201,22 @@ export async function suggestLaborJob(
   }
 
   if (!parsed) throw new Error("The Labor Book returned no result.");
-  return parsed;
+
+  const firstCalibration = applyLaborHoursFloor(parsed);
+  if (firstCalibration.applied) {
+    const corrected = await callLaborModel(
+      LABOR_GUIDE_RETRY_SYSTEM_PROMPT,
+      correctionPrompt(
+        basePrompt,
+        parsed,
+        firstCalibration.raisedFrom ?? parsed.laborHoursPerUnit,
+        firstCalibration.applied.typicalLabel,
+      ),
+    );
+    if (corrected) {
+      return applyLaborHoursFloor(corrected).suggestion;
+    }
+  }
+
+  return firstCalibration.suggestion;
 }
