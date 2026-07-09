@@ -28,7 +28,7 @@ export const BRAND_ASSETS = {
 } as const;
 
 export const BRAND_LOGO_ALT =
-  "ShopRally logo — navy and orange wordmark with stylized mark";
+  "ShopRally logo — official wordmark with stylized mark";
 
 export const BRAND_MARK_ALT = "ShopRally mark — stylized icon on rounded square";
 

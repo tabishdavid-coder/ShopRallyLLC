@@ -1,5 +1,7 @@
 import Link from "next/link";
 
+import { ShopRallyLogo } from "@/components/brand/shoprally-logo";
+
 type LegalDocumentViewProps = {
   title: string;
   version: string;
@@ -43,15 +45,7 @@ export function LegalSiteHeader() {
   return (
     <header className="border-b bg-background/80 backdrop-blur-sm">
       <div className="mx-auto flex max-w-3xl items-center justify-between px-4 py-4">
-        <Link href="/dashboard" className="flex items-center gap-2">
-          <div className="flex size-8 items-center justify-center rounded-md bg-brand-navy text-sm font-black leading-none text-white shadow-sm">
-            <span>R</span>
-            <span className="text-brand-red">P</span>
-          </div>
-          <span className="text-lg font-bold tracking-tight">
-            Kar<span className="text-brand-light">vio</span>
-          </span>
-        </Link>
+        <ShopRallyLogo href="/dashboard" size="sm" />
         <Link
           href="/dashboard"
           className="text-sm font-medium text-brand-navy hover:underline"

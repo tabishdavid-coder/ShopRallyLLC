@@ -5,6 +5,10 @@ import { getRepairOrder } from "@/server/repair-order";
 import { getShopId } from "@/lib/shop";
 import { PrintDocument } from "@/components/print/print-document";
 import { resolveTransparency, type DocTransparency } from "@/lib/transparency";
+import {
+  resolveShopEstimateTerms,
+  resolveShopInvoiceTerms,
+} from "@/lib/estimate-terms-default";
 
 // Print output must always reflect current RO data + shop settings.
 export const dynamic = "force-dynamic";
@@ -30,7 +34,23 @@ export default async function PrintPage({
 
   const shop = await prisma.shop.findUnique({
     where: { id: shopId },
-    select: { name: true, code: true, address: true, address2: true, city: true, state: true, zip: true, phone: true, email: true, website: true, logoUrl: true, docTransparency: true },
+    select: {
+      name: true,
+      code: true,
+      address: true,
+      address2: true,
+      city: true,
+      state: true,
+      zip: true,
+      phone: true,
+      email: true,
+      website: true,
+      logoUrl: true,
+      docTransparency: true,
+      estimateTermsHtml: true,
+      estimateTermsVersion: true,
+      invoiceTermsHtml: true,
+    },
   });
 
   // The internal "repair-order" copy always shows everything; estimate/invoice
@@ -39,5 +59,27 @@ export default async function PrintPage({
   const transparency: DocTransparency =
     doc === "estimate" ? t.estimate : doc === "invoice" ? t.invoice : { laborHours: true, partNumbers: true, partBrand: true, lineItemPrices: true };
 
-  return <PrintDocument ro={ro} shop={shop} title={title} doc={doc} transparency={transparency} />;
+  const acknowledgment =
+    doc === "estimate" || doc === "repair-order"
+      ? (() => {
+          const terms = resolveShopEstimateTerms({
+            estimateTermsHtml: shop?.estimateTermsHtml ?? null,
+            estimateTermsVersion: shop?.estimateTermsVersion ?? null,
+          });
+          return { html: terms.html, version: terms.version };
+        })()
+      : doc === "invoice"
+        ? { html: resolveShopInvoiceTerms({ invoiceTermsHtml: shop?.invoiceTermsHtml ?? null }).html }
+        : null;
+
+  return (
+    <PrintDocument
+      ro={ro}
+      shop={shop}
+      title={title}
+      doc={doc}
+      transparency={transparency}
+      acknowledgment={acknowledgment}
+    />
+  );
 }

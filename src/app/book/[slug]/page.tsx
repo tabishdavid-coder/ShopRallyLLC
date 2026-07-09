@@ -1,5 +1,6 @@
 import { notFound } from "next/navigation";
 
+import { PoweredByShopRally } from "@/components/brand/powered-by-shoprally";
 import { BookingIntakeForm } from "@/components/booking/booking-intake-form";
 import { getShopByBookingSlug, getBookableDates } from "@/server/booking";
 
@@ -35,12 +36,7 @@ export default async function BookPage({
           dropOffLabel={dropOff?.label ?? "I will drop-off my vehicle"}
         />
 
-        <p className="shrink-0 px-4 py-3 text-center text-xs text-muted-foreground sm:mt-4 sm:py-0">
-          Powered by{" "}
-          <span className="font-semibold">
-            Kar<span className="text-brand-light">vio</span>
-          </span>
-        </p>
+        <PoweredByShopRally className="shrink-0 px-4 py-3 text-center sm:mt-4 sm:py-0" />
       </div>
     </div>
   );

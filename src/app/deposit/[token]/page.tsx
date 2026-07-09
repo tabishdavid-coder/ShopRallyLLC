@@ -1,5 +1,7 @@
 import { notFound } from "next/navigation";
 
+import { PoweredByShopRally } from "@/components/brand/powered-by-shoprally";
+import { ShopRallyLogo } from "@/components/brand/shoprally-logo";
 import { PayDepositButton } from "@/components/deposit/pay-deposit-button";
 import { ServiceAdvisorCard } from "@/components/service-advisor-card";
 import { DepositRequestStatus } from "@/generated/prisma";
@@ -28,15 +30,7 @@ export default async function DepositPage({
   return (
     <div className="min-h-screen bg-muted/30 px-4 py-8">
       <div className="mx-auto max-w-xl space-y-5">
-        <div className="flex items-center gap-2">
-          <div className="flex size-7 items-center justify-center rounded-md bg-brand-navy text-sm font-black leading-none text-white shadow-sm">
-            <span>R</span>
-            <span className="text-brand-red">P</span>
-          </div>
-          <span className="text-base font-bold tracking-tight">
-            Kar<span className="text-brand-light">vio</span>
-          </span>
-        </div>
+        <ShopRallyLogo href="https://getshoprally.com" size="sm" />
 
         <div className="rounded-2xl border bg-card p-6 shadow-sm">
           <div className="border-b pb-4">
@@ -83,6 +77,8 @@ export default async function DepositPage({
             </p>
           )}
         </div>
+
+        <PoweredByShopRally className="text-center" />
       </div>
     </div>
   );

@@ -2,6 +2,7 @@
 
 import { ChevronDown, MapPin, Phone } from "lucide-react";
 
+import { PoweredByShopRally } from "@/components/brand/powered-by-shoprally";
 import type { PlanCardPreviewData } from "@/components/plans/plan-card-preview";
 import { PlanCardPreview } from "@/components/plans/plan-card-preview";
 import {
@@ -203,11 +204,8 @@ export function PlansPageFooter({ theme }: { theme: ResolvedPlansTheme }) {
   const surface = getPlansSurfaceClasses(theme);
 
   return (
-    <footer className={cn("border-t py-6 text-center text-xs", surface.footer)}>
-      Powered by{" "}
-      <span className="font-semibold">
-        Kar<span className="text-brand-light">vio</span>
-      </span>
+    <footer className={cn("border-t py-6 text-center", surface.footer)}>
+      <PoweredByShopRally suffix="" />
     </footer>
   );
 }

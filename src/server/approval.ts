@@ -167,6 +167,8 @@ export type ApprovalView = {
   shopName: string;
   customerName: string;
   vehicleLabel: string;
+  mileageIn: number | null;
+  odometerNotWorking: boolean;
   laborSubtotalCents: number;
   partsSubtotalCents: number;
   shopSuppliesCents: number;
@@ -212,6 +214,8 @@ export async function getApprovalView(token: string): Promise<ApprovalView | nul
       id: true,
       number: true,
       status: true,
+      mileageIn: true,
+      odometerNotWorking: true,
       laborSubtotalCents: true,
       partsSubtotalCents: true,
       shopSuppliesCents: true,
@@ -281,6 +285,8 @@ export async function getApprovalView(token: string): Promise<ApprovalView | nul
     shopName: ro.shop.name,
     customerName,
     vehicleLabel,
+    mileageIn: ro.mileageIn,
+    odometerNotWorking: ro.odometerNotWorking,
     laborSubtotalCents: ro.laborSubtotalCents,
     partsSubtotalCents: ro.partsSubtotalCents,
     shopSuppliesCents: ro.shopSuppliesCents,

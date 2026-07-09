@@ -5,6 +5,7 @@ import { randomBytes } from "crypto";
 import { prisma } from "@/db/client";
 import { appUrl } from "@/lib/app-url";
 import { InvoiceStatus, ROStatus } from "@/generated/prisma";
+import { resolveShopInvoiceTerms } from "@/lib/estimate-terms-default";
 import { buildServiceAdvisor, type ServiceAdvisorInfo } from "@/lib/service-advisor";
 import { ensureAutoApplyFees } from "@/server/ro-fees";
 
@@ -99,6 +100,8 @@ export type InvoiceView = {
   shopName: string;
   customerName: string;
   vehicleLabel: string;
+  mileageIn: number | null;
+  odometerNotWorking: boolean;
   roNumber: number;
   laborSubtotalCents: number;
   partsSubtotalCents: number;
@@ -120,6 +123,7 @@ export type InvoiceView = {
     totalCents: number;
   }[];
   payments: { amountCents: number; method: string; paidAt: Date }[];
+  invoiceTerms: { html: string };
 };
 
 /** Read an invoice for the public share page, scoped only by its token. */
@@ -147,13 +151,15 @@ export async function getInvoiceView(token: string): Promise<InvoiceView | null>
       repairOrder: {
         select: {
           number: true,
+          mileageIn: true,
+          odometerNotWorking: true,
           laborSubtotalCents: true,
           partsSubtotalCents: true,
           shopSuppliesCents: true,
           feesSubtotalCents: true,
           discountCents: true,
           serviceWriterId: true,
-          shop: { select: { name: true } },
+          shop: { select: { name: true, invoiceTermsHtml: true } },
           customer: { select: { firstName: true, lastName: true, company: true } },
           vehicle: { select: { year: true, make: true, model: true, trim: true } },
           jobs: {
@@ -187,6 +193,10 @@ export async function getInvoiceView(token: string): Promise<InvoiceView | null>
       .filter(Boolean)
       .join(" ") || "Vehicle";
 
+  const invoiceTerms = resolveShopInvoiceTerms({
+    invoiceTermsHtml: ro.shop.invoiceTermsHtml,
+  });
+
   return {
     id: inv.id,
     shopId: invRef.shopId,
@@ -195,6 +205,8 @@ export async function getInvoiceView(token: string): Promise<InvoiceView | null>
     shopName: ro.shop.name,
     customerName,
     vehicleLabel,
+    mileageIn: ro.mileageIn,
+    odometerNotWorking: ro.odometerNotWorking,
     roNumber: ro.number,
     laborSubtotalCents: ro.laborSubtotalCents,
     partsSubtotalCents: ro.partsSubtotalCents,
@@ -207,6 +219,7 @@ export async function getInvoiceView(token: string): Promise<InvoiceView | null>
     balanceCents: inv.balanceCents,
     issuedAt: inv.issuedAt,
     serviceAdvisor: buildServiceAdvisor(serviceWriter),
+    invoiceTerms,
     jobs: ro.jobs.map((j) => {
       const laborHours = j.laborLines.reduce((s, l) => s + l.hours, 0);
       const laborCents = j.laborLines.reduce((s, l) => s + l.totalCents, 0);

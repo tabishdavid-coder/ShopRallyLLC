@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { AlertCircle, Clock } from "lucide-react";
 
+import { ShopRallyLogo } from "@/components/brand/shoprally-logo";
 import { ShopIntakeForm } from "@/components/platform/shop-intake-form";
 import { getShopIntakeContext } from "@/server/actions/shop-intake";
 
@@ -18,15 +19,7 @@ export default async function ShopIntakePage({
   return (
     <div className="min-h-screen bg-muted/30 px-4 py-8">
       <div className="mx-auto max-w-2xl space-y-6">
-        <div className="flex items-center gap-2">
-          <div className="flex size-7 items-center justify-center rounded-md bg-brand-navy text-sm font-black leading-none text-white shadow-sm">
-            <span>R</span>
-            <span className="text-brand-red">P</span>
-          </div>
-          <span className="text-base font-bold tracking-tight">
-            Kar<span className="text-brand-light">vio</span>
-          </span>
-        </div>
+        <ShopRallyLogo href="https://getshoprally.com" size="sm" />
 
         {ctx.status === "open" ? (
           <ShopIntakeForm token={token} defaults={ctx.defaults} />

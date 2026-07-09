@@ -1,5 +1,7 @@
 import { notFound } from "next/navigation";
 
+import { PoweredByShopRally } from "@/components/brand/powered-by-shoprally";
+import { ShopRallyLogo } from "@/components/brand/shoprally-logo";
 import { getApprovalView, recordEstimateViewed } from "@/server/approval";
 import { formatCents } from "@/lib/format";
 import { ServiceAdvisorCard } from "@/components/service-advisor-card";
@@ -25,16 +27,7 @@ export default async function ApprovePage({
   return (
     <div className="min-h-screen bg-muted/30 px-4 py-8">
       <div className="mx-auto max-w-xl space-y-5">
-        {/* Brand header */}
-        <div className="flex items-center gap-2">
-          <div className="flex size-7 items-center justify-center rounded-md bg-brand-navy text-sm font-black leading-none text-white shadow-sm">
-            <span>R</span>
-            <span className="text-brand-red">P</span>
-          </div>
-          <span className="text-base font-bold tracking-tight">
-            Kar<span className="text-brand-light">vio</span>
-          </span>
-        </div>
+        <ShopRallyLogo href="https://getshoprally.com" size="sm" />
 
         <div className="rounded-2xl border bg-card p-6 shadow-sm">
           <div className="border-b pb-4">
@@ -42,6 +35,11 @@ export default async function ApprovePage({
             <h1 className="mt-1 text-xl font-bold">Estimate for RO #{view.number}</h1>
             <p className="mt-1 text-sm text-muted-foreground">
               {view.customerName} · {view.vehicleLabel}
+              {view.odometerNotWorking
+                ? " · Odometer not working"
+                : view.mileageIn != null
+                  ? ` · ${view.mileageIn.toLocaleString("en-US")} mi`
+                  : ""}
             </p>
             <ServiceAdvisorCard advisor={view.serviceAdvisor} compact className="mt-2" />
           </div>
@@ -103,9 +101,7 @@ export default async function ApprovePage({
           estimateTerms={view.estimateTerms}
         />
 
-        <p className="text-center text-xs text-muted-foreground">
-          Powered by ShopRally · Shop Management Software
-        </p>
+        <PoweredByShopRally className="text-center" />
       </div>
     </div>
   );

@@ -1,7 +1,10 @@
 import { notFound } from "next/navigation";
 
+import { PoweredByShopRally } from "@/components/brand/powered-by-shoprally";
+import { ShopRallyLogo } from "@/components/brand/shoprally-logo";
 import { PayInvoiceButton } from "@/components/invoice/pay-invoice-button";
 import { ServiceAdvisorCard } from "@/components/service-advisor-card";
+import { CustomerAcknowledgment } from "@/components/customer-acknowledgment";
 import { InvoiceStatus } from "@/generated/prisma";
 import { formatCents } from "@/lib/format";
 import { isShopOnlinePaymentsEnabled } from "@/server/services/stripe-connect";
@@ -29,15 +32,7 @@ export default async function InvoicePage({
   return (
     <div className="min-h-screen bg-muted/30 px-4 py-8">
       <div className="mx-auto max-w-xl space-y-5">
-        <div className="flex items-center gap-2">
-          <div className="flex size-7 items-center justify-center rounded-md bg-brand-navy text-sm font-black leading-none text-white shadow-sm">
-            <span>R</span>
-            <span className="text-brand-red">P</span>
-          </div>
-          <span className="text-base font-bold tracking-tight">
-            Kar<span className="text-brand-light">vio</span>
-          </span>
-        </div>
+        <ShopRallyLogo href="https://getshoprally.com" size="sm" />
 
         <div className="rounded-2xl border bg-card p-6 shadow-sm">
           <div className="border-b pb-4">
@@ -45,6 +40,11 @@ export default async function InvoicePage({
             <h1 className="mt-1 text-xl font-bold">Invoice #{view.number}</h1>
             <p className="mt-1 text-sm text-muted-foreground">
               RO #{view.roNumber} · {view.customerName} · {view.vehicleLabel}
+              {view.odometerNotWorking
+                ? " · Odometer not working"
+                : view.mileageIn != null
+                  ? ` · ${view.mileageIn.toLocaleString("en-US")} mi`
+                  : ""}
             </p>
             {view.issuedAt ? (
               <p className="mt-1 text-xs text-muted-foreground">
@@ -147,9 +147,11 @@ export default async function InvoicePage({
           ) : null}
         </div>
 
-        <p className="text-center text-xs text-muted-foreground">
-          Powered by ShopRally · Shop Management Software
-        </p>
+        <div className="rounded-2xl border bg-card p-5 shadow-sm">
+          <CustomerAcknowledgment html={view.invoiceTerms.html} />
+        </div>
+
+        <PoweredByShopRally className="text-center" />
       </div>
     </div>
   );

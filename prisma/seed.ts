@@ -33,6 +33,10 @@ import { AUTOMATION_TEMPLATES } from "../src/lib/automations";
 import { CAMPAIGN_TEMPLATES } from "../src/lib/campaigns";
 import { MOCK_GOOGLE_REVIEWS } from "../src/lib/google-reviews-mock";
 import { OILCARE_TERMS_DEFAULT, PLAN_TEMPLATES } from "../src/lib/maintenance-programs";
+import {
+  DEFAULT_ESTIMATE_TERMS_HTML,
+  DEFAULT_INVOICE_TERMS_HTML,
+} from "../src/lib/estimate-terms-default";
 import { ensureAutoApplyFees } from "../src/lib/ro-fees-apply";
 import { FAQ_SEED } from "./data/faqs";
 import { hashAgreementContent } from "../src/lib/agreement-hash";
@@ -247,13 +251,8 @@ async function main() {
       },
       plan: "PROFESSIONAL",
       billingStatus: "ACTIVE",
-      estimateTermsHtml: `<h3>Authorization to Perform Repairs</h3>
-<p>By approving this estimate, you authorize In &amp; Out AutoHaus Garage to perform the repair work described above at the prices shown. You understand that additional work may be required if hidden damage is discovered; we will contact you before performing any work not listed on this estimate.</p>
-<h3>Payment</h3>
-<p>Payment is due upon completion of authorized work unless other arrangements have been made in writing. Storage fees may apply for vehicles left after notification of completion.</p>
-<h3>Limited Warranty</h3>
-<p>Unless stated otherwise on your invoice, parts and labor are warranted as described at checkout. Used or customer-supplied parts may carry limited or no warranty. We are not liable for incidental or consequential damages to the fullest extent permitted by law.</p>`,
-      invoiceTermsHtml: `<p>All sales final on completed repair work. Returned checks subject to applicable fees.</p>`,
+      estimateTermsHtml: DEFAULT_ESTIMATE_TERMS_HTML,
+      invoiceTermsHtml: DEFAULT_INVOICE_TERMS_HTML,
       estimateTermsVersion: "1.0",
       estimateTermsUpdatedAt: new Date(),
     },

@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { formatCents } from "@/lib/format";
 import { SignaturePad, type SignatureCapture } from "@/components/approval/signature-pad";
+import { CustomerAcknowledgment } from "@/components/customer-acknowledgment";
 import { submitCustomerApproval } from "@/server/actions/approval";
 
 type ApprovalJob = {
@@ -176,16 +177,11 @@ export function ApproveActions({
       )}
 
       <div className="space-y-3 border-t pt-4">
-        <h2 className="text-base font-semibold">Terms &amp; authorization</h2>
-        <div className="max-h-48 overflow-y-auto rounded-lg border bg-muted/30 p-3 text-xs leading-relaxed text-muted-foreground">
-          <div
-            className="prose prose-sm max-w-none prose-headings:text-sm prose-headings:font-semibold prose-p:my-2"
-            dangerouslySetInnerHTML={{ __html: estimateTerms.html }}
-          />
-        </div>
-        <p className="text-[11px] text-muted-foreground">
-          Terms version {estimateTerms.version}
-        </p>
+        <CustomerAcknowledgment
+          html={estimateTerms.html}
+          version={estimateTerms.version}
+          heading="Customer acknowledgment & authorization"
+        />
         <h2 className="text-base font-semibold">Sign to authorize</h2>
         <div className="rounded-md border border-brand-navy/15 bg-brand-navy/5 px-3 py-2.5 text-xs leading-relaxed text-muted-foreground">
           <p className="font-medium text-foreground">Electronic signature disclosure (ESIGN Act)</p>

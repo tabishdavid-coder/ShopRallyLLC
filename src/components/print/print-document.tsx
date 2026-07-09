@@ -1,6 +1,8 @@
 import { formatCents, customerDisplayName } from "@/lib/format";
+import { formatPrintVehicleLabel } from "@/lib/print-vehicle-label";
 import type { RepairOrderDetail } from "@/server/repair-order";
 import { AutoPrint } from "@/components/print/auto-print";
+import { CustomerAcknowledgment } from "@/components/customer-acknowledgment";
 import type { DocTransparency } from "@/lib/transparency";
 
 type Shop = {
@@ -16,6 +18,11 @@ type Shop = {
   website: string | null;
   logoUrl: string | null;
 } | null;
+
+type AcknowledgmentBlock = {
+  html: string;
+  version?: string | null;
+};
 
 const NAVY = "#1b3a6b";
 const LINK = "#1c6bba";
@@ -40,17 +47,17 @@ export function PrintDocument({
   title,
   doc,
   transparency,
+  acknowledgment,
 }: {
   ro: RepairOrderDetail;
   shop: Shop;
   title: string;
   doc: string;
   transparency: DocTransparency;
+  acknowledgment?: AcknowledgmentBlock | null;
 }) {
   const T = transparency;
-  const v = ro.vehicle;
-  const vehicleShort = v ? [v.year, v.make, v.model, v.trim].filter(Boolean).join(" ") : "Vehicle";
-  const vehicleLong = v ? [v.year, v.make, v.model, v.trim, v.engine].filter(Boolean).join(" ") : "Vehicle";
+  const vehicleLabel = formatPrintVehicleLabel(ro.vehicle);
   const taxBps = ro.shop.taxRateBps;
   const isInvoice = doc === "invoice";
   const showCost = doc === "repair-order";
@@ -100,28 +107,20 @@ export function PrintDocument({
           <div><b>Service Advisor:</b> {ro.serviceWriterName ?? "—"}</div>
           <div><b>Date Created:</b> {fmtDT(ro.createdAt)}</div>
           <div><b>Client:</b> {customerDisplayName(ro.customer)}</div>
-          <div><b>Vehicle:</b> {vehicleShort}</div>
-        </div>
-      </div>
-
-      {/* Customer / Vehicle / RO box */}
-      <div className="mt-4 grid grid-cols-3 border border-slate-300">
-        <div className="border-r border-slate-300 p-2 leading-snug">
-          <div className="font-bold">{customerDisplayName(ro.customer)}</div>
-          {ro.customer.phone ? <div style={{ color: LINK }} className="mt-1">Phone: {ro.customer.phone}</div> : null}
-          {ro.customer.email ? <div style={{ color: LINK }}>{ro.customer.email}</div> : null}
-        </div>
-        <div className="border-r border-slate-300 p-2 leading-snug">
-          <div className="font-bold">{vehicleLong}</div>
-          <div>VIN: {v?.vin || "N/A"}</div>
-          <div>License: {v?.plate ? `${v.plate}${v.plateState ? ` ${v.plateState}` : ""}` : "N/A"}</div>
-          <div>Color: {v?.color || "N/A"}</div>
-          <div>Odometer In: {ro.mileageIn?.toLocaleString() ?? "N/A"} / Out: {ro.mileageOut?.toLocaleString() ?? "N/A"}</div>
-        </div>
-        <div className="p-2 leading-snug">
-          <div className="font-bold">RO # {ro.number}</div>
-          <div>Time-In: {fmtDT(ro.createdAt)}</div>
-          <div>Save Parts: No</div>
+          <div><b>Vehicle:</b> {vehicleLabel}</div>
+          <div>
+            <b>Odometer In:</b>{" "}
+            {ro.odometerNotWorking
+              ? "Not working"
+              : ro.mileageIn != null
+                ? `${ro.mileageIn.toLocaleString("en-US")} mi`
+                : "—"}
+          </div>
+          {ro.mileageOut != null ? (
+            <div>
+              <b>Odometer Out:</b> {ro.mileageOut.toLocaleString("en-US")} mi
+            </div>
+          ) : null}
         </div>
       </div>
 
@@ -238,6 +237,15 @@ export function PrintDocument({
             </tbody>
           </table>
         </div>
+      ) : null}
+
+      {acknowledgment?.html ? (
+        <CustomerAcknowledgment
+          html={acknowledgment.html}
+          version={acknowledgment.version}
+          variant="print"
+          heading={isInvoice ? "Customer acknowledgment" : "Customer acknowledgment & authorization"}
+        />
       ) : null}
 
       {/* Footer */}

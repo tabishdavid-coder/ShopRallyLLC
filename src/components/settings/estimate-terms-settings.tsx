@@ -55,7 +55,8 @@ export function EstimateTermsSettings({
         <h3 className="text-base font-semibold">Customer Estimate Terms</h3>
         <p className="mt-1 text-sm text-muted-foreground">
           Standard authorization language shown to customers on the public approval link,
-          above the signature block. HTML is supported (headings, lists, emphasis).
+          estimate print, and repair-order print — above the signature block. HTML is supported
+          (headings, lists, emphasis).
         </p>
         <p className="mt-2 text-xs text-muted-foreground">
           Current version: <span className="font-medium text-foreground">{version}</span>
@@ -81,15 +82,19 @@ export function EstimateTermsSettings({
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="invoice-terms">Invoice terms (optional)</Label>
+        <Label htmlFor="invoice-terms">Invoice acknowledgment terms</Label>
         <Textarea
           id="invoice-terms"
           value={invoiceHtml}
           onChange={(e) => setInvoiceHtml(e.target.value)}
-          rows={6}
+          rows={8}
           className="font-mono text-xs leading-relaxed"
-          placeholder="Optional terms printed on invoices…"
+          placeholder="Customer acknowledgment shown on invoices…"
         />
+        <p className="text-xs text-muted-foreground">
+          Shown on the public invoice page and invoice print. Leave blank to use the platform
+          default acknowledgment.
+        </p>
       </div>
 
       <div className="flex flex-wrap items-center justify-end gap-3 border-t pt-4">

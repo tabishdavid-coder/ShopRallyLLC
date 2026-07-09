@@ -7,7 +7,7 @@ import { resolveAdvanced } from "@/lib/ro-settings";
 import { resolveTransparency } from "@/lib/transparency";
 import { resolveCompletedRoArchiveSettings } from "@/lib/job-board-archive";
 import { resolveJobBoardPipelineConfig } from "@/lib/job-board-pipeline";
-import { DEFAULT_ESTIMATE_TERMS_HTML } from "@/lib/estimate-terms-default";
+import { DEFAULT_ESTIMATE_TERMS_HTML, DEFAULT_INVOICE_TERMS_HTML } from "@/lib/estimate-terms-default";
 
 const c = (cents: number) => cents / 100;
 
@@ -86,7 +86,7 @@ export default async function RoSettingsPage({
       transparency={resolveTransparency(shop.docTransparency)}
       estimateTerms={{
         initialEstimateHtml: shop.estimateTermsHtml?.trim() || DEFAULT_ESTIMATE_TERMS_HTML,
-        initialInvoiceHtml: shop.invoiceTermsHtml ?? "",
+        initialInvoiceHtml: shop.invoiceTermsHtml?.trim() || DEFAULT_INVOICE_TERMS_HTML,
         version: shop.estimateTermsVersion ?? "1.0",
         updatedAt: shop.estimateTermsUpdatedAt,
       }}

@@ -291,7 +291,7 @@ export async function sendEstimateLink(
   if (!link.ok) return { ok: false, error: link.error };
 
   const greeting = ro.customer.firstName?.trim() || "there";
-  const body = `Hello ${greeting}, your estimate from ${ro.shop.name} for RO #${ro.number} is ready. Review and approve here: ${link.url}`;
+  const body = `Hello ${greeting}, your estimate from ${ro.shop.name} for RO #${ro.number} is ready. Review the work, acknowledge the shop terms, and approve here: ${link.url}`;
   const to =
     channel === "sms"
       ? (ro.customer.phone?.trim() ?? "")
@@ -433,7 +433,7 @@ export async function sendInvoiceLink(
 
   const ro = inv.repairOrder;
   const greeting = ro.customer.firstName?.trim() || "there";
-  const body = `Hello ${greeting}, your invoice from ${ro.shop.name} (#${inv.number}) is ready. View it here: ${link.url}`;
+  const body = `Hello ${greeting}, your invoice from ${ro.shop.name} (#${inv.number}) is ready. View the invoice and customer acknowledgment here: ${link.url}`;
   const to =
     channel === "sms"
       ? (ro.customer.phone?.trim() ?? "")

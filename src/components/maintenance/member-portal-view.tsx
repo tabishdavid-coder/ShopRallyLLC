@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { CalendarCheck, ExternalLink } from "lucide-react";
+import { CalendarCheck } from "lucide-react";
 
+import { PoweredByShopRally } from "@/components/brand/powered-by-shoprally";
 import { Button } from "@/components/ui/button";
 import {
   MemberDigitalCard,
@@ -115,9 +116,8 @@ export function MemberPortalView({ shopName, shopPhone, bookingSlug, sub }: Prop
         </p>
       </main>
 
-      <footer className="py-6 text-center text-xs text-muted-foreground">
-        <ExternalLink className="inline size-3 mr-1" />
-        Powered by Kar<span className="text-brand-light">vio</span>
+      <footer className="py-6 text-center">
+        <PoweredByShopRally suffix="" />
       </footer>
     </div>
   );
