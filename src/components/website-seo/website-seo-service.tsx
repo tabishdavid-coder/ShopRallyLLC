@@ -185,7 +185,8 @@ export function WebsiteSeoServicePage({
                   </li>
                 ))}
                 <li>
-                  <span className="font-medium text-brand-navy">Bundle</span> — $119/mo
+                  <span className="font-medium text-brand-navy">Bundle</span> —{" "}
+                  {WEB_PRESENCE_SERVICES.find((s) => s.id === "web-seo-bundle-monthly")?.priceLabel ?? "$199/mo"}
                   <span className="text-slate-500">
                     {" "}
                     · + {formatWebPresenceSetupCents(WEB_PRESENCE_SERVICES.find((s) => s.id === "web-seo-bundle-monthly")!.setupCents)} launch setup (once)

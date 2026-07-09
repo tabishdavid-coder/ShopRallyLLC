@@ -141,7 +141,7 @@ export async function resolveShopHistoryLabor(
   const medianHours = median(sortedHours);
   if (!(medianHours > 0)) return null;
 
-  const jobName = mostCommon(matched.map((m) => m.job.name)) ?? request.trim() || "Labor";
+  const jobName = mostCommon(matched.map((m) => m.job.name)) ?? (request.trim() || "Labor");
   const n = matched.length;
   // Honest, sample-scaled confidence — never a flat 0.5. Caps at 0.9 (SHOP, not BOOK).
   const confidenceScore = Math.min(0.9, 0.6 + 0.05 * n);

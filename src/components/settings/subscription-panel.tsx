@@ -133,7 +133,7 @@ export function SubscriptionPanel({
           <div>
             <p className="text-sm font-medium">ShopSite + Local SEO</p>
             <p className="mt-1 text-sm text-muted-foreground">
-              Monthly: ShopSite $59, Local SEO $79, or bundle $119. One-time launch setup when you start
+              Monthly: ShopSite $99, Local SEO $129, or bundle $199. One-time launch setup when you start
               ($349 / $299 / $549 bundle). Included on {PLANS.ENTERPRISE.name} (monthly + setup).
             </p>
           </div>
@@ -145,7 +145,7 @@ export function SubscriptionPanel({
           <div>
             <p className="text-sm font-medium">Local SEO subscription</p>
             <p className="mt-1 text-sm text-muted-foreground">
-              Included on {PLANS.ENTERPRISE.name}; $79/mo add-on on other tiers. Audits, Search Console, and
+              Included on {PLANS.ENTERPRISE.name}; $129/mo add-on on other tiers. Audits, Search Console, and
               monthly reports.
             </p>
           </div>

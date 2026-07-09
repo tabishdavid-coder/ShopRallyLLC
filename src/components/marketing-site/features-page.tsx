@@ -50,7 +50,7 @@ const MODULES = [
     title: "Website & SEO",
     description:
       "Two separate monthly subscriptions — ShopSite for your hosted website and Local SEO for rankings, Search Console, and Autopilot.",
-    items: ["ShopSite $59/mo", "Local SEO $79/mo", "Bundle $119/mo", `Launch setup included on ${PLANS.ENTERPRISE.name}`],
+    items: ["ShopSite $99/mo", "Local SEO $129/mo", "Bundle $199/mo", `Launch setup included on ${PLANS.ENTERPRISE.name}`],
     accent: "from-brand-navy/5 to-white border-brand-navy/15",
   },
 ] as const;

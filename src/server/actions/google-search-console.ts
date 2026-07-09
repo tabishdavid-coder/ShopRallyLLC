@@ -48,7 +48,7 @@ async function requireSeoFeature(): Promise<{ shopId: string } | { error: string
   const allowed = await canUseFeature(shopId, "website_seo");
   if (!allowed) {
     return {
-      error: `Search Console requires ${PLANS.ENTERPRISE.name} or a Local SEO subscription (${GROWTH_PRODUCTS.seoAutopilot.label}, $79/mo).`,
+      error: `Search Console requires ${PLANS.ENTERPRISE.name} or a Local SEO subscription (${GROWTH_PRODUCTS.seoAutopilot.label}, $129/mo).`,
     };
   }
   return { shopId };

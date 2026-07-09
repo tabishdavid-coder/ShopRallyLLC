@@ -9,7 +9,7 @@ export const GROWTH_ENGINE = {
   name: "Growth Engine",
   tagline: "Acquire customers, keep them coming back, and get found locally.",
   upgradeHint: `Growth Engine is included on ${PLANS.PROFESSIONAL.name} and ${PLANS.ENTERPRISE.name} plans.`,
-  overdriveHint: `ShopSite ($59/mo), Local SEO ($79/mo), and maintenance programs are included on ${PLANS.ENTERPRISE.name}.`,
+  overdriveHint: `ShopSite ($99/mo), Local SEO ($129/mo), and maintenance programs are included on ${PLANS.ENTERPRISE.name}.`,
 } as const;
 
 export type GrowthBundleId = "connect" | "retain" | "presence" | "autopilot";

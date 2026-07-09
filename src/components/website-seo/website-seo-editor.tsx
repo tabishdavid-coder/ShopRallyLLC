@@ -79,7 +79,7 @@ export function WebsiteSeoEditor({
           </CardTitle>
           <CardDescription>
             {PLANS.ENTERPRISE.name} includes ShopSite and Local SEO. On other plans, subscribe to ShopSite
-            ($59/mo), Local SEO ($79/mo), or the $119/mo bundle. SEO tooling lives in{" "}
+            ($99/mo), Local SEO ($129/mo), or the $199/mo bundle. SEO tooling lives in{" "}
             {GROWTH_PRODUCTS.seoAutopilot.label}.
           </CardDescription>
         </CardHeader>

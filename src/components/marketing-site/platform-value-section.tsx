@@ -45,7 +45,7 @@ const VALUE_PILLARS = [
   {
     icon: Globe,
     title: "Get found",
-    description: "ShopSite ($59/mo) and Local SEO ($79/mo) — separate subscriptions, or $119/mo bundled. Launch setup once.",
+    description: "ShopSite ($99/mo) and Local SEO ($129/mo) — separate subscriptions, or $199/mo bundled. Launch setup once.",
     tiers: `Add-ons or ${PLANS.ENTERPRISE.name} included`,
   },
   {

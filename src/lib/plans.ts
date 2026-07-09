@@ -169,9 +169,9 @@ export const PLATFORM_MODULES = [
     id: "labor",
     name: "Labor Book",
     description:
-      "Labor AI on every tier. Pro and Elite add licensed industry flat-rate data for MOTOR-class lookup in estimates.",
+      "Labor AI on every tier. MOTOR labor data is +$50/mo on Core and included on Pro and Elite, which also add ShopRally licensed flat-rate data.",
     icon: "wrench" as const,
-    pricingNote: "Labor AI all tiers · licensed data on Pro+",
+    pricingNote: "Labor AI all tiers · MOTOR +$50 on Core · included on Pro+",
   },
   {
     id: "insights",
@@ -186,14 +186,14 @@ export const PLATFORM_MODULES = [
     name: "ShopSite",
     description: "Branded shop website with services, contact, and online booking — hosted and updated for you.",
     icon: "globe" as const,
-    pricingNote: "$59/mo + launch setup · Elite included",
+    pricingNote: "$99/mo + launch setup · Elite included",
   },
   {
     id: "seo",
     name: "Local SEO",
     description: "On-page SEO, JSON-LD, Search Console, local search, and SEO Autopilot runs every month.",
     icon: "search" as const,
-    pricingNote: "$79/mo + launch setup · Elite included",
+    pricingNote: "$129/mo + launch setup · Elite included",
   },
   {
     id: "subscriptions",
@@ -264,18 +264,18 @@ export const WEB_PRESENCE_SERVICES: WebPresenceService[] = [
   {
     id: "shopsite-monthly",
     name: "ShopSite",
-    monthlyCents: 5900,
-    priceLabel: "$59/mo",
+    monthlyCents: 9900,
+    priceLabel: "$99/mo",
     setupCents: WEB_PRESENCE_LAUNCH_SETUP.shopsite.setupCents,
     description:
       "Branded shop website, hosting, SSL, custom domain setup, booking widget, and ongoing content updates.",
-    savingsNote: "Agency site retainers often run $79–150/mo.",
+    savingsNote: "Agency site retainers often run $150–300/mo.",
   },
   {
     id: "seo-monthly",
     name: "Local SEO",
-    monthlyCents: 7900,
-    priceLabel: "$79/mo",
+    monthlyCents: 12900,
+    priceLabel: "$129/mo",
     setupCents: WEB_PRESENCE_LAUNCH_SETUP.seo.setupCents,
     description:
       "On-page SEO, structured data (JSON-LD), Search Console monitoring, Google Business guidance, and SEO Autopilot runs.",
@@ -284,13 +284,18 @@ export const WEB_PRESENCE_SERVICES: WebPresenceService[] = [
   {
     id: "web-seo-bundle-monthly",
     name: "Website + SEO bundle",
-    monthlyCents: 11900,
-    priceLabel: "$119/mo",
+    monthlyCents: 19900,
+    priceLabel: "$199/mo",
     setupCents: WEB_PRESENCE_LAUNCH_SETUP.bundle.setupCents,
     description: "ShopSite and Local SEO together — full web presence on two subscriptions billed as one.",
-    savingsNote: "Save $19/mo vs subscribing to ShopSite and Local SEO separately ($138/mo).",
+    savingsNote: "Save $29/mo vs subscribing to ShopSite and Local SEO separately ($228/mo).",
   },
 ];
+
+/** À la carte ShopSite + Local SEO monthly dollars — used in Elite “included value” copy. */
+export function webPresenceAlaCarteMonthlyDollars(): number {
+  return webPresenceAlaCarteMonthlyCents() / 100;
+}
 
 /** @deprecated Use WEB_PRESENCE_SERVICES */
 export type StartupService = WebPresenceService;
@@ -379,6 +384,14 @@ export type PlanAddOn = {
 
 /** Optional monthly add-ons — stack on any tier where noted. */
 export const PLAN_ADDONS: PlanAddOn[] = [
+  {
+    id: "motor-labor",
+    name: "MOTOR labor data",
+    priceLabel: "$50/mo",
+    description:
+      "Licensed MOTOR flat-rate guides and procedures in the estimate. Included on Pro and Elite.",
+    tiers: "starter+",
+  },
   {
     id: "ai-receptionist",
     name: "AI receptionist",
@@ -519,11 +532,15 @@ export const PLANS: Record<ShopPlan, PlanDefinition> = {
     pricingCard: {
       bestFor: "Single-bay shops going cloud-first",
       bullets: [
-        "Unlimited users & repair orders",
-        "Job board, estimates, canned jobs & email approvals",
-        "DVIs with photo markup & customer share",
-        "Live dashboard, Daily Outline & daily reports",
-        `${LABOR_PLAN_COPY.ignitionHighlight} · ${PLAN_TRAINING.STARTER.sessions}`,
+        "ShopRally CRM suite",
+        "Unlimited users",
+        "Unlimited repair orders & estimates",
+        "Digital estimates & invoices via email",
+        "Job board",
+        "Canned jobs",
+        "Digital vehicle inspections",
+        "Operations Daily Snapshot",
+        "MOTOR labor data — $50/mo extra",
       ],
     },
     features: starterFeatures,
@@ -533,8 +550,8 @@ export const PLANS: Record<ShopPlan, PlanDefinition> = {
     name: "Pro",
     subtitle: "Most popular",
     tagline: "Licensed labor, Growth Engine & payments — our flagship tier.",
-    monthlyCents: 24900,
-    annualMonthlyCents: 21900,
+    monthlyCents: 27900,
+    annualMonthlyCents: 23900,
     popular: true,
     valueNote: "Licensed labor + premium all-in-one vs ~$574/mo mid-market CRM + labor + marketing stack",
     savingsNote: "Licensed labor + premium all-in-one vs ~$574/mo mid-market CRM + labor + marketing stack",
@@ -542,12 +559,15 @@ export const PLANS: Record<ShopPlan, PlanDefinition> = {
       bestFor: "Growing shops that want labor data + marketing in one bill",
       includesPrevious: "STARTER",
       bullets: [
-        LABOR_PLAN_COPY.momentumHighlight,
-        "Parts management, inventory catalog & PartsTech",
-        "Two-way SMS, booking & Growth Engine campaigns",
-        "Google Reviews sync & advisor inbox",
-        "Stripe Connect & markup matrices",
-        `${PLAN_TRAINING.PROFESSIONAL.sessions} for advisors, techs & marketing`,
+        "Licensed MOTOR labor data",
+        "License plate & VIN decoding",
+        "OEM service specs",
+        "OEM fluid capacities",
+        "Parts, inventory & PartsTech",
+        "Two-way SMS",
+        "Online booking",
+        "Growth Engine — automations & win-back campaigns",
+        "Google review management",
       ],
     },
     features: professionalFeatures,
@@ -557,8 +577,8 @@ export const PLANS: Record<ShopPlan, PlanDefinition> = {
     name: "Elite",
     subtitle: "White-glove",
     tagline: "Full premium stack with white-glove launch support.",
-    monthlyCents: 40900,
-    annualMonthlyCents: 36900,
+    monthlyCents: 47900,
+    annualMonthlyCents: 40900,
     valueNote: "Full stack vs legacy CRM + agency retainers · migration & launch setup included",
     savingsNote: "Full stack vs legacy CRM + agency retainers · migration & launch setup included",
     pricingCard: {
@@ -566,7 +586,7 @@ export const PLANS: Record<ShopPlan, PlanDefinition> = {
       includesPrevious: "PROFESSIONAL",
       bullets: [
         "AI receptionist + review reply drafting",
-        "ShopSite & Local SEO included ($138/mo value)",
+        `ShopSite & Local SEO included ($${webPresenceAlaCarteMonthlyDollars()}/mo value)`,
         "Maintenance subscription programs",
         "AI SEO content & campaign drafting",
         `${PLAN_TRAINING.ENTERPRISE.sessions} · migration included`,
@@ -698,8 +718,24 @@ export const COMPARISON_ROWS: {
     values: { STARTER: false, PROFESSIONAL: true, ENTERPRISE: true },
   },
   {
+    label: "License plate & VIN decoding",
+    values: { STARTER: false, PROFESSIONAL: true, ENTERPRISE: true },
+  },
+  {
+    label: "OEM service specs",
+    values: { STARTER: false, PROFESSIONAL: true, ENTERPRISE: true },
+  },
+  {
+    label: "OEM fluid capacities",
+    values: { STARTER: false, PROFESSIONAL: true, ENTERPRISE: true },
+  },
+  {
     label: "Labor guide",
     values: LABOR_PLAN_COPY.comparisonByPlan,
+  },
+  {
+    label: "MOTOR labor data",
+    values: { STARTER: "$50/mo extra", PROFESSIONAL: true, ENTERPRISE: true },
   },
   {
     label: "Stripe Connect payments",
@@ -731,25 +767,25 @@ export const COMPARISON_ROWS: {
     label: "ShopSite (hosted website)",
     category: "Website & SEO",
     values: {
-      STARTER: "$59/mo add-on",
-      PROFESSIONAL: "$59/mo add-on",
+      STARTER: "$99/mo add-on",
+      PROFESSIONAL: "$99/mo add-on",
       ENTERPRISE: "Included",
     },
   },
   {
     label: "Local SEO + Autopilot",
     values: {
-      STARTER: "$79/mo add-on",
-      PROFESSIONAL: "$79/mo add-on",
+      STARTER: "$129/mo add-on",
+      PROFESSIONAL: "$129/mo add-on",
       ENTERPRISE: "Included",
     },
   },
   {
     label: "Website + SEO bundle",
     values: {
-      STARTER: "$119/mo add-on",
-      PROFESSIONAL: "$119/mo add-on",
-      ENTERPRISE: "Included ($138/mo value)",
+      STARTER: "$199/mo add-on",
+      PROFESSIONAL: "$199/mo add-on",
+      ENTERPRISE: `Included ($${webPresenceAlaCarteMonthlyDollars()}/mo value)`,
     },
   },
   {
@@ -933,11 +969,11 @@ export const INTEGRATION_PARTNERS = [
 export const PRICING_FAQ = [
   {
     q: "Which plan should I choose?",
-    a: "Core for a lean single-bay shop getting off paper — Labor AI included. Pro when you want licensed flat-rate labor data, booking, SMS, campaigns, and reviews without bolt-ons. Elite when you want AI receptionist, ShopSite, Local SEO, and maintenance programs in one bill.",
+    a: "Core for a lean single-bay shop getting off paper — Labor AI included; MOTOR labor data is +$50/mo (included on Pro). Pro when you want MOTOR, licensed labor data, license plate & VIN decoding, OEM specs & fluids, booking, SMS, and campaigns. Elite when you want AI receptionist, ShopSite, Local SEO, and maintenance programs in one bill.",
   },
   {
     q: "How does ShopSite and SEO pricing work?",
-    a: "ShopSite ($59/mo) and Local SEO ($79/mo) are separate monthly subscriptions on any CRM tier. Subscribe to both for $119/mo with the bundle. A one-time launch setup applies when each service starts ($349 ShopSite, $299 Local SEO, or $549 bundle). Elite includes monthly fees and launch setup.",
+    a: "ShopSite ($99/mo) and Local SEO ($129/mo) are separate monthly subscriptions on any CRM tier. Subscribe to both for $199/mo with the bundle. A one-time launch setup applies when each service starts ($349 ShopSite, $299 Local SEO, or $549 bundle). Elite includes monthly fees and launch setup.",
   },
   {
     q: "Can I change plans anytime?",
@@ -962,6 +998,10 @@ export const PRICING_FAQ = [
   {
     q: "What's included in Labor AI vs licensed labor data?",
     a: LABOR_PLAN_COPY.faqAnswer,
+  },
+  {
+    q: "What are MOTOR labor guides?",
+    a: "MOTOR labor data is licensed flat-rate guides and procedures in the estimate. On Core it’s +$50/mo; on Pro and Elite it’s included, along with ShopRally licensed labor data and Labor AI.",
   },
   {
     q: "Do you integrate with PartsTech and QuickBooks?",

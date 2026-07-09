@@ -210,7 +210,7 @@ export async function getSeoAutopilotPlanView(
       name: shopsiteMonthly?.name ?? "ShopSite",
       priceLabel: isElite
         ? "Included"
-        : `${shopsiteMonthly?.priceLabel ?? "$59/mo"} · ${webPresenceSetupFootnote(shopsiteMonthly?.setupCents ?? 34900)}`,
+        : `${shopsiteMonthly?.priceLabel ?? "$99/mo"} · ${webPresenceSetupFootnote(shopsiteMonthly?.setupCents ?? 34900)}`,
       description: shopsiteMonthly?.description ?? "",
       status: hasShopSite
         ? ("active" as const)
@@ -224,7 +224,7 @@ export async function getSeoAutopilotPlanView(
       name: seoMonthly?.name ?? "Local SEO",
       priceLabel: isElite
         ? "Included"
-        : `${seoMonthly?.priceLabel ?? "$79/mo"} · ${webPresenceSetupFootnote(seoMonthly?.setupCents ?? 29900)}`,
+        : `${seoMonthly?.priceLabel ?? "$129/mo"} · ${webPresenceSetupFootnote(seoMonthly?.setupCents ?? 29900)}`,
       description: seoMonthly?.description ?? "",
       status: hasWebsiteSeo
         ? ("active" as const)
@@ -238,7 +238,7 @@ export async function getSeoAutopilotPlanView(
       name: webSeoBundle?.name ?? "Website + SEO bundle",
       priceLabel: isElite
         ? "Included"
-        : `${webSeoBundle?.priceLabel ?? "$119/mo"} · ${webPresenceSetupFootnote(webSeoBundle?.setupCents ?? 54900)}`,
+        : `${webSeoBundle?.priceLabel ?? "$199/mo"} · ${webPresenceSetupFootnote(webSeoBundle?.setupCents ?? 54900)}`,
       description: webSeoBundle?.description ?? "",
       status:
         hasShopSite && hasWebsiteSeo

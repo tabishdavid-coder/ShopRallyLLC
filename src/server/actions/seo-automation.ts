@@ -33,7 +33,7 @@ async function requireSeoFeature(): Promise<{ shopId: string } | { error: string
   const allowed = await canUseFeature(shopId, "website_seo");
   if (!allowed) {
     return {
-      error: `${GROWTH_PRODUCTS.seoAutopilot.label} requires ${PLANS.ENTERPRISE.name} or a Local SEO subscription ($79/mo). Upgrade in Settings → Subscription.`,
+      error: `${GROWTH_PRODUCTS.seoAutopilot.label} requires ${PLANS.ENTERPRISE.name} or a Local SEO subscription ($129/mo). Upgrade in Settings → Subscription.`,
     };
   }
   return { shopId };

@@ -13,19 +13,19 @@ export const SEO_STRIPE_CATALOG: Record<
     envVar: "STRIPE_PRICE_SHOPSITE_MONTHLY",
     label: "ShopSite",
     mode: "subscription",
-    listPriceLabel: "$59/mo",
+    listPriceLabel: "$99/mo",
   },
   "seo-monthly": {
     envVar: "STRIPE_PRICE_SEO_MONTHLY",
     label: "Local SEO",
     mode: "subscription",
-    listPriceLabel: "$79/mo",
+    listPriceLabel: "$129/mo",
   },
   "web-seo-bundle-monthly": {
     envVar: "STRIPE_PRICE_WEB_SEO_BUNDLE_MONTHLY",
     label: "Website + SEO bundle",
     mode: "subscription",
-    listPriceLabel: "$119/mo",
+    listPriceLabel: "$199/mo",
   },
 };
 

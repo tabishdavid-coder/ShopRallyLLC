@@ -7,7 +7,7 @@ type PricingBillingToggleProps = {
   annual: boolean;
   onAnnualChange: (annual: boolean) => void;
   className?: string;
-  /** Show savings badge (uses Pro tier as reference). */
+  /** Show savings badge (uses the best annual discount across plans). */
   showSavings?: boolean;
 };
 
@@ -17,7 +17,9 @@ export function PricingBillingToggle({
   className,
   showSavings = true,
 }: PricingBillingToggleProps) {
-  const savingsPct = annualSavingsPercent(PLANS.PROFESSIONAL);
+  const savingsPct = Math.max(
+    ...Object.values(PLANS).map((plan) => annualSavingsPercent(plan)),
+  );
 
   return (
     <div

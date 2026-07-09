@@ -31,7 +31,7 @@ async function requireWebsiteFeature(): Promise<{ shopId: string } | { error: st
   ]);
   if (!hasShopSite && !hasSeo) {
     return {
-      error: `${GROWTH_PRODUCTS.shopSite.label} requires ${PLANS.ENTERPRISE.name}, a ShopSite subscription ($59/mo), or a plan upgrade. See Settings → Subscription.`,
+      error: `${GROWTH_PRODUCTS.shopSite.label} requires ${PLANS.ENTERPRISE.name}, a ShopSite subscription ($99/mo), or a plan upgrade. See Settings → Subscription.`,
     };
   }
   return { shopId };

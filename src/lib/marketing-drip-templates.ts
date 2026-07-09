@@ -44,7 +44,7 @@ Quick snapshot of why shops are switching to ShopRally:
 • ${PLANS.STARTER.name}: Labor AI · ${PLANS.PROFESSIONAL.name} ($${repairPilotAllInMonthly(true)}/mo annual): licensed labor data + Growth Engine
 • ${PLANS.ENTERPRISE.name} ($${repairPilotOverdriveMonthly(true)}/mo annual): full stack — AI, web, SEO, licensed labor
 • In-depth training on every tier — live sessions on ${PLANS.STARTER.name}, team program on ${PLANS.PROFESSIONAL.name}
-• Optional ShopSite ($59/mo) + Local SEO ($79/mo) — included on ${PLANS.ENTERPRISE.name}
+• Optional ShopSite ($99/mo) + Local SEO ($129/mo) — included on ${PLANS.ENTERPRISE.name}
 
 Founding spots are limited. Compare plans: https://getshoprally.com/pricing
 
