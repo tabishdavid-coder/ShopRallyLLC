@@ -1,6 +1,6 @@
 /** Pre-launch email drip copy — paste into Resend or your ESP until automated. */
 
-import { PLANS, repairPilotAllInMonthly } from "@/lib/plans";
+import { PLANS, repairPilotAllInMonthly, repairPilotOverdriveMonthly } from "@/lib/plans";
 
 export type MarketingDripEmail = {
   id: string;
@@ -39,9 +39,10 @@ We'll email you when onboarding slots open. Want to skip the line? Reply to this
 
 Quick snapshot of why shops are switching to ShopRally:
 
-• Job board + estimates + DVIs in one CRM
-• ${PLANS.PROFESSIONAL.name} ($${repairPilotAllInMonthly(true)}/mo annual): Growth Engine — SMS, booking, reviews
-• ${PLANS.ENTERPRISE.name}: AI after-hours SMS + voice — no separate $99/mo AIR fee
+• Job board + estimates + live dashboard in one CRM
+• DVIs with MPI, photo markup & customer share on every plan
+• ${PLANS.STARTER.name}: Labor AI · ${PLANS.PROFESSIONAL.name} ($${repairPilotAllInMonthly(true)}/mo annual): licensed labor data + Growth Engine
+• ${PLANS.ENTERPRISE.name} ($${repairPilotOverdriveMonthly(true)}/mo annual): full stack — AI, web, SEO, licensed labor
 • In-depth training on every tier — live sessions on ${PLANS.STARTER.name}, team program on ${PLANS.PROFESSIONAL.name}
 • Optional ShopSite ($59/mo) + Local SEO ($79/mo) — included on ${PLANS.ENTERPRISE.name}
 
