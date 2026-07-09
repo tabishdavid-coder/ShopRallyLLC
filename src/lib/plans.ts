@@ -424,7 +424,7 @@ export const PLAN_ADDONS: PlanAddOn[] = [
 const starterFeatures: PlanFeatureSet = {
   maxUsers: null,
   maxRepairOrdersPerMonth: null,
-  cannedJobs: false,
+  cannedJobs: true,
   partsTech: false,
   laborGuide: true,
   customerEmail: true,
@@ -520,7 +520,7 @@ export const PLANS: Record<ShopPlan, PlanDefinition> = {
       bestFor: "Single-bay shops going cloud-first",
       bullets: [
         "Unlimited users & repair orders",
-        "Job board, estimates & email approvals",
+        "Job board, estimates, canned jobs & email approvals",
         "DVIs with photo markup & customer share",
         "Live dashboard, Daily Outline & daily reports",
         `${LABOR_PLAN_COPY.ignitionHighlight} · ${PLAN_TRAINING.STARTER.sessions}`,
@@ -543,9 +543,10 @@ export const PLANS: Record<ShopPlan, PlanDefinition> = {
       includesPrevious: "STARTER",
       bullets: [
         LABOR_PLAN_COPY.momentumHighlight,
-        "Growth Engine — booking, SMS & campaigns",
+        "Parts management, inventory catalog & PartsTech",
+        "Two-way SMS, booking & Growth Engine campaigns",
         "Google Reviews sync & advisor inbox",
-        "Stripe, PartsTech, canned jobs & markups",
+        "Stripe Connect & markup matrices",
         `${PLAN_TRAINING.PROFESSIONAL.sessions} for advisors, techs & marketing`,
       ],
     },
@@ -685,7 +686,11 @@ export const COMPARISON_ROWS: {
     values: DVI_PLAN_COPY.comparisonAllTiers,
   },
   {
-    label: "Canned jobs & markup matrices",
+    label: "Canned jobs",
+    values: { STARTER: true, PROFESSIONAL: true, ENTERPRISE: true },
+  },
+  {
+    label: "Markup matrices",
     values: { STARTER: false, PROFESSIONAL: true, ENTERPRISE: true },
   },
   {
