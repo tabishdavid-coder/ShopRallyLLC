@@ -47,6 +47,9 @@ export type LaborCartLine = {
   variantLabel?: string;
   hours: number;
   source: LaborGuideSource;
+  /** Provenance carried from the source hit so cart/job badges keep their tier
+   * (BOOK / SHOP / AI-DRAFT) instead of collapsing to a generic label. */
+  dataSource?: string;
 };
 
 /** Position/quantity option for a labor operation. */

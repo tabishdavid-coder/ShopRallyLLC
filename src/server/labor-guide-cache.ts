@@ -36,6 +36,10 @@ import {
   reauditCachedSuggestion,
   type MotorLaborContext,
 } from "@/server/services/labor-guide-resolver";
+import {
+  resolveShopHistoryLabor,
+  type ShopHistoryLaborResult,
+} from "@/server/services/shop-history-labor";
 import type { MotorNodeAssignment } from "@/server/services/motor/motor-node-assignment";
 import {
   findMotorCatalogApplicationMatch,
@@ -101,7 +105,10 @@ export type LaborLookup = {
   motorAssignment?: MotorNodeAssignment | null;
 };
 
-export type LaborLookupOptions = MotorLaborContext;
+export type LaborLookupOptions = MotorLaborContext & {
+  /** Current shop — enables the shop-history (tier SHOP) authority above AI drafts. */
+  shopId?: string;
+};
 
 type LaborOperationRow = {
   id: string;
@@ -173,7 +180,9 @@ function cachedRowToHit(row: LaborOperationRow, vehicle: LaborVehicle): LaborGui
     notes: calibrated.notes || undefined,
     source: "cached",
     vehicleMatch: vehicleMatchLabel(row, vehicle),
-    confidenceScore: row.confidenceScore ?? 0.5,
+    // Carry the stored confidence through unchanged — do NOT flatten to 0.5, or
+    // the low-confidence / verify affordance in the UI never fires (honesty T0).
+    confidenceScore: row.confidenceScore ?? undefined,
     dataSource: row.dataSource ?? undefined,
   };
 }
@@ -340,14 +349,30 @@ export async function lookupLaborSuggestion(
     !promptStale &&
     Date.now() - existing.refreshedAt.getTime() < TTL_MS;
 
+  // T1-lite (tier SHOP): the shop's own repeated actuals are a more honest source
+  // than an ungrounded AI draft. Resolve them unless a grounded (MOTOR / shop_history
+  // / curated) cache row is already fresh — then that authoritative row wins and we
+  // skip the extra query. No floors are applied to this path.
+  const cachedIsGrounded = Boolean(
+    existing && fresh && !isAiSourced && storedRowMatchesVehicle(existing, vehicle),
+  );
+  const shopHistory: ShopHistoryLaborResult | null =
+    options.shopId && !cachedIsGrounded
+      ? await resolveShopHistoryLabor(options.shopId, vehicle, request)
+      : null;
+
   if (existing && fresh && storedRowMatchesVehicle(existing, vehicle)) {
     const existingDs = (existing.dataSource ?? "").toLowerCase();
     const isMotorSourced =
       existingDs === "motor_ewt" ||
       existingDs.startsWith("motor") ||
       existing.motorApplicationId != null;
+    // Prefer shop history over a cached AI draft; motor/curated cache still wins.
+    const preferShopHistory = shopHistory != null && isAiSourced;
     if (isMotorSourced && !isLicensedMotorCatalog() && !allowSandboxMotorDbCache()) {
       // Fall through — ignore sandbox/MOTOR cache while building shop labor guide.
+    } else if (preferShopHistory) {
+      // Fall through — write-through the shop-history row below instead of the AI cache.
     } else {
     await prisma.laborOperation.update({
       where: { id: existing.id },
@@ -437,6 +462,27 @@ export async function lookupLaborSuggestion(
       });
       return { suggestion: catalogSuggestion, cached: true, dataSource: catalogDataSource };
     }
+  }
+
+  // Shop-history authority: above AI first-principles, below licensed MOTOR (which
+  // returns earlier). Served with dataSource "shop_history" → tier SHOP in the UI.
+  if (shopHistory) {
+    await upsertLaborCacheRows(vehicle, queryKey, {
+      queryText: request,
+      ...fromSuggestion(shopHistory.suggestion, "shop_history"),
+      source: "shop_history",
+      model: "shop-history",
+      dataSource: "shop_history",
+      baseVehicleId: baseVehicleId ?? null,
+      motorSubGroupId: options.motorSubGroupId ?? null,
+      motorGroupId: options.motorGroupId ?? null,
+      motorSystemId: options.motorSystemId ?? null,
+    });
+    return {
+      suggestion: shopHistory.suggestion,
+      cached: false,
+      dataSource: "shop_history",
+    };
   }
 
   const resolved = await resolveLaborSuggestionWithFallback(vehicle, request, motorContext);

@@ -352,7 +352,12 @@ export async function generateLaborSuggestion(
   const denied = await gates.estimateEdit(loaded.shopId);
   if (denied) return { ok: false, error: denied.error };
 
-  return generateLaborSuggestionForVehicle(loaded.vehicle, request, motorContext);
+  // Pass shopId so the resolver can prefer this shop's own history (tier SHOP)
+  // over an AI first-principles draft.
+  return generateLaborSuggestionForVehicle(loaded.vehicle, request, {
+    ...motorContext,
+    shopId: loaded.shopId,
+  });
 }
 
 export type AddJobResult = { ok: true; count: number } | { ok: false; error: string };

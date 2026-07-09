@@ -709,7 +709,7 @@ export function expandOperationVariants(
 
 export function variantToCartLine(
   variant: LaborVariant,
-  hit: Pick<LaborGuideHit, "jobName">,
+  hit: Pick<LaborGuideHit, "jobName" | "dataSource">,
   source: LaborGuideHit["source"],
 ): LaborCartLine {
   const hasVariant = Boolean(variant.position || variant.scope);
@@ -717,7 +717,7 @@ export function variantToCartLine(
   const base = compactOperationName(hit.jobName);
   const variantLabel =
     hasVariant && description === base ? variant.label : undefined;
-  return { description, variantLabel, hours: variant.hours, source };
+  return { description, variantLabel, hours: variant.hours, source, dataSource: hit.dataSource };
 }
 
 /** @internal Exported for manual / script-based verification. */

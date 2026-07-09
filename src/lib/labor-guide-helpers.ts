@@ -1,5 +1,10 @@
 import { classifyOperation } from "@/lib/labor-categories";
-import type { LaborCartLine, LaborGuideHit, LaborVariant } from "@/lib/labor-guide-types";
+import type {
+  LaborCartLine,
+  LaborGuideHit,
+  LaborGuideSource,
+  LaborVariant,
+} from "@/lib/labor-guide-types";
 import type { LaborSuggestion } from "@/server/services/labor-guide";
 
 /** Strip category breadcrumbs and verbose phrasing for short estimate lines. */
@@ -145,14 +150,20 @@ export function suggestionToCartLines(
   s: LaborSuggestion,
   qty: number,
   source: LaborGuideHit["source"],
+  dataSource?: string,
 ): LaborCartLine[] {
   const totalHours = s.laborHoursPerUnit * qty;
   const ops = s.laborOperations.length ? s.laborOperations : [s.jobName];
   if (ops.length === 1) {
-    return [{ description: compactOperationName(s.jobName), hours: totalHours, source }];
+    return [{ description: compactOperationName(s.jobName), hours: totalHours, source, dataSource }];
   }
   const perOp = totalHours / ops.length;
-  return ops.map(() => ({ description: compactOperationName(s.jobName), hours: perOp, source }));
+  return ops.map(() => ({
+    description: compactOperationName(s.jobName),
+    hours: perOp,
+    source,
+    dataSource,
+  }));
 }
 
 /** Expand a search hit into editable cart labor lines. */
@@ -164,6 +175,7 @@ export function hitToCartLines(hit: LaborGuideHit, qty = 1): LaborCartLine[] {
           description: compactOperationName(hit.laborOperations[0]?.trim() || hit.jobName),
           hours: hit.totalHours,
           source: hit.source,
+          dataSource: hit.dataSource,
         },
       ];
     }
@@ -172,59 +184,108 @@ export function hitToCartLines(hit: LaborGuideHit, qty = 1): LaborCartLine[] {
       description: compactOperationName(op.trim() || hit.jobName),
       hours: perOp,
       source: hit.source,
+      dataSource: hit.dataSource,
     }));
   }
   const suggestion = hitAsSuggestion(hit);
-  if (suggestion) return suggestionToCartLines(suggestion, qty, hit.source);
+  if (suggestion) return suggestionToCartLines(suggestion, qty, hit.source, hit.dataSource);
   const perOp = hit.totalHours / Math.max(hit.laborOperations.length, 1);
   return hit.laborOperations.map(() => ({
     description: compactOperationName(hit.jobName),
     hours: perOp,
     source: hit.source,
+    dataSource: hit.dataSource,
   }));
 }
 
-export function dataSourceBadgeLabel(dataSource?: string): string | null {
-  switch (dataSource) {
-    case "motor_ewt":
-      return "MOTOR EWT";
-    case "ai_motor_scoped":
-      return "AI · MOTOR scoped";
-    case "ai_taxonomy_scoped":
-      return "AI · taxonomy scoped";
-    case "ai_first_principles":
-      return "AI estimate";
-    default:
-      return null;
+/**
+ * Provenance tiers surfaced to advisors (see LABOR-ESTIMATE-ALGORITHM.md §3.1).
+ * The tier is the honesty gate: only BOOK / SHOP are billable without a hours check;
+ * AI_DRAFT must always say "verify" so a guess is never mistaken for a book time.
+ */
+export type LaborTier = "BOOK" | "SHOP" | "CALIBRATED" | "AI_DRAFT";
+
+export type LaborTierMeta = {
+  tier: LaborTier;
+  /** Short badge text, e.g. "SHOP", "AI-DRAFT · verify". */
+  label: string;
+  /** Tailwind classes for the badge pill. */
+  badgeClass: string;
+  /** True when the hours are grounded enough to quote without a manual check. */
+  billable: boolean;
+  /** True when the UI must always show a "verify hours" affordance. */
+  verify: boolean;
+};
+
+/**
+ * Map a row's provenance (`dataSource`, falling back to `source`) to a tier.
+ * This is the single source of truth for labor-hour honesty labels.
+ */
+export function laborTierFromDataSource(
+  dataSource?: string | null,
+  source?: LaborGuideSource,
+): LaborTierMeta {
+  const ds = (dataSource ?? "").toLowerCase();
+
+  // Licensed book time (MOTOR EWT / catalog) — the only "authority" tier today.
+  if (ds === "motor_ewt" || ds.startsWith("motor") || ds === "y_mm_catalog" || source === "catalog") {
+    return {
+      tier: "BOOK",
+      label: "BOOK",
+      badgeClass: "bg-primary/10 text-primary",
+      billable: true,
+      verify: false,
+    };
   }
+
+  // This shop's own repeated actuals, or shop-defined canned/curated jobs.
+  if (
+    ds === "shop_history" ||
+    ds === "shop_curated" ||
+    ds === "canned" ||
+    ds === "manual" ||
+    source === "shop_custom"
+  ) {
+    return {
+      tier: "SHOP",
+      label: "SHOP",
+      badgeClass: "bg-emerald-500/10 text-emerald-700",
+      billable: true,
+      verify: false,
+    };
+  }
+
+  // AI draft adjusted by an observed ratio (reserved for T2 calibration).
+  if (ds === "calibrated") {
+    return {
+      tier: "CALIBRATED",
+      label: "CALIBRATED · verify",
+      badgeClass: "bg-amber-500/15 text-amber-800",
+      billable: false,
+      verify: true,
+    };
+  }
+
+  // Everything else (ai_first_principles / ai_motor_scoped / ai_taxonomy_scoped /
+  // legacy ai_estimate / ungrounded cached) is an honest AI draft — verify required.
+  return {
+    tier: "AI_DRAFT",
+    label: "AI-DRAFT · verify",
+    badgeClass: "bg-brand-red/10 text-brand-red",
+    billable: false,
+    verify: true,
+  };
+}
+
+export function dataSourceBadgeLabel(dataSource?: string): string | null {
+  if (!dataSource) return null;
+  return laborTierFromDataSource(dataSource).label;
 }
 
 export function sourceBadgeLabel(source: LaborGuideHit["source"], dataSource?: string): string {
-  const ds = dataSourceBadgeLabel(dataSource);
-  if (ds) return ds;
-  switch (source) {
-    case "cached":
-      return "Cached";
-    case "ai_estimate":
-      return "AI estimate";
-    case "shop_custom":
-      return "Shop custom";
-    case "catalog":
-      return "Catalog";
-  }
-  return "Labor";
+  return laborTierFromDataSource(dataSource, source).label;
 }
 
-export function sourceBadgeClass(source: LaborGuideHit["source"]): string {
-  switch (source) {
-    case "cached":
-      return "bg-primary/10 text-primary";
-    case "ai_estimate":
-      return "bg-brand-red/10 text-brand-red";
-    case "shop_custom":
-      return "bg-emerald-500/10 text-emerald-700";
-    case "catalog":
-      return "bg-brand-light/10 text-brand-navy";
-  }
-  return "bg-muted text-muted-foreground";
+export function sourceBadgeClass(source: LaborGuideHit["source"], dataSource?: string): string {
+  return laborTierFromDataSource(dataSource, source).badgeClass;
 }

@@ -30,6 +30,8 @@ export type ResolvedLaborCompanion = {
   hoursNote: string | null;
   sourceBadge: string;
   hitSource: LaborGuideSource;
+  /** Provenance of the resolved hit so cart lines keep the correct tier badge. */
+  dataSource?: string;
   position: string | null;
 };
 

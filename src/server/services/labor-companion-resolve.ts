@@ -144,6 +144,7 @@ export async function resolveLaborCompanions(
       ...resolveHours(edge, hit, primary.position),
       sourceBadge: sourceBadgeLabel(hit.source, hit.dataSource),
       hitSource: hit.source,
+      dataSource: hit.dataSource,
       position: primary.position ?? null,
     });
   }

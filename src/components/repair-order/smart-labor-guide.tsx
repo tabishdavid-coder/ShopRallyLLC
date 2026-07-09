@@ -36,6 +36,7 @@ import { LABOR_CATEGORY_TREE, laborCategoryById, laborSubcategoryById } from "@/
 import type { LaborCartLine, LaborGuideHit, LaborVariant } from "@/lib/labor-guide-types";
 import {
   guideJobName,
+  laborTierFromDataSource,
   sourceBadgeClass,
   sourceBadgeLabel,
   suggestionToHit,
@@ -510,7 +511,9 @@ function ResultRow({
           <span
             className={cn(
               "rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide",
-              sourceLabelOverride ? "bg-brand-light/10 text-brand-navy" : sourceBadgeClass(hit.source),
+              sourceLabelOverride
+                ? "bg-brand-light/10 text-brand-navy"
+                : sourceBadgeClass(hit.source, hit.dataSource),
             )}
           >
             {sourceLabelOverride ?? sourceBadgeLabel(hit.source, hit.dataSource)}
@@ -525,9 +528,10 @@ function ResultRow({
               Derived from {hit.derivedFrom} — verify hours
             </span>
           ) : null}
-          {hit.confidenceScore != null && hit.confidenceScore < 0.6 ? (
+          {hit.confidenceScore != null &&
+          (hit.confidenceScore < 0.6 || laborTierFromDataSource(hit.dataSource, hit.source).verify) ? (
             <span className="rounded-full bg-amber-500/15 px-2 py-0.5 text-[10px] font-semibold text-amber-800">
-              {Math.round(hit.confidenceScore * 100)}% confidence — verify
+              {Math.round(hit.confidenceScore * 100)}% confidence
             </span>
           ) : null}
           {hit.auditWarnings?.length ? (
@@ -664,10 +668,10 @@ function OperationDetailPanel({
             <span
               className={cn(
                 "rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide",
-                sourceBadgeClass(hit.source),
+                sourceBadgeClass(hit.source, hit.dataSource),
               )}
             >
-              {sourceBadgeLabel(hit.source)}
+              {sourceBadgeLabel(hit.source, hit.dataSource)}
             </span>
             {hit.notes ? (
               <span className="line-clamp-1 text-xs text-muted-foreground">{hit.notes}</span>
@@ -1294,6 +1298,7 @@ export function SmartLaborGuide({
           variantLabel,
           hours: companion.displayHours,
           source: companion.hitSource,
+          dataSource: companion.dataSource,
         },
       ],
       guideJobName(companion.jobName),
@@ -1519,13 +1524,25 @@ export function SmartLaborGuide({
                 >
                   {sourceBadgeText}
                 </span>
-                <span
-                  className="ml-auto inline-flex shrink-0 items-center text-muted-foreground"
-                  title="Labor times are shop estimates — verify before quoting."
-                >
-                  <Info className="size-3.5 text-brand-light" aria-hidden />
-                  <span className="sr-only">Labor times are shop estimates — verify before quoting.</span>
-                </span>
+                {isLicensedMotorMode ? (
+                  <span
+                    className="ml-auto inline-flex shrink-0 items-center text-muted-foreground"
+                    title="BOOK hours are licensed MOTOR times; AI drafts are labeled — verify before quoting."
+                  >
+                    <Info className="size-3.5 text-brand-light" aria-hidden />
+                    <span className="sr-only">
+                      BOOK hours are licensed MOTOR times; AI drafts are labeled — verify before quoting.
+                    </span>
+                  </span>
+                ) : (
+                  <span
+                    className="ml-auto inline-flex shrink-0 items-center gap-1 rounded-full bg-brand-red/8 px-2 py-0.5 text-[10px] font-semibold text-brand-red"
+                    title="Rows tagged AI-DRAFT are AI estimates, not book times. SHOP rows come from your own repair history. Verify before quoting."
+                  >
+                    <Info className="size-3 shrink-0" aria-hidden />
+                    <span className="whitespace-nowrap">AI drafts — verify before quoting</span>
+                  </span>
+                )}
               </div>
               {syncBanner ? (
                 <p className="mb-2 truncate text-[11px] text-amber-800" title={syncBanner}>
@@ -1958,10 +1975,10 @@ export function SmartLaborGuide({
                         <span
                           className={cn(
                             "rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide",
-                            sourceBadgeClass(r.source),
+                            sourceBadgeClass(r.source, r.dataSource),
                           )}
                         >
-                          {sourceBadgeLabel(r.source)}
+                          {sourceBadgeLabel(r.source, r.dataSource)}
                         </span>
                         <Input
                           type="number"

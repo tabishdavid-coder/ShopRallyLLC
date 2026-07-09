@@ -70,5 +70,7 @@ export async function generateQuickLabor(
   const denied = await gates.estimateEdit(shopId);
   if (denied) return { ok: false, error: denied.error };
 
-  return generateLaborSuggestionForVehicle(toLaborGuideVehicle(parsed.vehicle), request);
+  return generateLaborSuggestionForVehicle(toLaborGuideVehicle(parsed.vehicle), request, {
+    shopId,
+  });
 }

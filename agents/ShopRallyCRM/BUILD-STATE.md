@@ -1,12 +1,16 @@
 # Dev 3031 — build state (ShopRallyCRM)
 
-Last updated: 2026-07-07 (canonical workspace + MOTOR sync from karvio)
+Last updated: 2026-07-09 (Customer-facing Karvio purge)
 
 > **Canonical dev:** **`ShopRally/`** folder only — `npm run dev` → :3031. See `docs/SHOPRALLY-DEV.md`.
 > Do **not** develop shop CRM in the sibling `karvio/` folder (legacy platform fork).
 
 ## Done
 
+- [x] **Labor honesty + shop-history authority — no-MOTOR path (2026-07-09)** — implementing the no-license path from `LABOR-ESTIMATE-ALGORITHM.md` (T0 + T1-lite). **T0 honesty labels:** provenance tiers (`laborTierFromDataSource` in `labor-guide-helpers.ts`) → **BOOK** (motor_ewt) / **SHOP** (history + canned) / **AI-DRAFT · verify** (all `ai_*`); `smart-labor-guide.tsx` ResultRow + detail + cart badges use the tier, AI rows always say "verify", browse header shows "AI drafts — verify before quoting" (unlicensed) / MOTOR note (licensed), confidence no longer flattened to 0.5 on cache reads (`cachedRowToHit`), cart/companion lines carry `dataSource` so job badges keep provenance. **T1-lite shop history:** new `src/server/services/shop-history-labor.ts` mines `LaborLine.hours` for same shop + vehicle family (YMM→make/model) + same subcategory (+ axle), returns median when n≥3, labeled `shop_history`/SHOP with sample-scaled confidence; wired into `lookupLaborSuggestion` **above** `ai_first_principles` (below licensed MOTOR), preferred over cached AI drafts. **No floors** on the shop-history path (`labor-hours-calibration.ts` untouched/not expanded; still a transitional net behind AI-DRAFT only). MOTOR stays disabled; no deploy. Deferred: gold set, concurrent/additional-labor tables, clock-time (TimeLog), T2 calibration.
+- [x] **Customer acknowledgment disclaimer (2026-07-09)** — shop-configurable estimate/invoice terms (`Shop.estimateTermsHtml` / `invoiceTermsHtml`) with platform defaults; shown on `/approve/[token]`, `/invoice/[token]`, print estimate/invoice/RO, Settings → Estimate Terms; share SMS/email copy mentions acknowledgment
+- [x] **Customer-facing Karvio purge (2026-07-09)** — public approval, invoice, onboarding, inspection, deposit, booking, member portal, legal, shop-site, and plan surfaces now use ShopRally branding/powered-by copy instead of legacy Karvio/RP headers
+- [x] **Industry-standard terms defaults (2026-07-09)** — estimate = authorize listed work / approx not final bill / re-approve extras / parts delays / payment on pickup / lien / road-test; invoice = final charges / due on pickup / lien+storage / warranty as stated; shops with saved custom HTML keep it until Settings reset
 - [x] **Canonical workspace declared (2026-07-07)** — ShopRally/ is the single source for Dev 3031 CRM; karvio/ marked legacy in AGENTS.md + SHOPRALLY-DEV.md
 - [x] **MOTOR DaaS synced from karvio (2026-07-07)** — `src/server/services/motor/*`, labor-guide-catalog facade, labor-guide-resolver/audit, cache `motor_ewt` dataSource, `npm run test:motor`, `.env.example` MOTOR vars
 - [x] **ro-intake-config DB fallback** — dev-safe fallback when Neon pool errors
@@ -78,6 +82,7 @@ Last updated: 2026-07-07 (canonical workspace + MOTOR sync from karvio)
 
 - [x] PartsTech shop-aware provider (`getPartsTechForShop`) + live OAuth test on vendor page
 - [x] Dev 3031 punchout return URL defaults (`APP_URL` / `getAppUrl` → :3031)
+- [x] PartsTech shop username/API key stored in local `.env.local` only (do not document secrets)
 - [ ] PartsTech Partner ID from PartsTech onboarding (blocks live catalog)
 - [ ] PO receive → inventory
 - [ ] Inspection photo upload (Vercel Blob)
@@ -109,10 +114,22 @@ Last updated: 2026-07-07 (canonical workspace + MOTOR sync from karvio)
 - **Legacy Dev 3004 (design mode):** http://localhost:3004/dashboard (`npm run dev:3004`)
 - **Isolated 3030 preview:** http://localhost:3030/dashboard (`npm run dev:3030`)
 
+## Labor taxonomy (active)
+
+- [x] **Phase 0 audit** — `scripts/audit-labor-taxonomy-phase0.ts` (2026-07-09); findings in plan §6
+- [x] **Companion coverage audit** — `scripts/audit-labor-companion-coverage.ts`; plan §7 T0/T1 map
+- [x] **Additional Labor T0+T1 (2026-07-09)** — static graph `labor-companion-graph.ts` (pads→rotors, tie-rod/control-arm→alignment, pads→flush/caliper, strut→mount, bearing→hub, timing→water pump, serpentine→tensioner); resolve via `LaborOperation` + COMBO_RULES splits; Labor Book detail **Primary Labor** + **Additional Labor** (+ to staging). No MOTOR. Plan §9.
+- [x] **AI labor hour floors bridge (2026-07-09)** — `labor-hours-calibration.ts` enforces conservative AI-only minimums on suggest/write and cache-read paths; wheel bearing/hub floor = 2.2 hr per corner so Labor Book variants show Front ≈2.2+ and Both ≈4.4+. Backfilled DB via `npm run db:apply-labor-floors -- --pattern=bearing`; use `npm run db:refresh-labor` when regenerating stale AI rows.
+- [x] **AI book-time generation calibration (2026-07-09)** — prompt version `shoprally-v6-book-time-anchors` now asks for industry book time (not best-case elapsed time), includes vehicle/access factors and representative anchors for hubs, brakes, struts, timing/rack/HVAC. `suggestLaborJob` now retries once when an AI answer falls below internal floors so generated/cache rows trend toward real book-time hours before the safety floor is applied.
+- [x] **Labor cache refresh CLI restored (2026-07-09)** — `scripts/refresh-labor-cache.ts` backs `npm run db:refresh-labor` again. Default mode refreshes stale prompt-version AI rows through the live `lookupLaborSuggestion()` path, so regenerated rows pick up v6 book-time prompt behavior, retry calibration, AI floors, VIN/YMM write-through, and companion-compatible cache shape. Useful flags: `--pattern=bearing`, `--limit=10`, `--all-ai`, `--older-than-days=180`, `--id=<laborOperationId>`, plus `DRY_RUN=1`.
+- [ ] **Deferred labor accuracy depth** — true licensed concurrent/additional-labor tables and skill/condition-tiered book rows (standard vs difficult bearing, rust/AWD/access variants) are still future work. Current bridge is conservative prompt+floor calibration plus static companion ratios/splits, not a full MOTOR/ProDemand replacement.
+- Living plan: `agents/ShopRallyCRM/LABOR-TAXONOMY-PLAN.md` (our-model SoT; MOTOR stays off)
+
 ## Strategy docs (Jul 2026 audit)
 
 | Doc | Purpose |
 |-----|---------|
+| `agents/ShopRallyCRM/LABOR-TAXONOMY-PLAN.md` | Labor taxonomy + Additional Labor phased plan |
 | `docs/COMPETITIVE-GAP-STRATEGY.md` | Master gap map + priorities |
 | `docs/GROWTH-POSITIONING.md` | Sales/pricing copy pillars |
 | `docs/SPRINT-ROADMAP-Q3-2026.md` | Sprint checklists |
