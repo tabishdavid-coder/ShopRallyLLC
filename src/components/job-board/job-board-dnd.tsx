@@ -76,6 +76,8 @@ export type JobBoardDndProps = {
   showColumnTotals?: boolean;
   selectedRoId?: string | null;
   cardHref?: (cardId: string) => string;
+  appointmentEmployees?: { id: string; name: string }[];
+  defaultAppointmentDurationMins?: number;
 };
 
 export function JobBoardDnd({
@@ -85,6 +87,8 @@ export function JobBoardDnd({
   showColumnTotals = true,
   selectedRoId = null,
   cardHref,
+  appointmentEmployees = [],
+  defaultAppointmentDurationMins = 60,
 }: JobBoardDndProps) {
   const columnDefs = board.columns;
   const columnOrder = columnDefs.map((c) => c.id);
@@ -295,7 +299,10 @@ export function JobBoardDnd({
   }
 
   return (
-    <JobBoardHistoryProvider>
+    <JobBoardHistoryProvider
+      appointmentEmployees={appointmentEmployees}
+      defaultAppointmentDurationMins={defaultAppointmentDurationMins}
+    >
       <JobBoardMessagesProvider>
       <DndContext
         id={compact ? "workflow-board" : "job-board"}
@@ -489,6 +496,7 @@ function SortableCard({
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({ id: card.id });
   const isEstimate = styleKind === "estimates";
+  const openHref = cardHref ? cardHref(card.id) : defaultRoOpenHref(card.id);
 
   return (
     <div
@@ -498,7 +506,7 @@ function SortableCard({
       {...listeners}
       onClick={() => {
         if (draggedRef.current) return;
-        router.push(cardHref ? cardHref(card.id) : defaultRoOpenHref(card.id));
+        router.push(openHref);
       }}
       className={cn(
         "touch-none cursor-grab active:cursor-grabbing",
@@ -515,6 +523,8 @@ function SortableCard({
             moveTargets={moveTargets}
             isEstimate={isEstimate}
             canArchive={card.canArchive}
+            roId={card.id}
+            openHref={openHref}
             onMove={(to) => onMove(card.id, to)}
             onAuthorize={() => onAuthorize(card)}
             onArchive={() => onArchive(card.id)}
