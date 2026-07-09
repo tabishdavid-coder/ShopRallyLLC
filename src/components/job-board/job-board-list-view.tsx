@@ -33,14 +33,21 @@ function listStatusLabel(row: JobBoardListRow): string {
 export function JobBoardListView({
   rows,
   summary,
+  appointmentEmployees = [],
+  defaultAppointmentDurationMins = 60,
 }: {
   rows: JobBoardListRow[];
   summary: { count: number; totalCents: number };
+  appointmentEmployees?: { id: string; name: string }[];
+  defaultAppointmentDurationMins?: number;
 }) {
   const router = useRouter();
 
   return (
-    <JobBoardHistoryProvider>
+    <JobBoardHistoryProvider
+      appointmentEmployees={appointmentEmployees}
+      defaultAppointmentDurationMins={defaultAppointmentDurationMins}
+    >
       <JobBoardMessagesProvider>
         <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-lg border border-border/80 bg-card shadow-sm">
           <div className="flex shrink-0 items-center justify-between gap-3 border-b border-border/70 px-3 py-2 text-xs text-muted-foreground">
@@ -138,10 +145,13 @@ export function JobBoardListView({
                               roNumber={card.number}
                               customerId={card.customer.id}
                               customerName={customerDisplayName(card.customer)}
+                              customerFirstName={card.customer.firstName}
+                              customerLastName={card.customer.lastName}
                               customerPhone={card.customer.phone}
                               marketingOptIn={card.customer.marketingOptIn}
                               vehicleId={card.vehicle?.id ?? null}
                               vehicleLabel={vehicleLine(row)}
+                              vehicle={card.vehicle}
                               iconOnly
                             />
                           </div>

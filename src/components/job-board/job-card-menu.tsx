@@ -1,6 +1,7 @@
 "use client";
 
-import { Archive, ArrowRight, CheckCircle2, MoreVertical } from "lucide-react";
+import Link from "next/link";
+import { Archive, ArrowRight, CheckCircle2, ExternalLink, MoreVertical } from "lucide-react";
 
 import {
   DropdownMenu,
@@ -12,6 +13,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { isAutopilot3030Shell } from "@/lib/autopilot3030/shell-variant";
 import { AP_TERMS } from "@/lib/autopilot3030/terminology";
+import { defaultRoOpenHref } from "@/lib/ro-workspace";
 
 /** Per-card action menu. Handlers live on the board so it owns board state. */
 export function JobCardMenu({
@@ -19,6 +21,8 @@ export function JobCardMenu({
   moveTargets,
   isEstimate,
   canArchive = false,
+  roId,
+  openHref,
   onMove,
   onAuthorize,
   onArchive,
@@ -27,12 +31,16 @@ export function JobCardMenu({
   moveTargets: { id: string; title: string }[];
   isEstimate: boolean;
   canArchive?: boolean;
+  roId: string;
+  /** Override for workflow board deep-links; defaults to estimate workspace. */
+  openHref?: string;
   onMove: (toColumnId: string) => void;
   onAuthorize: () => void;
   onArchive?: () => void;
 }) {
   const ap3030 = isAutopilot3030Shell();
   const stop = (e: React.PointerEvent | React.MouseEvent) => e.stopPropagation();
+  const href = openHref ?? defaultRoOpenHref(roId);
 
   return (
     <DropdownMenu>
@@ -45,6 +53,15 @@ export function JobCardMenu({
         <MoreVertical className="size-4" />
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" onClick={stop} className="w-52">
+        <DropdownMenuItem asChild className="font-medium text-brand-navy focus:text-brand-navy">
+          <Link href={href}>
+            <ExternalLink className="size-4" />
+            {ap3030 ? `Open ${AP_TERMS.repairOrder.toLowerCase()}` : "Open repair order"}
+          </Link>
+        </DropdownMenuItem>
+
+        <DropdownMenuSeparator />
+
         <DropdownMenuLabel className="flex items-center gap-1.5 text-xs text-muted-foreground">
           <ArrowRight className="size-3.5" /> Move to
         </DropdownMenuLabel>

@@ -1,22 +1,44 @@
 "use client";
 
-import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from "react";
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useMemo,
+  useState,
+  type ReactNode,
+} from "react";
 
-import { JobBoardHistoryDrawer } from "@/components/job-board/job-board-history-drawer";
-import { JobBoardSpecsDrawer } from "@/components/job-board/job-board-specs-drawer";
+import {
+  CustomerContextDrawer,
+  type ContextDrawerTab,
+} from "@/components/customers/customer-context-drawer";
+import type { EditableCustomerRecord } from "@/components/customers/customer-form-shared";
+import type { EditableVehicle } from "@/components/repair-order/edit-vehicle-dialog";
 
 export type JobBoardHistoryTarget = {
   customerId: string;
   customerName: string;
   roId: string;
   roNumber: number;
+  customerFirstName?: string;
+  customerLastName?: string;
+  customerPhone?: string | null;
+  marketingOptIn?: boolean;
+  vehicleId?: string | null;
+  vehicle?: {
+    id: string;
+    year: number | null;
+    make: string | null;
+    model: string | null;
+    plate: string | null;
+    plateState: string | null;
+  } | null;
 };
 
-export type JobBoardSpecsTarget = {
+export type JobBoardSpecsTarget = JobBoardHistoryTarget & {
   vehicleId: string;
   vehicleLabel: string;
-  roId: string;
-  roNumber: number;
 };
 
 type JobBoardContextValue = {
@@ -35,20 +57,83 @@ export function useJobBoardHistoryOptional() {
   return useContext(JobBoardContext);
 }
 
-export function JobBoardHistoryProvider({ children }: { children: ReactNode }) {
-  const [historyOpen, setHistoryOpen] = useState(false);
-  const [historyTarget, setHistoryTarget] = useState<JobBoardHistoryTarget | null>(null);
-  const [specsOpen, setSpecsOpen] = useState(false);
-  const [specsTarget, setSpecsTarget] = useState<JobBoardSpecsTarget | null>(null);
+function seedCustomer(target: JobBoardHistoryTarget): EditableCustomerRecord {
+  const nameParts = target.customerName.trim().split(/\s+/);
+  const firstName = target.customerFirstName ?? nameParts[0] ?? "";
+  const lastName =
+    target.customerLastName ??
+    (nameParts.length > 1 ? nameParts.slice(1).join(" ") : "");
+  return {
+    id: target.customerId,
+    firstName,
+    lastName,
+    company: null,
+    phone: target.customerPhone ?? null,
+    email: null,
+    address: null,
+    city: null,
+    state: null,
+    zip: null,
+    marketingOptIn: target.marketingOptIn ?? false,
+    notes: null,
+    tags: [],
+  };
+}
 
+function seedVehicle(target: JobBoardHistoryTarget): EditableVehicle | null {
+  const v = target.vehicle;
+  if (!v) return null;
+  return {
+    id: v.id,
+    year: v.year,
+    make: v.make,
+    model: v.model,
+    plate: v.plate,
+    plateState: v.plateState,
+  };
+}
+
+export function JobBoardHistoryProvider({
+  children,
+  appointmentEmployees = [],
+  defaultAppointmentDurationMins = 60,
+}: {
+  children: ReactNode;
+  appointmentEmployees?: { id: string; name: string }[];
+  defaultAppointmentDurationMins?: number;
+}) {
+  const [drawerOpen, setDrawerOpen] = useState(false);
+  const [drawerTab, setDrawerTab] = useState<ContextDrawerTab>("profile");
+  const [autoOpenSpecs, setAutoOpenSpecs] = useState(false);
+  const [target, setTarget] = useState<JobBoardHistoryTarget | null>(null);
+
+  /** Opens the shared RO/customer right menu on Repair orders (current RO highlighted). */
   const openCustomerHistory = useCallback((next: JobBoardHistoryTarget) => {
-    setHistoryTarget(next);
-    setHistoryOpen(true);
+    setTarget(next);
+    setDrawerTab("orders");
+    setAutoOpenSpecs(false);
+    setDrawerOpen(true);
   }, []);
 
+  /** Opens the same right menu on Vehicles with specs expanded — stays on job board. */
   const openVehicleSpecs = useCallback((next: JobBoardSpecsTarget) => {
-    setSpecsTarget(next);
-    setSpecsOpen(true);
+    setTarget({
+      ...next,
+      vehicleId: next.vehicleId,
+      vehicle: next.vehicle ?? (next.vehicleId
+        ? {
+            id: next.vehicleId,
+            year: null,
+            make: null,
+            model: null,
+            plate: null,
+            plateState: null,
+          }
+        : null),
+    });
+    setDrawerTab("vehicles");
+    setAutoOpenSpecs(true);
+    setDrawerOpen(true);
   }, []);
 
   const value = useMemo(
@@ -56,33 +141,38 @@ export function JobBoardHistoryProvider({ children }: { children: ReactNode }) {
     [openCustomerHistory, openVehicleSpecs],
   );
 
+  const customer = target ? seedCustomer(target) : null;
+  const vehicle = target ? seedVehicle(target) : null;
+
   return (
     <JobBoardContext.Provider value={value}>
       {children}
-      {historyTarget ? (
-        <JobBoardHistoryDrawer
-          open={historyOpen}
+      {target && customer ? (
+        <CustomerContextDrawer
+          open={drawerOpen}
           onOpenChange={(next) => {
-            setHistoryOpen(next);
-            if (!next) setHistoryTarget(null);
+            setDrawerOpen(next);
+            if (!next) {
+              setTarget(null);
+              setAutoOpenSpecs(false);
+            }
           }}
-          customerId={historyTarget.customerId}
-          customerName={historyTarget.customerName}
-          roId={historyTarget.roId}
-          roNumber={historyTarget.roNumber}
-        />
-      ) : null}
-      {specsTarget ? (
-        <JobBoardSpecsDrawer
-          open={specsOpen}
-          onOpenChange={(next) => {
-            setSpecsOpen(next);
-            if (!next) setSpecsTarget(null);
+          tab={drawerTab}
+          onTabChange={(tab) => {
+            setDrawerTab(tab);
+            if (tab !== "vehicles") setAutoOpenSpecs(false);
           }}
-          vehicleId={specsTarget.vehicleId}
-          vehicleLabel={specsTarget.vehicleLabel}
-          roId={specsTarget.roId}
-          roNumber={specsTarget.roNumber}
+          customer={customer}
+          customerId={target.customerId}
+          vehicle={vehicle}
+          roId={target.roId}
+          roNumber={target.roNumber}
+          canEdit
+          initialData={null}
+          appointmentEmployees={appointmentEmployees}
+          defaultAppointmentDurationMins={defaultAppointmentDurationMins}
+          autoOpenSpecs={autoOpenSpecs}
+          source="estimate"
         />
       ) : null}
     </JobBoardContext.Provider>

@@ -144,10 +144,13 @@ export function JobCard({
             roNumber={card.number}
             customerId={card.customer.id}
             customerName={customerDisplayName(card.customer)}
+            customerFirstName={card.customer.firstName}
+            customerLastName={card.customer.lastName}
             customerPhone={card.customer.phone}
             marketingOptIn={card.customer.marketingOptIn}
             vehicleId={card.vehicle?.id ?? null}
             vehicleLabel={vehicleLine(card.vehicle)}
+            vehicle={card.vehicle}
             iconOnly
           />
           {card.hasInspection ? (

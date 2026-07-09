@@ -1,5 +1,6 @@
 import { getJobBoard } from "@/server/job-board";
 import { getShopTechnicians } from "@/server/staff";
+import { getDefaultAppointmentDuration } from "@/server/actions/appointments";
 import { getShopId } from "@/lib/shop";
 import { isAutopilot3030Shell } from "@/lib/autopilot3030/shell-variant";
 import { AP_TERMS } from "@/lib/autopilot3030/terminology";
@@ -46,7 +47,7 @@ export default async function JobBoardPage({
   const sort = parseJobBoardSort(sp.sort);
   const shopId = await getShopId();
 
-  const [board, employees] = await Promise.all([
+  const [board, employees, defaultAppointmentDurationMins] = await Promise.all([
     getJobBoard({
       shopId,
       q,
@@ -58,6 +59,7 @@ export default async function JobBoardPage({
       marketingSource: marketingSource || undefined,
     }),
     getShopTechnicians(shopId),
+    getDefaultAppointmentDuration(),
   ]);
 
   const ap3030 = isAutopilot3030Shell();
@@ -94,9 +96,18 @@ export default async function JobBoardPage({
       />
       <div className="min-h-0 flex-1 overflow-x-auto overflow-y-hidden">
         {view === "list" ? (
-          <JobBoardListView rows={listRows} summary={listSummary} />
+          <JobBoardListView
+            rows={listRows}
+            summary={listSummary}
+            appointmentEmployees={employees}
+            defaultAppointmentDurationMins={defaultAppointmentDurationMins}
+          />
         ) : (
-          <JobBoardDnd board={board} />
+          <JobBoardDnd
+            board={board}
+            appointmentEmployees={employees}
+            defaultAppointmentDurationMins={defaultAppointmentDurationMins}
+          />
         )}
       </div>
     </div>

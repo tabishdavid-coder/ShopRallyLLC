@@ -22,10 +22,13 @@ export function JobCardContextActions({
   roNumber,
   customerId,
   customerName,
+  customerFirstName,
+  customerLastName,
   customerPhone,
   marketingOptIn,
   vehicleId,
   vehicleLabel,
+  vehicle,
   className,
   iconOnly = false,
 }: {
@@ -33,10 +36,20 @@ export function JobCardContextActions({
   roNumber: number;
   customerId: string;
   customerName: string;
+  customerFirstName?: string;
+  customerLastName?: string;
   customerPhone: string | null;
   marketingOptIn: boolean;
   vehicleId: string | null;
   vehicleLabel: string;
+  vehicle?: {
+    id: string;
+    year: number | null;
+    make: string | null;
+    model: string | null;
+    plate: string | null;
+    plateState: string | null;
+  } | null;
   className?: string;
   iconOnly?: boolean;
 }) {
@@ -44,6 +57,32 @@ export function JobCardContextActions({
   const messages = useJobBoardMessagesOptional();
 
   const btnClass = iconOnly ? ICON_BTN : undefined;
+
+  const vehicleSeed =
+    vehicle ??
+    (vehicleId
+      ? {
+          id: vehicleId,
+          year: null,
+          make: null,
+          model: null,
+          plate: null,
+          plateState: null,
+        }
+      : null);
+
+  const historyTarget = {
+    customerId,
+    customerName,
+    customerFirstName,
+    customerLastName,
+    customerPhone,
+    marketingOptIn,
+    roId,
+    roNumber,
+    vehicleId: vehicleSeed?.id ?? vehicleId,
+    vehicle: vehicleSeed,
+  };
 
   return (
     <div
@@ -59,14 +98,7 @@ export function JobCardContextActions({
           className={btnClass}
           title="Customer history"
           aria-label="Customer history"
-          onClick={() =>
-            ctx.openCustomerHistory({
-              customerId,
-              customerName,
-              roId,
-              roNumber,
-            })
-          }
+          onClick={() => ctx.openCustomerHistory(historyTarget)}
         >
           <History className="size-3.5 shrink-0" aria-hidden />
           {!iconOnly ? "History" : null}
@@ -130,10 +162,10 @@ export function JobCardContextActions({
           aria-label="Vehicle specifications"
           onClick={() =>
             ctx.openVehicleSpecs({
+              ...historyTarget,
               vehicleId,
               vehicleLabel,
-              roId,
-              roNumber,
+              vehicle: vehicleSeed!,
             })
           }
         >
