@@ -189,7 +189,7 @@ export async function getSeoAutopilotPlanView(
 ): Promise<SeoAutopilotPlanView> {
   const sub = await getShopSubscription(shopId);
   const plan = PLANS[sub.plan];
-  const isOverdrive = sub.plan === "ENTERPRISE";
+  const isElite = sub.plan === "ENTERPRISE";
 
   const shopsiteMonthly = WEB_PRESENCE_SERVICES.find((s) => s.id === "shopsite-monthly");
   const seoMonthly = WEB_PRESENCE_SERVICES.find((s) => s.id === "seo-monthly");
@@ -208,13 +208,13 @@ export async function getSeoAutopilotPlanView(
       id: "shopsite-monthly",
       catalogId: serviceCatalogMap["shopsite-monthly"],
       name: shopsiteMonthly?.name ?? "ShopSite",
-      priceLabel: isOverdrive
+      priceLabel: isElite
         ? "Included"
         : `${shopsiteMonthly?.priceLabel ?? "$59/mo"} · ${webPresenceSetupFootnote(shopsiteMonthly?.setupCents ?? 34900)}`,
       description: shopsiteMonthly?.description ?? "",
       status: hasShopSite
         ? ("active" as const)
-        : isOverdrive
+        : isElite
           ? ("included" as const)
           : ("available" as const),
     },
@@ -222,13 +222,13 @@ export async function getSeoAutopilotPlanView(
       id: "seo-monthly",
       catalogId: serviceCatalogMap["seo-monthly"],
       name: seoMonthly?.name ?? "Local SEO",
-      priceLabel: isOverdrive
+      priceLabel: isElite
         ? "Included"
         : `${seoMonthly?.priceLabel ?? "$79/mo"} · ${webPresenceSetupFootnote(seoMonthly?.setupCents ?? 29900)}`,
       description: seoMonthly?.description ?? "",
       status: hasWebsiteSeo
         ? ("active" as const)
-        : isOverdrive
+        : isElite
           ? ("included" as const)
           : ("available" as const),
     },
@@ -236,14 +236,14 @@ export async function getSeoAutopilotPlanView(
       id: "web-seo-bundle-monthly",
       catalogId: serviceCatalogMap["web-seo-bundle-monthly"],
       name: webSeoBundle?.name ?? "Website + SEO bundle",
-      priceLabel: isOverdrive
+      priceLabel: isElite
         ? "Included"
         : `${webSeoBundle?.priceLabel ?? "$119/mo"} · ${webPresenceSetupFootnote(webSeoBundle?.setupCents ?? 54900)}`,
       description: webSeoBundle?.description ?? "",
       status:
         hasShopSite && hasWebsiteSeo
           ? ("active" as const)
-          : isOverdrive
+          : isElite
             ? ("included" as const)
             : ("available" as const),
     },

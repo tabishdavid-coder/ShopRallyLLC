@@ -153,7 +153,7 @@ const DraftCampaignMessageInput = z.object({
   currentEmailSubject: z.string().trim().max(200).optional(),
 });
 
-/** Generate AI campaign copy — Overdrive only; human must review before sending. */
+/** Generate AI campaign copy — Elite only; human must review before sending. */
 export async function draftCampaignMessage(
   raw: z.infer<typeof DraftCampaignMessageInput>,
 ): Promise<ActionResult<{ message: string; emailSubject?: string }>> {

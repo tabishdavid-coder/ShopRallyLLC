@@ -20,7 +20,7 @@ const FEATURE_MODEL_ENV: Record<AiFeature, readonly string[]> = {
   LABOR_GUIDE: ["LABOR_GUIDE_MODEL", "AI_DEFAULT_MODEL"],
 };
 
-/** True when Anthropic API key is present — all Overdrive AI features depend on this. */
+/** True when Anthropic API key is present — all Elite AI features depend on this. */
 export function isAiConfigured(): boolean {
   return Boolean(process.env.ANTHROPIC_API_KEY?.trim());
 }

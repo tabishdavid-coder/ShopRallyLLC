@@ -269,7 +269,7 @@ export async function updateReviewReplyTone(
   return { ok: true, message: "Reply tone saved." };
 }
 
-/** Generate an AI draft reply — Overdrive only; human must review before posting. */
+/** Generate an AI draft reply — Elite only; human must review before posting. */
 export async function draftGoogleReviewReply(raw: unknown): Promise<GoogleReviewsActionResult> {
   const parsed = DraftReplyInput.safeParse(raw);
   if (!parsed.success) {

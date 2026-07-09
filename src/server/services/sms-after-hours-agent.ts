@@ -127,7 +127,7 @@ export type SmsAfterHoursResult = {
   handled: boolean;
 };
 
-/** Handle inbound SMS with Overdrive after-hours agent; returns TwiML reply text when handled. */
+/** Handle inbound SMS with Elite after-hours agent; returns TwiML reply text when handled. */
 export async function handleSmsAfterHoursAgent(input: {
   shopId: string;
   from: string;

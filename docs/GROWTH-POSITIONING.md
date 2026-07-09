@@ -107,7 +107,7 @@
 | Marketing module | +$345/mo | Elite tier | +$314/mo | **Included** |
 | Shop website | ❌ | ❌ | ❌ | **Included** |
 | MSO platform console | ❌ | ❌ | ❌ | **Included** |
-| Maintenance programs | ❌ | ❌ | ❌ | **Premier** |
+| Maintenance programs | ❌ | ❌ | ❌ | **Elite** |
 | Work request → RO | ❌ | ⚠️ | ✅ | **Sprint 2** |
 | Annual contract | No | **Yes** | No | **No** |
 | Unlimited users | ✅ | ⚠️ 5 on Pro | ⚠️ tiered | **✅** |

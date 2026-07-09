@@ -133,7 +133,7 @@ async function buildTemplateSeoContent(
   };
 }
 
-/** Enrich microsite content — template baseline, optional Overdrive LLM refinement. */
+/** Enrich microsite content — template baseline, optional Elite LLM refinement. */
 export async function runShopSeoContentGeneration(
   shopId: string,
 ): Promise<SeoContentGenerationResult> {
