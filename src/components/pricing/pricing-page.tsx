@@ -5,24 +5,34 @@ import Link from "next/link";
 import { Check, ChevronDown, Minus, Sparkles } from "lucide-react";
 
 import { HeroPlatformPreview } from "@/components/marketing-site/hero-platform-preview";
+import { MarketPositioningSection } from "@/components/marketing-site/market-positioning-section";
 import { PlatformValueSection } from "@/components/marketing-site/platform-value-section";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { foundingSpotsRemaining, getFoundingSpotMessaging, MARKETING_LAUNCH } from "@/lib/marketing-launch";
 import {
   COMPARISON_ROWS,
+  COMPETITOR_BENCHMARK,
   INTEGRATION_PARTNERS,
   PLAN_ORDER,
   PLANS,
   PRICING_FAQ,
   WEB_PRESENCE_SERVICES,
-  annualSavingsDollars,
-  annualSavingsPercent,
-  planDisplayPrice,
+  repairPilotAllInMonthly,
+  repairPilotOverdriveMonthly,
   repairPilotStarterMonthly,
   webPresenceAlaCarteMonthlyCents,
 } from "@/lib/plans";
 import { WebPresenceLaunchSetupDetails, WebPresenceSetupLine } from "@/components/marketing-site/web-presence-launch-setup-details";
+import { PricingBillingToggle } from "@/components/pricing/pricing-billing-toggle";
+import { PricingPlanCard } from "@/components/pricing/pricing-plan-card";
+
+function openFeatureComparison(setFeaturesOpen: (v: boolean | ((o: boolean) => boolean)) => void) {
+  setFeaturesOpen(true);
+  requestAnimationFrame(() => {
+    document.getElementById("feature-comparison")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  });
+}
 
 export function PricingPageContent({ foundingSpotsClaimed = 0 }: { foundingSpotsClaimed?: number }) {
   const [annual, setAnnual] = useState(true);
@@ -30,29 +40,79 @@ export function PricingPageContent({ foundingSpotsClaimed = 0 }: { foundingSpots
   const preLaunch = MARKETING_LAUNCH.preLaunch;
   const foundingRemaining = foundingSpotsRemaining(foundingSpotsClaimed);
   const foundingMessaging = getFoundingSpotMessaging(foundingSpotsClaimed);
-  const samplePlan = PLANS.PROFESSIONAL;
+  const starterPrice = repairPilotStarterMonthly(annual);
+  const momentumPrice = repairPilotAllInMonthly(annual);
+  const overdrivePrice = repairPilotOverdriveMonthly(annual);
+  const legacyStack = COMPETITOR_BENCHMARK.legacy.typicalMonthly;
+  const budgetStack = COMPETITOR_BENCHMARK.typicalStackMonthly;
+  const budgetGrowth = COMPETITOR_BENCHMARK.budgetGrowthStackMonthly;
 
   return (
     <div>
-      {/* Hero — copy first, calm and centered */}
+      {/* Hero — premium positioning */}
       <section className="border-b border-brand-navy/10 bg-gradient-to-b from-brand-light/15 to-white">
-        <div className="mx-auto max-w-3xl px-4 py-14 text-center sm:px-6 sm:py-16">
+        <div className="mx-auto max-w-4xl px-4 py-14 text-center sm:px-6 sm:py-16">
           <div className="mb-4 inline-flex items-center gap-1.5 rounded-full border border-brand-red/30 bg-brand-red/5 px-3 py-1 text-xs font-semibold text-brand-red">
             <Sparkles className="size-3.5" />
-            {preLaunch ? foundingMessaging.primary : "Per-location pricing"}
+            {preLaunch ? foundingMessaging.primary : "Premium all-in-one · training on every tier"}
           </div>
           <h1 className="text-3xl font-bold tracking-tight text-brand-navy sm:text-4xl lg:text-5xl">
-            Simple plans for independent shops
+            Premium shop software.
+            <span className="mt-2 block bg-gradient-to-r from-brand-navy to-brand-light bg-clip-text text-transparent">
+              Not legacy. Not piecemeal.
+            </span>
           </h1>
           <p className="mt-4 text-base leading-relaxed text-slate-600 sm:text-lg">
-            Three tiers — {PLANS.STARTER.name}, {PLANS.PROFESSIONAL.name}, and {PLANS.ENTERPRISE.name}. CRM,
-            marketing, and AI in one monthly bill. From ${repairPilotStarterMonthly(annual)}/mo per location.
+            {PLANS.STARTER.name} is premium core CRM with DVIs, live dashboard, Daily Outline, Labor AI, and live training. {PLANS.PROFESSIONAL.name} adds
+            licensed labor data, Growth Engine, and team training. {PLANS.ENTERPRISE.name} adds AI, ShopSite, Local
+            SEO, and white-glove onboarding.
           </p>
 
-          <BillingToggle annual={annual} onAnnualChange={setAnnual} samplePlan={samplePlan} />
+          <div className="mx-auto mt-10 grid max-w-5xl gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 text-left">
+              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Legacy stack</p>
+              <p className="mt-2 text-2xl font-bold tabular-nums text-slate-500">~${legacyStack}/mo</p>
+              <p className="mt-1 text-[11px] text-slate-500">{COMPETITOR_BENCHMARK.legacy.examples}</p>
+            </div>
+            <div className="rounded-xl border border-amber-200/80 bg-amber-50/60 p-4 text-left">
+              <p className="text-xs font-semibold uppercase tracking-wide text-amber-900">Budget + bolt-ons</p>
+              <p className="mt-2 text-2xl font-bold tabular-nums text-amber-900 line-through decoration-brand-red/35">
+                ~${budgetGrowth}–{budgetStack}/mo
+              </p>
+              <p className="mt-1 text-[11px] text-amber-900/80">Garage360 / Torque360 + marketing extras</p>
+            </div>
+            <div className="rounded-xl border-2 border-brand-navy/20 bg-brand-navy/5 p-4 text-left ring-1 ring-brand-navy/10">
+              <p className="text-xs font-semibold uppercase tracking-wide text-brand-navy">
+                {PLANS.PROFESSIONAL.name}
+                <span className="ml-1 rounded bg-brand-red px-1.5 py-0.5 text-[9px] font-bold text-white">
+                  Flagship
+                </span>
+              </p>
+              <p className="mt-2 text-2xl font-bold tabular-nums text-brand-navy">${momentumPrice}/mo</p>
+              <p className="mt-1 text-[11px] text-slate-600">Licensed labor + Growth Engine + team training</p>
+            </div>
+            <div className="rounded-xl border-2 border-brand-red/25 bg-brand-red/5 p-4 text-left">
+              <p className="text-xs font-semibold uppercase tracking-wide text-brand-red">
+                {PLANS.ENTERPRISE.name}
+              </p>
+              <p className="mt-2 text-2xl font-bold tabular-nums text-brand-navy">${overdrivePrice}/mo</p>
+              <p className="mt-1 text-[11px] text-slate-600">AI + web + SEO + dedicated specialist</p>
+            </div>
+          </div>
+
+          <p className="mt-6 text-sm text-slate-500">
+            {PLANS.STARTER.name} from{" "}
+            <span className="font-semibold text-brand-navy">${starterPrice}/mo</span>
+            {annual ? " (annual billing)" : " (monthly billing)"} — premium core CRM for focused shops
+          </p>
 
           <ul className="mt-6 flex flex-wrap justify-center gap-x-5 gap-y-2 text-xs text-slate-600 sm:text-sm">
-            {["No CRM setup fees", "In-depth training on every plan", "Cancel anytime", "Founding rates on annual"].map((t) => (
+            {[
+              "In-depth training on every plan",
+              "No CRM setup fees",
+              "Cancel anytime",
+              "Founding rates on annual",
+            ].map((t) => (
               <li key={t} className="flex items-center gap-1.5">
                 <Check className="size-3.5 text-brand-navy" />
                 {t}
@@ -62,78 +122,56 @@ export function PricingPageContent({ foundingSpotsClaimed = 0 }: { foundingSpots
         </div>
       </section>
 
+      <MarketPositioningSection />
+
       {/* Plan cards */}
-      <section className="mx-auto max-w-6xl px-4 py-14 sm:px-6">
-        <p className="text-center text-sm text-slate-600">
-          {preLaunch
-            ? `${foundingRemaining} founding spots · ${foundingMessaging.secondary}`
-            : `14-day trial · ${annual ? "annual" : "monthly"} billing per location`}
-        </p>
-        <div className="mt-8 grid gap-6 md:grid-cols-3">
-          {PLAN_ORDER.map((planId) => {
-            const plan = PLANS[planId];
-            const price = planDisplayPrice(plan, annual);
-            const yearSaved = annualSavingsDollars(plan);
-            const isPopular = plan.popular;
-            const isTop = planId === "ENTERPRISE";
+      <section className="relative overflow-hidden px-4 py-16 sm:px-6 sm:py-24">
+        <div
+          className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_50%_0%,oklch(0.798_0.108_247_/_0.22),transparent_55%),linear-gradient(180deg,#f8fbff_0%,#ffffff_45%,#f4f8fc_100%)]"
+          aria-hidden
+        />
+        <div
+          className="pointer-events-none absolute inset-0 opacity-[0.35] [background-image:linear-gradient(to_right,oklch(0.449_0.109_249_/_0.06)_1px,transparent_1px),linear-gradient(to_bottom,oklch(0.449_0.109_249_/_0.06)_1px,transparent_1px)] [background-size:48px_48px] [mask-image:radial-gradient(ellipse_at_center,black_20%,transparent_75%)]"
+          aria-hidden
+        />
+        <div
+          className="pointer-events-none absolute left-1/2 top-[42%] h-[28rem] w-[28rem] -translate-x-1/2 rounded-full bg-brand-light/30 blur-3xl"
+          aria-hidden
+        />
 
-            return (
-              <div
+        <div className="relative mx-auto max-w-6xl">
+          <div className="mx-auto max-w-2xl text-center">
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-brand-red">
+              Plans
+            </p>
+            <h2 className="mt-3 text-3xl font-bold tracking-tight text-brand-navy sm:text-5xl">
+              Pick your tier
+            </h2>
+            <p className="mt-4 text-sm leading-relaxed text-slate-600 sm:text-base">
+              {preLaunch
+                ? `${foundingRemaining} founding spots · ${foundingMessaging.secondary}`
+                : "Per location · training included on every plan · no CRM setup fees"}
+            </p>
+          </div>
+
+          <PricingBillingToggle
+            annual={annual}
+            onAnnualChange={setAnnual}
+            className="mt-10"
+          />
+
+          <div className="mt-12 grid items-stretch gap-5 lg:grid-cols-3 lg:gap-6">
+            {PLAN_ORDER.map((planId) => (
+              <PricingPlanCard
                 key={planId}
-                className={cn(
-                  "relative flex flex-col rounded-2xl border bg-card p-6 shadow-sm",
-                  isPopular && "border-brand-navy ring-2 ring-brand-navy/20",
-                  isTop && "border-brand-red/25 ring-1 ring-brand-red/15",
-                )}
-              >
-                {isPopular ? (
-                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-brand-red px-3 py-0.5 text-xs font-semibold text-white">
-                    Most popular
-                  </span>
-                ) : isTop ? (
-                  <span className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-brand-navy px-3 py-0.5 text-xs font-semibold text-white">
-                    Full stack
-                  </span>
-                ) : null}
-
-                <h2 className="text-xl font-bold text-brand-navy">{plan.name}</h2>
-                <p className="text-[11px] font-semibold uppercase tracking-wide text-brand-red/80">
-                  {plan.subtitle}
-                </p>
-                <p className="mt-2 text-sm text-slate-600">{plan.tagline}</p>
-
-                <div className="mt-5 flex items-baseline gap-1">
-                  <span className="text-4xl font-bold tabular-nums text-brand-navy">{price}</span>
-                  <span className="text-sm text-muted-foreground">/mo</span>
-                </div>
-                <p className="mt-1 text-xs text-muted-foreground">
-                  {annual ? `Billed annually · save $${yearSaved}/yr` : "Billed monthly"}
-                </p>
-                {plan.savingsNote ? (
-                  <p className="mt-2 text-xs font-medium text-brand-red">{plan.savingsNote}</p>
-                ) : null}
-
-                <ul className="mt-6 flex-1 space-y-2">
-                  {plan.highlights.map((h) => (
-                    <li key={h} className="flex items-start gap-2 text-sm text-slate-700">
-                      <Check className="mt-0.5 size-4 shrink-0 text-brand-navy" />
-                      {h}
-                    </li>
-                  ))}
-                </ul>
-
-                <Button
-                  className={cn("mt-6 w-full", isPopular && "bg-brand-navy")}
-                  variant={isPopular ? "default" : "outline"}
-                  asChild
-                >
-                  <Link href={preLaunch ? MARKETING_LAUNCH.primaryHref : "/signup"}>
-                    {preLaunch ? MARKETING_LAUNCH.primaryCta : "Start 14-day trial"}
-                  </Link>
-                </Button>
-              </div>
-            );
-          })}
+                planId={planId}
+                plan={PLANS[planId]}
+                annual={annual}
+                preLaunch={preLaunch}
+                onCompareFeatures={() => openFeatureComparison(setFeaturesOpen)}
+              />
+            ))}
+          </div>
         </div>
       </section>
 
@@ -220,7 +258,7 @@ export function PricingPageContent({ foundingSpotsClaimed = 0 }: { foundingSpots
       </section>
 
       {/* Feature comparison — opt-in */}
-      <section className="mx-auto max-w-6xl px-4 pb-14 sm:px-6">
+      <section id="feature-comparison" className="mx-auto max-w-6xl scroll-mt-8 px-4 pb-14 sm:px-6">
         <button
           type="button"
           onClick={() => setFeaturesOpen((o) => !o)}
@@ -318,40 +356,6 @@ export function PricingPageContent({ foundingSpotsClaimed = 0 }: { foundingSpots
           )}
         </div>
       </section>
-    </div>
-  );
-}
-
-function BillingToggle({
-  annual,
-  onAnnualChange,
-  samplePlan,
-}: {
-  annual: boolean;
-  onAnnualChange: (v: boolean) => void;
-  samplePlan: (typeof PLANS)[keyof typeof PLANS];
-}) {
-  return (
-    <div className="mt-8 inline-flex items-center gap-2 rounded-full border bg-white p-1 shadow-sm">
-      {(["Monthly", "Annual"] as const).map((label, i) => {
-        const isAnnual = i === 1;
-        return (
-          <button
-            key={label}
-            type="button"
-            onClick={() => onAnnualChange(isAnnual)}
-            className={cn(
-              "rounded-full px-4 py-1.5 text-sm font-medium transition",
-              annual === isAnnual ? "bg-brand-navy text-white" : "text-slate-500 hover:text-brand-navy",
-            )}
-          >
-            {label}
-          </button>
-        );
-      })}
-      <span className="hidden pr-2 text-xs font-medium text-brand-red sm:inline">
-        Save {annualSavingsPercent(samplePlan)}% annual
-      </span>
     </div>
   );
 }

@@ -1,13 +1,34 @@
-import { Bot, Globe, GraduationCap, MessageSquare, Repeat, Wrench, Zap } from "lucide-react";
+import { Bot, BookOpen, BarChart3, ClipboardCheck, Globe, GraduationCap, MessageSquare, Repeat, Wrench, Zap } from "lucide-react";
 
-import { PLANS } from "@/lib/plans";
+import { DASHBOARD_PLAN_COPY, DVI_PLAN_COPY, LABOR_PLAN_COPY, PLANS } from "@/lib/plans";
 
 const VALUE_PILLARS = [
   {
     icon: Wrench,
     title: "Run the shop",
-    description: "Repair orders, job board, inspections, parts, inventory, and reports — connected end to end.",
+    description: "Repair orders, job board, customers, vehicles, and inventory — connected end to end.",
     tiers: `${PLANS.STARTER.name} & up`,
+  },
+  {
+    icon: ClipboardCheck,
+    title: "Digital vehicle inspections",
+    description:
+      "MPI templates, photo markup on findings, red/yellow/green ratings, and customer share links — on every plan.",
+    tiers: DVI_PLAN_COPY.featuresAllTiers,
+  },
+  {
+    icon: BookOpen,
+    title: "Labor estimates",
+    description:
+      "Labor AI on Ignition. Momentum and Overdrive add licensed industry flat-rate data plus Labor AI in the estimate.",
+    tiers: LABOR_PLAN_COPY.featuresIgnition,
+  },
+  {
+    icon: BarChart3,
+    title: "Live dashboard",
+    description:
+      "Daily Outline shop-day snapshots plus daily profitable reports — see collected revenue, gross volume, and what moved today.",
+    tiers: DASHBOARD_PLAN_COPY.featuresAllTiers,
   },
   {
     icon: Zap,
@@ -55,10 +76,11 @@ export function PlatformValueSection() {
         <div className="mx-auto max-w-2xl text-center">
           <p className="text-xs font-semibold uppercase tracking-wider text-brand-red">What you get</p>
           <h2 className="mt-3 text-3xl font-bold text-brand-navy sm:text-4xl">
-            One platform for the whole shop
+            Premium platform — pick your tier
           </h2>
           <p className="mt-4 text-slate-600">
-            CRM, marketing, payments, and AI — pick the tier that matches how you operate today.
+            CRM, marketing, payments, and AI — with live training included from day one, not sold as an
+            onboarding upsell.
           </p>
         </div>
 

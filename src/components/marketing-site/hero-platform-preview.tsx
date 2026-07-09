@@ -23,18 +23,23 @@ import { cn } from "@/lib/utils";
 
 const MODULES = [
   { id: "crm", label: "Shop CRM", icon: Wrench },
+  { id: "dashboard", label: "Live dashboard", icon: BarChart3 },
   { id: "jobboard", label: "Job Board", icon: LayoutGrid },
-  { id: "dvi", label: "Inspections", icon: ClipboardCheck },
+  { id: "dvi", label: "DVIs", icon: ClipboardCheck },
   { id: "payments", label: "Payments", icon: Zap },
   { id: "growth", label: "Growth Engine", icon: Sparkles },
   { id: "website", label: "ShopSite", icon: Globe },
   { id: "parts", label: "PartsTech", icon: Package },
   { id: "ai", label: "AI Reception", icon: Bot },
-  { id: "reports", label: "Reports", icon: BarChart3 },
+  { id: "reports", label: "Daily Outline", icon: BarChart3 },
   { id: "subs", label: "Subscriptions", icon: Repeat },
 ] as const;
 
 const FEATURE_CHIPS = [
+  "Live dashboard",
+  "Daily Outline",
+  "Daily profitable reports",
+  "DVIs & MPI",
   "VIN decode",
   "Markup matrices",
   "Approval links",
@@ -56,7 +61,7 @@ export function HeroPlatformPreview({ className }: { className?: string }) {
           <div className="size-2.5 rounded-full bg-brand-light" />
           <div className="size-2.5 rounded-full bg-white/40" />
           <span className="ml-2 text-xs font-medium text-white/90">
-            ShopRally · CRM, inspections, growth, payments &amp; AI
+            ShopRally · CRM, live dashboard, inspections, growth, payments &amp; AI
           </span>
         </div>
 
@@ -112,12 +117,19 @@ export function HeroPlatformPreview({ className }: { className?: string }) {
                 <p className="text-[10px] text-slate-500">8 estimates · 5 WIP · 7 done</p>
               </div>
             </div>
+            <div className="mt-2 flex items-center gap-2 rounded-lg border border-emerald-200/80 bg-emerald-50/80 px-3 py-2">
+              <BarChart3 className="size-3.5 shrink-0 text-emerald-700" />
+              <div>
+                <p className="text-xs font-semibold text-brand-navy">Daily Outline</p>
+                <p className="text-[10px] text-slate-500">$4,280 collected · 6 ROs · 3 appts today</p>
+              </div>
+            </div>
           </div>
 
           {/* Inspections */}
           <div className="bg-white p-4">
             <p className="text-[10px] font-bold uppercase tracking-wide text-brand-navy/60">
-              Digital inspections
+              Digital vehicle inspections (DVIs)
             </p>
             <div className="mt-2 rounded-lg border border-brand-light/40 bg-brand-light/5 p-3">
               <div className="flex items-center justify-between gap-2">
@@ -250,11 +262,11 @@ export function HeroPlatformPreview({ className }: { className?: string }) {
         {/* Bottom strip */}
         <div className="flex flex-wrap items-center justify-between gap-2 border-t border-brand-navy/10 bg-brand-navy px-4 py-2.5 text-[11px] text-white/90">
           <span className="font-medium">
-            CRM · job board · DVIs · estimates · PartsTech · SMS · booking · payments · ShopSite · SEO ·
-            AI · subscriptions
+            CRM · live dashboard · Daily Outline · job board · DVIs · estimates · PartsTech · SMS · booking ·
+            payments · ShopSite · SEO · AI · subscriptions
           </span>
           <span className="rounded-full bg-brand-light px-2.5 py-0.5 text-[10px] font-bold text-brand-navy">
-            All included — one login
+            Premium all-in-one
           </span>
         </div>
       </div>

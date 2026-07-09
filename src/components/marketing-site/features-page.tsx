@@ -15,25 +15,26 @@ import {
 } from "lucide-react";
 
 import { HeroPlatformPreview } from "@/components/marketing-site/hero-platform-preview";
+import { MarketPositioningSection } from "@/components/marketing-site/market-positioning-section";
 import { Button } from "@/components/ui/button";
 import { MARKETING_LAUNCH } from "@/lib/marketing-launch";
-import { PLANS } from "@/lib/plans";
+import { COMPETITOR_BENCHMARK, DVI_PLAN_COPY, LABOR_PLAN_COPY, PLANS, repairPilotAllInMonthly, repairPilotOverdriveMonthly } from "@/lib/plans";
 
 const MODULES = [
   {
     icon: Wrench,
     title: "Shop management",
     description:
-      "Repair orders, job board, digital inspections, canned jobs, parts, inventory, and tech board — one connected workflow.",
-    items: ["Kanban job board", "DVIs with photos", "Canned jobs & markup matrices", "In-depth training included"],
+      "Repair orders, job board, canned jobs, parts, inventory, and tech board — DVIs included on every plan.",
+    items: ["Kanban job board", DVI_PLAN_COPY.featuresAllTiers, "Live dashboard & Daily Outline", "In-depth training included"],
     accent: "from-brand-navy/10 to-brand-light/10 border-brand-navy/20",
   },
   {
     icon: Zap,
     title: "Payments & POS",
     description:
-      "Build estimates fast, send approval links by SMS, invoice, and collect payment through Stripe Connect.",
-    items: ["Text-to-approve estimates", "Stripe Connect payouts", "Invoice sharing", "Labor guides"],
+      "Build estimates fast with Labor AI on Ignition, or licensed flat-rate data plus Labor AI on Momentum+. Send approval links by SMS, invoice, and collect through Stripe Connect.",
+    items: ["Text-to-approve estimates", "Stripe Connect payouts", "Invoice sharing", LABOR_PLAN_COPY.featuresIgnition],
     accent: "from-brand-light/10 to-brand-light/20 border-brand-light/30",
   },
   {
@@ -61,7 +62,7 @@ const HIGHLIGHTS = [
   { icon: Package, label: "Inventory" },
   { icon: Globe, label: "ShopSite" },
   { icon: Search, label: "Local SEO" },
-  { icon: BarChart3, label: "Reporting" },
+  { icon: BarChart3, label: "Live dashboard & Daily Outline" },
 ] as const;
 
 export function FeaturesPageContent() {
@@ -72,10 +73,16 @@ export function FeaturesPageContent() {
         <div className="mx-auto max-w-7xl px-4 py-14 text-center sm:px-6 sm:py-16">
           <p className="text-xs font-semibold uppercase tracking-wider text-brand-red">Product</p>
           <h1 className="mt-2 text-3xl font-bold text-brand-navy sm:text-4xl lg:text-5xl">
-            Everything your shop runs on
+            Premium shop software — one platform
           </h1>
           <p className="mx-auto mt-4 max-w-2xl text-lg text-slate-600">
-            CRM, payments, marketing, and maintenance programs — connected from intake to recurring revenue.
+            Between legacy desktop CRM and budget bolt-on stacks — ShopRally connects CRM, payments,
+            marketing, and maintenance with training included on every tier.
+          </p>
+          <p className="mx-auto mt-3 max-w-xl text-sm font-medium text-brand-navy">
+            {PLANS.PROFESSIONAL.name}: ${repairPilotAllInMonthly(true)}/mo · {PLANS.ENTERPRISE.name}: $
+            {repairPilotOverdriveMonthly(true)}/mo · vs ~${COMPETITOR_BENCHMARK.legacy.typicalMonthly}/mo legacy
+            stacks
           </p>
           <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
             <Button size="lg" className="bg-brand-navy" asChild>

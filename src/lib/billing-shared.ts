@@ -1,6 +1,5 @@
 import type { BillingStatus, ShopPlan } from "@/generated/prisma";
-import type { PlanFeatureSet } from "@/lib/plans";
-import { PLAN_ORDER } from "@/lib/plans";
+import { DASHBOARD_PLAN_COPY, DVI_PLAN_COPY, LABOR_PLAN_COPY, PLAN_ORDER, type PlanFeatureSet } from "@/lib/plans";
 
 /** Platform subscription invoice line (shop pays RepairPilot — not customer RO invoices). */
 export type BillingInvoiceLine = {
@@ -72,9 +71,11 @@ export const BILLING_PLAN_FEATURES: Record<
 > = {
   STARTER: {
     items: [
-      "Job board & up to 150 repair orders / month",
-      "Customers, vehicles & VIN decode",
-      "Digital vehicle inspections & shop reports",
+      "Unlimited users & repair orders",
+      "Job board, customers, vehicles & VIN decode",
+      DASHBOARD_PLAN_COPY.billingItem,
+      DVI_PLAN_COPY.billingItem,
+      LABOR_PLAN_COPY.billingIgnition,
       "Estimate editing (basics)",
       "Email estimates, approvals & invoices",
       "Appointments & one-way customer notifications",
@@ -84,9 +85,9 @@ export const BILLING_PLAN_FEATURES: Record<
   PROFESSIONAL: {
     intro: "Everything in Ignition, plus:",
     items: [
-      "Unlimited users & repair orders",
+      LABOR_PLAN_COPY.billingMomentum,
       "Markup matrices & canned jobs",
-      "Parts catalog (PartsTech) & Labor Book",
+      "Parts catalog (PartsTech)",
       "Two-way SMS, campaigns & Growth Engine",
       "Review management — Google sync, requests & inbox",
       "Stripe Connect payments & integrations",

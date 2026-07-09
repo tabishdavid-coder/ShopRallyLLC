@@ -50,6 +50,58 @@ export const OUTCOME_METRICS = [
   { value: "1", unit: "login", label: "CRM + marketing + payments" },
 ] as const;
 
+/** Premium positioning — between legacy desktop CRM and budget add-on stacks. */
+export const MARKET_POSITIONING = {
+  eyebrow: "Where ShopRally fits",
+  headline: "Premium shop software — not legacy, not piecemeal",
+  subhead:
+    "Legacy systems split workflow across desktop installs and agency retainers. Budget cloud CRMs look cheap until SMS, booking, reviews, and website work stack on. ShopRally is the modern all-in-one — with in-depth training included on every tier.",
+  tiers: [
+    {
+      id: "legacy" as const,
+      label: "Legacy CRM",
+      summary: "Mitchell, Protractor, desktop-first stacks",
+      priceLabel: "$600–900+/mo",
+      subPrice: "Labor guides, DVI, marketing & website often separate",
+      points: [
+        "Desktop installs, slow updates, IT overhead",
+        "Marketing, website, and reviews live elsewhere",
+        "Integrations require vendor tickets and custom projects",
+        "Training is an extra line item — if offered at all",
+      ],
+    },
+    {
+      id: "budget" as const,
+      label: "Budget cloud + bolt-ons",
+      summary: "Garage360, Torque360, entry CRM plus extras",
+      priceLabel: "~$279–524/mo",
+      subPrice: "CRM + SMS + booking + reviews + agency SEO",
+      points: [
+        "Sticker prices from $79/mo — until you need growth tools",
+        "No native ShopSite, SEO Autopilot, or maintenance programs",
+        "AI receptionist and review automation sold separately upstream",
+        "Five logins, five invoices, five support contacts",
+      ],
+    },
+    {
+      id: "premium" as const,
+      label: "ShopRally premium",
+      summary: "Cloud CRM, Growth Engine, training & optional full stack",
+      priceLabel: "From $219/mo",
+      subPrice: "Momentum flagship · licensed labor + Growth Engine · Overdrive full stack",
+      points: [
+        "In-depth training on Ignition — team program on Momentum, white-glove on Overdrive",
+        "Labor AI on Ignition · licensed flat-rate data + Labor AI on Momentum & Overdrive",
+        "Live dashboard, Daily Outline & daily profitable reports on every plan",
+        "DVIs with MPI templates, photo markup & customer share on every plan",
+        "Growth Engine on Momentum: booking, SMS, campaigns, Google Reviews",
+        "Overdrive adds AI receptionist, ShopSite, Local SEO & maintenance programs",
+        "One customer record from job board to invoice to campaign",
+      ],
+    },
+  ],
+} as const;
+
 export const FOUNDING_BENEFITS = [
   "Lock founding-shop pricing for life (annual billing)",
   "White-glove migration from Tekmetric, Shopmonkey, or pen & paper",
@@ -65,6 +117,24 @@ export const VS_BUDGET_COMPETITORS = [
     shoprally: `${PLANS.PROFESSIONAL.name} — unlimited ROs & users`,
     garage360: "Clever $119/mo · Basic $79 (no DVI)",
     torque360: "Starter ~$90/mo · 5 co-user cap",
+  },
+  {
+    category: "Digital vehicle inspections (DVIs)",
+    shoprally: "MPI, photo markup & customer share on every plan",
+    garage360: "Clever+ only · Basic has no DVI",
+    torque360: "Included on Starter+",
+  },
+  {
+    category: "Live dashboard & daily reports",
+    shoprally: "Daily Outline + daily profitable reports on every plan",
+    garage360: "Basic reporting on Clever+ · no shop-day snapshot",
+    torque360: "Limited dashboards on higher tiers",
+  },
+  {
+    category: "Labor guide & flat-rate data",
+    shoprally: `${PLANS.STARTER.name}: Labor AI · ${PLANS.PROFESSIONAL.name}+: licensed data + Labor AI`,
+    garage360: "Genius $199/mo for labor guides · no Growth Engine",
+    torque360: "Labor on higher tiers · no native marketing stack",
   },
   {
     category: "SMS, booking & campaigns",

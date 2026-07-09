@@ -4,6 +4,7 @@ import Link from "next/link";
 import {
   ArrowRight,
   BarChart3,
+  BookOpen,
   Calendar,
   CheckCircle2,
   Globe,
@@ -16,20 +17,21 @@ import {
 } from "lucide-react";
 
 import { HeroPlatformPreview } from "@/components/marketing-site/hero-platform-preview";
+import { MarketPositioningSection } from "@/components/marketing-site/market-positioning-section";
 import { PlatformValueSection } from "@/components/marketing-site/platform-value-section";
 import { FoundingWaitlistForm } from "@/components/marketing-site/founding-waitlist-form";
 import { OutcomeMetricsStrip } from "@/components/marketing-site/outcome-metrics-strip";
 import { Button } from "@/components/ui/button";
 import { getFoundingSpotMessaging, MARKETING_LAUNCH } from "@/lib/marketing-launch";
 import { cn } from "@/lib/utils";
-import { PLANS, repairPilotAllInMonthly, repairPilotStarterMonthly } from "@/lib/plans";
+import { PLANS, DVI_PLAN_COPY, LABOR_PLAN_COPY, DASHBOARD_PLAN_COPY, repairPilotAllInMonthly, repairPilotOverdriveMonthly, repairPilotStarterMonthly } from "@/lib/plans";
 
 const PILLARS = [
   {
     icon: Wrench,
     title: "Run your shop",
     description:
-      "Repair orders, job board, digital inspections, canned jobs, and inventory — one workflow from intake to invoice.",
+      "Repair orders, job board, and inventory — DVIs, Labor AI on every tier, licensed flat-rate data on Momentum+.",
     accent: "border-brand-navy/20 bg-brand-navy/5",
     iconBg: "bg-brand-navy text-white",
   },
@@ -53,10 +55,11 @@ const PILLARS = [
 
 const FEATURES = [
   { icon: Calendar, label: "Appointments & online booking" },
+  { icon: BookOpen, label: "Labor AI · licensed data on Momentum+" },
   { icon: MessageSquare, label: "Two-way SMS & campaigns" },
   { icon: Globe, label: "ShopSite & Local SEO" },
-  { icon: BarChart3, label: "Reports & markup matrices" },
-  { icon: Shield, label: "Digital vehicle inspections" },
+  { icon: BarChart3, label: "Live dashboard & Daily Outline" },
+  { icon: Shield, label: "DVIs — MPI & photo markup" },
   { icon: Star, label: "Maintenance subscriptions" },
 ] as const;
 
@@ -126,9 +129,9 @@ export function HomePageContent({ foundingSpotsClaimed = 0 }: { foundingSpotsCla
                 </>
               ) : (
                 <>
-                  The one-stop shop for{" "}
+                  Premium shop software for{" "}
                   <span className="bg-gradient-to-r from-brand-navy to-brand-light bg-clip-text text-transparent">
-                    CRM, growth &amp; subscriptions
+                    CRM, growth &amp; AI
                   </span>
                 </>
               )}
@@ -136,8 +139,8 @@ export function HomePageContent({ foundingSpotsClaimed = 0 }: { foundingSpotsCla
 
             <p className="mx-auto mt-5 max-w-2xl text-lg leading-relaxed text-slate-600">
               {preLaunch
-                ? "Repair orders, payments, marketing, and AI reception in one login — with in-depth training on every plan."
-                : `Run your shop and grow locally — ${PLANS.STARTER.name} from $${repairPilotStarterMonthly(true)}/mo, ${PLANS.PROFESSIONAL.name} from $${repairPilotAllInMonthly(true)}/mo with Growth Engine included.`}
+                ? "Between legacy desktop CRM and budget add-on stacks — one modern platform with in-depth training on every plan."
+                : `Premium all-in-one for independents — ${PLANS.STARTER.name} from $${repairPilotStarterMonthly(true)}/mo, ${PLANS.PROFESSIONAL.name} flagship from $${repairPilotAllInMonthly(true)}/mo, ${PLANS.ENTERPRISE.name} from $${repairPilotOverdriveMonthly(true)}/mo.`}
             </p>
 
             <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
@@ -174,12 +177,14 @@ export function HomePageContent({ foundingSpotsClaimed = 0 }: { foundingSpotsCla
 
       <OutcomeMetricsStrip />
 
+      <MarketPositioningSection />
+
       {/* Three pillars */}
       <section id="product" className="mx-auto max-w-7xl scroll-mt-20 px-4 py-16 sm:px-6 sm:py-20">
         <div className="mx-auto max-w-2xl text-center">
           <p className="text-xs font-semibold uppercase tracking-wider text-brand-red">One platform</p>
           <h2 className="mt-2 text-3xl font-bold text-brand-navy sm:text-4xl">
-            Everything your shop needs. Nothing you don&apos;t.
+            Enterprise-grade workflow. Training included.
           </h2>
         </div>
 
@@ -212,13 +217,15 @@ export function HomePageContent({ foundingSpotsClaimed = 0 }: { foundingSpotsCla
                 Built for how repair shops actually work
               </h2>
               <p className="mt-4 leading-relaxed text-slate-600">
-                From the first phone call to the final payment — repair orders, parts, labor guides, and
+                From the first phone call to the final payment — repair orders, licensed labor data, Labor AI, and
                 customer history stay connected. No re-entry between systems.
               </p>
               <ul className="mt-6 space-y-3">
                 {[
-                  "Digital vehicle inspections with photo markup",
-                  "Canned jobs & markup matrices",
+                  DASHBOARD_PLAN_COPY.featuresAllTiers,
+                  DVI_PLAN_COPY.featuresAllTiers,
+                  LABOR_PLAN_COPY.featuresIgnition,
+                  "Canned jobs & markup matrices on Momentum+",
                   "PartsTech integration & inventory",
                   "Customer approval links via SMS",
                 ].map((item) => (
@@ -257,11 +264,12 @@ export function HomePageContent({ foundingSpotsClaimed = 0 }: { foundingSpotsCla
           <div className="mx-auto max-w-2xl text-center lg:max-w-3xl">
             <p className="text-xs font-semibold uppercase tracking-wider text-brand-light">Growth Engine</p>
             <h2 className="mt-2 text-3xl font-bold sm:text-4xl">
-              Marketing tools included on {PLANS.PROFESSIONAL.name}
+              Growth tools included on {PLANS.PROFESSIONAL.name} — not sold as bolt-ons
             </h2>
             <p className="mt-4 text-white/75">
-              Online booking, SMS campaigns, Google Reviews, and review management — from $
-              {repairPilotAllInMonthly(true)}/mo annual.
+              Budget CRMs charge extra for booking, SMS, and reviews. ShopRally {PLANS.PROFESSIONAL.name}{" "}
+              bundles the Growth Engine from ${repairPilotAllInMonthly(true)}/mo annual — with team training
+              included.
             </p>
           </div>
           <ul className="mx-auto mt-10 grid max-w-3xl gap-3 sm:grid-cols-2">
@@ -291,10 +299,12 @@ export function HomePageContent({ foundingSpotsClaimed = 0 }: { foundingSpotsCla
             <p className="text-xs font-semibold uppercase tracking-wider text-brand-red">
               {PLANS.ENTERPRISE.name}
             </p>
-            <h2 className="mt-2 text-3xl font-bold text-brand-navy">AI receptionist &amp; full AI suite</h2>
+            <h2 className="mt-2 text-3xl font-bold text-brand-navy">
+              {PLANS.ENTERPRISE.name} — white-glove AI &amp; web stack
+            </h2>
             <p className="mt-4 text-slate-600">
-              After-hours SMS and voice reception, AI review replies, ShopSite, Local SEO, and campaign
-              drafting — included on {PLANS.ENTERPRISE.name}, not sold as separate add-ons.
+              After-hours SMS and voice reception, AI review replies, ShopSite, Local SEO, and maintenance
+              programs — included on {PLANS.ENTERPRISE.name}, not a pile of separate add-ons.
             </p>
             {preLaunch ? (
               <Button className="mt-8 bg-brand-red hover:bg-brand-red/90" asChild>

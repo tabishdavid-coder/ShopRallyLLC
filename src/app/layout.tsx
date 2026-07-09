@@ -1,14 +1,17 @@
 import type { Metadata } from "next";
 import { Inter, Geist_Mono } from "next/font/google";
+import { headers } from "next/headers";
 import { Suspense } from "react";
 import "./globals.css";
 
 import { ShopRallyClerkProvider } from "@/components/providers/clerk-provider";
 import { DesignModeDevEntryBar } from "@/components/design-mode/design-mode-dev-entry";
 import { DesignModeDock } from "@/components/design-mode/design-mode-dock";
-import { shoprallyMetadata } from "@/lib/metadata";
 import { isAutopilot3030Shell } from "@/lib/autopilot3030/shell-variant";
 import { isDesignModeEnabled } from "@/lib/design-mode-tokens";
+import { usesDocumentScroll } from "@/lib/document-scroll-routes";
+import { shoprallyMetadata } from "@/lib/metadata";
+import { cn } from "@/lib/utils";
 
 const inter = Inter({
   variable: "--font-geist-sans",
@@ -23,13 +26,15 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = shoprallyMetadata();
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   const apShell = isAutopilot3030Shell();
   const designMode = isDesignModeEnabled();
+  const pathname = (await headers()).get("x-pathname") ?? "";
+  const documentScroll = usesDocumentScroll(pathname);
 
   return (
     <html
@@ -37,10 +42,22 @@ export default function RootLayout({
       className={`${inter.variable} ${geistMono.variable} h-full antialiased`}
       data-ap-shell={apShell ? "3030" : undefined}
     >
-      <body className="flex h-svh flex-col overflow-hidden">
+      <body
+        className={cn(
+          "flex flex-col",
+          documentScroll ? "min-h-svh" : "h-svh overflow-hidden",
+        )}
+      >
         <ShopRallyClerkProvider>
           {designMode ? <DesignModeDevEntryBar /> : null}
-          <div className="flex min-h-0 flex-1 flex-col overflow-hidden">{children}</div>
+          <div
+            className={cn(
+              "flex flex-1 flex-col",
+              documentScroll ? "min-h-svh" : "min-h-0 overflow-hidden",
+            )}
+          >
+            {children}
+          </div>
           {designMode ? (
             <Suspense fallback={null}>
               <DesignModeDock />

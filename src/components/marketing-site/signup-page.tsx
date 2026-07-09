@@ -8,7 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { MARKETING_LAUNCH } from "@/lib/marketing-launch";
-import { PLAN_ORDER, PLANS, planDisplayPrice } from "@/lib/plans";
+import { PLAN_ORDER, PLANS, annualSavingsDollars, planCardBullets, planDisplayPrice, planListPrice } from "@/lib/plans";
+import { PricingBillingToggle } from "@/components/pricing/pricing-billing-toggle";
 import type { ShopPlan } from "@/generated/prisma";
 import { submitTrialSignup } from "@/server/actions/marketing-leads";
 import { cn } from "@/lib/utils";
@@ -17,7 +18,7 @@ const TRIAL_DAYS = 14;
 
 export function SignupPageContent() {
   const [plan, setPlan] = useState<ShopPlan>("PROFESSIONAL");
-  const [annual] = useState(true);
+  const [annual, setAnnual] = useState(true);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [shopName, setShopName] = useState("");
@@ -86,7 +87,13 @@ export function SignupPageContent() {
         </p>
       </div>
 
-      <div className="mt-10 grid gap-4 lg:grid-cols-3">
+      <PricingBillingToggle
+        annual={annual}
+        onAnnualChange={setAnnual}
+        className="mt-10"
+      />
+
+      <div className="mt-8 grid gap-4 lg:grid-cols-3">
         {PLAN_ORDER.map((planId) => {
           const p = PLANS[planId];
           const selected = plan === planId;
@@ -110,13 +117,25 @@ export function SignupPageContent() {
                 <span className="invisible rounded-full px-2 py-0.5 text-[10px]">.</span>
               )}
               <h2 className="mt-2 text-lg font-bold text-brand-navy">{p.name}</h2>
-              <p className="mt-1 text-2xl font-bold tabular-nums text-brand-navy">
-                {planDisplayPrice(p, annual)}
-                <span className="text-sm font-normal text-slate-500">/mo</span>
+              <p className="mt-0.5 text-xs text-slate-500">{p.pricingCard.bestFor}</p>
+              <p className="mt-2 flex flex-wrap items-end gap-x-1.5">
+                {annual ? (
+                  <span className="text-sm font-medium tabular-nums text-slate-400 line-through">
+                    {planListPrice(p)}
+                  </span>
+                ) : null}
+                <span className="text-2xl font-bold tabular-nums text-brand-navy">
+                  {planDisplayPrice(p, annual)}
+                  <span className="text-sm font-normal text-slate-500">/mo</span>
+                </span>
               </p>
-              <p className="mt-2 text-xs text-slate-600">{p.tagline}</p>
+              <p className="mt-0.5 text-[11px] text-slate-500">
+                {annual
+                  ? `Billed annually · save $${annualSavingsDollars(p)}/yr`
+                  : "Billed monthly"}
+              </p>
               <ul className="mt-4 space-y-1.5">
-                {p.highlights.slice(0, 3).map((h) => (
+                {planCardBullets(p).slice(0, 4).map((h) => (
                   <li key={h} className="flex items-start gap-1.5 text-xs text-slate-700">
                     <Check className="mt-0.5 size-3.5 shrink-0 text-brand-navy" />
                     {h}

@@ -1,10 +1,10 @@
 import type { ShopPlan } from "@/generated/prisma";
 
 /**
- * Public pricing strategy (2026 Q3): positioned vs Garage360 / Torque360 budget tier AND
- * Tekmetric / Shopmonkey mid-market stack pricing.
+ * Public pricing strategy (2026 Q3): premium positioning between legacy desktop CRM
+ * and budget cloud + bolt-on stacks (Garage360, Torque360, Tekmetric add-ons).
  * Display tiers: Ignition · Momentum · Overdrive (internal enum: ENTERPRISE).
- * ShopSite & Local SEO are separate monthly add-ons on all tiers; both included on Overdrive.
+ * ShopSite & Local SEO are separate monthly add-ons on Ignition & Momentum; included on Overdrive.
  */
 export type PlanFeature =
   | "cannedJobs"
@@ -40,20 +40,81 @@ export type PlanLimits = {
 
 export type PlanFeatureSet = PlanLimits & Record<PlanFeature, boolean>;
 
+/** Scannable pricing-card content (AutoLeap / Shopmonkey style). */
+export type PlanPricingCard = {
+  /** One-line audience fit under the plan name. */
+  bestFor: string;
+  /** 5–6 outcome bullets — no long feature dumps. */
+  bullets: string[];
+  /** Renders "Everything in {prior plan}, plus:" above bullets. */
+  includesPrevious?: ShopPlan;
+};
+
 export type PlanDefinition = {
   id: ShopPlan;
   name: string;
   /** Short label on pricing cards (e.g. "Core shop"). */
   subtitle: string;
+  /** One sentence under bestFor — kept short for card layout. */
   tagline: string;
   monthlyCents: number;
   annualMonthlyCents: number;
-  /** Marketing callout vs typical incumbent stack cost. */
+  /** Marketing callout — used in hero / positioning, not on plan cards. */
+  valueNote?: string;
+  /** @deprecated Use valueNote — kept for components still reading savingsNote */
   savingsNote?: string;
   popular?: boolean;
-  highlights: string[];
+  pricingCard: PlanPricingCard;
   features: PlanFeatureSet;
 };
+
+/** Labor tiers — Ignition = Labor AI; Momentum+ = licensed flat-rate catalog + Labor AI. */
+export const LABOR_PLAN_COPY = {
+  ignitionHighlight: "Labor AI — AI-guided estimates & shop library",
+  momentumHighlight: "Licensed labor data + Labor AI",
+  comparisonByPlan: {
+    STARTER: "Labor AI",
+    PROFESSIONAL: "Licensed data + Labor AI",
+    ENTERPRISE: "Licensed data + Labor AI",
+  } satisfies Record<ShopPlan, string>,
+  billingIgnition: "Labor AI — AI-guided estimates & shop library",
+  billingMomentum: "Licensed flat-rate labor data + Labor AI",
+  featuresIgnition: "Labor AI on Ignition · licensed data + Labor AI on Momentum+",
+  faqAnswer:
+    "Ignition includes Labor AI for AI-guided estimates and your shop library. Momentum and Overdrive add licensed flat-rate labor data plus Labor AI in the estimate — a combination vendors often charge extra for on top of CRM.",
+} as const;
+
+/** Live dashboard & daily insights — included on every plan tier. */
+export const DASHBOARD_PLAN_COPY = {
+  planHighlight: "Live dashboard — Daily Outline & daily profitable reports",
+  billingItem: "Live dashboard — Daily Outline snapshot & daily profitable reports",
+  dailyOutlineLabel: "Daily Outline",
+  dailyOutlineDescription:
+    "Your live shop-day snapshot — today's and tomorrow's timeline of ROs, payments, appointments, and activity.",
+  dailyProfitableReports: "Daily profitable reports",
+  featuresAllTiers: "Live dashboard · Daily Outline · daily profitable reports on every plan",
+  comparisonAllTiers: {
+    STARTER: true,
+    PROFESSIONAL: true,
+    ENTERPRISE: true,
+  } satisfies Record<ShopPlan, boolean>,
+  faqAnswer:
+    "Every plan includes a live dashboard with KPIs and trends, Daily Outline (your shop-day snapshot for today and tomorrow), and daily profitable reports so owners see collected revenue, gross volume, and what moved the needle — without waiting for month-end.",
+} as const;
+
+/** Digital vehicle inspections (DVIs) — included on every plan tier. */
+export const DVI_PLAN_COPY = {
+  planHighlight: "Digital vehicle inspections (DVIs) — MPI, photo markup & R/Y/G ratings",
+  billingItem: "Digital vehicle inspections (DVIs) — templates, photo markup & customer share links",
+  featuresAllTiers: "DVIs with photo markup & MPI templates on every plan",
+  comparisonAllTiers: {
+    STARTER: true,
+    PROFESSIONAL: true,
+    ENTERPRISE: true,
+  } satisfies Record<ShopPlan, boolean>,
+  faqAnswer:
+    "Every plan includes full digital vehicle inspections — multi-point inspection templates, red/yellow/green item ratings, photo markup on findings, and share links so customers see inspection results on their phone before they approve work.",
+} as const;
 
 /** In-depth training included on every tier — depth scales with plan. */
 export const PLAN_TRAINING: Record<
@@ -64,13 +125,13 @@ export const PLAN_TRAINING: Record<
     headline: "In-depth training included",
     sessions: "2 live go-live sessions",
     description:
-      "Hands-on training on the job board, repair orders, DVIs, estimates, and shop reports for owners and lead advisors.",
+      "Hands-on training on the job board, repair orders, DVIs, live dashboard, Daily Outline, and daily profitable reports for owners and lead advisors.",
   },
   PROFESSIONAL: {
     headline: "In-depth team training included",
     sessions: "Team training program",
     description:
-      "Everything in Ignition, plus role-based sessions for advisors, techs, and marketing — booking, SMS, campaigns, and reviews.",
+      "Everything in Ignition, plus role-based sessions for advisors, techs, and marketing — licensed labor data, booking, SMS, campaigns, and reviews.",
   },
   ENTERPRISE: {
     headline: "White-glove training included",
@@ -85,8 +146,16 @@ export const PLATFORM_MODULES = [
   {
     id: "crm",
     name: "Shop CRM",
-    description: "Repair orders, job board, customers, vehicles, estimates, DVIs, tech board, inventory.",
+    description: "Repair orders, job board, customers, vehicles, estimates, tech board, inventory.",
     icon: "wrench" as const,
+    pricingNote: "All monthly tiers",
+  },
+  {
+    id: "dvi",
+    name: "DVIs",
+    description:
+      "Digital vehicle inspections with MPI templates, photo markup, red/yellow/green ratings, and customer share links.",
+    icon: "clipboard" as const,
     pricingNote: "All monthly tiers",
   },
   {
@@ -95,6 +164,22 @@ export const PLATFORM_MODULES = [
     description: "Stripe Connect, text-to-pay, approval links, invoicing, markup matrices.",
     icon: "zap" as const,
     pricingNote: "Momentum & Overdrive",
+  },
+  {
+    id: "labor",
+    name: "Labor Book",
+    description:
+      "Labor AI on every tier. Momentum and Overdrive add licensed industry flat-rate data for MOTOR-class lookup in estimates.",
+    icon: "wrench" as const,
+    pricingNote: "Labor AI all tiers · licensed data on Momentum+",
+  },
+  {
+    id: "insights",
+    name: "Live dashboard",
+    description:
+      "Live KPI dashboard, Daily Outline shop-day snapshots, and daily profitable reports — included on every plan.",
+    icon: "chart" as const,
+    pricingNote: "All monthly tiers",
   },
   {
     id: "shopsite",
@@ -250,13 +335,18 @@ export const OVERDRIVE_AI_FEATURES = [
   {
     title: "AI estimate assist",
     description:
-      "Draft jobs from customer concerns and inspection findings — labor, parts placeholders, and advisor-ready notes in one pass.",
+      "Draft jobs from customer concerns and inspection findings — licensed labor hours, parts placeholders, and advisor-ready notes in one pass.",
   },
 ] as const;
 
 /** Competitor benchmark (public list prices). Marketing only. */
 export const COMPETITOR_BENCHMARK = {
   label: "Typical monthly stack (CRM + marketing)",
+  legacy: {
+    label: "Legacy desktop + agencies",
+    typicalMonthly: 650,
+    examples: "Mitchell / Protractor class · marketing & website retainers separate",
+  },
   incumbents: [
     { name: "Garage360 Basic", crm: 79, marketing: 0, note: "Quotes & invoices · no DVI, inventory, or labor guides" },
     { name: "Garage360 Clever", crm: 119, marketing: 0, note: "DVI, inventory & QB · no SMS, booking, or campaigns" },
@@ -332,11 +422,11 @@ export const PLAN_ADDONS: PlanAddOn[] = [
 ];
 
 const starterFeatures: PlanFeatureSet = {
-  maxUsers: 5,
-  maxRepairOrdersPerMonth: 150,
+  maxUsers: null,
+  maxRepairOrdersPerMonth: null,
   cannedJobs: false,
   partsTech: false,
-  laborGuide: false,
+  laborGuide: true,
   customerEmail: true,
   customerSms: false,
   digitalInspections: true,
@@ -374,7 +464,7 @@ const professionalFeatures: PlanFeatureSet = {
   multiLocation: false,
   approvalLinks: true,
   invoiceSharing: true,
-  advancedReports: false,
+  advancedReports: true,
   markupMatrices: true,
   shopSite: false,
   websiteSeo: false,
@@ -415,61 +505,72 @@ const overdriveFeatures: PlanFeatureSet = {
   aiReceptionist: true,
 };
 
-/** Canonical plan catalog — 3 public tiers vs incumbent CRM pricing. */
+/** Canonical plan catalog — premium tiers vs legacy & budget stacks. */
 export const PLANS: Record<ShopPlan, PlanDefinition> = {
   STARTER: {
     id: "STARTER",
     name: "Ignition",
-    subtitle: "Core shop",
-    tagline: "Fire up digital ROs, DVIs, and the job board — priced for independents, not enterprise stacks.",
-    monthlyCents: 7900,
-    annualMonthlyCents: 6900,
-    savingsNote: "Core shop CRM with DVIs, reports & approval links",
-    highlights: [
-      "Up to 5 users — no per-seat fees",
-      "150 repair orders / month",
-      "Job board, customers, ROs, DVIs & shop reports",
-      "Email estimates, approvals & invoices",
-      `${PLAN_TRAINING.STARTER.sessions} — in-depth training included`,
-    ],
+    subtitle: "Premium core",
+    tagline: "Premium core CRM — job board, DVIs, dashboard & training included.",
+    monthlyCents: 11900,
+    annualMonthlyCents: 10900,
+    valueNote: "Premium core CRM · live dashboard on every plan · in-depth training included",
+    savingsNote: "Premium core CRM · live dashboard on every plan · in-depth training included",
+    pricingCard: {
+      bestFor: "Single-bay shops going cloud-first",
+      bullets: [
+        "Unlimited users & repair orders",
+        "Job board, estimates & email approvals",
+        "DVIs with photo markup & customer share",
+        "Live dashboard, Daily Outline & daily reports",
+        `${LABOR_PLAN_COPY.ignitionHighlight} · ${PLAN_TRAINING.STARTER.sessions}`,
+      ],
+    },
     features: starterFeatures,
   },
   PROFESSIONAL: {
     id: "PROFESSIONAL",
     name: "Momentum",
-    subtitle: "Growth engine",
-    tagline:
-      "Full shop ops plus booking, SMS, campaigns, and reviews — Growth Engine included.",
-    monthlyCents: 17900,
-    annualMonthlyCents: 15900,
+    subtitle: "Flagship growth",
+    tagline: "Licensed labor, Growth Engine & payments — our flagship tier.",
+    monthlyCents: 24900,
+    annualMonthlyCents: 21900,
     popular: true,
-    savingsNote: "Growth Engine included — booking, SMS, campaigns & reviews",
-    highlights: [
-      "Everything in Ignition, plus:",
-      "Unlimited users & repair orders",
-      "Growth Engine: booking, SMS, campaigns & automations",
-      "Review management — Google sync, request campaigns & advisor inbox",
-      "Stripe Connect, PartsTech, labor guide, canned jobs & markup matrices",
-      `${PLAN_TRAINING.PROFESSIONAL.sessions} — in-depth training included`,
-    ],
+    valueNote: "Licensed labor + premium all-in-one vs ~$574/mo mid-market CRM + labor + marketing stack",
+    savingsNote: "Licensed labor + premium all-in-one vs ~$574/mo mid-market CRM + labor + marketing stack",
+    pricingCard: {
+      bestFor: "Growing shops that want labor data + marketing in one bill",
+      includesPrevious: "STARTER",
+      bullets: [
+        LABOR_PLAN_COPY.momentumHighlight,
+        "Growth Engine — booking, SMS & campaigns",
+        "Google Reviews sync & advisor inbox",
+        "Stripe, PartsTech, canned jobs & markups",
+        `${PLAN_TRAINING.PROFESSIONAL.sessions} for advisors, techs & marketing`,
+      ],
+    },
     features: professionalFeatures,
   },
   ENTERPRISE: {
     id: "ENTERPRISE",
     name: "Overdrive",
-    subtitle: "All-in",
-    tagline:
-      "AI receptionist, review replies, ShopSite, Local SEO, and maintenance programs — full throttle.",
-    monthlyCents: 29900,
-    annualMonthlyCents: 27900,
-    savingsNote: "ShopSite, Local SEO, maintenance programs & full AI suite included",
-    highlights: [
-      "Everything in Momentum",
-      "AI Google Review responses — draft, edit & publish from one inbox",
-      "AI receptionist + AI SEO content + AI campaign drafting",
-      "ShopSite & Local SEO included ($138/mo value) · maintenance programs · launch setup waived",
-      `${PLAN_TRAINING.ENTERPRISE.sessions} — white-glove training & priority onboarding`,
-    ],
+    subtitle: "White-glove all-in",
+    tagline: "Full premium stack with white-glove launch support.",
+    monthlyCents: 40900,
+    annualMonthlyCents: 36900,
+    valueNote: "Full stack vs legacy CRM + agency retainers · migration & launch setup included",
+    savingsNote: "Full stack vs legacy CRM + agency retainers · migration & launch setup included",
+    pricingCard: {
+      bestFor: "Shops ready for AI, web, SEO & maintenance programs",
+      includesPrevious: "PROFESSIONAL",
+      bullets: [
+        "AI receptionist + review reply drafting",
+        "ShopSite & Local SEO included ($138/mo value)",
+        "Maintenance subscription programs",
+        "AI SEO content & campaign drafting",
+        `${PLAN_TRAINING.ENTERPRISE.sessions} · migration included`,
+      ],
+    },
     features: overdriveFeatures,
   },
 };
@@ -516,7 +617,7 @@ export function buildPriceComparisonRows(annual: boolean): PriceComparisonRow[] 
       crmLabel: `$${starter}/mo`,
       marketingLabel: "—",
       stackTotal: starter,
-      note: "Core shop · up to 5 users · 150 ROs/mo · in-depth training included",
+      note: "Core premium CRM · live dashboard · Daily Outline · Labor AI · in-depth training",
       repairPilot: true,
     },
     {
@@ -525,7 +626,7 @@ export function buildPriceComparisonRows(annual: boolean): PriceComparisonRow[] 
       crmLabel: "Bundled",
       marketingLabel: "Included",
       stackTotal: professional,
-      note: `CRM + Growth Engine bundled · team training included`,
+      note: `CRM + Growth Engine + licensed labor data · premium all-in-one · team training included`,
       repairPilot: true,
     },
     {
@@ -551,11 +652,11 @@ export const COMPARISON_ROWS: {
   {
     label: "Users",
     category: "Limits",
-    values: { STARTER: "Up to 5", PROFESSIONAL: "Unlimited", ENTERPRISE: "Unlimited" },
+    values: { STARTER: "Unlimited", PROFESSIONAL: "Unlimited", ENTERPRISE: "Unlimited" },
   },
   {
     label: "Repair orders / month",
-    values: { STARTER: "150", PROFESSIONAL: "Unlimited", ENTERPRISE: "Unlimited" },
+    values: { STARTER: "Unlimited", PROFESSIONAL: "Unlimited", ENTERPRISE: "Unlimited" },
   },
   { label: "Per location pricing", values: { STARTER: true, PROFESSIONAL: true, ENTERPRISE: true } },
   {
@@ -568,8 +669,20 @@ export const COMPARISON_ROWS: {
     values: { STARTER: true, PROFESSIONAL: true, ENTERPRISE: true },
   },
   {
-    label: "Digital vehicle inspections",
-    values: { STARTER: true, PROFESSIONAL: true, ENTERPRISE: true },
+    label: "Digital vehicle inspections (DVIs)",
+    values: DVI_PLAN_COPY.comparisonAllTiers,
+  },
+  {
+    label: "MPI templates & R/Y/G ratings",
+    values: DVI_PLAN_COPY.comparisonAllTiers,
+  },
+  {
+    label: "Photo markup on inspection items",
+    values: DVI_PLAN_COPY.comparisonAllTiers,
+  },
+  {
+    label: "Customer inspection share links",
+    values: DVI_PLAN_COPY.comparisonAllTiers,
   },
   {
     label: "Canned jobs & markup matrices",
@@ -580,8 +693,8 @@ export const COMPARISON_ROWS: {
     values: { STARTER: false, PROFESSIONAL: true, ENTERPRISE: true },
   },
   {
-    label: "Labor Book",
-    values: { STARTER: false, PROFESSIONAL: true, ENTERPRISE: true },
+    label: "Labor guide",
+    values: LABOR_PLAN_COPY.comparisonByPlan,
   },
   {
     label: "Stripe Connect payments",
@@ -685,13 +798,25 @@ export const COMPARISON_ROWS: {
     values: { STARTER: false, PROFESSIONAL: false, ENTERPRISE: true },
   },
   {
-    label: "Shop reports",
+    label: "Live dashboard",
     category: "Insights",
+    values: DASHBOARD_PLAN_COPY.comparisonAllTiers,
+  },
+  {
+    label: "Daily Outline (shop-day snapshot)",
+    values: DASHBOARD_PLAN_COPY.comparisonAllTiers,
+  },
+  {
+    label: "Daily profitable reports",
+    values: DASHBOARD_PLAN_COPY.comparisonAllTiers,
+  },
+  {
+    label: "Shop reports",
     values: { STARTER: true, PROFESSIONAL: true, ENTERPRISE: true },
   },
   {
     label: "Advanced reporting & analytics",
-    values: { STARTER: false, PROFESSIONAL: false, ENTERPRISE: true },
+    values: { STARTER: false, PROFESSIONAL: true, ENTERPRISE: true },
   },
   {
     label: "In-depth training included",
@@ -768,6 +893,19 @@ export function planDisplayPrice(plan: PlanDefinition, annual: boolean): string 
   return `$${(cents / 100).toFixed(0)}`;
 }
 
+/** List (monthly) price — shown struck-through when annual billing is selected. */
+export function planListPrice(plan: PlanDefinition): string {
+  return `$${(plan.monthlyCents / 100).toFixed(0)}`;
+}
+
+/** Bullets for pricing cards and signup — includes tier-upgrade header when set. */
+export function planCardBullets(plan: PlanDefinition): string[] {
+  const { bullets, includesPrevious } = plan.pricingCard;
+  if (!includesPrevious) return bullets;
+  const prev = PLANS[includesPrevious];
+  return [`Everything in ${prev.name}, plus:`, ...bullets];
+}
+
 export function annualSavingsPercent(plan: PlanDefinition): number {
   return Math.round((1 - plan.annualMonthlyCents / plan.monthlyCents) * 100);
 }
@@ -790,7 +928,7 @@ export const INTEGRATION_PARTNERS = [
 export const PRICING_FAQ = [
   {
     q: "Which plan should I choose?",
-    a: "Ignition for a lean single-bay shop getting off paper. Momentum when you want booking, SMS, campaigns, and reviews without bolt-ons. Overdrive when you want AI receptionist, ShopSite, Local SEO, and maintenance programs in one bill.",
+    a: "Ignition for a lean single-bay shop getting off paper — Labor AI included. Momentum when you want licensed flat-rate labor data, booking, SMS, campaigns, and reviews without bolt-ons. Overdrive when you want AI receptionist, ShopSite, Local SEO, and maintenance programs in one bill.",
   },
   {
     q: "How does ShopSite and SEO pricing work?",
@@ -809,8 +947,20 @@ export const PRICING_FAQ = [
     a: "Founding shops lock in launch rates on annual billing before we raise public pricing. Spots are limited.",
   },
   {
+    q: "Are digital vehicle inspections (DVIs) included?",
+    a: DVI_PLAN_COPY.faqAnswer,
+  },
+  {
+    q: "What's included in the live dashboard?",
+    a: DASHBOARD_PLAN_COPY.faqAnswer,
+  },
+  {
+    q: "What's included in Labor AI vs licensed labor data?",
+    a: LABOR_PLAN_COPY.faqAnswer,
+  },
+  {
     q: "Do you integrate with PartsTech and QuickBooks?",
-    a: "PartsTech, Stripe Connect, and labor guides are on Momentum and Overdrive. QuickBooks integration is on our roadmap — contact us for timeline.",
+    a: "PartsTech and Stripe Connect are on Momentum and Overdrive. QuickBooks integration is on our roadmap — contact us for timeline.",
   },
   {
     q: "How does additional locations work?",
