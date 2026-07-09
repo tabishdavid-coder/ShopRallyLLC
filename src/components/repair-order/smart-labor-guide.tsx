@@ -16,10 +16,10 @@ import {
   Plus,
   X,
   ShoppingCart,
-  BookOpen,
   ChevronRight,
   ArrowLeft,
   Library,
+  ListTree,
   Info,
 } from "lucide-react";
 
@@ -72,8 +72,13 @@ import {
   addLaborGuideJob,
   browseLaborGuideSubcategory,
   generateLaborSuggestion,
+  resolveLaborGuideCompanions,
   searchLaborGuide,
 } from "@/server/actions/labor-guide";
+import {
+  matchCompanionEdges,
+  type ResolvedLaborCompanion,
+} from "@/lib/labor-companion-graph";
 import {
   getLaborBookMotorApplications,
   getLaborBookMotorInit,
@@ -481,12 +486,19 @@ function ResultRow({
     (presetVariant?.position && !hit.jobName.toLowerCase().includes(presetVariant.position.toLowerCase())
       ? `${hit.jobName} — ${presetVariant.position}`
       : hit.jobName);
+  /** Open detail when Additional Labor edges may apply (don't skip companions via quick-add). */
+  const mayHaveCompanions =
+    matchCompanionEdges({
+      jobName: hit.jobName,
+      queryText: hit.queryText,
+      laborOperations: hit.laborOperations,
+    }).length > 0;
 
   return (
     <button
       type="button"
       onClick={() => {
-        if (singleVariant) onQuickAdd(singleVariant, hit);
+        if (singleVariant && !mayHaveCompanions) onQuickAdd(singleVariant, hit);
         else onSelect(hit);
       }}
       disabled={disabled}
@@ -560,17 +572,64 @@ function ResultRow({
 function OperationDetailPanel({
   hit,
   breadcrumbParts,
+  vehicleId,
+  motorSubGroupId,
+  browsePosition,
   onBack,
   onAddVariant,
+  onAddCompanion,
   disabled,
 }: {
   hit: LaborGuideHit;
   breadcrumbParts: string[];
+  vehicleId: string;
+  motorSubGroupId?: number | null;
+  browsePosition?: string | null;
   onBack: () => void;
   onAddVariant: (variant: LaborVariant) => void;
+  onAddCompanion: (companion: ResolvedLaborCompanion) => void;
   disabled?: boolean;
 }) {
   const variants = expandOperationVariants(hit);
+  const [companions, setCompanions] = useState<ResolvedLaborCompanion[]>([]);
+  const [companionsLoading, setCompanionsLoading] = useState(false);
+  const [companionsEmptyHint, setCompanionsEmptyHint] = useState(false);
+
+  useEffect(() => {
+    let cancelled = false;
+    setCompanions([]);
+    setCompanionsEmptyHint(false);
+    setCompanionsLoading(true);
+    void resolveLaborGuideCompanions(vehicleId, {
+      jobName: hit.jobName,
+      queryText: hit.queryText,
+      laborOperations: hit.laborOperations,
+      motorSubGroupId: motorSubGroupId ?? null,
+      position: browsePosition ?? hit.positionFilter?.[0] ?? null,
+    }).then((res) => {
+      if (cancelled) return;
+      setCompanionsLoading(false);
+      if (!res.ok) {
+        setCompanions([]);
+        return;
+      }
+      const withHours = res.companions.filter((c) => c.displayHours != null);
+      setCompanions(withHours);
+      setCompanionsEmptyHint(res.companions.length > 0 && withHours.length === 0);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    vehicleId,
+    hit.id,
+    hit.jobName,
+    hit.queryText,
+    hit.laborOperations,
+    motorSubGroupId,
+    browsePosition,
+    hit.positionFilter,
+  ]);
 
   return (
     <div className="flex min-h-0 flex-1 flex-col">
@@ -622,8 +681,11 @@ function OperationDetailPanel({
         </div>
       </div>
 
-      {/* Variant table */}
       <div className="min-h-0 flex-1 overflow-auto">
+        {/* Primary Labor */}
+        <div className="border-b bg-brand-navy/[0.04] px-4 py-2 text-[10px] font-semibold uppercase tracking-wide text-brand-navy/70">
+          Primary Labor
+        </div>
         <div className="grid grid-cols-[1fr_auto_auto_auto] gap-2 border-b bg-muted/40 px-4 py-2 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
           <span>Labor</span>
           <span className="w-28 text-right">Position</span>
@@ -655,6 +717,75 @@ function OperationDetailPanel({
             </li>
           ))}
         </ul>
+
+        {/* Additional Labor (companions) */}
+        {companionsLoading ? (
+          <div className="flex items-center gap-2 px-4 py-3 text-xs text-muted-foreground">
+            <Loader2 className="size-3.5 animate-spin" /> Loading related labor…
+          </div>
+        ) : companions.length > 0 ? (
+          <>
+            <div className="border-b bg-brand-light/10 px-4 py-2 text-[10px] font-semibold uppercase tracking-wide text-brand-navy/80">
+              Additional Labor
+            </div>
+            <div className="grid grid-cols-[1fr_auto_auto_auto] gap-2 border-b bg-muted/40 px-4 py-2 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+              <span>Related</span>
+              <span className="w-28 text-right">Note</span>
+              <span className="w-16 text-right">Hours</span>
+              <span className="w-10" />
+            </div>
+            <ul>
+              {companions.map((c) => (
+                <li
+                  key={c.edgeId}
+                  className="grid grid-cols-[1fr_auto_auto_auto] items-center gap-2 border-b px-4 py-2.5"
+                >
+                  <div className="min-w-0">
+                    <span className="truncate text-sm leading-snug text-foreground">
+                      {c.jobName}
+                    </span>
+                    <div className="mt-0.5 flex flex-wrap items-center gap-1.5">
+                      <span className="rounded-full bg-brand-navy/10 px-2 py-0.5 text-[10px] font-semibold text-brand-navy">
+                        {c.sourceBadge}
+                      </span>
+                      {c.position ? (
+                        <span className="rounded-full bg-brand-light/20 px-2 py-0.5 text-[10px] font-semibold text-brand-navy">
+                          {c.position}
+                        </span>
+                      ) : null}
+                    </div>
+                  </div>
+                  <span
+                    className="w-28 truncate text-right text-[10px] text-muted-foreground"
+                    title={c.hoursNote ?? undefined}
+                  >
+                    {c.hoursMode === "concurrent"
+                      ? "with primary"
+                      : c.hoursMode === "standalone"
+                        ? "often together"
+                        : "—"}
+                  </span>
+                  <span className="w-16 text-right text-sm font-medium tabular-nums">
+                    {c.displayHours != null ? c.displayHours.toFixed(2) : "—"}
+                  </span>
+                  <button
+                    type="button"
+                    disabled={disabled || c.displayHours == null}
+                    onClick={() => onAddCompanion(c)}
+                    aria-label={`Add ${c.jobName}`}
+                    className="flex size-8 items-center justify-center rounded-md bg-[#5cb85c] text-white transition-colors hover:bg-[#4ea64e] disabled:opacity-50"
+                  >
+                    <Plus className="size-4" />
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </>
+        ) : companionsEmptyHint ? (
+          <p className="px-4 py-3 text-xs text-muted-foreground">
+            No related labor cached yet for this vehicle.
+          </p>
+        ) : null}
       </div>
     </div>
   );
@@ -685,7 +816,7 @@ export function SmartLaborGuide({
   mileageIn?: number | null;
   odometerNotWorking?: boolean;
   variant?: "default" | "hero";
-  /** Floating = bottom sheet over CRM content canvas (not left shell nav); fullscreen = viewport takeover. */
+  /** Floating = large centered overlay (~90vw × ~90vh); fullscreen = viewport takeover. */
   presentation?: "fullscreen" | "floating";
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
@@ -1146,6 +1277,29 @@ export function SmartLaborGuide({
     appendCartLines([variantToCartLine(variant, hit, hit.source)], guideJobName(hit.jobName));
   }
 
+  function addCompanionToCart(companion: ResolvedLaborCompanion) {
+    if (companion.displayHours == null) return;
+    const variantLabel =
+      companion.hoursMode === "concurrent"
+        ? companion.position
+          ? `${companion.position} · with primary`
+          : "with primary"
+        : companion.hoursMode === "standalone"
+          ? "often done together"
+          : companion.sourceBadge;
+    appendCartLines(
+      [
+        {
+          description: companion.description,
+          variantLabel,
+          hours: companion.displayHours,
+          source: companion.hitSource,
+        },
+      ],
+      guideJobName(companion.jobName),
+    );
+  }
+
   function removeLine(key: number) {
     setCartLines((c) => c.filter((r) => r.key !== key));
   }
@@ -1287,7 +1441,7 @@ export function SmartLaborGuide({
         )}
         onClick={() => setOpen(true)}
       >
-        <BookOpen className={cn("size-4", variant === "hero" && "size-3.5 text-brand-light")} /> Labor Book
+        <ListTree className={cn("size-4", variant === "hero" && "size-3.5 text-brand-light")} /> Labor Book
       </Button>
       ) : null}
 
@@ -1295,39 +1449,24 @@ export function SmartLaborGuide({
         showCloseButton={false}
         overlayClassName={
           isFloating
-            ? // Dim only the CRM content canvas — leave Operations / AP sidebar clear
-              "md:left-[var(--crm-sidebar-width)]"
+            ? // Full-viewport dimmed backdrop (Tekmetric Labor Guide–style floating panel)
+              "bg-black/45 supports-backdrop-filter:backdrop-blur-[2px]"
             : undefined
         }
         className={cn(
           "grid grid-rows-[auto_1fr] gap-0 bg-card p-0 outline-none",
           isFloating
-            ? // Bottom sheet: spans estimate workspace (main + right rail), not left shell nav
-              "top-auto right-0 bottom-0 left-0 md:left-[var(--crm-sidebar-width)] h-[min(780px,88vh)] max-h-[88vh] w-auto max-w-none translate-x-0 translate-y-0 overflow-hidden rounded-t-xl rounded-b-none border border-b-0 border-brand-navy/12 shadow-2xl ring-1 ring-brand-navy/8 duration-200 sm:max-w-none data-open:slide-in-from-bottom-4 data-open:zoom-in-100 data-closed:slide-out-to-bottom-4 data-closed:zoom-out-100"
+            ? // Large centered overlay ~90vw × ~90vh (Tekmetric Labor Guide proportions)
+              "top-1/2 left-1/2 h-[min(90vh,920px)] max-h-[90vh] w-[min(96vw,1400px)] max-w-[min(96vw,1400px)] -translate-x-1/2 -translate-y-1/2 overflow-hidden rounded-xl border border-brand-navy/12 shadow-2xl ring-1 ring-brand-navy/8 duration-200 sm:max-w-[min(96vw,1400px)] data-open:zoom-in-95 data-closed:zoom-out-95"
             : "top-0 left-0 h-screen w-screen max-w-none translate-x-0 translate-y-0 rounded-none border-0 ring-0 sm:max-w-none",
         )}
       >
-        {/* Compact top bar */}
+        {/* Header */}
         <div className="shrink-0 border-b border-brand-navy/10">
-          <div
-            className={cn(
-              "flex items-center gap-3 bg-brand-navy text-primary-foreground",
-              isFloating ? "px-4 py-2" : "px-5 py-3",
-            )}
-          >
-            <ShoppingCart
-              className={cn(
-                "shrink-0 rounded-full bg-brand-light/20 text-brand-light",
-                isFloating ? "size-6 p-1" : "size-7 p-1.5",
-              )}
-            />
+          <div className="flex items-center gap-3 bg-brand-navy px-5 py-3 text-primary-foreground">
+            <ShoppingCart className="size-7 shrink-0 rounded-full bg-brand-light/20 p-1.5 text-brand-light" />
             <div className="min-w-0 flex-1">
-              <DialogTitle
-                className={cn(
-                  "truncate font-semibold text-primary-foreground",
-                  isFloating ? "text-sm" : "text-[15px]",
-                )}
-              >
+              <DialogTitle className="truncate text-[15px] font-semibold text-primary-foreground">
                 Labor Book: {customerName ? `${customerName}'s ` : ""}
                 {vehicleLabel}
               </DialogTitle>
@@ -1341,17 +1480,12 @@ export function SmartLaborGuide({
               aria-label="Close"
               className="rounded-md p-1.5 text-primary-foreground/80 transition-colors hover:bg-white/10 hover:text-white"
             >
-              <X className={cn(isFloating ? "size-4" : "size-5")} />
+              <X className="size-5" />
             </button>
           </div>
         </div>
 
-        <div
-          className={cn(
-            "grid min-h-0 overflow-hidden",
-            isFloating ? "grid-cols-[1fr_320px]" : "grid-cols-[1fr_360px]",
-          )}
-        >
+        <div className="grid min-h-0 grid-cols-[1fr_360px] overflow-hidden">
           {/* Main panel */}
           <div className="flex min-h-0 flex-col overflow-hidden bg-background">
             {/* Shop Library toolbar */}
@@ -1527,8 +1661,16 @@ export function SmartLaborGuide({
                 <OperationDetailPanel
                   hit={selectedHit}
                   breadcrumbParts={detailBreadcrumbParts}
+                  vehicleId={vehicleId}
+                  motorSubGroupId={selectedMotorSubGroup?.motorSubGroupId ?? null}
+                  browsePosition={
+                    selectedPosition ??
+                    selectedHit.positionFilter?.[0] ??
+                    null
+                  }
                   onBack={() => setSelectedHit(null)}
                   onAddVariant={(v) => addVariantToCart(v, selectedHit)}
+                  onAddCompanion={addCompanionToCart}
                 />
               ) : null}
 

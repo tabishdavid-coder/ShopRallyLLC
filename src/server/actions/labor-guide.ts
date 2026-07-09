@@ -27,12 +27,17 @@ import {
 } from "@/server/labor-guide-cache";
 import { getShopMatrices, shopLaborRate } from "@/server/pricing-matrix";
 import type { LaborSuggestion, Vehicle as LaborServiceVehicle } from "@/server/services/labor-guide";
+import { resolveLaborCompanions } from "@/server/services/labor-companion-resolve";
 import {
   fetchCatalogLaborGuide,
   filterCatalogHits,
   isLaborCatalogServiceEnabled,
 } from "@/server/services/labor-guide-catalog";
 import { gates } from "@/server/permission-gates";
+import type {
+  PrimaryLaborContext,
+  ResolvedLaborCompanion,
+} from "@/lib/labor-companion-graph";
 
 export type GenerateResult =
   | {
@@ -492,4 +497,35 @@ export async function addLaborGuideJob(
     revalidatePath(path);
   }
   return { ok: true, count: 1 };
+}
+
+export type ResolveCompanionsResult =
+  | { ok: true; companions: ResolvedLaborCompanion[] }
+  | { ok: false; error: string };
+
+/**
+ * Additional Labor — resolve companion ops for a primary job + vehicle.
+ * Name-global graph; vehicle-local hours from LaborOperation cache.
+ */
+export async function resolveLaborGuideCompanions(
+  vehicleId: string,
+  primary: PrimaryLaborContext,
+): Promise<ResolveCompanionsResult> {
+  const loaded = await loadVehicle(vehicleId);
+  if (!loaded) return { ok: false, error: "Vehicle not found." };
+  const denied = await gates.estimateView(loaded.shopId);
+  if (denied) return { ok: false, error: denied.error };
+
+  try {
+    const companions = await resolveLaborCompanions(
+      toLaborServiceVehicle(loaded.vehicle),
+      primary,
+    );
+    return { ok: true, companions };
+  } catch (e) {
+    return {
+      ok: false,
+      error: e instanceof Error ? e.message : "Failed to resolve companions.",
+    };
+  }
 }

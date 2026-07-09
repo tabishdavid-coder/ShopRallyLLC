@@ -35,9 +35,19 @@ function detectPattern(hit: LaborGuideHit): VariantPattern {
     return "brake";
   }
   if (matchesAny(text, ["brake"]) && matchesAny(text, ["pad", "rotor", "caliper"])) return "brake";
+  // Wheel bearing / hub = corner job (like brakes), not tire One/Pair/Four.
   if (
-    matchesAny(text, ["tire", "tire rotation", "wheel bearing"]) ||
-    (/\bwheel\b/.test(text) && !isSingleAssemblyJob(text, hit.jobName, hit.subcategoryId))
+    matchesAny(text, ["wheel bearing", "hub bearing", "hub assembly"]) ||
+    (/\bbearing\b/.test(text) && /\b(hub|wheel)\b/.test(text))
+  ) {
+    return "brake";
+  }
+  if (
+    matchesAny(text, ["tire", "tire rotation"]) ||
+    (/\bwheel\b/.test(text) &&
+      !/\bbearing\b/.test(text) &&
+      !/\bhub\b/.test(text) &&
+      !isSingleAssemblyJob(text, hit.jobName, hit.subcategoryId))
   ) {
     return "tire";
   }
@@ -209,6 +219,18 @@ function hasCombinedPair(text: string, a: RegExp, b: RegExp): boolean {
   return a.test(text) && b.test(text) && /\b(?:and|&|,)\b/.test(text);
 }
 
+/** Slash-joined hub/bearing names are ONE assembly job, not a pads+rotors-style combo. */
+function isHubBearingAssemblyPhrase(text: string): boolean {
+  const t = text.toLowerCase();
+  if (/\bbearing\s*(?:\/|&|and)\s*hub\b/.test(t)) return true;
+  if (/\bhub\s*(?:\/|&|and)\s*bearing\b/.test(t)) return true;
+  if (/\bhub\s+bearing\b/.test(t) || /\bhub\/bearing\b/.test(t)) return true;
+  if (/\bwheel\s+bearing\/hub\b/.test(t) || /\bwheel\s+bearing\s+hub\b/.test(t)) return true;
+  // "Wheel Bearing R&R" alone — single corner job
+  if (/\bwheel\s+bearing\b/.test(t) && !/\band\b/.test(t) && !/,/.test(t)) return true;
+  return false;
+}
+
 const COMBO_RULES: CombinedComboRule[] = [
   {
     id: "pads_rotors",
@@ -324,7 +346,11 @@ const COMBO_RULES: CombinedComboRule[] = [
   },
   {
     id: "wheel_bearing_hub",
-    matches: (t) => hasCombinedPair(t, /\b(?:wheel\s+)?bearing\b/i, /\bhub\b/i),
+    // Only true "bearing AND hub" billable splits — not "bearing/hub assembly" OEM unit.
+    matches: (t) => {
+      if (isHubBearingAssemblyPhrase(t)) return false;
+      return hasCombinedPair(t, /\b(?:wheel\s+)?bearing\b/i, /\bhub\b/i);
+    },
     components: [
       {
         scopeId: "bearing",
@@ -352,6 +378,7 @@ const COMBO_RULES: CombinedComboRule[] = [
 ];
 
 function shouldSkipCombinedSplit(text: string): boolean {
+  if (isHubBearingAssemblyPhrase(text)) return true;
   if (/\bbattery\b.*\bterminal/i.test(text)) return true;
   if (/\bshocks?\s+(?:and|&)\s+struts?\b/i.test(text)) return true;
   if (/\bstrut\s+assembly\b/i.test(text) && !/\bshock\b/i.test(text)) return true;
@@ -365,6 +392,23 @@ function detectCombinedRule(text: string): CombinedComboRule | null {
   const t = text.toLowerCase();
   if (shouldSkipCombinedSplit(t)) return null;
   return COMBO_RULES.find((rule) => rule.matches(t)) ?? null;
+}
+
+/**
+ * Concurrent / component-only hours from a combined cache job (pads+rotors, etc.).
+ * Used by Additional Labor — does not change variant expansion.
+ * Applies COMBO_RULES ratios by rule id (same as pads_rotors split).
+ */
+export function companionHoursFromCombinedJob(
+  combinedHours: number,
+  comboRuleId: string,
+  companionScopeId: string,
+): number | null {
+  const rule = COMBO_RULES.find((r) => r.id === comboRuleId);
+  if (!rule) return null;
+  const component = rule.components.find((c) => c.scopeId === companionScopeId);
+  if (!component || component.scopeId === "both") return null;
+  return roundToTenth(combinedHours * component.ratio);
 }
 
 /** Positions implied by job text; default Front + Rear for axle-level brake work. */
