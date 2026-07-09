@@ -3,8 +3,8 @@ import type { ShopPlan } from "@/generated/prisma";
 /**
  * Public pricing strategy (2026 Q3): premium positioning between legacy desktop CRM
  * and budget cloud + bolt-on stacks (Garage360, Torque360, Tekmetric add-ons).
- * Display tiers: Ignition · Momentum · Overdrive (internal enum: ENTERPRISE).
- * ShopSite & Local SEO are separate monthly add-ons on Ignition & Momentum; included on Overdrive.
+ * Display tiers: Core · Pro · Elite (internal enums: STARTER / PROFESSIONAL / ENTERPRISE).
+ * ShopSite & Local SEO are separate monthly add-ons on Core & Pro; included on Elite.
  */
 export type PlanFeature =
   | "cannedJobs"
@@ -68,7 +68,7 @@ export type PlanDefinition = {
   features: PlanFeatureSet;
 };
 
-/** Labor tiers — Ignition = Labor AI; Momentum+ = licensed flat-rate catalog + Labor AI. */
+/** Labor tiers — Core = Labor AI; Pro+ = licensed flat-rate catalog + Labor AI. */
 export const LABOR_PLAN_COPY = {
   ignitionHighlight: "Labor AI — AI-guided estimates & shop library",
   momentumHighlight: "Licensed labor data + Labor AI",
@@ -79,9 +79,9 @@ export const LABOR_PLAN_COPY = {
   } satisfies Record<ShopPlan, string>,
   billingIgnition: "Labor AI — AI-guided estimates & shop library",
   billingMomentum: "Licensed flat-rate labor data + Labor AI",
-  featuresIgnition: "Labor AI on Ignition · licensed data + Labor AI on Momentum+",
+  featuresIgnition: "Labor AI on Core · licensed data + Labor AI on Pro+",
   faqAnswer:
-    "Ignition includes Labor AI for AI-guided estimates and your shop library. Momentum and Overdrive add licensed flat-rate labor data plus Labor AI in the estimate — a combination vendors often charge extra for on top of CRM.",
+    "Core includes Labor AI for AI-guided estimates and your shop library. Pro and Elite add licensed flat-rate labor data plus Labor AI in the estimate — a combination vendors often charge extra for on top of CRM.",
 } as const;
 
 /** Live dashboard & daily insights — included on every plan tier. */
@@ -131,7 +131,7 @@ export const PLAN_TRAINING: Record<
     headline: "In-depth team training included",
     sessions: "Team training program",
     description:
-      "Everything in Ignition, plus role-based sessions for advisors, techs, and marketing — licensed labor data, booking, SMS, campaigns, and reviews.",
+      "Everything in Core, plus role-based sessions for advisors, techs, and marketing — licensed labor data, booking, SMS, campaigns, and reviews.",
   },
   ENTERPRISE: {
     headline: "White-glove training included",
@@ -163,15 +163,15 @@ export const PLATFORM_MODULES = [
     name: "Payments & POS",
     description: "Stripe Connect, text-to-pay, approval links, invoicing, markup matrices.",
     icon: "zap" as const,
-    pricingNote: "Momentum & Overdrive",
+    pricingNote: "Pro & Elite",
   },
   {
     id: "labor",
     name: "Labor Book",
     description:
-      "Labor AI on every tier. Momentum and Overdrive add licensed industry flat-rate data for MOTOR-class lookup in estimates.",
+      "Labor AI on every tier. Pro and Elite add licensed industry flat-rate data for MOTOR-class lookup in estimates.",
     icon: "wrench" as const,
-    pricingNote: "Labor AI all tiers · licensed data on Momentum+",
+    pricingNote: "Labor AI all tiers · licensed data on Pro+",
   },
   {
     id: "insights",
@@ -186,28 +186,28 @@ export const PLATFORM_MODULES = [
     name: "ShopSite",
     description: "Branded shop website with services, contact, and online booking — hosted and updated for you.",
     icon: "globe" as const,
-    pricingNote: "$59/mo + launch setup · Overdrive included",
+    pricingNote: "$59/mo + launch setup · Elite included",
   },
   {
     id: "seo",
     name: "Local SEO",
     description: "On-page SEO, JSON-LD, Search Console, local search, and SEO Autopilot runs every month.",
     icon: "search" as const,
-    pricingNote: "$79/mo + launch setup · Overdrive included",
+    pricingNote: "$79/mo + launch setup · Elite included",
   },
   {
     id: "subscriptions",
     name: "Maintenance subscriptions",
     description: "Shop-level maintenance programs, member portal, Stripe billing, and counter enrollment.",
     icon: "repeat" as const,
-    pricingNote: "Overdrive only",
+    pricingNote: "Elite only",
   },
   {
     id: "growth",
     name: "Growth Engine",
     description: "Online booking, SMS/email campaigns, automations, Google Reviews, and review management.",
     icon: "sparkles" as const,
-    pricingNote: "Momentum & Overdrive",
+    pricingNote: "Pro & Elite",
   },
 ] as const;
 
@@ -384,7 +384,7 @@ export const PLAN_ADDONS: PlanAddOn[] = [
     name: "AI receptionist",
     priceLabel: "$59/mo",
     description: "After-hours call handling, appointment capture, and lead routing into your CRM.",
-    vsIndustry: "AutoLeap AIR lists at $99/mo. Included on Overdrive.",
+    vsIndustry: "AutoLeap AIR lists at $99/mo. Included on Elite.",
     tiers: "professional+",
   },
   {
@@ -407,7 +407,7 @@ export const PLAN_ADDONS: PlanAddOn[] = [
     name: "Premium migration",
     priceLabel: "$399 one-time",
     description: "White-glove data import from your current system, team training, and go-live support.",
-    vsIndustry: "Included on Overdrive. Many vendors charge setup without migration.",
+    vsIndustry: "Included on Elite. Many vendors charge setup without migration.",
     tiers: "all",
   },
   {
@@ -477,7 +477,7 @@ const professionalFeatures: PlanFeatureSet = {
   aiReceptionist: false,
 };
 
-const overdriveFeatures: PlanFeatureSet = {
+const EliteFeatures: PlanFeatureSet = {
   maxUsers: null,
   maxRepairOrdersPerMonth: null,
   cannedJobs: true,
@@ -509,13 +509,13 @@ const overdriveFeatures: PlanFeatureSet = {
 export const PLANS: Record<ShopPlan, PlanDefinition> = {
   STARTER: {
     id: "STARTER",
-    name: "Ignition",
-    subtitle: "Premium core",
-    tagline: "Premium core CRM — job board, DVIs, dashboard & training included.",
+    name: "Core",
+    subtitle: "Essentials",
+    tagline: "Core shop CRM — job board, DVIs, dashboard & training included.",
     monthlyCents: 11900,
     annualMonthlyCents: 10900,
-    valueNote: "Premium core CRM · live dashboard on every plan · in-depth training included",
-    savingsNote: "Premium core CRM · live dashboard on every plan · in-depth training included",
+    valueNote: "Core CRM · live dashboard on every plan · in-depth training included",
+    savingsNote: "Core CRM · live dashboard on every plan · in-depth training included",
     pricingCard: {
       bestFor: "Single-bay shops going cloud-first",
       bullets: [
@@ -530,8 +530,8 @@ export const PLANS: Record<ShopPlan, PlanDefinition> = {
   },
   PROFESSIONAL: {
     id: "PROFESSIONAL",
-    name: "Momentum",
-    subtitle: "Flagship growth",
+    name: "Pro",
+    subtitle: "Most popular",
     tagline: "Licensed labor, Growth Engine & payments — our flagship tier.",
     monthlyCents: 24900,
     annualMonthlyCents: 21900,
@@ -554,8 +554,8 @@ export const PLANS: Record<ShopPlan, PlanDefinition> = {
   },
   ENTERPRISE: {
     id: "ENTERPRISE",
-    name: "Overdrive",
-    subtitle: "White-glove all-in",
+    name: "Elite",
+    subtitle: "White-glove",
     tagline: "Full premium stack with white-glove launch support.",
     monthlyCents: 40900,
     annualMonthlyCents: 36900,
@@ -572,7 +572,7 @@ export const PLANS: Record<ShopPlan, PlanDefinition> = {
         `${PLAN_TRAINING.ENTERPRISE.sessions} · migration included`,
       ],
     },
-    features: overdriveFeatures,
+    features: EliteFeatures,
   },
 };
 
@@ -859,7 +859,7 @@ export function repairPilotAllInMonthly(annual = true): number {
   return (annual ? p.annualMonthlyCents : p.monthlyCents) / 100;
 }
 
-/** ShopRally Overdrive monthly price for comparison callouts. */
+/** ShopRally Elite monthly price for comparison callouts. */
 export function repairPilotOverdriveMonthly(annual = true): number {
   const p = PLANS.ENTERPRISE;
   return (annual ? p.annualMonthlyCents : p.monthlyCents) / 100;
@@ -933,11 +933,11 @@ export const INTEGRATION_PARTNERS = [
 export const PRICING_FAQ = [
   {
     q: "Which plan should I choose?",
-    a: "Ignition for a lean single-bay shop getting off paper — Labor AI included. Momentum when you want licensed flat-rate labor data, booking, SMS, campaigns, and reviews without bolt-ons. Overdrive when you want AI receptionist, ShopSite, Local SEO, and maintenance programs in one bill.",
+    a: "Core for a lean single-bay shop getting off paper — Labor AI included. Pro when you want licensed flat-rate labor data, booking, SMS, campaigns, and reviews without bolt-ons. Elite when you want AI receptionist, ShopSite, Local SEO, and maintenance programs in one bill.",
   },
   {
     q: "How does ShopSite and SEO pricing work?",
-    a: "ShopSite ($59/mo) and Local SEO ($79/mo) are separate monthly subscriptions on any CRM tier. Subscribe to both for $119/mo with the bundle. A one-time launch setup applies when each service starts ($349 ShopSite, $299 Local SEO, or $549 bundle). Overdrive includes monthly fees and launch setup.",
+    a: "ShopSite ($59/mo) and Local SEO ($79/mo) are separate monthly subscriptions on any CRM tier. Subscribe to both for $119/mo with the bundle. A one-time launch setup applies when each service starts ($349 ShopSite, $299 Local SEO, or $549 bundle). Elite includes monthly fees and launch setup.",
   },
   {
     q: "Can I change plans anytime?",
@@ -945,7 +945,7 @@ export const PRICING_FAQ = [
   },
   {
     q: "Is there a setup fee?",
-    a: "No setup fee on CRM plans. ShopSite and Local SEO add-ons have a one-time launch setup when you first subscribe ($349 / $299, or $549 for the bundle). Overdrive includes launch setup. Optional white-glove data migration is $399 one-time (also included on Overdrive).",
+    a: "No setup fee on CRM plans. ShopSite and Local SEO add-ons have a one-time launch setup when you first subscribe ($349 / $299, or $549 for the bundle). Elite includes launch setup. Optional white-glove data migration is $399 one-time (also included on Elite).",
   },
   {
     q: "What's included in the founding-shop pricing?",
@@ -965,7 +965,7 @@ export const PRICING_FAQ = [
   },
   {
     q: "Do you integrate with PartsTech and QuickBooks?",
-    a: "PartsTech and Stripe Connect are on Momentum and Overdrive. QuickBooks integration is on our roadmap — contact us for timeline.",
+    a: "PartsTech and Stripe Connect are on Pro and Elite. QuickBooks integration is on our roadmap — contact us for timeline.",
   },
   {
     q: "How does additional locations work?",
@@ -977,11 +977,11 @@ export const PRICING_FAQ = [
   },
   {
     q: "Is training included?",
-    a: "Yes — every plan includes in-depth training. Ignition includes two live go-live sessions. Momentum adds a team training program for advisors, techs, and marketing. Overdrive includes a dedicated onboarding specialist and white-glove training across AI, maintenance programs, ShopSite, and Local SEO.",
+    a: "Yes — every plan includes in-depth training. Core includes two live go-live sessions. Pro adds a team training program for advisors, techs, and marketing. Elite includes a dedicated onboarding specialist and white-glove training across AI, maintenance programs, ShopSite, and Local SEO.",
   },
   {
     q: "Can I switch from another shop system?",
-    a: "Yes. We offer optional white-glove migration ($399 one-time, included on Overdrive) and founding shops get priority onboarding help.",
+    a: "Yes. We offer optional white-glove migration ($399 one-time, included on Elite) and founding shops get priority onboarding help.",
   },
 ] as const;
 

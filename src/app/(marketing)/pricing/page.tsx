@@ -3,7 +3,7 @@ import { getFoundingWaitlistStats } from "@/server/marketing-launch-stats";
 
 export const metadata = {
   title: "Pricing — ShopRally",
-  description: "Ignition, Momentum, and Overdrive — per-location shop management with Growth Engine and AI tiers.",
+  description: "Core, Pro, and Elite — per-location shop management with Growth Engine and AI tiers.",
 };
 
 export default async function PricingPage() {

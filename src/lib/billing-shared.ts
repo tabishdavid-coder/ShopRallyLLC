@@ -83,7 +83,7 @@ export const BILLING_PLAN_FEATURES: Record<
     ],
   },
   PROFESSIONAL: {
-    intro: "Everything in Ignition, plus:",
+    intro: "Everything in Core, plus:",
     items: [
       LABOR_PLAN_COPY.billingMomentum,
       "Markup matrices",
@@ -95,7 +95,7 @@ export const BILLING_PLAN_FEATURES: Record<
     ],
   },
   ENTERPRISE: {
-    intro: "Everything in Momentum, plus:",
+    intro: "Everything in Pro, plus:",
     items: [
       "AI Google Review responses — draft & publish from one inbox",
       "AI receptionist, SEO Autopilot & AI campaign drafting",

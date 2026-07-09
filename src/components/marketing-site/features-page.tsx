@@ -33,7 +33,7 @@ const MODULES = [
     icon: Zap,
     title: "Payments & POS",
     description:
-      "Build estimates fast with Labor AI on Ignition, or licensed flat-rate data plus Labor AI on Momentum+. Send approval links by SMS, invoice, and collect through Stripe Connect.",
+      "Build estimates fast with Labor AI on Core, or licensed flat-rate data plus Labor AI on Pro+. Send approval links by SMS, invoice, and collect through Stripe Connect.",
     items: ["Text-to-approve estimates", "Stripe Connect payouts", "Invoice sharing", LABOR_PLAN_COPY.featuresIgnition],
     accent: "from-brand-light/10 to-brand-light/20 border-brand-light/30",
   },
@@ -41,7 +41,7 @@ const MODULES = [
     icon: Star,
     title: "Growth Engine",
     description:
-      "Marketing built in — booking, SMS, campaigns, and review management on Momentum. Full AI suite on Overdrive.",
+      "Marketing built in — booking, SMS, campaigns, and review management on Pro. Full AI suite on Elite.",
     items: ["Online booking", "SMS campaigns", "Review management", `AI Google Reviews on ${PLANS.ENTERPRISE.name}`],
     accent: "from-brand-light/20 to-brand-light/5 border-brand-light/50",
   },

@@ -31,7 +31,7 @@ const PILLARS = [
     icon: Wrench,
     title: "Run your shop",
     description:
-      "Repair orders, job board, and inventory — DVIs, Labor AI on every tier, licensed flat-rate data on Momentum+.",
+      "Repair orders, job board, and inventory — DVIs, Labor AI on every tier, licensed flat-rate data on Pro+.",
     accent: "border-brand-navy/20 bg-brand-navy/5",
     iconBg: "bg-brand-navy text-white",
   },
@@ -55,7 +55,7 @@ const PILLARS = [
 
 const FEATURES = [
   { icon: Calendar, label: "Appointments & online booking" },
-  { icon: BookOpen, label: "Labor AI · licensed data on Momentum+" },
+  { icon: BookOpen, label: "Labor AI · licensed data on Pro+" },
   { icon: MessageSquare, label: "Two-way SMS & campaigns" },
   { icon: Globe, label: "ShopSite & Local SEO" },
   { icon: BarChart3, label: "Live dashboard & Daily Outline" },
@@ -225,7 +225,7 @@ export function HomePageContent({ foundingSpotsClaimed = 0 }: { foundingSpotsCla
                   DASHBOARD_PLAN_COPY.featuresAllTiers,
                   DVI_PLAN_COPY.featuresAllTiers,
                   LABOR_PLAN_COPY.featuresIgnition,
-                  "Canned jobs & markup matrices on Momentum+",
+                  "Canned jobs & markup matrices on Pro+"
                   "PartsTech integration & inventory",
                   "Customer approval links via SMS",
                 ].map((item) => (
@@ -292,7 +292,7 @@ export function HomePageContent({ foundingSpotsClaimed = 0 }: { foundingSpotsCla
         </div>
       </section>
 
-      {/* Overdrive AI */}
+      {/* Elite AI */}
       <section className="border-b border-brand-navy/10 bg-white">
         <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6">
           <div className="mx-auto max-w-2xl text-center">

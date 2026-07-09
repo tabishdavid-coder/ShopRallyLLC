@@ -7,7 +7,7 @@ type PricingBillingToggleProps = {
   annual: boolean;
   onAnnualChange: (annual: boolean) => void;
   className?: string;
-  /** Show savings badge (uses Momentum tier as reference). */
+  /** Show savings badge (uses Pro tier as reference). */
   showSavings?: boolean;
 };
 

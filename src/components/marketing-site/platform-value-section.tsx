@@ -20,7 +20,7 @@ const VALUE_PILLARS = [
     icon: BookOpen,
     title: "Labor estimates",
     description:
-      "Labor AI on Ignition. Momentum and Overdrive add licensed industry flat-rate data plus Labor AI in the estimate.",
+      "Labor AI on Core. Pro and Elite add licensed industry flat-rate data plus Labor AI in the estimate.",
     tiers: LABOR_PLAN_COPY.featuresIgnition,
   },
   {
@@ -58,7 +58,7 @@ const VALUE_PILLARS = [
     icon: GraduationCap,
     title: "In-depth training",
     description:
-      "Live go-live sessions on Ignition, team training on Momentum, and a dedicated onboarding specialist on Overdrive — not an extra fee.",
+      "Live go-live sessions on Core, team training on Pro, and a dedicated onboarding specialist on Elite — not an extra fee.",
     tiers: "All tiers",
   },
   {
