@@ -1,0 +1,8 @@
+ {
+    "success": false,
+    "timestamp": "2026-07-08T02:42:27+00:00",
+    "api_version": "2.0",
+    "data": null,
+    "message": "No vehicle found for this VIN",
+    "error": true
+}

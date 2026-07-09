@@ -1,0 +1,2356 @@
+// RepairPilot data model.
+// Conventions (see CLAUDE.md):
+//  - Every tenant-scoped row carries `shopId`. Queries filter by it.
+//  - Money is stored as integer CENTS (never floats).
+//  - User references (technician / service writer) are plain ids for v1 to avoid
+//    a thicket of named relations; Membership is the enforced Shop<->User link.
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─────────────────────────────── Enums ───────────────────────────────
+
+enum Role {
+  OWNER
+  MANAGER
+  SERVICE_WRITER
+  TECHNICIAN
+}
+
+enum PayrollType {
+  SALARY
+  FLAT_RATE
+  HOURLY
+}
+
+enum ROStatus {
+  ESTIMATE
+  APPROVED
+  IN_PROGRESS
+  COMPLETED
+  INVOICED
+}
+
+/// Estimate builder jobs section — inline grid (AutoLeap-style) vs classic Tekmetric tables.
+enum EstimateJobsLayout {
+  INLINE
+  TEKMETRIC
+}
+
+enum InspectionStatus {
+  NOT_STARTED
+  IN_PROGRESS
+  COMPLETED
+}
+
+enum InspectionItemStatus {
+  GREEN
+  YELLOW
+  RED
+  NA
+}
+
+enum AppointmentStatus {
+  SCHEDULED
+  CONFIRMED
+  IN_PROGRESS
+  COMPLETED
+  CANCELED
+  NO_SHOW
+}
+
+enum RoActivityType {
+  NOTE
+  PHONE_CALL
+  EMAIL
+  OTHER
+}
+
+enum InvoiceStatus {
+  DRAFT
+  SENT
+  PARTIAL
+  PAID
+  VOID
+}
+
+// Fee / Discount adjustments on an estimate.
+enum AdjustMethod {
+  PERCENT // `amount` is basis points (e.g. 300 = 3%)
+  FIXED // `amount` is integer cents
+}
+
+enum AdjustBase {
+  LABOR
+  PARTS
+  LABOR_PARTS
+}
+
+enum ConcernKind {
+  CUSTOMER
+  TECHNICIAN
+}
+
+enum PaymentMethod {
+  CARD
+  CASH
+  CHECK
+  OTHER
+}
+
+// Estimate-stage deposit request (before or during estimate approval).
+enum DepositRequestStatus {
+  PENDING
+  PAID
+  CANCELLED
+}
+
+// Tire order workflow (separate from online booking intake).
+enum TireOrderStatus {
+  LEAD
+  DEPOSIT_RECEIVED
+  PENDING_SUPPLIER_APPROVAL
+  ORDERED
+  SCHEDULED
+  INSTALLED
+  COMPLETE
+  CANCELED
+}
+
+enum TireOrderSource {
+  WEBSITE
+  CRM
+}
+
+enum PartSource {
+  MANUAL
+  PARTSTECH
+}
+
+// Parts ordering lifecycle (PartsHub): needs sourcing → quoted → ordered/received.
+enum PartStatus {
+  NEEDED
+  QUOTED
+  ORDERED
+}
+
+// Vendor purchase order lifecycle (parts ordered for a repair order).
+enum PurchaseOrderStatus {
+  OPEN
+  ORDERED
+  RECEIVED
+  ARCHIVED
+}
+
+enum MessageDirection {
+  INBOUND
+  OUTBOUND
+}
+
+enum CampaignType {
+  REVIEW_REQUEST
+  APPOINTMENT_REMINDER
+  DECLINED_SERVICE
+  PROMO_BLAST
+  WIN_BACK
+  OIL_CHANGE_REMINDER
+  CUSTOM
+}
+
+enum CampaignStatus {
+  DRAFT
+  SCHEDULED
+  ACTIVE
+  PAUSED
+  COMPLETED
+}
+
+enum CampaignChannel {
+  SMS
+  EMAIL
+  BOTH
+}
+
+enum CampaignSendStatus {
+  PENDING
+  SENT
+  DELIVERED
+  FAILED
+  SKIPPED
+}
+
+enum AutomationKey {
+  APPOINTMENT_CONFIRMATION
+  APPOINTMENT_REMINDER
+  REVIEW_REQUEST
+  DECLINED_SERVICE_REMINDER
+  LOST_CUSTOMER_6MO
+  LOST_CUSTOMER_12MO
+  RECENT_SERVICE_FOLLOWUP
+}
+
+enum AutomationTriggerUnit {
+  HOURS
+  DAYS
+  MONTHS
+}
+
+enum AutomationTriggerTiming {
+  INSTANT
+  BEFORE
+  AFTER
+}
+
+enum AutomationSendStatus {
+  PENDING
+  SENT
+  DELIVERED
+  FAILED
+  SKIPPED
+}
+
+enum ShopStatus {
+  ACTIVE
+  TRIAL
+  SUSPENDED
+  PENDING // intake submitted — awaiting platform owner approval
+}
+
+// How a shop tenant was provisioned (audit + compliance).
+enum ShopProvisionMethod {
+  PLATFORM_DIRECT // platform admin add-shop form
+  INTAKE_FORM // public /onboard/shop/[token]
+}
+
+enum PlatformAuditEventType {
+  SHOP_CREATED
+  SHOP_ACTIVATED
+  SHOP_INTAKE_SUBMITTED
+  SHOP_CRM_ENTERED
+}
+
+// Append-only shop-level audit trail for estimate edits, payments, and disputes.
+enum ShopAuditEventType {
+  ESTIMATE_JOB_ADDED
+  ESTIMATE_JOB_UPDATED
+  ESTIMATE_JOB_DELETED
+  ESTIMATE_JOB_SAVED
+  ESTIMATE_LINE_ADDED
+  ESTIMATE_LINE_UPDATED
+  ESTIMATE_LINE_DELETED
+  ESTIMATE_AUTHORIZATION_CHANGED
+  ESTIMATE_FEE_ADDED
+  ESTIMATE_FEE_UPDATED
+  ESTIMATE_FEE_DELETED
+  ESTIMATE_DISCOUNT_ADDED
+  ESTIMATE_DISCOUNT_UPDATED
+  ESTIMATE_DISCOUNT_DELETED
+  PAYMENT_RECORDED
+  PAYMENT_CHECKOUT_STARTED
+  PAYMENT_REFUND_REQUESTED
+  CUSTOMER_CREATED
+  CUSTOMER_UPDATED
+  CUSTOMER_DELETED
+  CUSTOMER_ANONYMIZED
+  CUSTOMER_EXPORTED
+  CONSENT_GRANTED
+  CONSENT_REVOKED
+  MARKETING_OPT_IN_CHANGED
+  ESTIMATE_APPROVED_BY_CUSTOMER
+  ESTIMATE_LINK_CREATED
+  ESTIMATE_LINK_REVOKED
+  INVOICE_LINK_CREATED
+  INVOICE_LINK_REVOKED
+  DEPOSIT_REQUEST_CREATED
+  DEPOSIT_REQUEST_SENT
+  DEPOSIT_PAID
+  SMS_SENT
+  CAMPAIGN_LAUNCHED
+  SETTINGS_CHANGED
+  EMPLOYEE_ROLE_CHANGED
+  RETENTION_JOB_RUN
+  DSAR_EXPORT
+}
+
+// Subscription tier assigned by platform admin (per shop / location).
+enum ShopPlan {
+  STARTER
+  PROFESSIONAL
+  ENTERPRISE
+}
+
+// Billing lifecycle — Stripe integration deferred; platform admin can set manually.
+enum BillingStatus {
+  TRIAL
+  ACTIVE
+  PAST_DUE
+  CANCELED
+}
+
+enum AgreementType {
+  PLATFORM_TOS
+  PRIVACY_POLICY
+  ACCEPTABLE_USE
+  DPA
+  PAYMENT_ADDENDUM
+  SMS_ADDENDUM
+  CUSTOM_MSA
+}
+
+// Per-shop Stripe Connect onboarding (Express accounts under RepairPilot platform).
+enum StripeConnectStatus {
+  NOT_STARTED
+  PENDING
+  ACTIVE
+  RESTRICTED
+  DISABLED
+}
+
+enum SupportTicketStatus {
+  OPEN
+  IN_PROGRESS
+  RESOLVED
+  CLOSED
+}
+
+enum SupportTicketCategory {
+  GENERAL
+  WEBSITE_BUILD
+}
+
+// Premier AI + platform services — usage audit trail.
+enum AiFeature {
+  REVIEW_REPLY
+  CAMPAIGN_DRAFT
+  SEO_CONTENT
+  CUSTOMER_INSIGHTS
+  SMS_AFTER_HOURS
+  VOICE_RECEPTIONIST
+  SUPPORT_FAQ
+  LABOR_GUIDE
+}
+
+// Marketing → SEO Autopilot (managed properties + scheduled audits).
+enum SeoPropertySource {
+  MICROSITE
+  CUSTOM_DOMAIN
+  EXTERNAL
+}
+
+enum SeoPropertyStatus {
+  ACTIVE
+  PAUSED
+  PENDING_VERIFICATION
+}
+
+enum SeoJobType {
+  AUDIT
+  CONTENT
+  INDEX
+  GBP_SYNC
+  REPORT
+}
+
+enum SeoRunStatus {
+  QUEUED
+  RUNNING
+  SUCCESS
+  FAILED
+  SKIPPED
+}
+
+// Master CRM — managed ShopSite build + upkeep pipeline for customer websites.
+enum WebsiteBuildStatus {
+  NOT_STARTED
+  QUOTE_REQUESTED
+  IN_BUILD
+  CLIENT_REVIEW
+  LAUNCHED
+  UPKEEP
+  PAUSED
+}
+
+// ─────────────────────── Labor guide (global cache) ───────────────────────
+
+// Persistent cache of labor-time lookups. GLOBAL — deliberately NOT scoped by
+// shopId: standard labor times are the same for every shop (a 2019 Civic front
+// brake job is the same hours everywhere). The shop-specific part (rate, matrix
+// multipliers) is applied later from Shop / LaborMatrixTier.
+//
+// Populated write-through by the labor guide: a search checks this table first;
+// on a miss the provider (currently the AI estimator, MOTOR later) is called and
+// the result stored here. `refreshedAt` drives staleness — stale rows are
+// re-generated on read and can be refreshed in bulk by a scheduled job.
+model LaborOperation {
+  id           String   @id @default(cuid())
+  // Normalized vehicle + query keys for exact-match lookup.
+  vehicleKey   String // "vin:…" or "ymm:year|make|model|engine", normalized
+  queryKey     String // normalized search text the writer typed
+  // Human-readable vehicle context (for browsing the table directly).
+  vehicleYear  Int?
+  vehicleMake  String?
+  vehicleModel String?
+  vehicleTrim  String?
+  vehicleEngine String?
+  vehicleVin     String? // when row was keyed by decoded VIN
+  queryText    String // the original, un-normalized search
+  // The cached operation (mirrors LaborSuggestion).
+  jobName           String
+  unitLabel         String
+  unitsOnVehicle    Int      @default(1)
+  laborHoursPerUnit Float    @default(0)
+  laborOperations   String[] @default([])
+  notes             String?
+  // AI provenance (clean-room audit trail).
+  confidenceScore   Float?
+  reasoningSummary  String?
+  dataSource        String?  @default("ai_first_principles")
+  promptVersion     String?
+  // MOTOR catalog alignment (M3) — licensed cache dedup by application ID.
+  baseVehicleId      Int?
+  motorApplicationId Int?
+  motorSubGroupId    Int?
+  motorGroupId       Int?
+  motorSystemId      Int?
+  // Provider + maintenance.
+  source      String   @default("ai") // "ai" | "motor" | "mitchell" | ...
+  model       String? // which AI model produced it, when source = "ai"
+  hitCount    Int      @default(0) // how often this row has been served (refresh priority)
+  createdAt   DateTime @default(now())
+  refreshedAt DateTime @updatedAt
+
+  @@unique([vehicleKey, queryKey])
+  @@unique([baseVehicleId, motorApplicationId])
+  @@index([vehicleKey])
+  @@index([vehicleVin])
+  @@index([baseVehicleId, motorSubGroupId])
+  @@index([refreshedAt])
+}
+
+// MOTOR EWT DrillDown taxonomy nodes synced per BaseVehicleID (Phase 1 prototype).
+// Normalized tree — see docs/design/labor-catalog-reference-plan.md (M1 target).
+model MotorCatalogNode {
+  id              String   @id @default(cuid())
+  baseVehicleId   Int
+  nodeKey         String // e.g. "22124|s|2|g|17|sg|44"
+  level           String // "system" | "group" | "subgroup"
+  motorSystemId   Int
+  motorGroupId    Int?
+  motorSubGroupId Int?
+  name            String
+  parentNodeKey   String?
+  syncedAt        DateTime @updatedAt
+
+  @@unique([baseVehicleId, nodeKey])
+  @@index([baseVehicleId])
+  @@index([baseVehicleId, level])
+  @@index([parentNodeKey])
+}
+
+// MOTOR EWT application rows synced per BaseVehicleID + taxonomy SubGroup (Phase 2 / M2).
+// Position and qualifiers live on the application row — not taxonomy levels.
+model MotorCatalogApplication {
+  id                   String   @id @default(cuid())
+  baseVehicleId        Int
+  motorSystemId        Int
+  motorGroupId         Int
+  motorSubGroupId      Int
+  motorApplicationId   Int
+  nodeKey              String? // subgroup MotorCatalogNode.nodeKey
+  literalName          String
+  displayName          String?
+  operationType        String?
+  estimatedHours       Float
+  laborTimeInterval    String?  @default("Hours")
+  allLaborHours        Float?
+  additionalLaborHours Float?
+  positionQualifier    String?
+  qualifiersJson       Json?
+  rawJson              Json?
+  syncedAt             DateTime @updatedAt
+
+  @@unique([baseVehicleId, motorApplicationId])
+  @@index([baseVehicleId])
+  @@index([baseVehicleId, motorSubGroupId])
+  @@index([baseVehicleId, motorSystemId, motorGroupId, motorSubGroupId])
+  @@index([nodeKey])
+}
+
+// ─────────────────────────────── Tenancy ───────────────────────────────
+
+// Platform owner deploys RepairPilot to many shops. Each Shop is a tenant;
+// platform admins manage all shops without cross-tenant data leakage in
+// normal shop views (they must explicitly switch shop context).
+model Platform {
+  id        String   @id @default(cuid())
+  name      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  shops         Shop[]
+  intakeTokens  ShopIntakeToken[]
+  auditEvents   PlatformAuditEvent[]
+}
+
+// Immutable platform audit trail — shop create, intake submit, activation.
+model PlatformAuditEvent {
+  id          String                 @id @default(cuid())
+  platformId  String
+  shopId      String?
+  eventType   PlatformAuditEventType
+  actorUserId String?
+  actorEmail  String?
+  method      ShopProvisionMethod?
+  metadata    Json?
+  createdAt   DateTime               @default(now())
+
+  platform Platform @relation(fields: [platformId], references: [id], onDelete: Cascade)
+  shop     Shop?    @relation(fields: [shopId], references: [id], onDelete: SetNull)
+
+  @@index([platformId, createdAt])
+  @@index([shopId, eventType])
+}
+
+model ShopAuditEvent {
+  id            String             @id @default(cuid())
+  shopId        String
+  repairOrderId String?
+  invoiceId     String?
+  paymentId     String?
+  eventType     ShopAuditEventType
+  actorUserId   String?
+  actorEmail    String?
+  summary       String
+  metadata      Json?
+  createdAt     DateTime           @default(now())
+
+  shop        Shop         @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  repairOrder RepairOrder? @relation(fields: [repairOrderId], references: [id], onDelete: SetNull)
+  invoice     Invoice?     @relation(fields: [invoiceId], references: [id], onDelete: SetNull)
+  payment     Payment?     @relation(fields: [paymentId], references: [id], onDelete: SetNull)
+
+  @@index([shopId, createdAt])
+  @@index([repairOrderId, createdAt])
+  @@index([invoiceId])
+  @@index([eventType])
+}
+
+// Platform owner sends a prospect a link to complete shop onboarding (/onboard/shop/[token]).
+model ShopIntakeToken {
+  id            String    @id @default(cuid())
+  platformId    String
+  token         String    @unique @default(cuid())
+  prospectEmail String
+  prospectName  String?
+  shopId        String?   @unique // set when prospect submits the intake form
+  expiresAt     DateTime
+  usedAt        DateTime?
+  createdAt     DateTime  @default(now())
+
+  platform Platform @relation(fields: [platformId], references: [id], onDelete: Cascade)
+  shop     Shop?    @relation(fields: [shopId], references: [id], onDelete: SetNull)
+
+  @@index([platformId])
+  @@index([expiresAt])
+}
+
+model Shop {
+  id        String   @id @default(cuid())
+  platformId String
+  name      String
+  code      String // short label for the switcher avatar, e.g. "RP"
+  clerkOrgId String? @unique // Clerk Organization id when M1b is wired
+  status    ShopStatus @default(ACTIVE)
+  plan      ShopPlan   @default(PROFESSIONAL)
+  planFeatures Json? // optional per-shop overrides merged onto plan defaults
+  trialEndsAt  DateTime?
+  billingStatus BillingStatus @default(ACTIVE)
+  shopIdLabel String? // user-facing shop ID (separate from the cuid)
+  masterId  String   @unique // e.g. RP-IO-784291 — assigned at onboarding
+  masterIdCreatedAt DateTime @default(now())
+  provisionMethod   ShopProvisionMethod?
+  createdByUserId   String? // platform admin who provisioned (Clerk user id when wired)
+  msaAcknowledgedAt DateTime? // pre-go-live MSA commitment at intake or platform create
+  licenseNo String?
+  taxId     String?
+  phone     String?
+  primaryContactName String? // owner / GM — collected at platform onboarding
+  timezone  String? // IANA, e.g. America/New_York (appointments + timestamps)
+  // Settings → Phone & SMS: shop landline (display) + Twilio SMS number (send/receive).
+  landlineNumber    String? // e.g. (555) 123-4567 — the shop's existing landline
+  twilioPhoneNumber String? @unique // E.164 SMS-enabled number (ported or provisioned)
+  twilioMessagingServiceSid String? // optional per-shop Messaging Service (A2P 10DLC)
+  smsEnabled        Boolean @default(false)
+  smsConfiguredAt   DateTime? // set when shop completes SMS setup wizard
+  smsOptOutFooter   String? // appended to outbound SMS when missing (TCPA)
+  /// Premier AI SMS agent — auto-reply after hours on inbound Twilio SMS.
+  aiSmsAgentEnabled Boolean @default(false)
+  /// Premier AI voice agent — after-hours receptionist on inbound Twilio Voice.
+  aiVoiceAgentEnabled Boolean @default(false)
+  /// Premier AI review reply tone — friendly (default) or formal.
+  aiReviewReplyTone   String  @default("friendly")
+  email     String?
+  // Settings → Email: outbound CRM sends (estimates, invoices, campaigns) from this shop.
+  emailFromName     String? // display name, e.g. "In & Out AutoHaus Garage"
+  emailFromAddress  String? // verified send-from, e.g. service@inandoutautohaus.com
+  emailReplyTo      String? // optional reply-to override
+  emailEnabled      Boolean   @default(false)
+  emailConfiguredAt DateTime?
+  // Settings → Notifications: recipient for RO authorization emails (falls back to email).
+  authorizationNotifyEmail String?
+  website   String?
+  logoUrl   String? // data URL or hosted path; shown on estimates/invoices
+  address   String?
+  address2  String?
+  city      String?
+  state     String?
+  zip       String?
+  // Legal onboarding — contracting entity for platform agreements.
+  legalEntityName  String?
+  legalEntityState String?
+  // Customer-facing estimate/invoice terms (shown on public approval link).
+  estimateTermsHtml       String?   @db.Text
+  invoiceTermsHtml        String?   @db.Text
+  estimateTermsVersion    String?   @default("1.0")
+  estimateTermsUpdatedAt  DateTime?
+  /// Settings → Estimates → Workspace — jobs list layout on the estimate tab.
+  estimateJobsLayout      EstimateJobsLayout @default(INLINE)
+  // Default labor rate + tax used when creating lines (cents / basis points).
+  laborRateCents Int @default(12500)
+  taxRateBps     Int @default(800) // 8.00%
+  // Tax application defaults (RO Settings → Taxes). Gate which buckets are taxed.
+  taxOnLabor  Boolean @default(true)
+  taxOnParts  Boolean @default(true)
+  taxOnFees   Boolean @default(false)
+  taxCapCents Int? // optional ceiling on total sales tax per RO
+  // RO Settings → GP/hr goal (target gross-profit per labor hour).
+  gpPerHourGoalCents Int?
+  // RO Settings → Advanced Settings (required-field flags, tech-hours rule). JSON
+  // bag because these are mostly UI/workflow toggles, not money math.
+  roAdvanced Json?
+  // Job board — auto-archive paid completed ROs after N days (0 = disabled via enabled flag).
+  completedRoAutoArchiveEnabled Boolean @default(true)
+  completedRoAutoArchiveDays    Int     @default(30)
+  // Job board — column titles + optional custom sections (JSON).
+  jobBoardPipeline Json?
+  // Settings → Appointments (shop hours + default appointment length).
+  apptDayStart           String? @default("08:00")
+  apptDayEnd             String? @default("17:00")
+  apptDefaultDurationMins Int    @default(60)
+  // Public online booking (/book/[slug]).
+  bookingSlug            String? @unique
+  onlineBookingEnabled   Boolean @default(false)
+  // Marketing → Online Booking: services, field toggles, availability, notifications.
+  bookingSettings        Json?
+  // Settings → Estimates/Invoices → Transparency (per-field show/hide on the
+  // printed estimate vs invoice). JSON: { estimate: {...}, invoice: {...} }.
+  docTransparency Json?
+  // Settings → Customers (default marketing opt-in for new customers).
+  defaultMarketingOptIn Boolean @default(false)
+  // Settings → Commissions (default labor/parts commission %, bps). JSON:
+  // { laborBps, partsBps, basis }. Feeds the commissions report (future).
+  commissions Json?
+  // Stripe Connect — each shop connects its own Express account for customer payments.
+  stripeConnectAccountId        String?              @unique
+  stripeConnectStatus           StripeConnectStatus  @default(NOT_STARTED)
+  stripeChargesEnabled          Boolean              @default(false)
+  stripePayoutsEnabled          Boolean              @default(false)
+  stripeConnectDetailsSubmitted Boolean              @default(false)
+  stripeOnboardingCompletedAt   DateTime?
+  // Stripe Billing — platform subscription for this shop (distinct from Connect).
+  stripeCustomerId     String? @unique
+  stripeSubscriptionId String? @unique
+  lastActiveAt         DateTime?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  platform     Platform     @relation(fields: [platformId], references: [id], onDelete: Cascade)
+  memberships  Membership[]
+  customers    Customer[]
+  vehicles     Vehicle[]
+  vehicleOwnershipTransfers VehicleOwnershipTransfer[]
+  repairOrders RepairOrder[]
+  roActivities RoActivity[]
+  appointments Appointment[]
+  invoices     Invoice[]
+  messages     Message[]
+  aiSmsAgentSessions  AiSmsAgentSession[]
+  aiVoiceAgentSessions AiVoiceAgentSession[]
+  voiceCallLogs       VoiceCallLog[]
+  partMatrix   PartMatrixTier[]
+  laborMatrix  LaborMatrixTier[]
+  laborRates        LaborRate[]
+  feeTemplates      ShopFeeTemplate[]
+  discountTemplates ShopDiscountTemplate[]
+  leadSources       LeadSource[]
+  customerTags      CustomerTag[]
+  cannedJobs        CannedJob[]
+  loginEvents       LoginEvent[]
+  purchaseOrders       PurchaseOrder[]
+  inventoryParts       InventoryPart[]
+  inventoryAdjustments InventoryAdjustment[]
+  tireOrders           TireOrder[]
+  integrations      ShopIntegration[]
+  googleReviews     GoogleReview[]
+  supportTickets    SupportTicket[]
+  websiteConfig     ShopWebsiteConfig?
+  marketingCampaigns    MarketingCampaign[]
+  marketingAutomations MarketingAutomation[]
+  notificationReads NotificationRead[]
+  maintenanceProgramSettings MaintenanceProgramSettings?
+  maintenanceProgramServices MaintenanceProgramService[]
+  maintenancePlans           MaintenancePlan[]
+  planSubscriptions          PlanSubscription[]
+  legalAcceptances           LegalAcceptance[]
+  customAgreement            ShopCustomAgreement?
+  seoProperties              SeoProperty[]
+  seoSettings                ShopSeoSettings?
+  seoReportSnapshots         SeoReportSnapshot[]
+  aiUsageLogs                AiUsageLog[]
+  intakeToken                ShopIntakeToken?
+  auditEvents                PlatformAuditEvent[]
+  shopAuditEvents            ShopAuditEvent[]
+  depositRequests            DepositRequest[]
+  consentRecords             ConsentRecord[]
+  dataPolicy                 ShopDataPolicy?
+
+  @@index([platformId])
+}
+
+/// Per-shop retention and data-handling parameters (platform minimums enforced in app).
+model ShopDataPolicy {
+  shopId                   String   @id
+  roRetentionDays          Int      @default(2555)
+  auditRetentionDays       Int      @default(2555)
+  messageRetentionDays     Int      @default(1095)
+  consentRetentionDays     Int      @default(1460)
+  anonymizeAfterDeleteDays Int      @default(30)
+  updatedAt                DateTime @updatedAt
+
+  shop Shop @relation(fields: [shopId], references: [id], onDelete: Cascade)
+}
+
+/// TCPA / CAN-SPAM consent evidence — append-only grant/revoke history.
+model ConsentRecord {
+  id                String    @id @default(cuid())
+  shopId            String
+  customerId        String
+  channel           String // sms | email | voice
+  purpose           String // transactional | marketing
+  granted           Boolean
+  disclosureVersion String
+  source            String // intake_form | customer_dialog | approve_page | import | staff
+  collectedByUserId String?
+  ipAddress         String?
+  userAgent         String?
+  revokedAt         DateTime?
+  createdAt         DateTime  @default(now())
+  metadata          Json?
+
+  shop     Shop     @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  customer Customer @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@index([shopId, customerId, purpose])
+  @@index([shopId, createdAt])
+}
+
+// Marketing → Website & SEO. Template-based shop microsite + SEO toolkit.
+model ShopWebsiteConfig {
+  id                    String   @id @default(cuid())
+  shopId                String   @unique
+  published             Boolean  @default(false)
+  heroHeadline          String?
+  heroSubtext           String?
+  aboutText             String?  @db.Text
+  servicesJson          Json? // [{ title, description }]
+  metaTitle             String?
+  metaDescription       String?  @db.Text
+  keywords              String[] @default([])
+  googleAnalyticsId     String?
+  customDomain          String?
+  schemaEnabled         Boolean  @default(true)
+  seoChecklistCompleted Json     @default("{}")
+  buildStatus           WebsiteBuildStatus @default(NOT_STARTED)
+  operatorNotes         String?  @db.Text
+  launchedAt            DateTime?
+  lastOperatorReviewAt  DateTime?
+  nextReviewDueAt       DateTime?
+  updatedAt             DateTime @updatedAt
+  createdAt             DateTime @default(now())
+
+  shop Shop @relation(fields: [shopId], references: [id], onDelete: Cascade)
+}
+
+// One row per website/domain under SEO Autopilot for a shop.
+model SeoProperty {
+  id                String            @id @default(cuid())
+  shopId            String
+  domain            String // hostname or full URL label shown in admin
+  source            SeoPropertySource
+  status            SeoPropertyStatus @default(ACTIVE)
+  automationEnabled Boolean           @default(true)
+  autoPublish       Boolean           @default(false)
+  gscPropertyUrl    String?
+  verificationToken String   @default(cuid())
+  verifiedAt        DateTime?
+  lastAuditAt       DateTime?
+  nextRunAt         DateTime?
+  createdAt         DateTime          @default(now())
+  updatedAt         DateTime          @updatedAt
+
+  shop Shop               @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  runs SeoAutomationRun[]
+
+  @@unique([shopId, domain])
+  @@index([shopId])
+  @@index([status, automationEnabled])
+}
+
+model SeoAutomationRun {
+  id         String       @id @default(cuid())
+  propertyId String
+  jobType    SeoJobType   @default(AUDIT)
+  status     SeoRunStatus @default(QUEUED)
+  summary    Json?
+  error      String?
+  startedAt  DateTime?
+  finishedAt DateTime?
+  createdAt  DateTime     @default(now())
+
+  property SeoProperty @relation(fields: [propertyId], references: [id], onDelete: Cascade)
+
+  @@index([propertyId])
+  @@index([propertyId, createdAt])
+}
+
+// Per-shop SEO Autopilot preferences (content + reporting).
+model ShopSeoSettings {
+  shopId                  String    @id
+  contentAutopilotEnabled Boolean   @default(true)
+  /// When true (default), Premier shops use LLM to refine autopilot content; template-only when false or not on Premier.
+  useAiContent            Boolean   @default(true)
+  monthlyReportEnabled    Boolean   @default(true)
+  reportEmail             String?
+  lastContentRunAt        DateTime?
+  lastReportSentAt        DateTime?
+  /// Cached GSC analytics payload for fast dashboard loads (refreshed daily).
+  gscMetricsCache         Json?
+  gscMetricsCachedAt        DateTime?
+  /// Resolved numeric GA4 property ID (from measurement ID + Admin API).
+  ga4PropertyId           String?
+  ga4MetricsCache         Json?
+  ga4MetricsCachedAt      DateTime?
+  /// Audit recommendation labels dismissed by shop owner (Health inbox).
+  dismissedRecommendations Json     @default("[]")
+  /// Snoozed audit recommendations — [{ label, until }] ISO dates.
+  snoozedRecommendations     Json     @default("[]")
+  /// Stripe Checkout session IDs already fulfilled for SEO add-ons.
+  seoStripeFulfillments      Json     @default("[]")
+  seoAutopilotStripeSubscriptionId String?
+  updatedAt               DateTime  @updatedAt
+  createdAt               DateTime  @default(now())
+
+  shop Shop @relation(fields: [shopId], references: [id], onDelete: Cascade)
+}
+
+/// Archived SEO Autopilot monthly report snapshot (in-app history).
+model SeoReportSnapshot {
+  id          String   @id @default(cuid())
+  shopId      String
+  periodLabel String
+  sentTo      String?
+  summary     Json
+  createdAt   DateTime @default(now())
+
+  shop Shop @relation(fields: [shopId], references: [id], onDelete: Cascade)
+
+  @@index([shopId, createdAt])
+}
+
+// Cached Google Business Profile reviews (synced from API or seeded in mock mode).
+model GoogleReview {
+  id              String    @id @default(cuid())
+  shopId          String
+  googleReviewId  String
+  reviewerName    String
+  starRating      Int // 1–5
+  comment         String?
+  reviewReply     String?
+  googleCreatedAt DateTime
+  syncedAt        DateTime  @default(now())
+  replyUpdatedAt  DateTime?
+
+  shop Shop @relation(fields: [shopId], references: [id], onDelete: Cascade)
+
+  @@unique([shopId, googleReviewId])
+  @@index([shopId])
+  @@index([shopId, starRating])
+  @@index([shopId, googleCreatedAt])
+}
+
+// Per-shop vendor credentials (PartsTech, Weldon, Carfax, etc.). Encrypt at rest later.
+model ShopIntegration {
+  id          String    @id @default(cuid())
+  shopId      String
+  vendorKey   String // partstech | weldon | carfax | vin-decoder | google_reviews
+  config      Json      @default("{}")
+  enabled     Boolean   @default(true)
+  connectedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  shop Shop @relation(fields: [shopId], references: [id], onDelete: Cascade)
+
+  @@unique([shopId, vendorKey])
+  @@index([shopId])
+}
+
+// Manage → Canned Jobs. Reusable job templates (labor + parts) applied to estimates.
+model CannedJob {
+  id          String    @id @default(cuid())
+  shopId      String
+  name        String
+  description String?
+  category    String?
+  isActive    Boolean   @default(true)
+  usageCount  Int       @default(0)
+  lastUsedAt  DateTime?
+  createdById String? // User id (set when Clerk is wired)
+  sortOrder   Int       @default(0)
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  shop       Shop                  @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  laborLines CannedJobLaborLine[]
+  partLines  CannedJobPartLine[]
+  maintenanceProgramServices MaintenanceProgramService[]
+
+  @@index([shopId])
+  @@index([shopId, category])
+  @@index([shopId, isActive])
+}
+
+model CannedJobLaborLine {
+  id               String @id @default(cuid())
+  shopId           String
+  cannedJobId      String
+  description      String
+  hours            Float  @default(0)
+  /// Optional flat labor price override (cents). When set, applied to estimates instead of hours × rate.
+  flatAmountCents  Int?
+  sortOrder        Int    @default(0)
+
+  cannedJob CannedJob @relation(fields: [cannedJobId], references: [id], onDelete: Cascade)
+
+  @@index([cannedJobId])
+}
+
+model CannedJobPartLine {
+  id          String  @id @default(cuid())
+  shopId      String
+  cannedJobId String
+  description String
+  brand       String?
+  partNumber  String?
+  costCents   Int     @default(0)
+  quantity    Int     @default(1)
+  sortOrder   Int     @default(0)
+
+  cannedJob CannedJob @relation(fields: [cannedJobId], references: [id], onDelete: Cascade)
+
+  @@index([cannedJobId])
+}
+
+// Settings → Customers → Tags. The tag options shown when adding/editing a
+// customer (source of truth; feeds the Add-Customer tag picker + list filter).
+model CustomerTag {
+  id        String  @id @default(cuid())
+  shopId    String
+  name      String
+  sortOrder Int     @default(0)
+
+  shop Shop @relation(fields: [shopId], references: [id], onDelete: Cascade)
+
+  @@index([shopId])
+}
+
+// Settings → Marketing → Lead Sources. The marketing-source options shown when
+// creating a repair order (source of truth; was hardcoded in lib/options.ts).
+model LeadSource {
+  id        String  @id @default(cuid())
+  shopId    String
+  name      String
+  sortOrder Int     @default(0)
+
+  shop Shop @relation(fields: [shopId], references: [id], onDelete: Cascade)
+
+  @@index([shopId])
+}
+
+// RO Settings → Labor Rates. Named hourly rates; the default feeds new ROs and
+// the estimate base rate (kept in sync with Shop.laborRateCents).
+model LaborRate {
+  id        String  @id @default(cuid())
+  shopId    String
+  name      String
+  rateCents Int     @default(0)
+  isDefault Boolean @default(false)
+  sortOrder Int     @default(0)
+
+  shop Shop @relation(fields: [shopId], references: [id], onDelete: Cascade)
+
+  @@index([shopId])
+}
+
+// RO Settings → Shop Fees. Reusable fee templates; `autoApply` ones are copied
+// onto every new repair order as Fee rows.
+model ShopFeeTemplate {
+  id        String       @id @default(cuid())
+  shopId    String
+  name      String
+  autoApply Boolean      @default(false) // auto-add to new ROs
+  method    AdjustMethod @default(PERCENT)
+  base      AdjustBase   @default(LABOR_PARTS)
+  amount    Int          @default(0) // bps if PERCENT, cents if FIXED
+  capCents  Int?
+  taxable   Boolean      @default(false)
+  sortOrder Int          @default(0)
+
+  shop Shop @relation(fields: [shopId], references: [id], onDelete: Cascade)
+
+  @@index([shopId])
+}
+
+// RO Settings → Discounts. Reusable discount templates offered when discounting an RO.
+model ShopDiscountTemplate {
+  id        String       @id @default(cuid())
+  shopId    String
+  name      String
+  method    AdjustMethod @default(PERCENT)
+  base      AdjustBase   @default(LABOR_PARTS)
+  amount    Int          @default(0)
+  capCents  Int?
+  sortOrder Int          @default(0)
+
+  shop Shop @relation(fields: [shopId], references: [id], onDelete: Cascade)
+
+  @@index([shopId])
+}
+
+// Parts pricing matrix: a part's cost falls in a tier → retail = cost × multiplier.
+model PartMatrixTier {
+  id         String  @id @default(cuid())
+  shopId     String
+  minCents   Int     @default(0)
+  maxCents   Int? // null = "and up"
+  multiplier Float   @default(1) // e.g. 4.0 = 4.00x (300% markup)
+  sortOrder  Int     @default(0)
+
+  shop Shop @relation(fields: [shopId], references: [id], onDelete: Cascade)
+
+  @@index([shopId])
+}
+
+// Labor pricing matrix: a job's hours fall in a tier → rate = base rate × multiplier.
+model LaborMatrixTier {
+  id         String  @id @default(cuid())
+  shopId     String
+  minHours   Float   @default(0)
+  maxHours   Float? // null = "and up"
+  multiplier Float   @default(1)
+  sortOrder  Int     @default(0)
+
+  shop Shop @relation(fields: [shopId], references: [id], onDelete: Cascade)
+
+  @@index([shopId])
+}
+
+model User {
+  id        String   @id @default(cuid())
+  clerkId   String?  @unique // set when Clerk is wired (M1b)
+  isPlatformAdmin Boolean @default(false) // RepairPilot platform owner / super-admin
+  email     String   @unique
+  firstName String?
+  lastName  String?
+  phone     String?
+  address   String?
+  address2  String?
+  city      String?
+  state     String?
+  zip       String?
+  // Per-user in-app notification opt-in scope (ALL | MY_WORK | NONE per event type).
+  notificationPreferences Json @default("{}")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  memberships        Membership[]
+  loginEvents        LoginEvent[]
+  notificationReads  NotificationRead[]
+  legalAcceptances        LegalAcceptance[]
+  uploadedCustomAgreements ShopCustomAgreement[]
+  planRedemptions    PlanRedemption[]
+}
+
+model Membership {
+  id     String @id @default(cuid())
+  shopId String
+  userId String
+  role   Role   @default(TECHNICIAN)
+  // Employment details (Employees module)
+  payrollType         PayrollType?
+  canPerformWork      Boolean      @default(true)
+  certificationNumber String?
+  permissionGroup     String? // permission-group name (null = Not Applicable, e.g. Owner)
+  permissionMode      String       @default("GROUP") // GROUP | INDIVIDUAL
+  permissions         Json         @default("[]") // string[] of permission keys when INDIVIDUAL
+  accessTimes         String       @default("Anytime")
+  active              Boolean      @default(true)
+
+  shop Shop @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([shopId, userId])
+  @@index([shopId])
+}
+
+// Employee login history (Employees → History tab).
+model LoginEvent {
+  id         String   @id @default(cuid())
+  shopId     String
+  userId     String
+  loggedInAt DateTime @default(now())
+  ipAddress  String?
+  userAgent  String?
+
+  shop Shop @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([shopId, userId, loggedInAt])
+}
+
+// ─────────────────────────────── CRM core ───────────────────────────────
+
+model Customer {
+  id           String   @id @default(cuid())
+  shopId       String
+  firstName    String
+  lastName     String
+  company      String?
+  email        String?
+  phone        String?
+  altPhone     String?
+  phoneDigits  String? // normalized digits of phone(s) for format-agnostic search
+  address      String?
+  city         String?
+  state        String?
+  zip          String?
+  tags         String[] @default([])
+  notes        String?
+  marketingOptIn Boolean @default(false)
+  transactionalSmsConsent Boolean @default(false)
+  marketingEmailConsent Boolean @default(false)
+  deletedAt    DateTime?
+  anonymizedAt DateTime?
+  leadSource   String? // e.g. "Website", "Google", from online intake
+  /// Cached Premier AI insights ({ generatedAt, bullets, suggestedAction }) — TTL 24h.
+  aiInsightsCache Json?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  shop         Shop          @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  vehicles     Vehicle[]
+  repairOrders RepairOrder[]
+  appointments Appointment[]
+  messages     Message[]
+  tireOrders   TireOrder[]
+  campaignSends CampaignSend[]
+  automationSends AutomationSend[]
+  planSubscriptions PlanSubscription[]
+  consentRecords    ConsentRecord[]
+
+  @@index([shopId])
+  @@index([shopId, lastName])
+}
+
+model Vehicle {
+  id           String   @id @default(cuid())
+  shopId       String
+  customerId   String
+  vin          String?
+  year         Int?
+  make         String?
+  model        String?
+  trim         String?
+  engine       String?
+  transmission String?
+  drivetrain   String?
+  bodyClass    String?
+  plate        String?
+  plateState   String?
+  color        String?
+  unitNumber   String?
+  notes        String?
+  tireSizeFront String?
+  tireSizeRear  String?
+  // Cached NHTSA recalls ({ fetchedAt, items }) — refreshed on demand, TTL ~7 days.
+  recallsCache Json?
+  // Advisor-entered fluids/filters/battery notes; merged with shop RO history in sidebar.
+  maintenanceSpecs Json?
+  // Raw decoder payload cached so we never re-decode the same VIN.
+  decodedData  Json?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  shop           Shop            @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  customer       Customer        @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  repairOrders   RepairOrder[]
+  appointments   Appointment[]
+  mileageRecords MileageRecord[]
+  tireOrders     TireOrder[]
+  subscriptionVehicles SubscriptionVehicle[]
+  ownershipTransfers VehicleOwnershipTransfer[]
+
+  @@index([shopId])
+  @@index([customerId])
+  @@index([shopId, vin])
+}
+
+/** Audit trail when a vehicle is reassigned between customers in the same shop. */
+model VehicleOwnershipTransfer {
+  id               String   @id @default(cuid())
+  shopId           String
+  vehicleId        String
+  fromCustomerId   String
+  fromCustomerName String
+  toCustomerId     String
+  toCustomerName   String
+  transferredAt    DateTime @default(now())
+
+  shop    Shop    @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  vehicle Vehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+
+  @@index([shopId, vehicleId])
+  @@index([vehicleId, transferredAt])
+}
+
+model MileageRecord {
+  id         String   @id @default(cuid())
+  shopId     String
+  vehicleId  String
+  miles      Int
+  source     String? // "RO", "manual", etc.
+  recordedAt DateTime @default(now())
+
+  vehicle Vehicle @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+
+  @@index([vehicleId])
+}
+
+// ─────────────────────────── Repair orders ───────────────────────────
+
+model RepairOrder {
+  id              String   @id @default(cuid())
+  shopId          String
+  number          Int // per-shop RO number
+  customerId      String
+  vehicleId       String
+  status          ROStatus @default(ESTIMATE)
+  serviceWriterId String? // User id
+  technicianId    String? // User id
+  mileageIn       Int?
+  mileageOut      Int?
+  odometerNotWorking Boolean @default(false) // gauge broken / unreadable at check-in
+  laborRateCents  Int?       // snapshot of the rate chosen at creation
+  appointmentOption String?  // e.g. "Drop-off Vehicle"
+  marketingSource String?    // lead source label
+  concerns        String[]   @default([]) // customer "states" / vehicle concerns
+  authorizedAt    DateTime?  // when the estimate was approved (shop or customer)
+  authorizedBy    String?    // who approved: "Shop" or a customer name
+  approvedVia     String?    // "SHOP" | "CUSTOMER"
+  approvalToken   String?    @unique // unguessable token for the customer approval link
+  approvalSentAt  DateTime?  // when an approval link was generated/sent
+  estimateViewedAt          DateTime? // first time customer opened the public approval link
+  estimateViewedNotifiedAt  DateTime? // when the shop was notified (toast / bell)
+  approvalSignatureUrl  String? // cloud URL when blob storage is wired
+  approvalSignerName    String? // customer name on the signature
+  approvalSignedAt      DateTime? // when the customer signed
+  approvalSignatureJson Json? // MVP: { imageDataUrl, width, height, ip?, userAgent? }
+  // Snapshot of shop estimate terms the customer saw when signing.
+  estimateTermsVersion String?
+  estimateTermsHash    String?
+  completedAt     DateTime?
+  archivedAt      DateTime? // hidden from job board when set (auto or manual archive)
+  notes           String?
+  /// Advisor notes shown to customer on estimate / invoice (estimate lab).
+  customerRecommendations String? @db.Text
+  keyTag          String?  // physical key tag number/label
+  promiseTime     DateTime? // customer promise / pickup time
+  saveParts       Boolean  @default(false) // retain removed parts for customer
+  boardOrder      Int      @default(0) // manual sort position within a Job Board column
+  jobBoardColumnId String? // custom pipeline section; null = status-based core column
+  // Cached money totals (cents) — recomputed whenever lines change.
+  laborSubtotalCents Int @default(0)
+  partsSubtotalCents Int @default(0)
+  shopSuppliesCents  Int @default(0)
+  feesSubtotalCents  Int @default(0)
+  discountCents      Int @default(0)
+  taxCents           Int @default(0)
+  totalCents         Int @default(0)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  shop        Shop         @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  customer    Customer     @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  vehicle     Vehicle      @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  jobs        Job[]
+  fees            Fee[]
+  discounts       Discount[]
+  vehicleConcerns Concern[]
+  inspections Inspection[]
+  activities      RoActivity[]
+  shopAuditEvents ShopAuditEvent[]
+  depositRequests DepositRequest[]
+  invoice         Invoice?
+  messages        Message[]
+  purchaseOrders  PurchaseOrder[]
+  planRedemptions PlanRedemption[]
+
+  @@unique([shopId, number])
+  @@index([shopId])
+  @@index([shopId, status])
+  @@index([shopId, archivedAt])
+  @@index([customerId])
+  @@index([vehicleId])
+}
+
+model Job {
+  id            String   @id @default(cuid())
+  shopId        String
+  repairOrderId String
+  name          String
+  note          String?
+  sortOrder     Int      @default(0)
+  authorized    Boolean  @default(false)
+  recommended   Boolean  @default(false) // advisor-recommended service (estimate lab)
+  approvedAt    DateTime? // set when customer approves via public link
+  technicianId  String? // assigned technician (User id)
+  laborTaxable  Boolean  @default(true)
+  partsTaxable  Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  repairOrder RepairOrder @relation(fields: [repairOrderId], references: [id], onDelete: Cascade)
+  laborLines  LaborLine[]
+  partLines   PartLine[]
+  fees        Fee[]
+  discounts   Discount[]
+
+  @@index([repairOrderId])
+}
+
+model Fee {
+  id            String       @id @default(cuid())
+  shopId        String
+  repairOrderId String
+  jobId         String? // null = RO-level fee; set = applies to one job
+  name          String
+  method        AdjustMethod @default(PERCENT)
+  base          AdjustBase   @default(LABOR_PARTS)
+  amount        Int          @default(0) // bps if PERCENT, cents if FIXED
+  capCents      Int? // optional ceiling for percent fees
+  taxable       Boolean      @default(false)
+  sortOrder     Int          @default(0)
+  createdAt     DateTime     @default(now())
+
+  repairOrder RepairOrder @relation(fields: [repairOrderId], references: [id], onDelete: Cascade)
+  job         Job?        @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  @@index([repairOrderId])
+  @@index([jobId])
+}
+
+model Discount {
+  id            String       @id @default(cuid())
+  shopId        String
+  repairOrderId String
+  jobId         String? // null = RO-level discount; set = applies to one job
+  name          String
+  method        AdjustMethod @default(PERCENT)
+  base          AdjustBase   @default(LABOR_PARTS)
+  amount        Int          @default(0) // bps if PERCENT, cents if FIXED
+  sortOrder     Int          @default(0)
+  createdAt     DateTime     @default(now())
+
+  repairOrder RepairOrder @relation(fields: [repairOrderId], references: [id], onDelete: Cascade)
+  job         Job?        @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  @@index([repairOrderId])
+  @@index([jobId])
+}
+
+// A customer or technician concern ("vehicle issue") on a repair order, optionally
+// copied into the estimate as a job.
+model Concern {
+  id               String                @id @default(cuid())
+  shopId           String
+  repairOrderId    String
+  kind             ConcernKind           @default(CUSTOMER)
+  text             String
+  finding          String? // technician finding / diagnosis
+  inspectionRating InspectionItemStatus? // technician concern R/Y/G
+  copiedJobId      String? // set once "Copy to Estimate" created a job
+  sortOrder        Int                   @default(0)
+  createdAt        DateTime              @default(now())
+
+  repairOrder RepairOrder @relation(fields: [repairOrderId], references: [id], onDelete: Cascade)
+
+  @@index([repairOrderId])
+}
+
+model LaborLine {
+  id           String  @id @default(cuid())
+  shopId       String
+  jobId        String
+  description  String
+  hours        Float   @default(0)
+  rateCents    Int     @default(0)
+  totalCents   Int     @default(0)
+  authorized   Boolean @default(true) // included in estimate / WIP totals
+  technicianId String? // User id
+  sortOrder    Int     @default(0)
+
+  job Job @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  @@index([jobId])
+}
+
+model PartLine {
+  id          String     @id @default(cuid())
+  shopId      String
+  jobId       String
+  description String
+  partNumber  String?
+  brand       String?
+  quantity    Int        @default(1)
+  costCents   Int        @default(0)
+  retailCents Int        @default(0)
+  totalCents  Int        @default(0)
+  authorized  Boolean    @default(true) // included in estimate / WIP totals
+  source      PartSource @default(MANUAL)
+  status      PartStatus @default(NEEDED)
+  partstechId String?
+  vendor      String? // supplier name (e.g. from PartsTech quote / phone order)
+  sortOrder   Int        @default(0)
+  createdAt   DateTime   @default(now())
+
+  job Job @relation(fields: [jobId], references: [id], onDelete: Cascade)
+
+  @@index([jobId])
+}
+
+// Vendor purchase order for parts on a repair order (grouped by supplier).
+model PurchaseOrder {
+  id            String              @id @default(cuid())
+  shopId        String
+  repairOrderId String
+  number        Int // per-shop PO number
+  vendor        String?
+  invoiceNumber String?
+  status        PurchaseOrderStatus @default(ORDERED)
+  totalCents    Int                 @default(0)
+  archivedAt    DateTime?
+  createdAt     DateTime            @default(now())
+  updatedAt     DateTime            @updatedAt
+
+  shop        Shop        @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  repairOrder RepairOrder @relation(fields: [repairOrderId], references: [id], onDelete: Cascade)
+
+  @@unique([shopId, number])
+  @@index([shopId])
+  @@index([repairOrderId])
+  @@index([shopId, archivedAt])
+}
+
+// Shop parts inventory (qty on hand, reorder levels, bin location).
+model InventoryPart {
+  id               String   @id @default(cuid())
+  shopId           String
+  partNumber       String
+  description      String
+  brand            String?
+  category         String?
+  vendorName       String?
+  vendorPartNumber String?
+  quantityOnHand   Int      @default(0)
+  reorderPoint     Int      @default(0)
+  reorderQty       Int      @default(0)
+  costCents        Int      @default(0)
+  retailCents      Int      @default(0)
+  binLocation      String?
+  notes            String?
+  active           Boolean  @default(true)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  shop        Shop                  @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  adjustments InventoryAdjustment[]
+
+  @@unique([shopId, partNumber])
+  @@index([shopId])
+  @@index([shopId, active])
+  @@index([shopId, category])
+}
+
+model InventoryAdjustment {
+  id         String   @id @default(cuid())
+  shopId     String
+  partId     String
+  delta      Int
+  reason     String
+  adjustedBy String?
+  createdAt  DateTime @default(now())
+
+  shop Shop          @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  part InventoryPart @relation(fields: [partId], references: [id], onDelete: Cascade)
+
+  @@index([shopId])
+  @@index([partId])
+}
+
+// ─────────────────────────── RO activity feed ───────────────────────────
+
+model RoActivity {
+  id            String         @id @default(cuid())
+  shopId        String
+  repairOrderId String
+  type          RoActivityType @default(NOTE)
+  description   String
+  createdAt     DateTime       @default(now())
+
+  shop        Shop        @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  repairOrder RepairOrder @relation(fields: [repairOrderId], references: [id], onDelete: Cascade)
+
+  @@index([repairOrderId])
+  @@index([shopId, repairOrderId])
+}
+
+// ─────────────────────────── Inspections ───────────────────────────
+
+model Inspection {
+  id            String           @id @default(cuid())
+  shopId        String
+  repairOrderId String
+  templateName  String
+  status        InspectionStatus @default(NOT_STARTED)
+  performedById String? // User id
+  performedAt   DateTime?
+  shareToken    String?          @unique // public share link
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+
+  repairOrder RepairOrder      @relation(fields: [repairOrderId], references: [id], onDelete: Cascade)
+  items       InspectionItem[]
+
+  @@index([repairOrderId])
+}
+
+model InspectionItem {
+  id           String               @id @default(cuid())
+  shopId       String
+  inspectionId String
+  name         String
+  category     String?
+  status       InspectionItemStatus @default(NA)
+  note         String?
+  photoUrls    String[]             @default([])
+  sortOrder    Int                  @default(0)
+
+  inspection Inspection @relation(fields: [inspectionId], references: [id], onDelete: Cascade)
+
+  @@index([inspectionId])
+}
+
+// ─────────────────────────── Scheduling ───────────────────────────
+
+model Appointment {
+  id            String            @id @default(cuid())
+  shopId        String
+  customerId    String?
+  vehicleId     String?
+  title         String
+  startAt       DateTime
+  endAt         DateTime
+  bay           String?
+  technicianId  String? // User id
+  status        AppointmentStatus @default(SCHEDULED)
+  source        String? // "WEBSITE", "STAFF", etc.
+  serviceName   String? // selected online-booking service label
+  notes         String?
+  repairOrderId String? // set when converted to an RO
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+
+  shop       Shop        @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  customer   Customer?   @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  vehicle    Vehicle?    @relation(fields: [vehicleId], references: [id], onDelete: SetNull)
+  tireOrders TireOrder[]
+
+  @@index([shopId])
+  @@index([shopId, startAt])
+}
+
+// ─────────────────────────── Tire orders ───────────────────────────
+
+// Separate from online booking intake (/book/[slug]). Tracks tire quotes,
+// deposits, install appointments, and website submissions.
+model TireOrder {
+  id                   String           @id @default(cuid())
+  shopId               String
+  number               Int // per-shop tire order number
+  customerId           String
+  vehicleId            String?
+  appointmentId        String?
+  status               TireOrderStatus  @default(LEAD)
+  source               TireOrderSource  @default(CRM)
+  tireSizeFront        String?
+  tireSizeRear         String?
+  tireBrand            String?
+  tireQuantity         Int              @default(4)
+  tireType             String? // e.g. all-season, winter, performance
+  dropOffType          String? // drop-off, wait, pickup
+  estimatedTotalCents  Int?
+  depositCents         Int              @default(0)
+  depositPaidAt        DateTime?
+  depositMethod        PaymentMethod?
+  depositReference     String? // Stripe PI id, check #, etc.
+  websiteSubmissionId  String?          @unique
+  notes                String?
+  // Supplier ordering (e.g. Weldon Tire) — approval-before-buy workflow
+  supplierName           String?          @default("Weldon Tire")
+  supplierOrderRef       String?
+  supplierApprovedBy     String?
+  supplierApprovedAt     DateTime?
+  supplierQuoteCents     Int?
+  supplierOrderPayload   Json?
+  supplierRejectedAt     DateTime?
+  supplierRejectionNote  String?
+  createdAt            DateTime         @default(now())
+  updatedAt            DateTime         @updatedAt
+
+  shop        Shop         @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  customer    Customer     @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  vehicle     Vehicle?     @relation(fields: [vehicleId], references: [id], onDelete: SetNull)
+  appointment Appointment? @relation(fields: [appointmentId], references: [id], onDelete: SetNull)
+
+  @@unique([shopId, number])
+  @@index([shopId])
+  @@index([shopId, status])
+  @@index([customerId])
+  @@index([appointmentId])
+}
+
+// ─────────────────────────── Billing ───────────────────────────
+
+model Invoice {
+  id            String        @id @default(cuid())
+  shopId        String
+  repairOrderId String        @unique
+  number        Int
+  status        InvoiceStatus @default(DRAFT)
+  subtotalCents Int           @default(0)
+  taxCents      Int           @default(0)
+  totalCents    Int           @default(0)
+  balanceCents  Int           @default(0)
+  shareToken    String?       @unique // unguessable token for the public invoice link
+  shareSentAt   DateTime?     // when an invoice link was generated/sent
+  issuedAt      DateTime?
+  dueAt         DateTime?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  shop        Shop        @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  repairOrder     RepairOrder      @relation(fields: [repairOrderId], references: [id], onDelete: Cascade)
+  payments        Payment[]
+  shopAuditEvents ShopAuditEvent[]
+
+  @@unique([shopId, number])
+  @@index([shopId])
+}
+
+model Payment {
+  id                    String        @id @default(cuid())
+  shopId                String
+  invoiceId             String
+  amountCents           Int
+  method                PaymentMethod @default(CARD)
+  reference             String?
+  stripePaymentIntentId String?
+  paidAt                DateTime      @default(now())
+
+  invoice         Invoice          @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  shopAuditEvents ShopAuditEvent[]
+
+  @@index([invoiceId])
+}
+
+/// Customer deposit requested on an estimate RO (pay-before-work).
+model DepositRequest {
+  id                    String               @id @default(cuid())
+  shopId                String
+  repairOrderId         String
+  amountCents           Int
+  note                  String?
+  shareToken            String               @unique
+  status                DepositRequestStatus @default(PENDING)
+  sentAt                DateTime?
+  paidAt                DateTime?
+  paidMethod            PaymentMethod?
+  stripePaymentIntentId String?
+  createdAt             DateTime             @default(now())
+  updatedAt             DateTime             @updatedAt
+
+  shop        Shop        @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  repairOrder RepairOrder @relation(fields: [repairOrderId], references: [id], onDelete: Cascade)
+
+  @@index([shopId])
+  @@index([repairOrderId])
+  @@index([repairOrderId, status])
+}
+
+// ─────────────────────────── Messaging ───────────────────────────
+
+model Message {
+  id            String           @id @default(cuid())
+  shopId        String
+  customerId    String
+  repairOrderId String? // optional RO context (active RO on inbound, sender RO on outbound)
+  direction     MessageDirection
+  body          String
+  fromNumber    String? // E.164 sender (shop number on outbound, customer on inbound)
+  toNumber      String? // E.164 recipient
+  status        String? // queued, sent, delivered, failed, mock, received
+  twilioSid     String?
+  sentAt        DateTime?
+  readAt        DateTime? // when shop staff read an inbound message
+  createdAt     DateTime         @default(now())
+
+  shop        Shop         @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  customer    Customer     @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  repairOrder RepairOrder? @relation(fields: [repairOrderId], references: [id], onDelete: SetNull)
+
+  @@index([shopId])
+  @@index([customerId])
+  @@index([repairOrderId])
+}
+
+/// Multi-turn SMS after-hours agent state (Premier) — keyed by inbound caller phone.
+model AiSmsAgentSession {
+  id         String   @id @default(cuid())
+  shopId     String
+  phone      String   // E.164 inbound caller
+  customerId String?
+  state      Json     @default("{}")
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  shop Shop @relation(fields: [shopId], references: [id], onDelete: Cascade)
+
+  @@unique([shopId, phone])
+  @@index([shopId, expiresAt])
+}
+
+/// Multi-turn voice after-hours agent state (Premier) — keyed by Twilio CallSid.
+model AiVoiceAgentSession {
+  id         String   @id @default(cuid())
+  shopId     String
+  callSid    String   @unique
+  phone      String   // E.164 inbound caller
+  customerId String?
+  state      Json     @default("{}")
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  shop Shop @relation(fields: [shopId], references: [id], onDelete: Cascade)
+
+  @@index([shopId, expiresAt])
+}
+
+/// Inbound/outbound voice call audit trail for Premier receptionist.
+model VoiceCallLog {
+  id              String   @id @default(cuid())
+  shopId          String
+  callSid         String   @unique
+  fromPhone       String
+  toPhone         String
+  status          String   @default("ringing") // ringing | agent | forwarded | completed | failed
+  durationSeconds Int?
+  recordingUrl    String?
+  summary         String?  @db.Text
+  customerId      String?
+  appointmentId   String?
+  consentGiven    Boolean  @default(false)
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  shop Shop @relation(fields: [shopId], references: [id], onDelete: Cascade)
+
+  @@index([shopId, createdAt])
+}
+
+// ─────────────────────── Marketing campaigns ───────────────────────
+
+model MarketingCampaign {
+  id              String          @id @default(cuid())
+  shopId          String
+  name            String
+  type            CampaignType    @default(CUSTOM)
+  status          CampaignStatus  @default(DRAFT)
+  channel         CampaignChannel @default(SMS)
+  audienceFilter  Json            @default("{}")
+  messageTemplate String          @db.Text
+  emailSubject    String?
+  scheduledAt     DateTime?
+  launchedAt      DateTime?
+  completedAt     DateTime?
+  sentCount       Int             @default(0)
+  deliveredCount  Int             @default(0)
+  failedCount     Int             @default(0)
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+
+  shop  Shop           @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  sends CampaignSend[]
+
+  @@index([shopId])
+  @@index([shopId, status])
+  @@index([shopId, type])
+}
+
+model CampaignSend {
+  id         String             @id @default(cuid())
+  campaignId String
+  customerId String
+  channel    CampaignChannel
+  status     CampaignSendStatus @default(PENDING)
+  sentAt     DateTime?
+  openedAt   DateTime?
+  clickedAt  DateTime?
+  error      String?
+  createdAt  DateTime           @default(now())
+
+  campaign MarketingCampaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  customer Customer          @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@index([campaignId])
+  @@index([customerId])
+}
+
+// ─────────────────────── Marketing automations (Tekmetric-style) ──
+
+model MarketingAutomation {
+  id                      String                  @id @default(cuid())
+  shopId                  String
+  key                     AutomationKey
+  name                    String
+  triggerTiming           AutomationTriggerTiming @default(AFTER)
+  triggerAmount           Int?
+  triggerUnit             AutomationTriggerUnit?
+  emailEnabled            Boolean                 @default(false)
+  smsEnabled              Boolean                 @default(false)
+  smsMessage              String                  @db.Text
+  emailSubject            String?
+  emailBody               String?                 @db.Text
+  includeBusinessCustomers Boolean                @default(true)
+  limitOnePerCustomer     Boolean                 @default(false)
+  includeBookingLinkCta   Boolean                 @default(true)
+  configured              Boolean                 @default(false)
+  createdAt               DateTime                @default(now())
+  updatedAt               DateTime                @updatedAt
+
+  shop  Shop              @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  sends AutomationSend[]
+
+  @@unique([shopId, key])
+  @@index([shopId])
+}
+
+model AutomationSend {
+  id           String               @id @default(cuid())
+  automationId String
+  customerId   String
+  channel      CampaignChannel
+  status       AutomationSendStatus @default(PENDING)
+  sentAt       DateTime?
+  scheduledFor DateTime?
+  error        String?
+  createdAt    DateTime             @default(now())
+
+  automation MarketingAutomation @relation(fields: [automationId], references: [id], onDelete: Cascade)
+  customer   Customer            @relation(fields: [customerId], references: [id], onDelete: Cascade)
+
+  @@index([automationId])
+  @@index([customerId])
+  @@index([automationId, sentAt])
+  @@index([automationId, scheduledFor])
+}
+
+// ─────────────────────── Platform legal agreements ───────────────────────
+
+// Per-shop enterprise MSA (uploaded/attested by platform admin; offline signature).
+model ShopCustomAgreement {
+  id              String   @id @default(cuid())
+  shopId          String   @unique
+  legalEntityName String
+  version         String
+  contentHtml     String   @db.Text
+  contentHash     String
+  effectiveDate   DateTime
+  notes           String?  @db.Text
+  uploadedById    String
+  uploadedAt      DateTime @default(now())
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  shop       Shop @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  uploadedBy User @relation(fields: [uploadedById], references: [id], onDelete: Restrict)
+
+  @@index([shopId])
+}
+
+// Global agreement documents (not shop-scoped). Versioned clickwrap terms.
+model AgreementDocument {
+  id               String        @id @default(cuid())
+  type             AgreementType
+  version          String // e.g. "1.0.0"
+  title            String
+  contentHtml      String        @db.Text
+  contentHash      String
+  effectiveAt      DateTime
+  publishedAt      DateTime      @default(now())
+  isCurrent        Boolean       @default(false)
+  requiresReaccept Boolean       @default(true)
+
+  @@unique([type, version])
+  @@index([type, isCurrent])
+}
+
+// Per-shop acceptance audit trail (clickwrap at onboarding or re-acceptance).
+model LegalAcceptance {
+  id               String        @id @default(cuid())
+  shopId           String
+  userId           String
+  agreementType    AgreementType
+  agreementVersion String
+  contentHash      String
+  signerName       String
+  signerTitle      String?
+  signerEmail      String
+  acceptedAt       DateTime      @default(now())
+  ipAddress        String?
+  userAgent        String?
+  acceptanceMethod String        @default("clickwrap_checkbox")
+  metadata         Json?
+
+  shop Shop @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([shopId, agreementType, agreementVersion, userId])
+  @@index([shopId, agreementType])
+}
+
+// ─────────────────────── Platform support ───────────────────────
+
+// Global FAQ library — not scoped by shopId (same articles for all tenants).
+model FaqArticle {
+  id        String   @id @default(cuid())
+  slug      String   @unique
+  category  String
+  question  String
+  answer    String   @db.Text
+  sortOrder Int      @default(0)
+  published Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([category, sortOrder])
+  @@index([published])
+}
+
+model SupportTicket {
+  id        String                 @id @default(cuid())
+  shopId    String?
+  name      String
+  email     String
+  subject   String
+  body      String                 @db.Text
+  category  SupportTicketCategory  @default(GENERAL)
+  status    SupportTicketStatus    @default(OPEN)
+  createdAt DateTime               @default(now())
+  updatedAt DateTime               @updatedAt
+
+  shop Shop? @relation(fields: [shopId], references: [id], onDelete: SetNull)
+
+  @@index([shopId])
+  @@index([status])
+  @@index([category])
+  @@index([createdAt])
+}
+
+model AiUsageLog {
+  id           String    @id @default(cuid())
+  shopId       String?
+  feature      AiFeature
+  model        String
+  inputTokens  Int?
+  outputTokens Int?
+  totalTokens  Int?
+  createdAt    DateTime  @default(now())
+
+  shop Shop? @relation(fields: [shopId], references: [id], onDelete: SetNull)
+
+  @@index([shopId, createdAt])
+  @@index([feature, createdAt])
+  @@index([createdAt])
+}
+
+// Per-user read state for in-app notification bell items (derived from ROs, SMS, etc.).
+model NotificationRead {
+  id              String   @id @default(cuid())
+  shopId          String
+  userId          String
+  notificationKey String // e.g. estimate-viewed:roId, sms:messageId
+  readAt          DateTime @default(now())
+
+  shop Shop @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([shopId, userId, notificationKey])
+  @@index([shopId, userId])
+}
+
+// ─────────────────────── Maintenance programs (customer subscriptions) ───────────────────────
+
+enum MaintenancePlanScope {
+  PER_VEHICLE
+  PER_HOUSEHOLD
+  PER_CUSTOMER
+}
+
+enum MaintenancePlanArchetype {
+  BUNDLE
+  MONTHLY_CLUB
+  HOUSEHOLD
+  UNLIMITED_TIER
+}
+
+enum EntitlementKind {
+  COUNTED
+  UNLIMITED
+  INTERVAL
+  EVERY_VISIT
+  DISCOUNT
+  CREDIT
+  COUPON
+  ACCESS
+}
+
+enum PlanSubscriptionStatus {
+  PENDING
+  ACTIVE
+  PAST_DUE
+  PAUSED
+  CANCELLED
+  EXPIRED
+}
+
+enum SubscriptionPaymentMode {
+  PAY_IN_FULL
+  MONTHLY
+  ANNUAL
+  SEMI_ANNUAL
+  MANUAL
+}
+
+enum MaintenanceVehicleClass {
+  CAR
+  SUV_TRUCK
+  HEAVY_DUTY
+  EV
+  LUXURY
+  OTHER
+}
+
+enum ProgramServiceType {
+  VISITS
+  UNLIMITED
+  SCHEDULED
+  EVERY_VISIT
+  DISCOUNT
+  CREDIT
+}
+
+enum PlansPageTemplate {
+  CLASSIC
+  MODERN
+  BOLD
+  PREMIUM
+}
+
+model MaintenanceProgramSettings {
+  id          String  @id @default(cuid())
+  shopId      String  @unique
+  enabled     Boolean @default(false)
+  plansSlug   String? @unique
+  heroTitle        String?
+  heroSubtitle     String? @db.Text
+  termsDefault     String? @db.Text
+  pageTemplate     PlansPageTemplate @default(CLASSIC)
+  themeConfig      Json?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  shop Shop @relation(fields: [shopId], references: [id], onDelete: Cascade)
+}
+
+/** Shop-owned service catalog — owners define services first, then attach to subscription plans. */
+model MaintenanceProgramService {
+  id                   String              @id @default(cuid())
+  shopId               String
+  cannedJobId          String?
+  name                 String
+  description          String?             @db.Text
+  serviceType          ProgramServiceType  @default(VISITS)
+  defaultQuantity      Int?
+  defaultIntervalDays  Int?
+  defaultDiscountBps   Int?
+  unitCostCents        Int?
+  active               Boolean             @default(true)
+  sortOrder            Int                 @default(0)
+  createdAt            DateTime            @default(now())
+  updatedAt            DateTime            @updatedAt
+
+  shop          Shop              @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  cannedJob     CannedJob?        @relation(fields: [cannedJobId], references: [id], onDelete: SetNull)
+  entitlements  PlanEntitlement[]
+
+  @@unique([shopId, cannedJobId])
+  @@index([shopId, active])
+  @@index([shopId, sortOrder])
+}
+
+model MaintenancePlan {
+  id             String                   @id @default(cuid())
+  shopId         String
+  name           String
+  tagline        String?
+  description    String?                  @db.Text
+  idealFor       String?
+  archetype      MaintenancePlanArchetype @default(BUNDLE)
+  scope          MaintenancePlanScope     @default(PER_VEHICLE)
+  maxVehicles    Int?
+  termMonths     Int                      @default(12)
+  autoRenew      Boolean                  @default(true)
+  allowRollover  Boolean                  @default(false)
+  transferable   Boolean                  @default(false)
+  useClassPricing Boolean                 @default(false)
+  retailCents    Int?
+  payInFullCents Int?
+  monthlyCents   Int?
+  monthlyTermMonths Int?
+  annualCents    Int?
+  featured       Boolean                  @default(false)
+  sortOrder      Int                      @default(0)
+  active         Boolean                  @default(true)
+  terms          String?                  @db.Text
+  rules          Json?
+  createdAt      DateTime                 @default(now())
+  updatedAt      DateTime                 @updatedAt
+
+  shop          Shop                    @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  entitlements  PlanEntitlement[]
+  classPrices   PlanVehicleClassPrice[]
+  subscriptions PlanSubscription[]
+
+  @@index([shopId, active])
+  @@index([shopId, sortOrder])
+}
+
+model PlanEntitlement {
+  id               String           @id @default(cuid())
+  shopId           String
+  planId           String
+  programServiceId String?
+  kind             EntitlementKind
+  label            String
+  quantity         Int?
+  intervalDays     Int?
+  discountBps      Int?
+  discountCapCents Int?
+  creditCents      Int?
+  cannedJobId      String?
+  sortOrder        Int              @default(0)
+
+  plan           MaintenancePlan            @relation(fields: [planId], references: [id], onDelete: Cascade)
+  programService MaintenanceProgramService? @relation(fields: [programServiceId], references: [id], onDelete: SetNull)
+
+  @@index([planId])
+  @@index([shopId])
+  @@index([programServiceId])
+}
+
+model PlanVehicleClassPrice {
+  id             String                  @id @default(cuid())
+  shopId         String
+  planId         String
+  vehicleClass   MaintenanceVehicleClass
+  payInFullCents Int?
+  monthlyCents   Int?
+  annualCents    Int?
+  surchargeCents Int?
+
+  plan MaintenancePlan @relation(fields: [planId], references: [id], onDelete: Cascade)
+
+  @@unique([planId, vehicleClass])
+  @@index([shopId])
+}
+
+model PlanSubscription {
+  id                    String                 @id @default(cuid())
+  shopId                String
+  planId                String
+  customerId            String
+  status                PlanSubscriptionStatus @default(PENDING)
+  paymentMode           SubscriptionPaymentMode
+  vehicleClass          MaintenanceVehicleClass?
+  startsAt              DateTime
+  endsAt                DateTime
+  autoRenew             Boolean                @default(true)
+  stripeSubscriptionId  String?
+  stripePaymentIntentId String?
+  memberPortalToken     String                 @unique @default(cuid())
+  enrolledByUserId      String?
+  cancelledAt           DateTime?
+  createdAt             DateTime               @default(now())
+  updatedAt             DateTime               @updatedAt
+
+  shop         Shop                      @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  plan         MaintenancePlan           @relation(fields: [planId], references: [id])
+  customer     Customer                  @relation(fields: [customerId], references: [id])
+  vehicles     SubscriptionVehicle[]
+  entitlements SubscriptionEntitlement[]
+  redemptions  PlanRedemption[]
+  payments     SubscriptionPayment[]
+
+  @@index([shopId, status])
+  @@index([customerId])
+  @@index([planId])
+}
+
+model SubscriptionVehicle {
+  id             String @id @default(cuid())
+  shopId         String
+  subscriptionId String
+  vehicleId      String
+
+  subscription PlanSubscription @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+  vehicle      Vehicle          @relation(fields: [vehicleId], references: [id])
+
+  @@unique([subscriptionId, vehicleId])
+  @@index([shopId])
+}
+
+model SubscriptionEntitlement {
+  id                 String @id @default(cuid())
+  shopId             String
+  subscriptionId     String
+  planEntitlementId  String
+  usedCount          Int    @default(0)
+  remainingCount     Int?
+  creditBalanceCents Int?
+  nextEligibleAt     DateTime?
+
+  subscription PlanSubscription      @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+  redemptions  RedeemedEntitlement[]
+
+  @@unique([subscriptionId, planEntitlementId])
+  @@index([shopId])
+}
+
+enum ServiceVisitStatus {
+  IN_PROGRESS
+  COMPLETED
+  VOIDED
+}
+
+/** Timestamped service visit header — one row per shop check-off session. */
+model PlanRedemption {
+  id                   String             @id @default(cuid())
+  shopId               String
+  subscriptionId       String
+  repairOrderId        String?
+  vehicleId            String?
+  mileageIn            Int?
+  redeemedByUserId     String?
+  performedByName      String?
+  notes                String?
+  status               ServiceVisitStatus @default(COMPLETED)
+  performedAt          DateTime           @default(now())
+  voidedAt             DateTime?
+  voidReason           String?
+  gatekeeperVerified   Boolean            @default(false)
+  gatekeeperVerifiedAt DateTime?
+  gatekeeperPlate      String?
+  gatekeeperVinLast6   String?
+  gatekeeperMismatch   Boolean            @default(false)
+  createdAt            DateTime           @default(now())
+
+  subscription PlanSubscription      @relation(fields: [subscriptionId], references: [id])
+  repairOrder  RepairOrder?          @relation(fields: [repairOrderId], references: [id])
+  performedBy  User?                 @relation(fields: [redeemedByUserId], references: [id], onDelete: SetNull)
+  items        RedeemedEntitlement[]
+
+  @@index([shopId, subscriptionId])
+  @@index([repairOrderId])
+  @@index([shopId, status])
+}
+
+model RedeemedEntitlement {
+  id                        String @id @default(cuid())
+  shopId                    String
+  redemptionId              String
+  subscriptionEntitlementId String
+  quantity                  Int    @default(1)
+
+  redemption              PlanRedemption          @relation(fields: [redemptionId], references: [id], onDelete: Cascade)
+  subscriptionEntitlement SubscriptionEntitlement @relation(fields: [subscriptionEntitlementId], references: [id])
+
+  @@index([redemptionId])
+  @@index([subscriptionEntitlementId])
+  @@index([shopId])
+}
+
+model SubscriptionPayment {
+  id              String        @id @default(cuid())
+  shopId          String
+  subscriptionId  String
+  amountCents     Int
+  method          PaymentMethod
+  stripePaymentId String?
+  paidAt          DateTime      @default(now())
+  periodStart     DateTime?
+  periodEnd       DateTime?
+
+  subscription PlanSubscription @relation(fields: [subscriptionId], references: [id])
+
+  @@index([subscriptionId])
+  @@index([shopId])
+}

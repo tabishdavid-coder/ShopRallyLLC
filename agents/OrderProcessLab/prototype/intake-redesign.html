@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=1280, height=720" />
+  <title>ShopRally — Intake redesign mockup</title>
+  <style>
+    :root {
+      --navy: #1a1c22;
+      --blue: #00a3ff;
+      --blue-soft: rgba(0, 163, 255, 0.12);
+      --green: #059669;
+      --green-soft: #ecfdf5;
+      --muted: #64748b;
+      --border: rgba(0, 163, 255, 0.25);
+      --shadow: 0 24px 60px rgba(26, 28, 34, 0.18);
+      --ease: cubic-bezier(0.22, 1, 0.36, 1);
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: Inter, "Segoe UI", system-ui, sans-serif;
+      background: #eef2f7;
+      color: var(--navy);
+      overflow: hidden;
+      width: 1280px;
+      height: 720px;
+    }
+
+    /* ── Blurred job board background ── */
+    .backdrop {
+      position: absolute;
+      inset: 0;
+      background:
+        linear-gradient(135deg, rgba(238,242,247,0.92), rgba(238,242,247,0.75)),
+        repeating-linear-gradient(90deg, transparent, transparent 410px, rgba(0,163,255,0.04) 410px, rgba(0,163,255,0.04) 411px);
+      filter: blur(0px);
+    }
+
+    .board {
+      position: absolute;
+      inset: 56px 480px 24px 72px;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 16px;
+      opacity: 0.55;
+      filter: blur(2px);
+      transform: scale(0.98);
+      transition: filter 600ms var(--ease), opacity 600ms var(--ease);
+    }
+
+    body.sheet-open .board { filter: blur(5px); opacity: 0.42; }
+
+    .col-h {
+      border-radius: 10px 10px 0 0;
+      padding: 10px 12px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      color: white;
+    }
+    .col-h.est { background: var(--navy); }
+    .col-h.wip { background: var(--blue); }
+    .col-h.done { background: var(--green); }
+
+    .col-body {
+      background: white;
+      border: 1px solid #e2e8f0;
+      border-top: none;
+      border-radius: 0 0 10px 10px;
+      min-height: 520px;
+      padding: 10px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .ticket {
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 8px;
+      padding: 10px;
+      font-size: 12px;
+    }
+    .ticket strong { display: block; font-size: 13px; margin-bottom: 2px; }
+    .ticket span { color: var(--muted); font-size: 11px; }
+
+    .sidebar {
+      position: absolute;
+      left: 0; top: 0; bottom: 0;
+      width: 56px;
+      background: var(--navy);
+    }
+
+    .topbar {
+      position: absolute;
+      left: 56px; right: 0; top: 0;
+      height: 56px;
+      background: white;
+      border-bottom: 1px solid #e2e8f0;
+      display: flex;
+      align-items: center;
+      padding: 0 20px;
+      gap: 12px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+    .topbar .logo { font-weight: 800; color: var(--navy); letter-spacing: -0.02em; }
+
+    /* ── Slide-over sheet ── */
+    .sheet-wrap {
+      position: absolute;
+      top: 0; right: 0; bottom: 0;
+      width: 520px;
+      transform: translateX(100%);
+      transition: transform 700ms var(--ease);
+      z-index: 20;
+    }
+    body.sheet-open .sheet-wrap { transform: translateX(0); }
+
+    .sheet {
+      height: 100%;
+      background: white;
+      box-shadow: var(--shadow);
+      border-left: 1px solid var(--border);
+      border-radius: 16px 0 0 16px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .sheet-header {
+      background: var(--navy);
+      color: white;
+      padding: 20px 24px 18px;
+    }
+    .sheet-header .eyebrow {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--blue);
+      margin-bottom: 6px;
+    }
+    .sheet-header h1 { font-size: 22px; font-weight: 800; margin-bottom: 6px; }
+    .sheet-header p { font-size: 13px; color: rgba(255,255,255,0.72); line-height: 1.45; }
+
+    /* Progress rail */
+    .rail {
+      display: flex;
+      align-items: center;
+      gap: 0;
+      padding: 16px 24px 8px;
+      border-bottom: 1px solid #eef2f7;
+      background: linear-gradient(180deg, #fafbfc, white);
+    }
+
+    .rail-step {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      flex: 1;
+      min-width: 0;
+      position: relative;
+    }
+
+    .rail-step:not(:last-child)::after {
+      content: "";
+      position: absolute;
+      left: calc(100% - 8px);
+      top: 50%;
+      width: calc(100% - 40px);
+      height: 3px;
+      background: #e2e8f0;
+      transform: translateY(-50%);
+      border-radius: 999px;
+      z-index: 0;
+    }
+
+    .rail-fill {
+      position: absolute;
+      left: 24px;
+      top: 28px;
+      height: 3px;
+      width: 0%;
+      background: linear-gradient(90deg, var(--blue), #38bdf8);
+      border-radius: 999px;
+      transition: width 800ms var(--ease);
+      z-index: 1;
+      pointer-events: none;
+    }
+
+    .dot {
+      width: 28px; height: 28px;
+      border-radius: 999px;
+      border: 2px solid #cbd5e1;
+      background: white;
+      display: grid;
+      place-items: center;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--muted);
+      flex-shrink: 0;
+      z-index: 2;
+      transition: all 400ms var(--ease);
+    }
+
+    .rail-step.active .dot {
+      border-color: var(--blue);
+      background: var(--blue);
+      color: white;
+      box-shadow: 0 0 0 6px rgba(0,163,255,0.15);
+      animation: pulse 1.6s ease-in-out infinite;
+    }
+
+    .rail-step.done .dot {
+      border-color: var(--green);
+      background: var(--green);
+      color: white;
+    }
+
+    .rail-label {
+      font-size: 10px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .rail-step.active .rail-label { color: var(--blue); }
+    .rail-step.done .rail-label { color: var(--green); }
+
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 0 0 6px rgba(0,163,255,0.12); }
+      50% { box-shadow: 0 0 0 10px rgba(0,163,255,0.06); }
+    }
+
+    /* Step panels */
+    .steps-viewport {
+      flex: 1;
+      overflow: hidden;
+      position: relative;
+    }
+
+    .steps-track {
+      display: flex;
+      height: 100%;
+      width: 400%;
+      transition: transform 700ms var(--ease);
+    }
+
+    .step-panel {
+      width: 25%;
+      padding: 20px 24px;
+      overflow-y: auto;
+    }
+
+    .panel-title {
+      font-size: 15px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+    .panel-sub {
+      font-size: 12px;
+      color: var(--muted);
+      margin-bottom: 16px;
+    }
+
+    .search-box {
+      position: relative;
+      margin-bottom: 12px;
+    }
+    .search-box input {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px 12px 12px 40px;
+      font-size: 14px;
+      outline: none;
+      transition: border-color 200ms, box-shadow 200ms;
+    }
+    .search-box input:focus {
+      border-color: var(--blue);
+      box-shadow: 0 0 0 3px rgba(0,163,255,0.15);
+    }
+    .search-icon {
+      position: absolute;
+      left: 12px; top: 50%;
+      transform: translateY(-50%);
+      color: var(--muted);
+      font-size: 16px;
+    }
+
+    .result-list {
+      border: 1px solid #e2e8f0;
+      border-radius: 10px;
+      overflow: hidden;
+      opacity: 0;
+      transform: translateY(8px);
+      transition: all 400ms var(--ease);
+    }
+    .result-list.show { opacity: 1; transform: translateY(0); }
+
+    .result {
+      padding: 12px 14px;
+      border-bottom: 1px solid #f1f5f9;
+      cursor: pointer;
+      transition: background 150ms;
+    }
+    .result:last-child { border-bottom: none; }
+    .result:hover, .result.selected { background: var(--blue-soft); }
+    .result strong { font-size: 14px; display: block; }
+    .result span { font-size: 12px; color: var(--muted); }
+
+    .add-link {
+      margin-top: 10px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--navy);
+    }
+
+    .summary-card {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 12px 14px;
+      border: 1px solid rgba(5,150,105,0.25);
+      background: var(--green-soft);
+      border-radius: 12px;
+      margin-bottom: 14px;
+      opacity: 0;
+      transform: translateY(-12px);
+      transition: all 500ms var(--ease);
+    }
+    .summary-card.show { opacity: 1; transform: translateY(0); }
+
+    .avatar {
+      width: 40px; height: 40px;
+      border-radius: 999px;
+      background: var(--navy);
+      color: white;
+      display: grid;
+      place-items: center;
+      font-weight: 700;
+      font-size: 13px;
+    }
+
+    .summary-card .meta strong { font-size: 14px; display: block; }
+    .summary-card .meta span { font-size: 12px; color: var(--muted); }
+    .check-badge {
+      margin-left: auto;
+      width: 22px; height: 22px;
+      border-radius: 999px;
+      background: var(--green);
+      color: white;
+      display: grid;
+      place-items: center;
+      font-size: 12px;
+    }
+
+    .vehicle-card {
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 14px;
+      margin-bottom: 10px;
+      cursor: pointer;
+      transition: all 300ms var(--ease);
+      opacity: 0;
+      transform: translateX(16px);
+    }
+    .vehicle-card.show { opacity: 1; transform: translateX(0); }
+    .vehicle-card.selected {
+      border-color: var(--blue);
+      background: var(--blue-soft);
+      box-shadow: inset 4px 0 0 var(--blue);
+    }
+    .vehicle-card strong { font-size: 14px; }
+    .vehicle-card span { font-size: 12px; color: var(--muted); display: block; margin-top: 2px; }
+
+    .concern-input {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 12px;
+      font-size: 14px;
+      margin-bottom: 12px;
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: var(--blue-soft);
+      border: 1px solid rgba(0,163,255,0.3);
+      color: var(--navy);
+      border-radius: 999px;
+      padding: 6px 12px;
+      font-size: 13px;
+      font-weight: 600;
+      opacity: 0;
+      transform: scale(0.85);
+      transition: all 350ms cubic-bezier(0.34, 1.56, 0.64, 1);
+    }
+    .chip.show { opacity: 1; transform: scale(1); }
+
+    .row-2 {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-top: 14px;
+    }
+    .field label {
+      display: block;
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+    .field input, .field select {
+      width: 100%;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 10px;
+      font-size: 13px;
+    }
+
+    /* Footer */
+    .sheet-footer {
+      border-top: 1px solid #eef2f7;
+      background: #fafbfc;
+      padding: 14px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      transform: translateY(100%);
+      transition: transform 500ms var(--ease);
+    }
+    body.footer-visible .sheet-footer { transform: translateY(0); }
+
+    .footer-note { font-size: 12px; color: var(--muted); }
+    .footer-note strong { display: block; color: var(--navy); font-size: 13px; }
+
+    .cta {
+      background: var(--blue);
+      color: white;
+      border: none;
+      border-radius: 10px;
+      padding: 12px 20px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transition: transform 150ms, box-shadow 150ms;
+    }
+    .cta:hover { transform: translateY(-1px); box-shadow: 0 8px 20px rgba(0,163,255,0.35); }
+    .cta.pulse { animation: ctaPulse 900ms var(--ease); }
+    @keyframes ctaPulse {
+      0% { transform: scale(1); }
+      40% { transform: scale(1.04); }
+      100% { transform: scale(1); }
+    }
+
+    .kbd {
+      font-size: 10px;
+      background: rgba(255,255,255,0.2);
+      border-radius: 4px;
+      padding: 2px 6px;
+      margin-left: 4px;
+    }
+
+    /* Estimate flash */
+    .estimate-flash {
+      position: absolute;
+      inset: 0;
+      background: white;
+      z-index: 30;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity 600ms var(--ease);
+      display: flex;
+      flex-direction: column;
+    }
+    body.show-estimate .estimate-flash { opacity: 1; pointer-events: auto; }
+
+    .est-header {
+      background: var(--navy);
+      color: white;
+      padding: 16px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    .est-header h2 { font-size: 18px; }
+    .est-body { flex: 1; padding: 24px; }
+    .est-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+    .est-card {
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 14px;
+    }
+    .est-card strong { display: block; font-size: 14px; margin-bottom: 4px; }
+    .est-card span { font-size: 12px; color: var(--muted); }
+
+    .success-banner {
+      background: linear-gradient(90deg, rgba(0,163,255,0.12), rgba(5,150,105,0.12));
+      border: 1px solid rgba(0,163,255,0.25);
+      border-radius: 12px;
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      animation: slideUp 600ms var(--ease);
+    }
+    @keyframes slideUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .success-banner .icon {
+      width: 36px; height: 36px;
+      border-radius: 999px;
+      background: var(--green);
+      color: white;
+      display: grid;
+      place-items: center;
+      font-size: 18px;
+    }
+
+    .caption {
+      position: fixed;
+      bottom: 16px;
+      left: 72px;
+      background: rgba(26,28,34,0.88);
+      color: white;
+      padding: 8px 14px;
+      border-radius: 8px;
+      font-size: 12px;
+      z-index: 50;
+      opacity: 0;
+      transition: opacity 300ms;
+    }
+    .caption.show { opacity: 1; }
+  </style>
+</head>
+<body>
+  <div class="sidebar"></div>
+  <div class="topbar"><span class="logo">ShopRally</span> Job Board · In &amp; Out AutoHaus</div>
+
+  <div class="backdrop"></div>
+  <div class="board">
+    <div>
+      <div class="col-h est">ESTIMATES · 103</div>
+      <div class="col-body">
+        <div class="ticket"><strong>David Tabish</strong><span>2014 Honda Accord · #1378</span></div>
+        <div class="ticket"><strong>Maria Chen</strong><span>2019 Toyota Camry · #1377</span></div>
+      </div>
+    </div>
+    <div>
+      <div class="col-h wip">WORK IN PROGRESS · 146</div>
+      <div class="col-body">
+        <div class="ticket"><strong>2 Bearings Front</strong><span>2018 Ford F-150 · #1003</span></div>
+      </div>
+    </div>
+    <div>
+      <div class="col-h done">COMPLETED · 129</div>
+      <div class="col-body">
+        <div class="ticket"><strong>Johnson Mark</strong><span>2016 Chevy Silverado · #1002</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="sheet-wrap">
+    <div class="sheet">
+      <div class="sheet-header">
+        <div class="eyebrow">Create repair order</div>
+        <h1>New repair order</h1>
+        <p>Search once — we'll build the rest, then open the estimate instantly.</p>
+      </div>
+
+      <div class="rail" id="rail">
+        <div class="rail-fill" id="railFill"></div>
+        <div class="rail-step active" data-step="0">
+          <div class="dot">1</div>
+          <div class="rail-label">Identity</div>
+        </div>
+        <div class="rail-step" data-step="1">
+          <div class="dot">2</div>
+          <div class="rail-label">Vehicle</div>
+        </div>
+        <div class="rail-step" data-step="2">
+          <div class="dot">3</div>
+          <div class="rail-label">Visit</div>
+        </div>
+        <div class="rail-step" data-step="3">
+          <div class="dot">4</div>
+          <div class="rail-label">Estimate</div>
+        </div>
+      </div>
+
+      <div class="steps-viewport">
+        <div class="steps-track" id="track">
+          <!-- Step 1 Identity -->
+          <div class="step-panel">
+            <div class="panel-title">Who's coming in?</div>
+            <div class="panel-sub">Search name, phone, plate, or VIN</div>
+            <div class="search-box">
+              <span class="search-icon">⌕</span>
+              <input id="searchInput" type="text" placeholder="Search customers…" readonly />
+            </div>
+            <div class="result-list" id="results">
+              <div class="result" id="resultJordan">
+                <strong>Jordan Walkin</strong>
+                <span>518-555-0142 · Walk-in</span>
+              </div>
+              <div class="result">
+                <strong>Jordan Lee</strong>
+                <span>518-555-8899</span>
+              </div>
+            </div>
+            <div class="add-link">+ Add new customer</div>
+          </div>
+
+          <!-- Step 2 Vehicle -->
+          <div class="step-panel">
+            <div class="summary-card" id="customerSummary">
+              <div class="avatar">JW</div>
+              <div class="meta">
+                <strong>Jordan Walkin</strong>
+                <span>518-555-0142</span>
+              </div>
+              <div class="check-badge">✓</div>
+            </div>
+            <div class="panel-title">Select vehicle</div>
+            <div class="panel-sub">From garage or plate lookup</div>
+            <div class="vehicle-card" id="veh1">
+              <strong>2020 Honda Accord</strong>
+              <span>ABC1234 NY · 62,000 mi</span>
+            </div>
+            <div class="vehicle-card" id="veh2" style="transition-delay: 80ms">
+              <strong>2017 Honda Civic</strong>
+              <span>XYZ9876 NY</span>
+            </div>
+          </div>
+
+          <!-- Step 3 Visit -->
+          <div class="step-panel">
+            <div class="summary-card show" id="vehicleSummary" style="background:#f0f9ff;border-color:rgba(0,163,255,0.25)">
+              <div class="avatar" style="background:var(--blue)">🚗</div>
+              <div class="meta">
+                <strong>2020 Honda Accord</strong>
+                <span>ABC1234 NY · 62,000 mi</span>
+              </div>
+              <div class="check-badge">✓</div>
+            </div>
+            <div class="panel-title">Visit details</div>
+            <div class="panel-sub">Concern, odometer, and lead source</div>
+            <input class="concern-input" id="concernInput" placeholder="Describe customer concern…" readonly />
+            <div class="chip" id="concernChip">Brake noise when stopping</div>
+            <div class="row-2">
+              <div class="field">
+                <label>Odometer</label>
+                <input id="odoInput" value="62,000" readonly />
+              </div>
+              <div class="field">
+                <label>Lead source</label>
+                <select><option>Walk-in</option></select>
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 4 Ready -->
+          <div class="step-panel">
+            <div class="panel-title">Ready to open estimate</div>
+            <div class="panel-sub">RO #1380 will land on Services tab</div>
+            <div class="success-banner" style="margin-top:20px">
+              <div class="icon">✓</div>
+              <div>
+                <strong style="font-size:15px">All set — Jordan Walkin · 2020 Honda Accord</strong>
+                <div style="font-size:12px;color:var(--muted);margin-top:4px">1 concern captured · Opens estimate in one click</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="sheet-footer">
+        <div class="footer-note">
+          <strong id="footerStatus">Step 1 of 4 — Identity</strong>
+          <span>350ms slide · AutoLeap-style FAB entry</span>
+        </div>
+        <button class="cta" id="ctaBtn">Create repair order →<span class="kbd">⌘↵</span></button>
+      </div>
+    </div>
+  </div>
+
+  <div class="estimate-flash" id="estimateFlash">
+    <div class="est-header">
+      <h2>RO #1380 · Estimate</h2>
+      <span style="font-size:13px;color:rgba(255,255,255,0.7)">Services tab</span>
+    </div>
+    <div class="est-body">
+      <div class="est-cards">
+        <div class="est-card"><strong>Jordan Walkin</strong><span>518-555-0142</span></div>
+        <div class="est-card"><strong>2020 Honda Accord</strong><span>62,000 mi · ABC1234 NY</span></div>
+      </div>
+      <div class="success-banner">
+        <div class="icon">⚡</div>
+        <div>
+          <strong style="font-size:15px">Landed on estimate — add first job</strong>
+          <div style="font-size:12px;color:var(--muted);margin-top:4px">Concern pre-loaded · + Add job ready</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="caption" id="caption"></div>
+
+  <script>
+    const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
+
+    const steps = [...document.querySelectorAll(".rail-step")];
+    const track = document.getElementById("track");
+    const railFill = document.getElementById("railFill");
+    const caption = document.getElementById("caption");
+    const footerStatus = document.getElementById("footerStatus");
+    const labels = ["Identity", "Vehicle", "Visit", "Estimate"];
+
+    function setCaption(text) {
+      caption.textContent = text;
+      caption.classList.add("show");
+    }
+
+    function setStep(index) {
+      steps.forEach((s, i) => {
+        s.classList.remove("active", "done");
+        if (i < index) s.classList.add("done");
+        if (i === index) s.classList.add("active");
+      });
+      track.style.transform = `translateX(-${index * 25}%)`;
+      railFill.style.width = `${Math.max(0, (index / 3) * 72)}%`;
+      footerStatus.textContent = index >= 3 ? "Ready for estimate" : `Step ${index + 1} of 4 — ${labels[index]}`;
+    }
+
+    async function typeText(el, text, speed = 55) {
+      el.value = "";
+      for (const ch of text) {
+        el.value += ch;
+        await sleep(speed);
+      }
+    }
+
+    window.runDemo = async function runDemo() {
+      document.body.classList.add("sheet-open");
+      setCaption("FAB opens intake sheet over job board");
+      await sleep(1200);
+
+      setStep(0);
+      setCaption("Step 1 — unified identity search");
+      const searchInput = document.getElementById("searchInput");
+      await typeText(searchInput, "Jordan", 70);
+      await sleep(400);
+      document.getElementById("results").classList.add("show");
+      await sleep(900);
+
+      document.getElementById("resultJordan").classList.add("selected");
+      setCaption("Customer selected — card slides into summary");
+      await sleep(700);
+
+      setStep(1);
+      document.getElementById("customerSummary").classList.add("show");
+      await sleep(500);
+      document.getElementById("veh1").classList.add("show");
+      await sleep(200);
+      document.getElementById("veh2").classList.add("show");
+      await sleep(600);
+      document.getElementById("veh1").classList.add("selected");
+      setCaption("Step 2 — vehicle cards stagger in");
+      await sleep(900);
+
+      setStep(2);
+      document.body.classList.add("footer-visible");
+      setCaption("Step 3 — concern chip pops in");
+      await sleep(500);
+      await typeText(document.getElementById("concernInput"), "Brake noise when stopping", 45);
+      await sleep(300);
+      document.getElementById("concernChip").classList.add("show");
+      await sleep(1000);
+
+      setStep(3);
+      setCaption("Progress rail complete — sticky CTA");
+      await sleep(1200);
+
+      const cta = document.getElementById("ctaBtn");
+      cta.classList.add("pulse");
+      await sleep(600);
+      cta.click();
+    };
+
+    document.getElementById("ctaBtn").addEventListener("click", async () => {
+      setCaption("Sheet morphs → estimate tab");
+      document.body.classList.add("show-estimate");
+      await sleep(3500);
+      setCaption("New intake UI mockup — search once, slide forward");
+      window.__demoComplete = true;
+    });
+
+    if (new URLSearchParams(location.search).get("autoplay") === "1") {
+      window.addEventListener("load", () => setTimeout(() => runDemo(), 800));
+    }
+  </script>
+</body>
+</html>

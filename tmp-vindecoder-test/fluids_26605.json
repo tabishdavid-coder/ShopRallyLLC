@@ -1,0 +1,126 @@
+ {
+    "success": true,
+    "timestamp": "2026-07-08T02:46:01+00:00",
+    "api_version": "2.0",
+    "data": [
+        {
+            "ItemMPText": "Gearbox oil",
+            "QualColTextStr": "Y4M gearbox",
+            "ValueText": "2,10",
+            "ADQuantityTextStr": "Liter (s)",
+            "AddTextStr": ""
+        },
+        {
+            "ItemMPText": "Transmission oil specification",
+            "QualColTextStr": "Y4M gearbox",
+            "ValueText": "SAE 75W-90",
+            "ADQuantityTextStr": "",
+            "AddTextStr": ""
+        },
+        {
+            "ItemMPText": "Conditioner oil specification",
+            "QualColTextStr": "with V5 system",
+            "ValueText": "Union Carbide 488",
+            "ADQuantityTextStr": "",
+            "AddTextStr": ""
+        },
+        {
+            "ItemMPText": "Oil conditioner",
+            "QualColTextStr": "with V5 system",
+            "ValueText": "200",
+            "ADQuantityTextStr": "cm³",
+            "AddTextStr": ""
+        },
+        {
+            "ItemMPText": "Oil conditioner",
+            "QualColTextStr": "with SP 10 system",
+            "ValueText": "150",
+            "ADQuantityTextStr": "cm³",
+            "AddTextStr": ""
+        },
+        {
+            "ItemMPText": "Conditioner oil specification",
+            "QualColTextStr": "with SP 10 system",
+            "ValueText": "RL-897",
+            "ADQuantityTextStr": "",
+            "AddTextStr": ""
+        },
+        {
+            "ItemMPText": "Power steering oil specification",
+            "QualColTextStr": "",
+            "ValueText": "ATF Dexron II D",
+            "ADQuantityTextStr": "",
+            "AddTextStr": ""
+        },
+        {
+            "ItemMPText": "Engine oil with filter",
+            "QualColTextStr": "",
+            "ValueText": "3,75",
+            "ADQuantityTextStr": "Liter (s)",
+            "AddTextStr": ""
+        },
+        {
+            "ItemMPText": "Coolant",
+            "QualColTextStr": "",
+            "ValueText": "5,20",
+            "ADQuantityTextStr": "Liter (s)",
+            "AddTextStr": ""
+        },
+        {
+            "ItemMPText": "Refrigerant specification",
+            "QualColTextStr": "",
+            "ValueText": "R134a",
+            "ADQuantityTextStr": "",
+            "AddTextStr": ""
+        },
+        {
+            "ItemMPText": "Tank capacity",
+            "QualColTextStr": "",
+            "ValueText": "45",
+            "ADQuantityTextStr": "Liter (s)",
+            "AddTextStr": ""
+        },
+        {
+            "ItemMPText": "Brake fluid specification",
+            "QualColTextStr": "",
+            "ValueText": "DOT 4",
+            "ADQuantityTextStr": "",
+            "AddTextStr": ""
+        },
+        {
+            "ItemMPText": "Auxiliary steering oil",
+            "QualColTextStr": "",
+            "ValueText": "1,10",
+            "ADQuantityTextStr": "Liter (s)",
+            "AddTextStr": ""
+        },
+        {
+            "ItemMPText": "Refrigerant for air conditioner",
+            "QualColTextStr": "",
+            "ValueText": "500 - 540",
+            "ADQuantityTextStr": "Gram (s)",
+            "AddTextStr": ""
+        },
+        {
+            "ItemMPText": "Brake fluid when replacing",
+            "QualColTextStr": "",
+            "ValueText": "1,25",
+            "ADQuantityTextStr": "Liter (s)",
+            "AddTextStr": ""
+        },
+        {
+            "ItemMPText": "Engine oil specification",
+            "QualColTextStr": "",
+            "ValueText": "ACEA A3\/B4",
+            "ADQuantityTextStr": "",
+            "AddTextStr": ""
+        },
+        {
+            "ItemMPText": "Coolant specification",
+            "QualColTextStr": "",
+            "ValueText": "DEXCOOL",
+            "ADQuantityTextStr": "",
+            "AddTextStr": ""
+        }
+    ]
+}

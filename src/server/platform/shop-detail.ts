@@ -1,0 +1,100 @@
+import "server-only";
+
+import { prisma } from "@/db/client";
+import { PLANS, billingStatusLabel } from "@/lib/plans";
+import { estimateShopMrrCents } from "@/lib/subscription";
+import { deriveShopSmsSetupStatus } from "@/lib/sms-constants";
+import type { PlatformShopRow } from "@/server/platform-shops";
+
+export type PlatformShopDetail = PlatformShopRow & {
+  planLabel: string;
+  billingLabel: string;
+  address: string | null;
+  stripeCustomerId: string | null;
+  stripeSubscriptionId: string | null;
+  clerkOrgId: string | null;
+  membershipCount: number;
+  openTicketCount: number;
+};
+
+export async function getPlatformShopDetail(shopId: string): Promise<PlatformShopDetail | null> {
+  const shop = await prisma.shop.findUnique({
+    where: { id: shopId },
+    select: {
+      id: true,
+      name: true,
+      code: true,
+      masterId: true,
+      status: true,
+      plan: true,
+      billingStatus: true,
+      trialEndsAt: true,
+      lastActiveAt: true,
+      createdAt: true,
+      city: true,
+      state: true,
+      phone: true,
+      email: true,
+      address: true,
+      twilioPhoneNumber: true,
+      smsEnabled: true,
+      landlineNumber: true,
+      stripeCustomerId: true,
+      stripeSubscriptionId: true,
+      stripeConnectStatus: true,
+      stripeConnectAccountId: true,
+      clerkOrgId: true,
+      _count: {
+        select: {
+          customers: true,
+          repairOrders: true,
+          memberships: true,
+          supportTickets: true,
+        },
+      },
+    },
+  });
+
+  if (!shop) return null;
+
+  const openTicketCount = await prisma.supportTicket.count({
+    where: {
+      shopId,
+      status: { in: ["OPEN", "IN_PROGRESS"] },
+    },
+  });
+
+  return {
+    id: shop.id,
+    name: shop.name,
+    code: shop.code,
+    masterId: shop.masterId,
+    status: shop.status,
+    plan: shop.plan,
+    planLabel: PLANS[shop.plan].name,
+    billingStatus: shop.billingStatus,
+    billingLabel: billingStatusLabel(shop.billingStatus),
+    trialEndsAt: shop.trialEndsAt,
+    lastActiveAt: shop.lastActiveAt,
+    mrrCents: estimateShopMrrCents(shop.plan, shop.billingStatus),
+    createdAt: shop.createdAt,
+    customerCount: shop._count.customers,
+    repairOrderCount: shop._count.repairOrders,
+    city: shop.city,
+    state: shop.state,
+    phone: shop.phone,
+    email: shop.email,
+    address: shop.address,
+    twilioPhoneNumber: shop.twilioPhoneNumber,
+    smsEnabled: shop.smsEnabled,
+    smsSetupStatus: deriveShopSmsSetupStatus(shop),
+    lastSmsAt: null,
+    stripeCustomerId: shop.stripeCustomerId,
+    stripeSubscriptionId: shop.stripeSubscriptionId,
+    stripeConnectStatus: shop.stripeConnectStatus,
+    stripeConnectAccountId: shop.stripeConnectAccountId,
+    clerkOrgId: shop.clerkOrgId,
+    membershipCount: shop._count.memberships,
+    openTicketCount,
+  };
+}

@@ -1,0 +1,1875 @@
+{
+  "baseVehicleId": 22124,
+  "syncedAt": "2026-07-08T00:47:41.840Z",
+  "counts": {
+    "systems": 8,
+    "groups": 65,
+    "subgroups": 144
+  },
+  "nodes": [
+    {
+      "nodeKey": "22124|s|1",
+      "level": "system",
+      "motorSystemId": 1,
+      "name": "Body & Frame"
+    },
+    {
+      "nodeKey": "22124|s|1|g|7",
+      "level": "group",
+      "motorSystemId": 1,
+      "motorGroupId": 7,
+      "name": "Passenger Restraint System",
+      "parentNodeKey": "22124|s|1"
+    },
+    {
+      "nodeKey": "22124|s|1|g|7|sg|2",
+      "level": "subgroup",
+      "motorSystemId": 1,
+      "motorGroupId": 7,
+      "motorSubGroupId": 2,
+      "name": "Air Bag System",
+      "parentNodeKey": "22124|s|1|g|7"
+    },
+    {
+      "nodeKey": "22124|s|1|g|7|sg|142",
+      "level": "subgroup",
+      "motorSystemId": 1,
+      "motorGroupId": 7,
+      "motorSubGroupId": 142,
+      "name": "Seat Belt System",
+      "parentNodeKey": "22124|s|1|g|7"
+    },
+    {
+      "nodeKey": "22124|s|1|g|7|sg|308",
+      "level": "subgroup",
+      "motorSystemId": 1,
+      "motorGroupId": 7,
+      "motorSubGroupId": 308,
+      "name": "Seat Belt Warning System",
+      "parentNodeKey": "22124|s|1|g|7"
+    },
+    {
+      "nodeKey": "22124|s|1|g|13",
+      "level": "group",
+      "motorSystemId": 1,
+      "motorGroupId": 13,
+      "name": "Body Panels",
+      "parentNodeKey": "22124|s|1"
+    },
+    {
+      "nodeKey": "22124|s|1|g|13|sg|20",
+      "level": "subgroup",
+      "motorSystemId": 1,
+      "motorGroupId": 13,
+      "motorSubGroupId": 20,
+      "name": "Hood",
+      "parentNodeKey": "22124|s|1|g|13"
+    },
+    {
+      "nodeKey": "22124|s|1|g|13|sg|58",
+      "level": "subgroup",
+      "motorSystemId": 1,
+      "motorGroupId": 13,
+      "motorSubGroupId": 58,
+      "name": "Door Systems",
+      "parentNodeKey": "22124|s|1|g|13"
+    },
+    {
+      "nodeKey": "22124|s|1|g|13|sg|88",
+      "level": "subgroup",
+      "motorSystemId": 1,
+      "motorGroupId": 13,
+      "motorSubGroupId": 88,
+      "name": "Trunk",
+      "parentNodeKey": "22124|s|1|g|13"
+    },
+    {
+      "nodeKey": "22124|s|1|g|13|sg|153",
+      "level": "subgroup",
+      "motorSystemId": 1,
+      "motorGroupId": 13,
+      "motorSubGroupId": 153,
+      "name": "Power Roof System",
+      "parentNodeKey": "22124|s|1|g|13"
+    },
+    {
+      "nodeKey": "22124|s|1|g|36",
+      "level": "group",
+      "motorSystemId": 1,
+      "motorGroupId": 36,
+      "name": "Interior Trim & Panels",
+      "parentNodeKey": "22124|s|1"
+    },
+    {
+      "nodeKey": "22124|s|1|g|36|sg|123",
+      "level": "subgroup",
+      "motorSystemId": 1,
+      "motorGroupId": 36,
+      "motorSubGroupId": 123,
+      "name": "Console",
+      "parentNodeKey": "22124|s|1|g|36"
+    },
+    {
+      "nodeKey": "22124|s|1|g|36|sg|171",
+      "level": "subgroup",
+      "motorSystemId": 1,
+      "motorGroupId": 36,
+      "motorSubGroupId": 171,
+      "name": "Instrument Panel",
+      "parentNodeKey": "22124|s|1|g|36"
+    },
+    {
+      "nodeKey": "22124|s|1|g|43",
+      "level": "group",
+      "motorSystemId": 1,
+      "motorGroupId": 43,
+      "name": "Bumper System",
+      "parentNodeKey": "22124|s|1"
+    },
+    {
+      "nodeKey": "22124|s|1|g|43|sg|139",
+      "level": "subgroup",
+      "motorSystemId": 1,
+      "motorGroupId": 43,
+      "motorSubGroupId": 139,
+      "name": "Bumper Cover",
+      "parentNodeKey": "22124|s|1|g|43"
+    },
+    {
+      "nodeKey": "22124|s|1|g|55",
+      "level": "group",
+      "motorSystemId": 1,
+      "motorGroupId": 55,
+      "name": "Sensors",
+      "parentNodeKey": "22124|s|1"
+    },
+    {
+      "nodeKey": "22124|s|1|g|55|sg|2",
+      "level": "subgroup",
+      "motorSystemId": 1,
+      "motorGroupId": 55,
+      "motorSubGroupId": 2,
+      "name": "Air Bag System",
+      "parentNodeKey": "22124|s|1|g|55"
+    },
+    {
+      "nodeKey": "22124|s|1|g|56",
+      "level": "group",
+      "motorSystemId": 1,
+      "motorGroupId": 56,
+      "name": "Switches",
+      "parentNodeKey": "22124|s|1"
+    },
+    {
+      "nodeKey": "22124|s|1|g|56|sg|58",
+      "level": "subgroup",
+      "motorSystemId": 1,
+      "motorGroupId": 56,
+      "motorSubGroupId": 58,
+      "name": "Door Systems",
+      "parentNodeKey": "22124|s|1|g|56"
+    },
+    {
+      "nodeKey": "22124|s|1|g|56|sg|171",
+      "level": "subgroup",
+      "motorSystemId": 1,
+      "motorGroupId": 56,
+      "motorSubGroupId": 171,
+      "name": "Instrument Panel",
+      "parentNodeKey": "22124|s|1|g|56"
+    },
+    {
+      "nodeKey": "22124|s|1|g|58",
+      "level": "group",
+      "motorSystemId": 1,
+      "motorGroupId": 58,
+      "name": "Control Module",
+      "parentNodeKey": "22124|s|1"
+    },
+    {
+      "nodeKey": "22124|s|1|g|58|sg|2",
+      "level": "subgroup",
+      "motorSystemId": 1,
+      "motorGroupId": 58,
+      "motorSubGroupId": 2,
+      "name": "Air Bag System",
+      "parentNodeKey": "22124|s|1|g|58"
+    },
+    {
+      "nodeKey": "22124|s|2",
+      "level": "system",
+      "motorSystemId": 2,
+      "name": "Brakes"
+    },
+    {
+      "nodeKey": "22124|s|2|g|1",
+      "level": "group",
+      "motorSystemId": 2,
+      "motorGroupId": 1,
+      "name": "@ALL",
+      "parentNodeKey": "22124|s|2"
+    },
+    {
+      "nodeKey": "22124|s|2|g|1|sg|1",
+      "level": "subgroup",
+      "motorSystemId": 2,
+      "motorGroupId": 1,
+      "motorSubGroupId": 1,
+      "name": "@ALL",
+      "parentNodeKey": "22124|s|2|g|1"
+    },
+    {
+      "nodeKey": "22124|s|2|g|15",
+      "level": "group",
+      "motorSystemId": 2,
+      "motorGroupId": 15,
+      "name": "Control System",
+      "parentNodeKey": "22124|s|2"
+    },
+    {
+      "nodeKey": "22124|s|2|g|15|sg|1",
+      "level": "subgroup",
+      "motorSystemId": 2,
+      "motorGroupId": 15,
+      "motorSubGroupId": 1,
+      "name": "@ALL",
+      "parentNodeKey": "22124|s|2|g|15"
+    },
+    {
+      "nodeKey": "22124|s|2|g|15|sg|140",
+      "level": "subgroup",
+      "motorSystemId": 2,
+      "motorGroupId": 15,
+      "motorSubGroupId": 140,
+      "name": "Anti-lock Brake System",
+      "parentNodeKey": "22124|s|2|g|15"
+    },
+    {
+      "nodeKey": "22124|s|2|g|17",
+      "level": "group",
+      "motorSystemId": 2,
+      "motorGroupId": 17,
+      "name": "Disc Brakes",
+      "parentNodeKey": "22124|s|2"
+    },
+    {
+      "nodeKey": "22124|s|2|g|17|sg|41",
+      "level": "subgroup",
+      "motorSystemId": 2,
+      "motorGroupId": 17,
+      "motorSubGroupId": 41,
+      "name": "Brake Caliper",
+      "parentNodeKey": "22124|s|2|g|17"
+    },
+    {
+      "nodeKey": "22124|s|2|g|17|sg|44",
+      "level": "subgroup",
+      "motorSystemId": 2,
+      "motorGroupId": 17,
+      "motorSubGroupId": 44,
+      "name": "Brake Pads",
+      "parentNodeKey": "22124|s|2|g|17"
+    },
+    {
+      "nodeKey": "22124|s|2|g|17|sg|45",
+      "level": "subgroup",
+      "motorSystemId": 2,
+      "motorGroupId": 17,
+      "motorSubGroupId": 45,
+      "name": "Brake Rotor",
+      "parentNodeKey": "22124|s|2|g|17"
+    },
+    {
+      "nodeKey": "22124|s|2|g|19",
+      "level": "group",
+      "motorSystemId": 2,
+      "motorGroupId": 19,
+      "name": "Drum Brakes",
+      "parentNodeKey": "22124|s|2"
+    },
+    {
+      "nodeKey": "22124|s|2|g|19|sg|42",
+      "level": "subgroup",
+      "motorSystemId": 2,
+      "motorGroupId": 19,
+      "motorSubGroupId": 42,
+      "name": "Brake Drum",
+      "parentNodeKey": "22124|s|2|g|19"
+    },
+    {
+      "nodeKey": "22124|s|2|g|19|sg|46",
+      "level": "subgroup",
+      "motorSystemId": 2,
+      "motorGroupId": 19,
+      "motorSubGroupId": 46,
+      "name": "Brake Shoes",
+      "parentNodeKey": "22124|s|2|g|19"
+    },
+    {
+      "nodeKey": "22124|s|2|g|19|sg|93",
+      "level": "subgroup",
+      "motorSystemId": 2,
+      "motorGroupId": 19,
+      "motorSubGroupId": 93,
+      "name": "Wheel Cylinder",
+      "parentNodeKey": "22124|s|2|g|19"
+    },
+    {
+      "nodeKey": "22124|s|2|g|24",
+      "level": "group",
+      "motorSystemId": 2,
+      "motorGroupId": 24,
+      "name": "Hydraulic System",
+      "parentNodeKey": "22124|s|2"
+    },
+    {
+      "nodeKey": "22124|s|2|g|24|sg|1",
+      "level": "subgroup",
+      "motorSystemId": 2,
+      "motorGroupId": 24,
+      "motorSubGroupId": 1,
+      "name": "@ALL",
+      "parentNodeKey": "22124|s|2|g|24"
+    },
+    {
+      "nodeKey": "22124|s|2|g|24|sg|22",
+      "level": "subgroup",
+      "motorSystemId": 2,
+      "motorGroupId": 24,
+      "motorSubGroupId": 22,
+      "name": "Master Cylinder",
+      "parentNodeKey": "22124|s|2|g|24"
+    },
+    {
+      "nodeKey": "22124|s|2|g|24|sg|135",
+      "level": "subgroup",
+      "motorSystemId": 2,
+      "motorGroupId": 24,
+      "motorSubGroupId": 135,
+      "name": "Brake Line",
+      "parentNodeKey": "22124|s|2|g|24"
+    },
+    {
+      "nodeKey": "22124|s|2|g|27",
+      "level": "group",
+      "motorSystemId": 2,
+      "motorGroupId": 27,
+      "name": "Parking Brake",
+      "parentNodeKey": "22124|s|2"
+    },
+    {
+      "nodeKey": "22124|s|2|g|27|sg|1",
+      "level": "subgroup",
+      "motorSystemId": 2,
+      "motorGroupId": 27,
+      "motorSubGroupId": 1,
+      "name": "@ALL",
+      "parentNodeKey": "22124|s|2|g|27"
+    },
+    {
+      "nodeKey": "22124|s|2|g|27|sg|71",
+      "level": "subgroup",
+      "motorSystemId": 2,
+      "motorGroupId": 27,
+      "motorSubGroupId": 71,
+      "name": "Parking Brake Cable",
+      "parentNodeKey": "22124|s|2|g|27"
+    },
+    {
+      "nodeKey": "22124|s|2|g|34",
+      "level": "group",
+      "motorSystemId": 2,
+      "motorGroupId": 34,
+      "name": "Power Assist",
+      "parentNodeKey": "22124|s|2"
+    },
+    {
+      "nodeKey": "22124|s|2|g|34|sg|344",
+      "level": "subgroup",
+      "motorSystemId": 2,
+      "motorGroupId": 34,
+      "motorSubGroupId": 344,
+      "name": "Brake Booster",
+      "parentNodeKey": "22124|s|2|g|34"
+    },
+    {
+      "nodeKey": "22124|s|2|g|55",
+      "level": "group",
+      "motorSystemId": 2,
+      "motorGroupId": 55,
+      "name": "Sensors",
+      "parentNodeKey": "22124|s|2"
+    },
+    {
+      "nodeKey": "22124|s|2|g|55|sg|140",
+      "level": "subgroup",
+      "motorSystemId": 2,
+      "motorGroupId": 55,
+      "motorSubGroupId": 140,
+      "name": "Anti-lock Brake System",
+      "parentNodeKey": "22124|s|2|g|55"
+    },
+    {
+      "nodeKey": "22124|s|2|g|56",
+      "level": "group",
+      "motorSystemId": 2,
+      "motorGroupId": 56,
+      "name": "Switches",
+      "parentNodeKey": "22124|s|2"
+    },
+    {
+      "nodeKey": "22124|s|2|g|56|sg|22",
+      "level": "subgroup",
+      "motorSystemId": 2,
+      "motorGroupId": 56,
+      "motorSubGroupId": 22,
+      "name": "Master Cylinder",
+      "parentNodeKey": "22124|s|2|g|56"
+    },
+    {
+      "nodeKey": "22124|s|3",
+      "level": "system",
+      "motorSystemId": 3,
+      "name": "Electrical"
+    },
+    {
+      "nodeKey": "22124|s|3|g|1",
+      "level": "group",
+      "motorSystemId": 3,
+      "motorGroupId": 1,
+      "name": "@ALL",
+      "parentNodeKey": "22124|s|3"
+    },
+    {
+      "nodeKey": "22124|s|3|g|1|sg|1",
+      "level": "subgroup",
+      "motorSystemId": 3,
+      "motorGroupId": 1,
+      "motorSubGroupId": 1,
+      "name": "@ALL",
+      "parentNodeKey": "22124|s|3|g|1"
+    },
+    {
+      "nodeKey": "22124|s|3|g|4",
+      "level": "group",
+      "motorSystemId": 3,
+      "motorGroupId": 4,
+      "name": "Entertainment System",
+      "parentNodeKey": "22124|s|3"
+    },
+    {
+      "nodeKey": "22124|s|3|g|4|sg|127",
+      "level": "subgroup",
+      "motorSystemId": 3,
+      "motorGroupId": 4,
+      "motorSubGroupId": 127,
+      "name": "Antenna",
+      "parentNodeKey": "22124|s|3|g|4"
+    },
+    {
+      "nodeKey": "22124|s|3|g|6",
+      "level": "group",
+      "motorSystemId": 3,
+      "motorGroupId": 6,
+      "name": "Exterior Lighting",
+      "parentNodeKey": "22124|s|3"
+    },
+    {
+      "nodeKey": "22124|s|3|g|6|sg|17",
+      "level": "subgroup",
+      "motorSystemId": 3,
+      "motorGroupId": 6,
+      "motorSubGroupId": 17,
+      "name": "Headlamp",
+      "parentNodeKey": "22124|s|3|g|6"
+    },
+    {
+      "nodeKey": "22124|s|3|g|6|sg|47",
+      "level": "subgroup",
+      "motorSystemId": 3,
+      "motorGroupId": 6,
+      "motorSubGroupId": 47,
+      "name": "Bulbs",
+      "parentNodeKey": "22124|s|3|g|6"
+    },
+    {
+      "nodeKey": "22124|s|3|g|11",
+      "level": "group",
+      "motorSystemId": 3,
+      "motorGroupId": 11,
+      "name": "Wiper & Washer System",
+      "parentNodeKey": "22124|s|3"
+    },
+    {
+      "nodeKey": "22124|s|3|g|11|sg|31",
+      "level": "subgroup",
+      "motorSystemId": 3,
+      "motorGroupId": 11,
+      "motorSubGroupId": 31,
+      "name": "Washer Reservoir",
+      "parentNodeKey": "22124|s|3|g|11"
+    },
+    {
+      "nodeKey": "22124|s|3|g|11|sg|91",
+      "level": "subgroup",
+      "motorSystemId": 3,
+      "motorGroupId": 11,
+      "motorSubGroupId": 91,
+      "name": "Washer Fluid Pump",
+      "parentNodeKey": "22124|s|3|g|11"
+    },
+    {
+      "nodeKey": "22124|s|3|g|11|sg|124",
+      "level": "subgroup",
+      "motorSystemId": 3,
+      "motorGroupId": 11,
+      "motorSubGroupId": 124,
+      "name": "Wiper Linkage",
+      "parentNodeKey": "22124|s|3|g|11"
+    },
+    {
+      "nodeKey": "22124|s|3|g|11|sg|126",
+      "level": "subgroup",
+      "motorSystemId": 3,
+      "motorGroupId": 11,
+      "motorSubGroupId": 126,
+      "name": "Wiper Motor",
+      "parentNodeKey": "22124|s|3|g|11"
+    },
+    {
+      "nodeKey": "22124|s|3|g|11|sg|203",
+      "level": "subgroup",
+      "motorSystemId": 3,
+      "motorGroupId": 11,
+      "motorSubGroupId": 203,
+      "name": "Windshield",
+      "parentNodeKey": "22124|s|3|g|11"
+    },
+    {
+      "nodeKey": "22124|s|3|g|15",
+      "level": "group",
+      "motorSystemId": 3,
+      "motorGroupId": 15,
+      "name": "Control System",
+      "parentNodeKey": "22124|s|3"
+    },
+    {
+      "nodeKey": "22124|s|3|g|15|sg|1",
+      "level": "subgroup",
+      "motorSystemId": 3,
+      "motorGroupId": 15,
+      "motorSubGroupId": 1,
+      "name": "@ALL",
+      "parentNodeKey": "22124|s|3|g|15"
+    },
+    {
+      "nodeKey": "22124|s|3|g|20",
+      "level": "group",
+      "motorSystemId": 3,
+      "motorGroupId": 20,
+      "name": "Engine",
+      "parentNodeKey": "22124|s|3"
+    },
+    {
+      "nodeKey": "22124|s|3|g|20|sg|36",
+      "level": "subgroup",
+      "motorSystemId": 3,
+      "motorGroupId": 20,
+      "motorSubGroupId": 36,
+      "name": "Alternator",
+      "parentNodeKey": "22124|s|3|g|20"
+    },
+    {
+      "nodeKey": "22124|s|3|g|20|sg|78",
+      "level": "subgroup",
+      "motorSystemId": 3,
+      "motorGroupId": 20,
+      "motorSubGroupId": 78,
+      "name": "Starting System",
+      "parentNodeKey": "22124|s|3|g|20"
+    },
+    {
+      "nodeKey": "22124|s|3|g|29",
+      "level": "group",
+      "motorSystemId": 3,
+      "motorGroupId": 29,
+      "name": "Power Distribution",
+      "parentNodeKey": "22124|s|3"
+    },
+    {
+      "nodeKey": "22124|s|3|g|29|sg|3",
+      "level": "subgroup",
+      "motorSystemId": 3,
+      "motorGroupId": 29,
+      "motorSubGroupId": 3,
+      "name": "Battery & Cables",
+      "parentNodeKey": "22124|s|3|g|29"
+    },
+    {
+      "nodeKey": "22124|s|3|g|30",
+      "level": "group",
+      "motorSystemId": 3,
+      "motorGroupId": 30,
+      "name": "Steering Column",
+      "parentNodeKey": "22124|s|3"
+    },
+    {
+      "nodeKey": "22124|s|3|g|30|sg|272",
+      "level": "subgroup",
+      "motorSystemId": 3,
+      "motorGroupId": 30,
+      "motorSubGroupId": 272,
+      "name": "Horn Components",
+      "parentNodeKey": "22124|s|3|g|30"
+    },
+    {
+      "nodeKey": "22124|s|3|g|32",
+      "level": "group",
+      "motorSystemId": 3,
+      "motorGroupId": 32,
+      "name": "Warning Systems",
+      "parentNodeKey": "22124|s|3"
+    },
+    {
+      "nodeKey": "22124|s|3|g|32|sg|86",
+      "level": "subgroup",
+      "motorSystemId": 3,
+      "motorGroupId": 32,
+      "motorSubGroupId": 86,
+      "name": "Tire Pressure Monitor",
+      "parentNodeKey": "22124|s|3|g|32"
+    },
+    {
+      "nodeKey": "22124|s|3|g|38",
+      "level": "group",
+      "motorSystemId": 3,
+      "motorGroupId": 38,
+      "name": "Latches & Locks",
+      "parentNodeKey": "22124|s|3"
+    },
+    {
+      "nodeKey": "22124|s|3|g|38|sg|129",
+      "level": "subgroup",
+      "motorSystemId": 3,
+      "motorGroupId": 38,
+      "motorSubGroupId": 129,
+      "name": "Lock Cylinder",
+      "parentNodeKey": "22124|s|3|g|38"
+    },
+    {
+      "nodeKey": "22124|s|3|g|52",
+      "level": "group",
+      "motorSystemId": 3,
+      "motorGroupId": 52,
+      "name": "Driver Information System",
+      "parentNodeKey": "22124|s|3"
+    },
+    {
+      "nodeKey": "22124|s|3|g|52|sg|170",
+      "level": "subgroup",
+      "motorSystemId": 3,
+      "motorGroupId": 52,
+      "motorSubGroupId": 170,
+      "name": "Instrument Cluster",
+      "parentNodeKey": "22124|s|3|g|52"
+    },
+    {
+      "nodeKey": "22124|s|3|g|53",
+      "level": "group",
+      "motorSystemId": 3,
+      "motorGroupId": 53,
+      "name": "Interior Lighting",
+      "parentNodeKey": "22124|s|3"
+    },
+    {
+      "nodeKey": "22124|s|3|g|53|sg|47",
+      "level": "subgroup",
+      "motorSystemId": 3,
+      "motorGroupId": 53,
+      "motorSubGroupId": 47,
+      "name": "Bulbs",
+      "parentNodeKey": "22124|s|3|g|53"
+    },
+    {
+      "nodeKey": "22124|s|3|g|56",
+      "level": "group",
+      "motorSystemId": 3,
+      "motorGroupId": 56,
+      "name": "Switches",
+      "parentNodeKey": "22124|s|3"
+    },
+    {
+      "nodeKey": "22124|s|3|g|56|sg|102",
+      "level": "subgroup",
+      "motorSystemId": 3,
+      "motorGroupId": 56,
+      "motorSubGroupId": 102,
+      "name": "Seats",
+      "parentNodeKey": "22124|s|3|g|56"
+    },
+    {
+      "nodeKey": "22124|s|3|g|56|sg|178",
+      "level": "subgroup",
+      "motorSystemId": 3,
+      "motorGroupId": 56,
+      "motorSubGroupId": 178,
+      "name": "Cruise Control System",
+      "parentNodeKey": "22124|s|3|g|56"
+    },
+    {
+      "nodeKey": "22124|s|3|g|56|sg|182",
+      "level": "subgroup",
+      "motorSystemId": 3,
+      "motorGroupId": 56,
+      "motorSubGroupId": 182,
+      "name": "Exterior Lighting",
+      "parentNodeKey": "22124|s|3|g|56"
+    },
+    {
+      "nodeKey": "22124|s|3|g|56|sg|184",
+      "level": "subgroup",
+      "motorSystemId": 3,
+      "motorGroupId": 56,
+      "motorSubGroupId": 184,
+      "name": "Wiper & Washer System",
+      "parentNodeKey": "22124|s|3|g|56"
+    },
+    {
+      "nodeKey": "22124|s|3|g|56|sg|187",
+      "level": "subgroup",
+      "motorSystemId": 3,
+      "motorGroupId": 56,
+      "motorSubGroupId": 187,
+      "name": "Power Distribution",
+      "parentNodeKey": "22124|s|3|g|56"
+    },
+    {
+      "nodeKey": "22124|s|3|g|56|sg|188",
+      "level": "subgroup",
+      "motorSystemId": 3,
+      "motorGroupId": 56,
+      "motorSubGroupId": 188,
+      "name": "Steering Column",
+      "parentNodeKey": "22124|s|3|g|56"
+    },
+    {
+      "nodeKey": "22124|s|3|g|58",
+      "level": "group",
+      "motorSystemId": 3,
+      "motorGroupId": 58,
+      "name": "Control Module",
+      "parentNodeKey": "22124|s|3"
+    },
+    {
+      "nodeKey": "22124|s|3|g|58|sg|172",
+      "level": "subgroup",
+      "motorSystemId": 3,
+      "motorGroupId": 58,
+      "motorSubGroupId": 172,
+      "name": "Body Control System",
+      "parentNodeKey": "22124|s|3|g|58"
+    },
+    {
+      "nodeKey": "22124|s|3|g|70",
+      "level": "group",
+      "motorSystemId": 3,
+      "motorGroupId": 70,
+      "name": "Relays",
+      "parentNodeKey": "22124|s|3"
+    },
+    {
+      "nodeKey": "22124|s|3|g|70|sg|78",
+      "level": "subgroup",
+      "motorSystemId": 3,
+      "motorGroupId": 70,
+      "motorSubGroupId": 78,
+      "name": "Starting System",
+      "parentNodeKey": "22124|s|3|g|70"
+    },
+    {
+      "nodeKey": "22124|s|3|g|89",
+      "level": "group",
+      "motorSystemId": 3,
+      "motorGroupId": 89,
+      "name": "Body Control System",
+      "parentNodeKey": "22124|s|3"
+    },
+    {
+      "nodeKey": "22124|s|3|g|89|sg|1",
+      "level": "subgroup",
+      "motorSystemId": 3,
+      "motorGroupId": 89,
+      "motorSubGroupId": 1,
+      "name": "@ALL",
+      "parentNodeKey": "22124|s|3|g|89"
+    },
+    {
+      "nodeKey": "22124|s|4",
+      "level": "system",
+      "motorSystemId": 4,
+      "name": "HVAC"
+    },
+    {
+      "nodeKey": "22124|s|4|g|2",
+      "level": "group",
+      "motorSystemId": 4,
+      "motorGroupId": 2,
+      "name": "Air Conditioning System",
+      "parentNodeKey": "22124|s|4"
+    },
+    {
+      "nodeKey": "22124|s|4|g|2|sg|1",
+      "level": "subgroup",
+      "motorSystemId": 4,
+      "motorGroupId": 2,
+      "motorSubGroupId": 1,
+      "name": "@ALL",
+      "parentNodeKey": "22124|s|4|g|2"
+    },
+    {
+      "nodeKey": "22124|s|4|g|2|sg|23",
+      "level": "subgroup",
+      "motorSystemId": 4,
+      "motorGroupId": 2,
+      "motorSubGroupId": 23,
+      "name": "Relays",
+      "parentNodeKey": "22124|s|4|g|2"
+    },
+    {
+      "nodeKey": "22124|s|4|g|2|sg|51",
+      "level": "subgroup",
+      "motorSystemId": 4,
+      "motorGroupId": 2,
+      "motorSubGroupId": 51,
+      "name": "Compressor",
+      "parentNodeKey": "22124|s|4|g|2"
+    },
+    {
+      "nodeKey": "22124|s|4|g|2|sg|52",
+      "level": "subgroup",
+      "motorSystemId": 4,
+      "motorGroupId": 2,
+      "motorSubGroupId": 52,
+      "name": "Condenser Core",
+      "parentNodeKey": "22124|s|4|g|2"
+    },
+    {
+      "nodeKey": "22124|s|4|g|2|sg|53",
+      "level": "subgroup",
+      "motorSystemId": 4,
+      "motorGroupId": 2,
+      "motorSubGroupId": 53,
+      "name": "Condenser Fan Motor",
+      "parentNodeKey": "22124|s|4|g|2"
+    },
+    {
+      "nodeKey": "22124|s|4|g|2|sg|61",
+      "level": "subgroup",
+      "motorSystemId": 4,
+      "motorGroupId": 2,
+      "motorSubGroupId": 61,
+      "name": "HVAC Case",
+      "parentNodeKey": "22124|s|4|g|2"
+    },
+    {
+      "nodeKey": "22124|s|4|g|2|sg|75",
+      "level": "subgroup",
+      "motorSystemId": 4,
+      "motorGroupId": 2,
+      "motorSubGroupId": 75,
+      "name": "Receiver Drier",
+      "parentNodeKey": "22124|s|4|g|2"
+    },
+    {
+      "nodeKey": "22124|s|4|g|2|sg|76",
+      "level": "subgroup",
+      "motorSystemId": 4,
+      "motorGroupId": 2,
+      "motorSubGroupId": 76,
+      "name": "Refrigerant Line",
+      "parentNodeKey": "22124|s|4|g|2"
+    },
+    {
+      "nodeKey": "22124|s|4|g|2|sg|89",
+      "level": "subgroup",
+      "motorSystemId": 4,
+      "motorGroupId": 2,
+      "motorSubGroupId": 89,
+      "name": "Valves & Actuators",
+      "parentNodeKey": "22124|s|4|g|2"
+    },
+    {
+      "nodeKey": "22124|s|4|g|2|sg|185",
+      "level": "subgroup",
+      "motorSystemId": 4,
+      "motorGroupId": 2,
+      "motorSubGroupId": 185,
+      "name": "Air Conditioning System",
+      "parentNodeKey": "22124|s|4|g|2"
+    },
+    {
+      "nodeKey": "22124|s|4|g|12",
+      "level": "group",
+      "motorSystemId": 4,
+      "motorGroupId": 12,
+      "name": "Air Distribution",
+      "parentNodeKey": "22124|s|4"
+    },
+    {
+      "nodeKey": "22124|s|4|g|12|sg|34",
+      "level": "subgroup",
+      "motorSystemId": 4,
+      "motorGroupId": 12,
+      "motorSubGroupId": 34,
+      "name": "Air Filter",
+      "parentNodeKey": "22124|s|4|g|12"
+    },
+    {
+      "nodeKey": "22124|s|4|g|12|sg|39",
+      "level": "subgroup",
+      "motorSystemId": 4,
+      "motorGroupId": 12,
+      "motorSubGroupId": 39,
+      "name": "Blower Motor",
+      "parentNodeKey": "22124|s|4|g|12"
+    },
+    {
+      "nodeKey": "22124|s|4|g|12|sg|61",
+      "level": "subgroup",
+      "motorSystemId": 4,
+      "motorGroupId": 12,
+      "motorSubGroupId": 61,
+      "name": "HVAC Case",
+      "parentNodeKey": "22124|s|4|g|12"
+    },
+    {
+      "nodeKey": "22124|s|4|g|12|sg|99",
+      "level": "subgroup",
+      "motorSystemId": 4,
+      "motorGroupId": 12,
+      "motorSubGroupId": 99,
+      "name": "Control System",
+      "parentNodeKey": "22124|s|4|g|12"
+    },
+    {
+      "nodeKey": "22124|s|4|g|15",
+      "level": "group",
+      "motorSystemId": 4,
+      "motorGroupId": 15,
+      "name": "Control System",
+      "parentNodeKey": "22124|s|4"
+    },
+    {
+      "nodeKey": "22124|s|4|g|15|sg|1",
+      "level": "subgroup",
+      "motorSystemId": 4,
+      "motorGroupId": 15,
+      "motorSubGroupId": 1,
+      "name": "@ALL",
+      "parentNodeKey": "22124|s|4|g|15"
+    },
+    {
+      "nodeKey": "22124|s|4|g|15|sg|89",
+      "level": "subgroup",
+      "motorSystemId": 4,
+      "motorGroupId": 15,
+      "motorSubGroupId": 89,
+      "name": "Valves & Actuators",
+      "parentNodeKey": "22124|s|4|g|15"
+    },
+    {
+      "nodeKey": "22124|s|4|g|21",
+      "level": "group",
+      "motorSystemId": 4,
+      "motorGroupId": 21,
+      "name": "Heating",
+      "parentNodeKey": "22124|s|4"
+    },
+    {
+      "nodeKey": "22124|s|4|g|21|sg|18",
+      "level": "subgroup",
+      "motorSystemId": 4,
+      "motorGroupId": 21,
+      "motorSubGroupId": 18,
+      "name": "Heater Core",
+      "parentNodeKey": "22124|s|4|g|21"
+    },
+    {
+      "nodeKey": "22124|s|4|g|21|sg|19",
+      "level": "subgroup",
+      "motorSystemId": 4,
+      "motorGroupId": 21,
+      "motorSubGroupId": 19,
+      "name": "Heater Hose",
+      "parentNodeKey": "22124|s|4|g|21"
+    },
+    {
+      "nodeKey": "22124|s|4|g|55",
+      "level": "group",
+      "motorSystemId": 4,
+      "motorGroupId": 55,
+      "name": "Sensors",
+      "parentNodeKey": "22124|s|4"
+    },
+    {
+      "nodeKey": "22124|s|4|g|55|sg|99",
+      "level": "subgroup",
+      "motorSystemId": 4,
+      "motorGroupId": 55,
+      "motorSubGroupId": 99,
+      "name": "Control System",
+      "parentNodeKey": "22124|s|4|g|55"
+    },
+    {
+      "nodeKey": "22124|s|4|g|56",
+      "level": "group",
+      "motorSystemId": 4,
+      "motorGroupId": 56,
+      "name": "Switches",
+      "parentNodeKey": "22124|s|4"
+    },
+    {
+      "nodeKey": "22124|s|4|g|56|sg|185",
+      "level": "subgroup",
+      "motorSystemId": 4,
+      "motorGroupId": 56,
+      "motorSubGroupId": 185,
+      "name": "Air Conditioning System",
+      "parentNodeKey": "22124|s|4|g|56"
+    },
+    {
+      "nodeKey": "22124|s|4|g|58",
+      "level": "group",
+      "motorSystemId": 4,
+      "motorGroupId": 58,
+      "name": "Control Module",
+      "parentNodeKey": "22124|s|4"
+    },
+    {
+      "nodeKey": "22124|s|4|g|58|sg|39",
+      "level": "subgroup",
+      "motorSystemId": 4,
+      "motorGroupId": 58,
+      "motorSubGroupId": 39,
+      "name": "Blower Motor",
+      "parentNodeKey": "22124|s|4|g|58"
+    },
+    {
+      "nodeKey": "22124|s|5",
+      "level": "system",
+      "motorSystemId": 5,
+      "name": "Steering"
+    },
+    {
+      "nodeKey": "22124|s|5|g|16",
+      "level": "group",
+      "motorSystemId": 5,
+      "motorGroupId": 16,
+      "name": "Directional Control",
+      "parentNodeKey": "22124|s|5"
+    },
+    {
+      "nodeKey": "22124|s|5|g|16|sg|79",
+      "level": "subgroup",
+      "motorSystemId": 5,
+      "motorGroupId": 16,
+      "motorSubGroupId": 79,
+      "name": "Steering Gear Assembly",
+      "parentNodeKey": "22124|s|5|g|16"
+    },
+    {
+      "nodeKey": "22124|s|5|g|16|sg|83",
+      "level": "subgroup",
+      "motorSystemId": 5,
+      "motorGroupId": 16,
+      "motorSubGroupId": 83,
+      "name": "Tie Rod",
+      "parentNodeKey": "22124|s|5|g|16"
+    },
+    {
+      "nodeKey": "22124|s|5|g|24",
+      "level": "group",
+      "motorSystemId": 5,
+      "motorGroupId": 24,
+      "name": "Hydraulic System",
+      "parentNodeKey": "22124|s|5"
+    },
+    {
+      "nodeKey": "22124|s|5|g|24|sg|1",
+      "level": "subgroup",
+      "motorSystemId": 5,
+      "motorGroupId": 24,
+      "motorSubGroupId": 1,
+      "name": "@ALL",
+      "parentNodeKey": "22124|s|5|g|24"
+    },
+    {
+      "nodeKey": "22124|s|5|g|24|sg|72",
+      "level": "subgroup",
+      "motorSystemId": 5,
+      "motorGroupId": 24,
+      "motorSubGroupId": 72,
+      "name": "Power Steering Line",
+      "parentNodeKey": "22124|s|5|g|24"
+    },
+    {
+      "nodeKey": "22124|s|5|g|24|sg|73",
+      "level": "subgroup",
+      "motorSystemId": 5,
+      "motorGroupId": 24,
+      "motorSubGroupId": 73,
+      "name": "Power Steering Pump",
+      "parentNodeKey": "22124|s|5|g|24"
+    },
+    {
+      "nodeKey": "22124|s|5|g|28",
+      "level": "group",
+      "motorSystemId": 5,
+      "motorGroupId": 28,
+      "name": "Pivot Points",
+      "parentNodeKey": "22124|s|5"
+    },
+    {
+      "nodeKey": "22124|s|5|g|28|sg|80",
+      "level": "subgroup",
+      "motorSystemId": 5,
+      "motorGroupId": 28,
+      "motorSubGroupId": 80,
+      "name": "Steering Knuckle",
+      "parentNodeKey": "22124|s|5|g|28"
+    },
+    {
+      "nodeKey": "22124|s|5|g|58",
+      "level": "group",
+      "motorSystemId": 5,
+      "motorGroupId": 58,
+      "name": "Control Module",
+      "parentNodeKey": "22124|s|5"
+    },
+    {
+      "nodeKey": "22124|s|5|g|58|sg|192",
+      "level": "subgroup",
+      "motorSystemId": 5,
+      "motorGroupId": 58,
+      "motorSubGroupId": 192,
+      "name": "Power Steering System",
+      "parentNodeKey": "22124|s|5|g|58"
+    },
+    {
+      "nodeKey": "22124|s|6",
+      "level": "system",
+      "motorSystemId": 6,
+      "name": "Suspension"
+    },
+    {
+      "nodeKey": "22124|s|6|g|1",
+      "level": "group",
+      "motorSystemId": 6,
+      "motorGroupId": 1,
+      "name": "@ALL",
+      "parentNodeKey": "22124|s|6"
+    },
+    {
+      "nodeKey": "22124|s|6|g|1|sg|1",
+      "level": "subgroup",
+      "motorSystemId": 6,
+      "motorGroupId": 1,
+      "motorSubGroupId": 1,
+      "name": "@ALL",
+      "parentNodeKey": "22124|s|6|g|1"
+    },
+    {
+      "nodeKey": "22124|s|6|g|9",
+      "level": "group",
+      "motorSystemId": 6,
+      "motorGroupId": 9,
+      "name": "Tire & Wheel",
+      "parentNodeKey": "22124|s|6"
+    },
+    {
+      "nodeKey": "22124|s|6|g|9|sg|29",
+      "level": "subgroup",
+      "motorSystemId": 6,
+      "motorGroupId": 9,
+      "motorSubGroupId": 29,
+      "name": "Tire",
+      "parentNodeKey": "22124|s|6|g|9"
+    },
+    {
+      "nodeKey": "22124|s|6|g|9|sg|32",
+      "level": "subgroup",
+      "motorSystemId": 6,
+      "motorGroupId": 9,
+      "motorSubGroupId": 32,
+      "name": "Wheel",
+      "parentNodeKey": "22124|s|6|g|9"
+    },
+    {
+      "nodeKey": "22124|s|6|g|9|sg|141",
+      "level": "subgroup",
+      "motorSystemId": 6,
+      "motorGroupId": 9,
+      "motorSubGroupId": 141,
+      "name": "Tire & Wheel Assembly",
+      "parentNodeKey": "22124|s|6|g|9"
+    },
+    {
+      "nodeKey": "22124|s|6|g|22",
+      "level": "group",
+      "motorSystemId": 6,
+      "motorGroupId": 22,
+      "name": "Vertical Dampening",
+      "parentNodeKey": "22124|s|6"
+    },
+    {
+      "nodeKey": "22124|s|6|g|22|sg|50",
+      "level": "subgroup",
+      "motorSystemId": 6,
+      "motorGroupId": 22,
+      "motorSubGroupId": 50,
+      "name": "Coil Spring",
+      "parentNodeKey": "22124|s|6|g|22"
+    },
+    {
+      "nodeKey": "22124|s|6|g|22|sg|81",
+      "level": "subgroup",
+      "motorSystemId": 6,
+      "motorGroupId": 22,
+      "motorSubGroupId": 81,
+      "name": "Strut",
+      "parentNodeKey": "22124|s|6|g|22"
+    },
+    {
+      "nodeKey": "22124|s|6|g|22|sg|360",
+      "level": "subgroup",
+      "motorSystemId": 6,
+      "motorGroupId": 22,
+      "motorSubGroupId": 360,
+      "name": "Shock/Strut",
+      "parentNodeKey": "22124|s|6|g|22"
+    },
+    {
+      "nodeKey": "22124|s|6|g|23",
+      "level": "group",
+      "motorSystemId": 6,
+      "motorGroupId": 23,
+      "name": "Hub & Bearings",
+      "parentNodeKey": "22124|s|6"
+    },
+    {
+      "nodeKey": "22124|s|6|g|23|sg|92",
+      "level": "subgroup",
+      "motorSystemId": 6,
+      "motorGroupId": 23,
+      "motorSubGroupId": 92,
+      "name": "Wheel Bearing",
+      "parentNodeKey": "22124|s|6|g|23"
+    },
+    {
+      "nodeKey": "22124|s|6|g|23|sg|94",
+      "level": "subgroup",
+      "motorSystemId": 6,
+      "motorGroupId": 23,
+      "motorSubGroupId": 94,
+      "name": "Wheel Hub",
+      "parentNodeKey": "22124|s|6|g|23"
+    },
+    {
+      "nodeKey": "22124|s|6|g|25",
+      "level": "group",
+      "motorSystemId": 6,
+      "motorGroupId": 25,
+      "name": "Lateral Dampening",
+      "parentNodeKey": "22124|s|6"
+    },
+    {
+      "nodeKey": "22124|s|6|g|25|sg|77",
+      "level": "subgroup",
+      "motorSystemId": 6,
+      "motorGroupId": 25,
+      "motorSubGroupId": 77,
+      "name": "Stabilizer Bar",
+      "parentNodeKey": "22124|s|6|g|25"
+    },
+    {
+      "nodeKey": "22124|s|6|g|28",
+      "level": "group",
+      "motorSystemId": 6,
+      "motorGroupId": 28,
+      "name": "Pivot Points",
+      "parentNodeKey": "22124|s|6"
+    },
+    {
+      "nodeKey": "22124|s|6|g|28|sg|54",
+      "level": "subgroup",
+      "motorSystemId": 6,
+      "motorGroupId": 28,
+      "motorSubGroupId": 54,
+      "name": "Suspension Arm",
+      "parentNodeKey": "22124|s|6|g|28"
+    },
+    {
+      "nodeKey": "22124|s|6|g|33",
+      "level": "group",
+      "motorSystemId": 6,
+      "motorGroupId": 33,
+      "name": "Adjustments",
+      "parentNodeKey": "22124|s|6"
+    },
+    {
+      "nodeKey": "22124|s|6|g|33|sg|96",
+      "level": "subgroup",
+      "motorSystemId": 6,
+      "motorGroupId": 33,
+      "motorSubGroupId": 96,
+      "name": "Wheel Alignment",
+      "parentNodeKey": "22124|s|6|g|33"
+    },
+    {
+      "nodeKey": "22124|s|6|g|55",
+      "level": "group",
+      "motorSystemId": 6,
+      "motorGroupId": 55,
+      "name": "Sensors",
+      "parentNodeKey": "22124|s|6"
+    },
+    {
+      "nodeKey": "22124|s|6|g|55|sg|86",
+      "level": "subgroup",
+      "motorSystemId": 6,
+      "motorGroupId": 55,
+      "motorSubGroupId": 86,
+      "name": "Tire Pressure Monitor",
+      "parentNodeKey": "22124|s|6|g|55"
+    },
+    {
+      "nodeKey": "22124|s|6|g|58",
+      "level": "group",
+      "motorSystemId": 6,
+      "motorGroupId": 58,
+      "name": "Control Module",
+      "parentNodeKey": "22124|s|6"
+    },
+    {
+      "nodeKey": "22124|s|6|g|58|sg|86",
+      "level": "subgroup",
+      "motorSystemId": 6,
+      "motorGroupId": 58,
+      "motorSubGroupId": 86,
+      "name": "Tire Pressure Monitor",
+      "parentNodeKey": "22124|s|6|g|58"
+    },
+    {
+      "nodeKey": "22124|s|7",
+      "level": "system",
+      "motorSystemId": 7,
+      "name": "Powertrain"
+    },
+    {
+      "nodeKey": "22124|s|7|g|15",
+      "level": "group",
+      "motorSystemId": 7,
+      "motorGroupId": 15,
+      "name": "Control System",
+      "parentNodeKey": "22124|s|7"
+    },
+    {
+      "nodeKey": "22124|s|7|g|15|sg|55",
+      "level": "subgroup",
+      "motorSystemId": 7,
+      "motorGroupId": 15,
+      "motorSubGroupId": 55,
+      "name": "Control Module",
+      "parentNodeKey": "22124|s|7|g|15"
+    },
+    {
+      "nodeKey": "22124|s|7|g|15|sg|60",
+      "level": "subgroup",
+      "motorSystemId": 7,
+      "motorGroupId": 15,
+      "motorSubGroupId": 60,
+      "name": "Emission Control",
+      "parentNodeKey": "22124|s|7|g|15"
+    },
+    {
+      "nodeKey": "22124|s|7|g|18",
+      "level": "group",
+      "motorSystemId": 7,
+      "motorGroupId": 18,
+      "name": "Driveline",
+      "parentNodeKey": "22124|s|7"
+    },
+    {
+      "nodeKey": "22124|s|7|g|18|sg|37",
+      "level": "subgroup",
+      "motorSystemId": 7,
+      "motorGroupId": 18,
+      "motorSubGroupId": 37,
+      "name": "Axle",
+      "parentNodeKey": "22124|s|7|g|18"
+    },
+    {
+      "nodeKey": "22124|s|7|g|20",
+      "level": "group",
+      "motorSystemId": 7,
+      "motorGroupId": 20,
+      "name": "Engine",
+      "parentNodeKey": "22124|s|7"
+    },
+    {
+      "nodeKey": "22124|s|7|g|20|sg|1",
+      "level": "subgroup",
+      "motorSystemId": 7,
+      "motorGroupId": 20,
+      "motorSubGroupId": 1,
+      "name": "@ALL",
+      "parentNodeKey": "22124|s|7|g|20"
+    },
+    {
+      "nodeKey": "22124|s|7|g|20|sg|7",
+      "level": "subgroup",
+      "motorSystemId": 7,
+      "motorGroupId": 20,
+      "motorSubGroupId": 7,
+      "name": "Crankshaft",
+      "parentNodeKey": "22124|s|7|g|20"
+    },
+    {
+      "nodeKey": "22124|s|7|g|20|sg|12",
+      "level": "subgroup",
+      "motorSystemId": 7,
+      "motorGroupId": 20,
+      "motorSubGroupId": 12,
+      "name": "Engine Assembly",
+      "parentNodeKey": "22124|s|7|g|20"
+    },
+    {
+      "nodeKey": "22124|s|7|g|20|sg|15",
+      "level": "subgroup",
+      "motorSystemId": 7,
+      "motorGroupId": 20,
+      "motorSubGroupId": 15,
+      "name": "Fuel Injection",
+      "parentNodeKey": "22124|s|7|g|20"
+    },
+    {
+      "nodeKey": "22124|s|7|g|20|sg|21",
+      "level": "subgroup",
+      "motorSystemId": 7,
+      "motorGroupId": 20,
+      "motorSubGroupId": 21,
+      "name": "Lubrication System",
+      "parentNodeKey": "22124|s|7|g|20"
+    },
+    {
+      "nodeKey": "22124|s|7|g|20|sg|33",
+      "level": "subgroup",
+      "motorSystemId": 7,
+      "motorGroupId": 20,
+      "motorSubGroupId": 33,
+      "name": "Accessory Drive Belt",
+      "parentNodeKey": "22124|s|7|g|20"
+    },
+    {
+      "nodeKey": "22124|s|7|g|20|sg|35",
+      "level": "subgroup",
+      "motorSystemId": 7,
+      "motorGroupId": 20,
+      "motorSubGroupId": 35,
+      "name": "Air Intake System",
+      "parentNodeKey": "22124|s|7|g|20"
+    },
+    {
+      "nodeKey": "22124|s|7|g|20|sg|56",
+      "level": "subgroup",
+      "motorSystemId": 7,
+      "motorGroupId": 20,
+      "motorSubGroupId": 56,
+      "name": "Cooling System",
+      "parentNodeKey": "22124|s|7|g|20"
+    },
+    {
+      "nodeKey": "22124|s|7|g|20|sg|60",
+      "level": "subgroup",
+      "motorSystemId": 7,
+      "motorGroupId": 20,
+      "motorSubGroupId": 60,
+      "name": "Emission Control",
+      "parentNodeKey": "22124|s|7|g|20"
+    },
+    {
+      "nodeKey": "22124|s|7|g|20|sg|62",
+      "level": "subgroup",
+      "motorSystemId": 7,
+      "motorGroupId": 20,
+      "motorSubGroupId": 62,
+      "name": "Exhaust System",
+      "parentNodeKey": "22124|s|7|g|20"
+    },
+    {
+      "nodeKey": "22124|s|7|g|20|sg|64",
+      "level": "subgroup",
+      "motorSystemId": 7,
+      "motorGroupId": 20,
+      "motorSubGroupId": 64,
+      "name": "Fuel Supply System",
+      "parentNodeKey": "22124|s|7|g|20"
+    },
+    {
+      "nodeKey": "22124|s|7|g|20|sg|67",
+      "level": "subgroup",
+      "motorSystemId": 7,
+      "motorGroupId": 20,
+      "motorSubGroupId": 67,
+      "name": "Ignition System",
+      "parentNodeKey": "22124|s|7|g|20"
+    },
+    {
+      "nodeKey": "22124|s|7|g|20|sg|70",
+      "level": "subgroup",
+      "motorSystemId": 7,
+      "motorGroupId": 20,
+      "motorSubGroupId": 70,
+      "name": "Mounts",
+      "parentNodeKey": "22124|s|7|g|20"
+    },
+    {
+      "nodeKey": "22124|s|7|g|20|sg|84",
+      "level": "subgroup",
+      "motorSystemId": 7,
+      "motorGroupId": 20,
+      "motorSubGroupId": 84,
+      "name": "Timing Belt",
+      "parentNodeKey": "22124|s|7|g|20"
+    },
+    {
+      "nodeKey": "22124|s|7|g|20|sg|85",
+      "level": "subgroup",
+      "motorSystemId": 7,
+      "motorGroupId": 20,
+      "motorSubGroupId": 85,
+      "name": "Timing Chain",
+      "parentNodeKey": "22124|s|7|g|20"
+    },
+    {
+      "nodeKey": "22124|s|7|g|20|sg|90",
+      "level": "subgroup",
+      "motorSystemId": 7,
+      "motorGroupId": 20,
+      "motorSubGroupId": 90,
+      "name": "Valvetrain",
+      "parentNodeKey": "22124|s|7|g|20"
+    },
+    {
+      "nodeKey": "22124|s|7|g|20|sg|107",
+      "level": "subgroup",
+      "motorSystemId": 7,
+      "motorGroupId": 20,
+      "motorSubGroupId": 107,
+      "name": "Connecting Rod",
+      "parentNodeKey": "22124|s|7|g|20"
+    },
+    {
+      "nodeKey": "22124|s|7|g|20|sg|108",
+      "level": "subgroup",
+      "motorSystemId": 7,
+      "motorGroupId": 20,
+      "motorSubGroupId": 108,
+      "name": "Engine Cylinder",
+      "parentNodeKey": "22124|s|7|g|20"
+    },
+    {
+      "nodeKey": "22124|s|7|g|20|sg|111",
+      "level": "subgroup",
+      "motorSystemId": 7,
+      "motorGroupId": 20,
+      "motorSubGroupId": 111,
+      "name": "Flexplate",
+      "parentNodeKey": "22124|s|7|g|20"
+    },
+    {
+      "nodeKey": "22124|s|7|g|20|sg|138",
+      "level": "subgroup",
+      "motorSystemId": 7,
+      "motorGroupId": 20,
+      "motorSubGroupId": 138,
+      "name": "Cylinder Block",
+      "parentNodeKey": "22124|s|7|g|20"
+    },
+    {
+      "nodeKey": "22124|s|7|g|31",
+      "level": "group",
+      "motorSystemId": 7,
+      "motorGroupId": 31,
+      "name": "Trans",
+      "parentNodeKey": "22124|s|7"
+    },
+    {
+      "nodeKey": "22124|s|7|g|31|sg|1",
+      "level": "subgroup",
+      "motorSystemId": 7,
+      "motorGroupId": 31,
+      "motorSubGroupId": 1,
+      "name": "@ALL",
+      "parentNodeKey": "22124|s|7|g|31"
+    },
+    {
+      "nodeKey": "22124|s|7|g|31|sg|21",
+      "level": "subgroup",
+      "motorSystemId": 7,
+      "motorGroupId": 31,
+      "motorSubGroupId": 21,
+      "name": "Lubrication System",
+      "parentNodeKey": "22124|s|7|g|31"
+    },
+    {
+      "nodeKey": "22124|s|7|g|31|sg|87",
+      "level": "subgroup",
+      "motorSystemId": 7,
+      "motorGroupId": 31,
+      "motorSubGroupId": 87,
+      "name": "Trans Mount",
+      "parentNodeKey": "22124|s|7|g|31"
+    },
+    {
+      "nodeKey": "22124|s|7|g|31|sg|95",
+      "level": "subgroup",
+      "motorSystemId": 7,
+      "motorGroupId": 31,
+      "motorSubGroupId": 95,
+      "name": "Trans Assembly",
+      "parentNodeKey": "22124|s|7|g|31"
+    },
+    {
+      "nodeKey": "22124|s|7|g|41",
+      "level": "group",
+      "motorSystemId": 7,
+      "motorGroupId": 41,
+      "name": "Automatic Trans",
+      "parentNodeKey": "22124|s|7"
+    },
+    {
+      "nodeKey": "22124|s|7|g|41|sg|4",
+      "level": "subgroup",
+      "motorSystemId": 7,
+      "motorGroupId": 41,
+      "motorSubGroupId": 4,
+      "name": "Case & Components",
+      "parentNodeKey": "22124|s|7|g|41"
+    },
+    {
+      "nodeKey": "22124|s|7|g|41|sg|118",
+      "level": "subgroup",
+      "motorSystemId": 7,
+      "motorGroupId": 41,
+      "motorSubGroupId": 118,
+      "name": "Torque Converter",
+      "parentNodeKey": "22124|s|7|g|41"
+    },
+    {
+      "nodeKey": "22124|s|7|g|41|sg|143",
+      "level": "subgroup",
+      "motorSystemId": 7,
+      "motorGroupId": 41,
+      "motorSubGroupId": 143,
+      "name": "Shift Lever",
+      "parentNodeKey": "22124|s|7|g|41"
+    },
+    {
+      "nodeKey": "22124|s|7|g|42",
+      "level": "group",
+      "motorSystemId": 7,
+      "motorGroupId": 42,
+      "name": "Manual Trans",
+      "parentNodeKey": "22124|s|7"
+    },
+    {
+      "nodeKey": "22124|s|7|g|42|sg|49",
+      "level": "subgroup",
+      "motorSystemId": 7,
+      "motorGroupId": 42,
+      "motorSubGroupId": 49,
+      "name": "Clutch Assembly",
+      "parentNodeKey": "22124|s|7|g|42"
+    },
+    {
+      "nodeKey": "22124|s|7|g|42|sg|65",
+      "level": "subgroup",
+      "motorSystemId": 7,
+      "motorGroupId": 42,
+      "motorSubGroupId": 65,
+      "name": "Hydraulic Clutch System",
+      "parentNodeKey": "22124|s|7|g|42"
+    },
+    {
+      "nodeKey": "22124|s|7|g|55",
+      "level": "group",
+      "motorSystemId": 7,
+      "motorGroupId": 55,
+      "name": "Sensors",
+      "parentNodeKey": "22124|s|7"
+    },
+    {
+      "nodeKey": "22124|s|7|g|55|sg|179",
+      "level": "subgroup",
+      "motorSystemId": 7,
+      "motorGroupId": 55,
+      "motorSubGroupId": 179,
+      "name": "Automatic Trans",
+      "parentNodeKey": "22124|s|7|g|55"
+    },
+    {
+      "nodeKey": "22124|s|7|g|55|sg|180",
+      "level": "subgroup",
+      "motorSystemId": 7,
+      "motorGroupId": 55,
+      "motorSubGroupId": 180,
+      "name": "Engine",
+      "parentNodeKey": "22124|s|7|g|55"
+    },
+    {
+      "nodeKey": "22124|s|7|g|55|sg|181",
+      "level": "subgroup",
+      "motorSystemId": 7,
+      "motorGroupId": 55,
+      "motorSubGroupId": 181,
+      "name": "Trans",
+      "parentNodeKey": "22124|s|7|g|55"
+    },
+    {
+      "nodeKey": "22124|s|7|g|56",
+      "level": "group",
+      "motorSystemId": 7,
+      "motorGroupId": 56,
+      "name": "Switches",
+      "parentNodeKey": "22124|s|7"
+    },
+    {
+      "nodeKey": "22124|s|7|g|56|sg|180",
+      "level": "subgroup",
+      "motorSystemId": 7,
+      "motorGroupId": 56,
+      "motorSubGroupId": 180,
+      "name": "Engine",
+      "parentNodeKey": "22124|s|7|g|56"
+    },
+    {
+      "nodeKey": "22124|s|7|g|58",
+      "level": "group",
+      "motorSystemId": 7,
+      "motorGroupId": 58,
+      "name": "Control Module",
+      "parentNodeKey": "22124|s|7"
+    },
+    {
+      "nodeKey": "22124|s|7|g|58|sg|99",
+      "level": "subgroup",
+      "motorSystemId": 7,
+      "motorGroupId": 58,
+      "motorSubGroupId": 99,
+      "name": "Control System",
+      "parentNodeKey": "22124|s|7|g|58"
+    },
+    {
+      "nodeKey": "22124|s|7|g|58|sg|181",
+      "level": "subgroup",
+      "motorSystemId": 7,
+      "motorGroupId": 58,
+      "motorSubGroupId": 181,
+      "name": "Trans",
+      "parentNodeKey": "22124|s|7|g|58"
+    },
+    {
+      "nodeKey": "22124|s|7|g|58|sg|199",
+      "level": "subgroup",
+      "motorSystemId": 7,
+      "motorGroupId": 58,
+      "motorSubGroupId": 199,
+      "name": "Engine Control System",
+      "parentNodeKey": "22124|s|7|g|58"
+    },
+    {
+      "nodeKey": "22124|s|7|g|66",
+      "level": "group",
+      "motorSystemId": 7,
+      "motorGroupId": 66,
+      "name": "Hybrid Powertrain System",
+      "parentNodeKey": "22124|s|7"
+    },
+    {
+      "nodeKey": "22124|s|7|g|66|sg|300",
+      "level": "subgroup",
+      "motorSystemId": 7,
+      "motorGroupId": 66,
+      "motorSubGroupId": 300,
+      "name": "High Voltage System",
+      "parentNodeKey": "22124|s|7|g|66"
+    },
+    {
+      "nodeKey": "22124|s|7|g|70",
+      "level": "group",
+      "motorSystemId": 7,
+      "motorGroupId": 70,
+      "name": "Relays",
+      "parentNodeKey": "22124|s|7"
+    },
+    {
+      "nodeKey": "22124|s|7|g|70|sg|56",
+      "level": "subgroup",
+      "motorSystemId": 7,
+      "motorGroupId": 70,
+      "motorSubGroupId": 56,
+      "name": "Cooling System",
+      "parentNodeKey": "22124|s|7|g|70"
+    },
+    {
+      "nodeKey": "22124|s|7|g|70|sg|64",
+      "level": "subgroup",
+      "motorSystemId": 7,
+      "motorGroupId": 70,
+      "motorSubGroupId": 64,
+      "name": "Fuel Supply System",
+      "parentNodeKey": "22124|s|7|g|70"
+    },
+    {
+      "nodeKey": "22124|s|8",
+      "level": "system",
+      "motorSystemId": 8,
+      "name": "Vehicle"
+    },
+    {
+      "nodeKey": "22124|s|8|g|1",
+      "level": "group",
+      "motorSystemId": 8,
+      "motorGroupId": 1,
+      "name": "@ALL",
+      "parentNodeKey": "22124|s|8"
+    },
+    {
+      "nodeKey": "22124|s|8|g|1|sg|1",
+      "level": "subgroup",
+      "motorSystemId": 8,
+      "motorGroupId": 1,
+      "motorSubGroupId": 1,
+      "name": "@ALL",
+      "parentNodeKey": "22124|s|8|g|1"
+    },
+    {
+      "nodeKey": "22124|s|8|g|80",
+      "level": "group",
+      "motorSystemId": 8,
+      "motorGroupId": 80,
+      "name": "Universal Vehicle Operation",
+      "parentNodeKey": "22124|s|8"
+    },
+    {
+      "nodeKey": "22124|s|8|g|80|sg|332",
+      "level": "subgroup",
+      "motorSystemId": 8,
+      "motorGroupId": 80,
+      "motorSubGroupId": 332,
+      "name": "Universal Vehicle Operation",
+      "parentNodeKey": "22124|s|8|g|80"
+    }
+  ]
+}

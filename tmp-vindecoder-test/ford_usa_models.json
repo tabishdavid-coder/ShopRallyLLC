@@ -1,0 +1,135 @@
+ {
+    "success": true,
+    "timestamp": "2026-07-08T02:46:03+00:00",
+    "api_version": "2.0",
+    "data": [
+        {
+            "name": "AEROSTAR",
+            "slug": "aerostar"
+        },
+        {
+            "name": "AEROSTAR Mini Cargo Van",
+            "slug": "aerostar-mini-cargo-van"
+        },
+        {
+            "name": "BRONCO",
+            "slug": "bronco"
+        },
+        {
+            "name": "BRONCO II",
+            "slug": "bronco-ii"
+        },
+        {
+            "name": "E SERIES bus",
+            "slug": "e-series-avtobys"
+        },
+        {
+            "name": "E SERIES Van",
+            "slug": "e-series-fyrgon"
+        },
+        {
+            "name": "ECONOLINE Van",
+            "slug": "econoline-fyrgon"
+        },
+        {
+            "name": "EDGE",
+            "slug": "edge"
+        },
+        {
+            "name": "EDGE (U387)",
+            "slug": "edge-u387"
+        },
+        {
+            "name": "EXPEDITION",
+            "slug": "expedition"
+        },
+        {
+            "name": "EXPLORER",
+            "slug": "explorer"
+        },
+        {
+            "name": "EXPLORER (U2)",
+            "slug": "explorer-u2"
+        },
+        {
+            "name": "EXPLORER (U251)",
+            "slug": "explorer-u251"
+        },
+        {
+            "name": "EXPLORER (UN46)",
+            "slug": "explorer-un46"
+        },
+        {
+            "name": "EXPLORER SPORT TRAC Crew Cab Pickup",
+            "slug": "explorer-sport-trac-cre-cab-pickup"
+        },
+        {
+            "name": "EXPLORER SPORT TRAC Pickup",
+            "slug": "explorer-sport-trac-pikap"
+        },
+        {
+            "name": "F-150",
+            "slug": "f-150"
+        },
+        {
+            "name": "F-150 Standard Cab Pickup",
+            "slug": "f-150-standard-cab-pickup"
+        },
+        {
+            "name": "F-350 Crew Cab Pickup",
+            "slug": "f-350-cre-cab-pickup"
+        },
+        {
+            "name": "F-350 Standard Cab Pickup",
+            "slug": "f-350-standard-cab-pickup"
+        },
+        {
+            "name": "F-350 SUPER DUTY Standard Cab Pickup",
+            "slug": "f-350-super-duty-standard-cab-pickup"
+        },
+        {
+            "name": "MUSTANG Convertible",
+            "slug": "mustang-convertible"
+        },
+        {
+            "name": "MUSTANG Convertible (C)",
+            "slug": "mustang-convertible-c"
+        },
+        {
+            "name": "MUSTANG coupe",
+            "slug": "mustang-kype"
+        },
+        {
+            "name": "MUSTANG coupe (C)",
+            "slug": "mustang-kype-c"
+        },
+        {
+            "name": "PROBE I",
+            "slug": "probe-i"
+        },
+        {
+            "name": "PROBE II (ECP)",
+            "slug": "probe-ii-ecp"
+        },
+        {
+            "name": "TAURUS",
+            "slug": "taurus"
+        },
+        {
+            "name": "TAURUS (P5_)",
+            "slug": "taurus-p5"
+        },
+        {
+            "name": "TAURUS station wagon",
+            "slug": "taurus-yniversal"
+        },
+        {
+            "name": "TAURUS Wagon (P5_)",
+            "slug": "taurus-agon-p5"
+        },
+        {
+            "name": "WINDSTAR (A3)",
+            "slug": "indstar-a3"
+        }
+    ]
+}

@@ -1,0 +1,391 @@
+ {
+    "success": true,
+    "timestamp": "2026-07-08T02:41:56+00:00",
+    "api_version": "2.0",
+    "data": [
+        {
+            "name": "ACCORD I (SJ, SY)",
+            "slug": "accord-i-sj-sy"
+        },
+        {
+            "name": "ACCORD I Hatchback (SJ, SY)",
+            "slug": "accord-i-hatchback-sj-sy"
+        },
+        {
+            "name": "ACCORD II (AC, AD)",
+            "slug": "accord-ii-ac-ad"
+        },
+        {
+            "name": "ACCORD II Hatchback (AC, AD)",
+            "slug": "accord-ii-hatchback-ac-ad"
+        },
+        {
+            "name": "ACCORD III (CA)",
+            "slug": "accord-iii-ca"
+        },
+        {
+            "name": "ACCORD III Aerodeck (CA)",
+            "slug": "accord-iii-aerodeck-ca"
+        },
+        {
+            "name": "ACCORD IV (CB)",
+            "slug": "accord-iv-cb"
+        },
+        {
+            "name": "ACCORD IV Aerodeck (CB)",
+            "slug": "accord-iv-aerodeck-cb"
+        },
+        {
+            "name": "ACCORD IV coupe (CB, CC)",
+            "slug": "accord-iv-kype-cb-cc"
+        },
+        {
+            "name": "ACCORD IX sedan (CR)",
+            "slug": "accord-ix-sedan-cr"
+        },
+        {
+            "name": "ACCORD V (CC, CD)",
+            "slug": "accord-v-cc-cd"
+        },
+        {
+            "name": "ACCORD V (CE, CF_)",
+            "slug": "accord-v-ce-cf"
+        },
+        {
+            "name": "ACCORD V Aerodeck (CE)",
+            "slug": "accord-v-aerodeck-ce"
+        },
+        {
+            "name": "ACCORD V coupe (CD)",
+            "slug": "accord-v-kype-cd"
+        },
+        {
+            "name": "ACCORD VI (CK, CG, CH, CF8)",
+            "slug": "accord-vi-ck-cg-ch-cf8"
+        },
+        {
+            "name": "ACCORD VI coupe (CG)",
+            "slug": "accord-vi-kype-cg"
+        },
+        {
+            "name": "ACCORD VI Hatchback (CH, CL)",
+            "slug": "accord-vi-hatchback-ch-cl"
+        },
+        {
+            "name": "ACCORD VII (CL, CN)",
+            "slug": "accord-vii-cl-cn"
+        },
+        {
+            "name": "ACCORD VII Tourer (CM, CN)",
+            "slug": "accord-vii-tourer-cm-cn"
+        },
+        {
+            "name": "ACCORD VIII (CU)",
+            "slug": "accord-viii-cu"
+        },
+        {
+            "name": "ACCORD VIII station wagon (CW)",
+            "slug": "accord-viii-yniversal-c"
+        },
+        {
+            "name": "ACTY (TN)",
+            "slug": "acty-tn"
+        },
+        {
+            "name": "CAPA",
+            "slug": "capa"
+        },
+        {
+            "name": "CIVIC I Hatchback (SB)",
+            "slug": "civic-i-hatchback-sb"
+        },
+        {
+            "name": "CIVIC I sedan (SF)",
+            "slug": "civic-i-sedan-sf"
+        },
+        {
+            "name": "CIVIC I Shuttle (AN, AR)",
+            "slug": "civic-i-shuttle-an-ar"
+        },
+        {
+            "name": "CIVIC II Fastback (SS, SL)",
+            "slug": "civic-ii-fastbek-ss-sl"
+        },
+        {
+            "name": "CIVIC II Shuttle (EE)",
+            "slug": "civic-ii-shuttle-ee"
+        },
+        {
+            "name": "CIVIC II station wagon (WC)",
+            "slug": "civic-ii-yniversal-c"
+        },
+        {
+            "name": "CIVIC III Hatchback (AL, AJ, AG, AH)",
+            "slug": "civic-iii-hatchback-al-aj-ag-ah"
+        },
+        {
+            "name": "CIVIC III sedan (AM, AK, AU)",
+            "slug": "civic-iii-sedan-am-ak-au"
+        },
+        {
+            "name": "CIVIC IV Hatchback (EC, ED, EE)",
+            "slug": "civic-iv-hatchback-ec-ed-ee"
+        },
+        {
+            "name": "CIVIC IV sedan (ED)",
+            "slug": "civic-iv-sedan-ed"
+        },
+        {
+            "name": "CIVIC IX (FK)",
+            "slug": "civic-ix-fk"
+        },
+        {
+            "name": "CIVIC IX sedan (FB, FG)",
+            "slug": "civic-ix-sedan-fb-fg"
+        },
+        {
+            "name": "CIVIC IX Tourer (FK)",
+            "slug": "civic-ix-tourer-fk"
+        },
+        {
+            "name": "CIVIC V coupe (EJ)",
+            "slug": "civic-v-kype-ej"
+        },
+        {
+            "name": "CIVIC V Hatchback (EG)",
+            "slug": "civic-v-hatchback-eg"
+        },
+        {
+            "name": "CIVIC V sedan (EG, EH)",
+            "slug": "civic-v-sedan-eg-eh"
+        },
+        {
+            "name": "CIVIC VI Aerodeck (MB, MC)",
+            "slug": "civic-vi-aerodeck-mb-mc"
+        },
+        {
+            "name": "CIVIC VI coupe (EJ, EM1)",
+            "slug": "civic-vi-kype-ej-em1"
+        },
+        {
+            "name": "CIVIC VI Fastback (MA, MB)",
+            "slug": "civic-vi-fastbek-ma-mb"
+        },
+        {
+            "name": "CIVIC VI Hatchback (EJ, EK)",
+            "slug": "civic-vi-hatchback-ej-ek"
+        },
+        {
+            "name": "CIVIC VI sedan (EJ, EK)",
+            "slug": "civic-vi-sedan-ej-ek"
+        },
+        {
+            "name": "CIVIC VII coupe (EM2)",
+            "slug": "civic-vii-kype-em2"
+        },
+        {
+            "name": "CIVIC VII Hatchback (EU, EP, EV)",
+            "slug": "civic-vii-hatchback-eu-ep-ev"
+        },
+        {
+            "name": "CIVIC VII sedan (ES, ET)",
+            "slug": "civic-vii-sedan-es-et"
+        },
+        {
+            "name": "CIVIC VIII Hatchback (FN, FK)",
+            "slug": "civic-viii-hatchback-fn-fk"
+        },
+        {
+            "name": "CIVIC VIII sedan (FD, FA)",
+            "slug": "civic-viii-sedan-fd-fa"
+        },
+        {
+            "name": "CIVIC X Fastback (FC_, FK)",
+            "slug": "civic-x-fastbek-fc-fk"
+        },
+        {
+            "name": "CONCERTO (HW, MA)",
+            "slug": "concerto-h-ma"
+        },
+        {
+            "name": "CONCERTO sedan (HWW)",
+            "slug": "concerto-sedan-h"
+        },
+        {
+            "name": "CR-V I (RD)",
+            "slug": "cr-v-i-rd"
+        },
+        {
+            "name": "CR-V II (RD_)",
+            "slug": "cr-v-ii-rd"
+        },
+        {
+            "name": "CR-V III (RE_)",
+            "slug": "cr-v-iii-re"
+        },
+        {
+            "name": "CR-V IV (RM_)",
+            "slug": "cr-v-iv-rm"
+        },
+        {
+            "name": "CR-Z (ZF)",
+            "slug": "cr-z-zf"
+        },
+        {
+            "name": "CROSSTOUR",
+            "slug": "crosstour"
+        },
+        {
+            "name": "CRX I (AF, AS)",
+            "slug": "crx-i-af-as"
+        },
+        {
+            "name": "CRX II (ED, EE)",
+            "slug": "crx-ii-ed-ee"
+        },
+        {
+            "name": "CRX III (EH, EG)",
+            "slug": "crx-iii-eh-eg"
+        },
+        {
+            "name": "FR-V (BE)",
+            "slug": "fr-v-be"
+        },
+        {
+            "name": "HR-V (GH)",
+            "slug": "hr-v-gh"
+        },
+        {
+            "name": "HR-V (RU)",
+            "slug": "hr-v-ru"
+        },
+        {
+            "name": "INSIGHT (ZE)",
+            "slug": "insight-ze"
+        },
+        {
+            "name": "INSIGHT (ZE_)",
+            "slug": "insight-ze"
+        },
+        {
+            "name": "INTEGRA coupe (DC2, DC4)",
+            "slug": "integra-kype-dc2-dc4"
+        },
+        {
+            "name": "INTEGRA coupe (DC5)",
+            "slug": "integra-kype-dc5"
+        },
+        {
+            "name": "INTEGRA Fastback (DA)",
+            "slug": "integra-fastbek-da"
+        },
+        {
+            "name": "JAZZ I (AA)",
+            "slug": "jazz-i-aa"
+        },
+        {
+            "name": "JAZZ II (GD_, GE3, GE2)",
+            "slug": "jazz-ii-gd-ge3-ge2"
+        },
+        {
+            "name": "JAZZ III (GE_, GG_, GP_)",
+            "slug": "jazz-iii-ge-gg-gp"
+        },
+        {
+            "name": "JAZZ IV (GK_)",
+            "slug": "jazz-iv-gk"
+        },
+        {
+            "name": "JAZZ SHUTTLE (GG8, GG7, GP2)",
+            "slug": "jazz-shuttle-gg8-gg7-gp2"
+        },
+        {
+            "name": "LEGEND I (HS, KA)",
+            "slug": "legend-i-hs-ka"
+        },
+        {
+            "name": "LEGEND I coupe (KA_)",
+            "slug": "legend-i-kype-ka"
+        },
+        {
+            "name": "LEGEND II (KA)",
+            "slug": "legend-ii-ka"
+        },
+        {
+            "name": "LEGEND II coupe (KA)",
+            "slug": "legend-ii-kype-ka"
+        },
+        {
+            "name": "LEGEND III (KA)",
+            "slug": "legend-iii-ka"
+        },
+        {
+            "name": "LEGEND IV (KB_)",
+            "slug": "legend-iv-kb"
+        },
+        {
+            "name": "LOGO (GA)",
+            "slug": "logo-ga"
+        },
+        {
+            "name": "N III",
+            "slug": "n-iii"
+        },
+        {
+            "name": "NSX Convertible (NA)",
+            "slug": "nsx-kabriolet-na"
+        },
+        {
+            "name": "NSX coupe",
+            "slug": "nsx-kype"
+        },
+        {
+            "name": "NSX coupe (NA)",
+            "slug": "nsx-kype-na"
+        },
+        {
+            "name": "ODYSSEY (RA_)",
+            "slug": "odyssey-ra"
+        },
+        {
+            "name": "PILOT",
+            "slug": "pilot"
+        },
+        {
+            "name": "PRELUDE I coupe (SN)",
+            "slug": "prelude-i-kype-sn"
+        },
+        {
+            "name": "PRELUDE II (AB)",
+            "slug": "prelude-ii-ab"
+        },
+        {
+            "name": "PRELUDE III (BA)",
+            "slug": "prelude-iii-ba"
+        },
+        {
+            "name": "PRELUDE IV (BB_)",
+            "slug": "prelude-iv-bb"
+        },
+        {
+            "name": "PRELUDE V (BB_)",
+            "slug": "prelude-v-bb"
+        },
+        {
+            "name": "QUINTET (SU)",
+            "slug": "quintet-su"
+        },
+        {
+            "name": "S2000 (AP)",
+            "slug": "s2000-ap"
+        },
+        {
+            "name": "SHUTTLE (RA)",
+            "slug": "shuttle-ra"
+        },
+        {
+            "name": "STREAM (RN)",
+            "slug": "stream-rn"
+        }
+    ]
+}

@@ -1,0 +1,1485 @@
+"use client";
+
+import { useEffect, useMemo, useState, useTransition, type ChangeEvent, type ReactNode } from "react";
+import { useRouter } from "next/navigation";
+import {
+  DndContext,
+  KeyboardSensor,
+  PointerSensor,
+  closestCenter,
+  type DragEndEvent,
+  useSensor,
+  useSensors,
+} from "@dnd-kit/core";
+import {
+  SortableContext,
+  arrayMove,
+  sortableKeyboardCoordinates,
+  useSortable,
+  verticalListSortingStrategy,
+} from "@dnd-kit/sortable";
+import { CSS } from "@dnd-kit/utilities";
+import { GripVertical, Plus, X } from "lucide-react";
+
+import { EstimateLabLineAddSplit } from "@/components/estimate-building/estimate-lab-line-add-split";
+import {
+  EstimateLineTypeMenu,
+  LABOR_LINE_TYPES,
+  PART_FAMILY_LINE_TYPES,
+  type EstimateLineTypeMenuHandlers,
+  type InlineLineType,
+} from "@/components/estimate-building/estimate-line-type-menu";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { formatCents } from "@/lib/format";
+import {
+  laborLineTotal,
+  partLineTotal,
+  patchLaborLine,
+  patchPartLine,
+} from "@/lib/line-calc";
+import { type LaborTier, type PartTier } from "@/lib/matrix";
+import { applyLaborMatrixRow, applyPartMatrixRow } from "@/lib/line-calc";
+import { cn } from "@/lib/utils";
+import {
+  addDiscount,
+  addFee,
+  deleteDiscount,
+  deleteFee,
+  updateDiscount,
+  updateFee,
+} from "@/server/actions/adjustments";
+import {
+  amountDisplay,
+  calcAdjustmentTotal,
+  parseAmountInput,
+  type AdjustBase,
+  type AdjustMethod,
+  type AdjustmentLine,
+  type AdjustTemplate,
+} from "@/components/estimate-building/estimate-lab-adjustment-shared";
+import {
+  LAB_GRID_BORDER,
+  LAB_GRID_CELL_BORDERED,
+  LAB_GRID_CELL_END,
+  LAB_GRID_NUM_BORDERED,
+  LAB_DESCRIPTION_SELECT_CLASS,
+  LAB_DESCRIPTION_TEXTAREA_CLASS,
+  LAB_INPUT_FLAT,
+  LAB_LINE_GRID,
+  LAB_LINE_GRID_HEAD,
+  LAB_LINE_GRID_MIN_W,
+  LAB_TABLE_HEAD,
+} from "@/components/estimate-building/estimate-lab-job-card-shell";
+
+const DESC_STACK = "flex min-w-0 flex-col gap-0.5 overflow-hidden";
+
+function LabDescriptionTextarea({
+  value = "",
+  onChange,
+  placeholder = "Description",
+  readOnly,
+  disabled,
+  className,
+}: {
+  value?: string;
+  onChange?: (e: ChangeEvent<HTMLTextAreaElement>) => void;
+  placeholder?: string;
+  readOnly?: boolean;
+  disabled?: boolean;
+  className?: string;
+}) {
+  return (
+    <Textarea
+      data-lab-description
+      value={value}
+      onChange={onChange}
+      readOnly={readOnly}
+      disabled={disabled}
+      rows={2}
+      placeholder={placeholder}
+      className={cn(LAB_DESCRIPTION_TEXTAREA_CLASS, className)}
+    />
+  );
+}
+
+export type { InlineLineType } from "@/components/estimate-building/estimate-line-type-menu";
+export { INLINE_LINE_TYPE_OPTIONS } from "@/components/estimate-building/estimate-line-type-menu";
+
+function lineTypeGuideHandlers(
+  onLaborLookup?: () => void,
+  onPartLookup?: () => void,
+  onLaborManual?: () => void,
+  onPartManual?: () => void,
+): EstimateLineTypeMenuHandlers | undefined {
+  if (!onLaborLookup && !onPartLookup && !onLaborManual && !onPartManual) {
+    return undefined;
+  }
+  return {
+    onLaborFromGuide: onLaborLookup,
+    onPartFromGuide: onPartLookup,
+    onCustomLabor: onLaborManual,
+    onCustomPart: onPartManual,
+  };
+}
+
+type PartFamilyType = Exclude<InlineLineType, "labor" | "fee" | "discount">;
+
+type LaborRow = {
+  id?: string;
+  description: string;
+  hours: number;
+  rateCents: number;
+  totalCents?: number;
+  lastField?: "hours" | "rate" | "total";
+  useLaborMatrix?: boolean;
+  technicianId?: string | null;
+  authorized?: boolean;
+  sortOrder?: number;
+};
+
+type PartRow = {
+  id?: string;
+  brand: string;
+  description: string;
+  partNumber: string;
+  quantity: number;
+  costCents: number;
+  retailCents: number;
+  totalCents?: number;
+  lastField?: "qty" | "cost" | "retail" | "total";
+  usePartMatrix?: boolean;
+  source?: string;
+  authorized?: boolean;
+  sortOrder?: number;
+  lineType?: PartFamilyType;
+};
+
+type FieldDrafts = Record<string, string>;
+
+type MergedItem =
+  | { key: string; kind: "labor"; row: LaborRow }
+  | { key: string; kind: "part"; row: PartRow; lineType: PartFamilyType }
+  | { key: string; kind: "adjustment"; adjKind: "fee" | "discount"; row: AdjustmentLine };
+
+const dollars = (cents: number) => (cents / 100).toFixed(2);
+
+function draftValue(drafts: FieldDrafts, key: string, fallback: string): string {
+  return key in drafts ? drafts[key] : fallback;
+}
+
+function isDecimalInput(s: string): boolean {
+  return /^-?\d*\.?\d*$/.test(s);
+}
+
+function parseOptionalFloat(s: string): number | null {
+  const t = s.trim();
+  if (t === "" || t === "." || t === "-") return null;
+  const n = parseFloat(t);
+  return Number.isFinite(n) ? n : null;
+}
+
+function parseOptionalCents(s: string): number | null {
+  const n = parseOptionalFloat(s);
+  return n === null ? null : Math.round(n * 100);
+}
+
+function itemKey(row: { id?: string }, kind: "labor" | "part", index: number) {
+  return row.id ?? `${kind}-row-${index}`;
+}
+
+/** LaborLine has one `description` — first line = Name, remainder = Description (Tekmetric split). */
+function splitLaborDesc(full: string): { name: string; detail: string } {
+  const i = full.indexOf("\n");
+  if (i < 0) return { name: full, detail: "" };
+  return { name: full.slice(0, i), detail: full.slice(i + 1) };
+}
+
+function joinLaborDesc(name: string, detail: string): string {
+  const n = name.trimEnd();
+  const d = detail.trim();
+  if (!d) return n;
+  return n ? `${n}\n${d}` : d;
+}
+
+/** Part detail textarea — line 1 = part #, line 2+ = brand / notes (stored in `brand`). */
+function formatPartDetail(partNumber: string, brand: string): string {
+  const pn = partNumber.trimEnd();
+  const br = brand.trimEnd();
+  if (!pn && !br) return "";
+  if (!br) return pn;
+  if (!pn) return br;
+  return `${pn}\n${br}`;
+}
+
+function parsePartDetail(full: string): { partNumber: string; brand: string } {
+  const trimmed = full.trim();
+  if (!trimmed) return { partNumber: "", brand: "" };
+
+  const nl = full.indexOf("\n");
+  if (nl < 0) {
+    const dotSep = full.indexOf(" · ");
+    if (dotSep >= 0) {
+      return {
+        partNumber: full.slice(0, dotSep).trim(),
+        brand: full.slice(dotSep + 3).trim(),
+      };
+    }
+    return { partNumber: trimmed, brand: "" };
+  }
+
+  const firstLine = full.slice(0, nl);
+  const rest = full.slice(nl + 1);
+  const dotSep = firstLine.indexOf(" · ");
+  if (dotSep >= 0) {
+    const pn = firstLine.slice(0, dotSep).trim();
+    const brandFromFirst = firstLine.slice(dotSep + 3).trim();
+    const brand = [brandFromFirst, rest.trimEnd()].filter(Boolean).join("\n");
+    return { partNumber: pn, brand };
+  }
+
+  return {
+    partNumber: firstLine.trimEnd(),
+    brand: rest.trimEnd(),
+  };
+}
+
+function inlineTypeOf(item: MergedItem): InlineLineType {
+  if (item.kind === "labor") return "labor";
+  if (item.kind === "adjustment") return item.adjKind;
+  return item.lineType;
+}
+
+function isPartFamily(type: InlineLineType): type is PartFamilyType {
+  return type !== "labor" && type !== "fee" && type !== "discount";
+}
+
+function buildMerged(
+  labor: LaborRow[],
+  parts: PartRow[],
+  fees: AdjustmentLine[],
+  discounts: AdjustmentLine[],
+): MergedItem[] {
+  const items: { order: number; item: MergedItem }[] = [];
+  labor.forEach((row, i) => {
+    items.push({
+      order: row.sortOrder ?? i,
+      item: { key: itemKey(row, "labor", i), kind: "labor", row },
+    });
+  });
+  parts.forEach((row, i) => {
+    items.push({
+      order: row.sortOrder ?? labor.length + i,
+      item: {
+        key: itemKey(row, "part", i),
+        kind: "part",
+        row,
+        lineType: row.lineType ?? "part",
+      },
+    });
+  });
+  fees.forEach((row, i) => {
+    items.push({
+      order: row.sortOrder ?? labor.length + parts.length + i,
+      item: { key: `fee-${row.id}`, kind: "adjustment", adjKind: "fee", row },
+    });
+  });
+  discounts.forEach((row, i) => {
+    items.push({
+      order: row.sortOrder ?? labor.length + parts.length + fees.length + i,
+      item: { key: `disc-${row.id}`, kind: "adjustment", adjKind: "discount", row },
+    });
+  });
+  return items.sort((a, b) => a.order - b.order).map((x) => x.item);
+}
+
+function splitMerged(merged: MergedItem[]): { labor: LaborRow[]; parts: PartRow[] } {
+  const labor: LaborRow[] = [];
+  const parts: PartRow[] = [];
+  merged.forEach((item, sortOrder) => {
+    if (item.kind === "labor") {
+      labor.push({ ...item.row, sortOrder });
+    } else if (item.kind === "part") {
+      parts.push({ ...item.row, lineType: item.lineType, sortOrder });
+    }
+  });
+  return { labor, parts };
+}
+
+function newLaborRow(baseRateCents: number, laborTiers: LaborTier[]): LaborRow {
+  const base: LaborRow = { description: "", hours: 0, rateCents: baseRateCents };
+  if (laborTiers.length > 0) {
+    return applyLaborMatrixRow({ ...base, useLaborMatrix: true }, baseRateCents, laborTiers);
+  }
+  return base;
+}
+
+function newPartRow(partTiers: PartTier[], lineType: PartFamilyType = "part"): PartRow {
+  const base: PartRow = {
+    brand: "",
+    description: "",
+    partNumber: "",
+    quantity: 1,
+    costCents: 0,
+    retailCents: 0,
+    lineType,
+  };
+  if (partTiers.length > 0) {
+    return { ...applyPartMatrixRow({ ...base, usePartMatrix: true }, partTiers), lineType };
+  }
+  return base;
+}
+
+function laborFromPart(row: PartRow, baseRateCents: number, laborTiers: LaborTier[]): LaborRow {
+  const base: LaborRow = {
+    description: row.description,
+    hours: 1,
+    rateCents: baseRateCents,
+    authorized: row.authorized,
+  };
+  if (laborTiers.length > 0) {
+    return applyLaborMatrixRow({ ...base, useLaborMatrix: true }, baseRateCents, laborTiers);
+  }
+  return base;
+}
+
+function partFromLabor(row: LaborRow, partTiers: PartTier[], lineType: PartFamilyType): PartRow {
+  const base: PartRow = {
+    brand: "",
+    description: row.description,
+    partNumber: "",
+    quantity: 1,
+    costCents: 0,
+    retailCents: 0,
+    authorized: row.authorized,
+    lineType,
+  };
+  if (partTiers.length > 0) {
+    return { ...applyPartMatrixRow({ ...base, usePartMatrix: true }, partTiers), lineType };
+  }
+  return base;
+}
+
+const MONEY_CELL = "flex h-7 w-full min-w-0 items-center";
+const VENDOR_COST_TITLE = "From vendor — edit via parts ordering";
+const ADD_ROW_CHIP =
+  "inline-flex h-7 shrink-0 items-center gap-0.5 rounded-md border border-brand-navy/25 bg-white px-1.5 text-[10px] font-semibold uppercase tracking-wide text-brand-navy hover:bg-brand-light/15";
+const MONEY_INPUT = cn(LAB_INPUT_FLAT, "min-w-0 w-full text-right");
+const MONEY_INPUT_LOCKED = "cursor-default bg-muted/25 text-foreground/90";
+
+function InlineMoneyCell({
+  draftKey,
+  valueCents,
+  fieldDrafts,
+  focusFieldDraft,
+  setFieldDraft,
+  clearFieldDraft,
+  onCommitCents,
+  readOnly,
+  placeholder,
+  fontMedium,
+}: {
+  draftKey: string;
+  valueCents: number;
+  fieldDrafts: Record<string, string>;
+  focusFieldDraft: (key: string, value: string) => void;
+  setFieldDraft: (key: string, value: string) => void;
+  clearFieldDraft: (key: string) => void;
+  onCommitCents: (cents: number) => void;
+  readOnly?: boolean;
+  placeholder?: string;
+  fontMedium?: boolean;
+}) {
+  const locked = readOnly;
+  const display = draftValue(fieldDrafts, draftKey, dollars(valueCents));
+
+  return (
+    <div className={MONEY_CELL}>
+      <Input
+        type="text"
+        inputMode="decimal"
+        readOnly={locked}
+        placeholder={placeholder}
+        value={locked ? display : display || placeholder || ""}
+        onFocus={() => {
+          if (locked) return;
+          focusFieldDraft(draftKey, dollars(valueCents));
+        }}
+        onChange={(e) => {
+          if (locked) return;
+          const v = e.target.value;
+          if (!isDecimalInput(v)) return;
+          setFieldDraft(draftKey, v);
+          const cents = parseOptionalCents(v);
+          if (cents !== null) onCommitCents(cents);
+        }}
+        onBlur={(e) => {
+          if (locked) return;
+          const cents = parseOptionalCents(e.target.value) ?? 0;
+          onCommitCents(cents);
+          clearFieldDraft(draftKey);
+        }}
+        className={cn(MONEY_INPUT, fontMedium && "font-medium", locked && MONEY_INPUT_LOCKED)}
+      />
+    </div>
+  );
+}
+
+function InlinePlaceholderCell({ placeholder = "—" }: { placeholder?: string }) {
+  return (
+    <div className={MONEY_CELL}>
+      <Input
+        readOnly
+        disabled
+        value={placeholder}
+        tabIndex={-1}
+        className={cn(MONEY_INPUT, "cursor-default bg-transparent text-muted-foreground/40")}
+      />
+    </div>
+  );
+}
+
+/** Per-line discount — schema has no line-level discount; Tekmetric column stub. */
+function LineDiscountStub({ editing }: { editing: boolean }) {
+  return (
+    <div className={cn("flex min-w-0 flex-col gap-0.5", editing ? "" : "items-end")}>
+      <span className="text-[10px] tabular-nums text-muted-foreground/70">$0.00</span>
+      <span className="text-[10px] tabular-nums text-muted-foreground/50">0%</span>
+    </div>
+  );
+}
+
+function TaxableCell({
+  value,
+  editing,
+  onChange,
+}: {
+  value: boolean;
+  editing: boolean;
+  onChange?: (next: boolean) => void;
+}) {
+  if (!editing) {
+    return (
+      <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+        {value ? "Yes" : "No"}
+      </span>
+    );
+  }
+  return (
+    <select
+      value={value ? "yes" : "no"}
+      onChange={(e) => onChange?.(e.target.value === "yes")}
+      className={cn(LAB_INPUT_FLAT, "w-full text-[10px]")}
+      aria-label="Taxable"
+    >
+      <option value="yes">Yes</option>
+      <option value="no">No</option>
+    </select>
+  );
+}
+
+function ReadOnlyMoney({ cents, className }: { cents: number; className?: string }) {
+  return (
+    <span className={cn("inline-flex h-7 w-full items-center justify-end text-xs tabular-nums", className)}>
+      {formatCents(cents)}
+    </span>
+  );
+}
+
+function InlineQtyCell({
+  draftKey,
+  value,
+  fieldDrafts,
+  focusFieldDraft,
+  setFieldDraft,
+  clearFieldDraft,
+  onCommit,
+  integer,
+}: {
+  draftKey: string;
+  value: string;
+  fieldDrafts: Record<string, string>;
+  focusFieldDraft: (key: string, value: string) => void;
+  setFieldDraft: (key: string, value: string) => void;
+  clearFieldDraft: (key: string) => void;
+  onCommit: (next: string) => void;
+  integer?: boolean;
+}) {
+  return (
+    <Input
+      type="text"
+      inputMode={integer ? "numeric" : "decimal"}
+      value={draftValue(fieldDrafts, draftKey, value)}
+      onFocus={() => focusFieldDraft(draftKey, value)}
+      onChange={(e) => {
+        const v = e.target.value;
+        if (integer ? !/^\d*$/.test(v) : !isDecimalInput(v)) return;
+        setFieldDraft(draftKey, v);
+        onCommit(v);
+      }}
+      onBlur={(e) => {
+        onCommit(e.target.value);
+        clearFieldDraft(draftKey);
+      }}
+      className={cn(LAB_INPUT_FLAT, "w-full text-right")}
+    />
+  );
+}
+
+function SortableDragHandle({
+  listeners,
+  attributes,
+  disabled,
+  isDragging,
+}: {
+  listeners?: ReturnType<typeof useSortable>["listeners"];
+  attributes?: ReturnType<typeof useSortable>["attributes"];
+  disabled?: boolean;
+  isDragging?: boolean;
+}) {
+  return (
+    <button
+      type="button"
+      className={cn(
+        "flex size-6 items-center justify-center rounded outline-none",
+        disabled
+          ? "cursor-default opacity-30"
+          : "cursor-grab text-muted-foreground/50 hover:text-muted-foreground active:cursor-grabbing",
+        isDragging && "opacity-60",
+      )}
+      aria-label="Drag to reorder"
+      {...attributes}
+      {...listeners}
+    >
+      <GripVertical className="size-3.5" aria-hidden />
+    </button>
+  );
+}
+
+function SortableRow({
+  id,
+  children,
+  disabled,
+}: {
+  id: string;
+  children: (handle: {
+    listeners: ReturnType<typeof useSortable>["listeners"];
+    attributes: ReturnType<typeof useSortable>["attributes"];
+    isDragging: boolean;
+  }) => ReactNode;
+  disabled?: boolean;
+}) {
+  const { setNodeRef, transform, transition, isDragging, attributes, listeners } = useSortable({
+    id,
+    disabled,
+  });
+  return (
+    <div
+      ref={setNodeRef}
+      style={{ transform: CSS.Transform.toString(transform), transition }}
+      className={cn(
+        LAB_LINE_GRID,
+        "border-b border-border/60 last:border-0",
+        isDragging && "relative z-10 bg-white shadow-md ring-1 ring-brand-navy/20",
+      )}
+    >
+      {children({ listeners, attributes, isDragging })}
+    </div>
+  );
+}
+
+const ADJ_SELECT = cn(LAB_DESCRIPTION_SELECT_CLASS);
+
+export function EstimateLabServiceItemsGrid({
+  labor,
+  parts,
+  fees = [],
+  discounts = [],
+  editing,
+  baseRateCents,
+  laborTiers,
+  partTiers,
+  fieldDrafts,
+  setFieldDraft,
+  clearFieldDraft,
+  focusFieldDraft,
+  onLaborChange,
+  onPartsChange,
+  onAddLine,
+  onLaborManual,
+  onLaborLookup,
+  onPartManual,
+  onPartLookup,
+  roId,
+  jobId,
+  laborCents = 0,
+  partsCents = 0,
+  feeTemplates = [],
+  discountTemplates = [],
+  laborTaxable = true,
+  partsTaxable = true,
+  onToggleLaborTax,
+  onTogglePartsTax,
+}: {
+  labor: LaborRow[];
+  parts: PartRow[];
+  fees?: AdjustmentLine[];
+  discounts?: AdjustmentLine[];
+  editing: boolean;
+  baseRateCents: number;
+  laborTiers: LaborTier[];
+  partTiers: PartTier[];
+  fieldDrafts: FieldDrafts;
+  setFieldDraft: (key: string, value: string) => void;
+  clearFieldDraft: (key: string) => void;
+  focusFieldDraft: (key: string, formatted: string) => void;
+  onLaborChange: (rows: LaborRow[]) => void;
+  onPartsChange: (rows: PartRow[]) => void;
+  onAddLine?: (type: InlineLineType) => void;
+  onLaborManual?: () => void;
+  onLaborLookup?: () => void;
+  onPartManual?: () => void;
+  onPartLookup?: () => void;
+  roId: string;
+  jobId: string;
+  laborCents?: number;
+  partsCents?: number;
+  feeTemplates?: AdjustTemplate[];
+  discountTemplates?: AdjustTemplate[];
+  laborTaxable?: boolean;
+  partsTaxable?: boolean;
+  onToggleLaborTax?: (next: boolean) => void;
+  onTogglePartsTax?: (next: boolean) => void;
+}) {
+  const router = useRouter();
+  const [, startAdj] = useTransition();
+  const calcOpts = { baseRateCents, laborTiers };
+  const [addType, setAddType] = useState<InlineLineType>("labor");
+  const [dndReady, setDndReady] = useState(false);
+
+  useEffect(() => {
+    setDndReady(true);
+  }, []);
+
+  const merged = useMemo(() => buildMerged(labor, parts, fees, discounts), [labor, parts, fees, discounts]);
+  const sortableMerged = useMemo(() => merged.filter((m) => m.kind !== "adjustment"), [merged]);
+  const mergedIds = sortableMerged.map((m) => m.key);
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 6 } }),
+    useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates }),
+  );
+
+  function applyMerged(next: MergedItem[]) {
+    const split = splitMerged(next);
+    onLaborChange(split.labor);
+    onPartsChange(split.parts);
+  }
+
+  function updateAt(index: number, updater: (item: MergedItem) => MergedItem) {
+    applyMerged(merged.map((item, i) => (i === index ? updater(item) : item)));
+  }
+
+  function removeAt(index: number) {
+    const item = merged[index];
+    if (item?.kind === "adjustment") {
+      removeAdjustment(item.row.id, item.adjKind);
+      return;
+    }
+    applyMerged(merged.filter((_, i) => i !== index));
+  }
+
+  function onDragEnd(event: DragEndEvent) {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    const oldIndex = sortableMerged.findIndex((m) => m.key === String(active.id));
+    const newIndex = sortableMerged.findIndex((m) => m.key === String(over.id));
+    if (oldIndex < 0 || newIndex < 0) return;
+    const reordered = arrayMove(sortableMerged, oldIndex, newIndex);
+    const adjustments = merged.filter((m) => m.kind === "adjustment");
+    applyMerged([...reordered, ...adjustments]);
+  }
+
+  function refreshAdjustments() {
+    router.refresh();
+  }
+
+  function createAdjustment(kind: "fee" | "discount", template?: AdjustTemplate) {
+    startAdj(async () => {
+      const body = template
+        ? {
+            name: template.name,
+            method: template.method,
+            base: template.base,
+            amount: template.amount,
+            ...(kind === "fee"
+              ? { capCents: template.capCents ?? null, taxable: template.taxable ?? false }
+              : {}),
+          }
+        : kind === "fee"
+          ? { name: "New fee", method: "FIXED" as AdjustMethod, base: "LABOR_PARTS" as AdjustBase, amount: 0, taxable: false }
+          : { name: "New discount", method: "FIXED" as AdjustMethod, base: "LABOR_PARTS" as AdjustBase, amount: 0 };
+      const res =
+        kind === "fee" ? await addFee(roId, body, jobId) : await addDiscount(roId, body, jobId);
+      if (res.ok) refreshAdjustments();
+    });
+  }
+
+  function commitAdjustment(
+    item: AdjustmentLine,
+    kind: "fee" | "discount",
+    patch: Partial<{
+      name: string;
+      method: AdjustMethod;
+      base: AdjustBase;
+      amount: number;
+      taxable: boolean;
+    }>,
+  ) {
+    const nextName = (patch.name ?? item.name).trim();
+    if (!nextName) return;
+    const body =
+      kind === "fee"
+        ? {
+            name: nextName,
+            method: patch.method ?? item.method,
+            base: patch.base ?? item.base,
+            amount: patch.amount ?? item.amount,
+            capCents: item.capCents ?? null,
+            taxable: patch.taxable ?? item.taxable ?? false,
+          }
+        : {
+            name: nextName,
+            method: patch.method ?? item.method,
+            base: patch.base ?? item.base,
+            amount: patch.amount ?? item.amount,
+          };
+    startAdj(async () => {
+      const res =
+        kind === "fee" ? await updateFee(item.id, body) : await updateDiscount(item.id, body);
+      if (res.ok) refreshAdjustments();
+    });
+  }
+
+  function removeAdjustment(id: string, kind: "fee" | "discount") {
+    startAdj(async () => {
+      const res = kind === "fee" ? await deleteFee(id) : await deleteDiscount(id);
+      if (res.ok) refreshAdjustments();
+    });
+  }
+
+  function swapAdjustmentKind(item: AdjustmentLine, from: "fee" | "discount", to: "fee" | "discount") {
+    if (from === to) return;
+    startAdj(async () => {
+      const del = from === "fee" ? await deleteFee(item.id) : await deleteDiscount(item.id);
+      if (!del.ok) return;
+      const body =
+        to === "fee"
+          ? {
+              name: item.name,
+              method: item.method,
+              base: item.base,
+              amount: item.amount,
+              capCents: item.capCents ?? null,
+              taxable: item.taxable ?? false,
+            }
+          : { name: item.name, method: item.method, base: item.base, amount: item.amount };
+      const add = to === "fee" ? await addFee(roId, body, jobId) : await addDiscount(roId, body, jobId);
+      if (add.ok) refreshAdjustments();
+    });
+  }
+
+  function onTypeChange(index: number, nextType: InlineLineType) {
+    const item = merged[index];
+    if (!item || inlineTypeOf(item) === nextType) return;
+
+    if (nextType === "fee" || nextType === "discount") {
+      if (item.kind === "adjustment") {
+        swapAdjustmentKind(item.row, item.adjKind, nextType);
+        return;
+      }
+      if (item.kind === "labor") {
+        const desc = item.row.description;
+        const li = laborIndexInArray(index);
+        if (li >= 0) onLaborChange(labor.filter((_, i) => i !== li));
+        createAdjustment(nextType, { name: desc || (nextType === "fee" ? "New fee" : "New discount"), method: "FIXED", base: "LABOR_PARTS", amount: 0 });
+        return;
+      }
+      if (item.kind === "part") {
+        const desc = item.row.description;
+        const pi = partIndexInArray(index);
+        if (pi >= 0) onPartsChange(parts.filter((_, i) => i !== pi));
+        createAdjustment(nextType, { name: desc || (nextType === "fee" ? "New fee" : "New discount"), method: "FIXED", base: "LABOR_PARTS", amount: 0 });
+        return;
+      }
+    }
+
+    if (item.kind === "adjustment") {
+      const desc = item.row.name;
+      const kind = item.adjKind;
+      removeAdjustment(item.row.id, kind);
+      if (nextType === "labor") {
+        onLaborChange([...labor, laborFromPart({ brand: "", description: desc, partNumber: "", quantity: 1, costCents: 0, retailCents: 0 }, baseRateCents, laborTiers)]);
+        return;
+      }
+      if (isPartFamily(nextType)) {
+        onPartsChange([...parts, { ...newPartRow(partTiers, nextType), description: desc }]);
+        return;
+      }
+      return;
+    }
+
+    if (nextType === "labor") {
+      if (item.kind === "labor") return;
+      const nextRow = laborFromPart(item.row, baseRateCents, laborTiers);
+      updateAt(index, () => ({ key: `l-${Date.now()}`, kind: "labor", row: nextRow }));
+      return;
+    }
+
+    if (!isPartFamily(nextType)) return;
+
+    const partType = nextType;
+    if (item.kind === "labor") {
+      const nextRow = partFromLabor(item.row, partTiers, partType);
+      updateAt(index, () => ({
+        key: `p-${Date.now()}`,
+        kind: "part",
+        row: nextRow,
+        lineType: partType,
+      }));
+      return;
+    }
+
+    updateAt(index, (m) =>
+      m.kind === "part" ? { ...m, lineType: partType, row: { ...m.row, lineType: partType } } : m,
+    );
+  }
+
+  function laborIndexInArray(index: number) {
+    const item = merged[index];
+    if (!item || item.kind !== "labor") return -1;
+    return labor.findIndex((l) => l === item.row || (item.row.id && l.id === item.row.id));
+  }
+
+  function partIndexInArray(index: number) {
+    const item = merged[index];
+    if (!item || item.kind !== "part") return -1;
+    return parts.findIndex((p) => p === item.row || (item.row.id && p.id === item.row.id));
+  }
+
+  const showHeaders = editing || merged.length > 0;
+  const typeGuideHandlers = lineTypeGuideHandlers(
+    onLaborLookup,
+    onPartLookup,
+    onLaborManual,
+    onPartManual,
+  );
+
+  function addManualForType(type: InlineLineType) {
+    if (type === "labor") {
+      onLaborManual?.();
+      return;
+    }
+    if (type === "part") {
+      onPartManual?.();
+      return;
+    }
+    if (type === "fee" || type === "discount") {
+      createAdjustment(type);
+      return;
+    }
+    onAddLine?.(type);
+  }
+
+  function addLookupForType(type: InlineLineType) {
+    if (type === "labor") {
+      onLaborLookup?.();
+      return;
+    }
+    if (type === "part" || type === "tire") {
+      onPartLookup?.();
+    }
+  }
+
+  const addRowHasLookup = addType === "labor" || addType === "part" || addType === "tire";
+  const addRowHint =
+    addType === "labor"
+      ? "Manual order = blank labor row; Labor lookup = flat-rate guide"
+      : addType === "part" || addType === "tire"
+        ? "Manual order = phone/off-catalog line; Lookup = supplier catalog search"
+        : addType === "fee" || addType === "discount"
+          ? "Add line — pick a saved preset in the row or enter name + amount inline"
+          : "Pick type, then add a blank line inline";
+
+  const rows = merged.map((item, index) => {
+    const draftPrefix =
+      item.kind === "labor"
+        ? `l${laborIndexInArray(index)}`
+        : item.kind === "part"
+          ? `p${partIndexInArray(index)}`
+          : `a-${item.row.id}`;
+    const lineThrough =
+      item.kind !== "adjustment" && item.row.authorized === false && !editing
+        ? "text-foreground/45 line-through"
+        : undefined;
+
+    if (item.kind === "labor") {
+      const l = item.row;
+      const { name: laborName, detail: laborDetail } = splitLaborDesc(l.description);
+      const amountCents = laborLineTotal(l);
+
+      return (
+        <SortableRow key={item.key} id={item.key} disabled={!editing || !dndReady}>
+          {({ listeners, attributes, isDragging }) => (
+            <>
+              <div className={cn(LAB_GRID_CELL_BORDERED, "justify-center")}>
+                {editing && dndReady ? (
+                  <SortableDragHandle listeners={listeners} attributes={attributes} isDragging={isDragging} />
+                ) : (
+                  <GripVertical className="size-3.5 text-muted-foreground/30" aria-hidden />
+                )}
+              </div>
+              <div className={LAB_GRID_CELL_BORDERED}>
+                <EstimateLineTypeMenu
+                  value="labor"
+                  scope="labor"
+                  typeOptions={LABOR_LINE_TYPES}
+                  editing={editing}
+                  onChange={(t) => onTypeChange(index, t)}
+                  handlers={typeGuideHandlers}
+                />
+              </div>
+              <div className={LAB_GRID_CELL_BORDERED}>
+                {editing ? (
+                  <Input
+                    value={laborName}
+                    onChange={(e) =>
+                      updateAt(index, (m) =>
+                        m.kind === "labor"
+                          ? { ...m, row: { ...m.row, description: joinLaborDesc(e.target.value, laborDetail) } }
+                          : m,
+                      )
+                    }
+                    className={cn(LAB_INPUT_FLAT, "w-full")}
+                    placeholder="Enter name*"
+                  />
+                ) : (
+                  <p className={cn("min-w-0 truncate text-xs text-brand-navy", lineThrough)}>{laborName || "—"}</p>
+                )}
+              </div>
+              <div className={LAB_GRID_CELL_BORDERED}>
+                {editing ? (
+                  <LabDescriptionTextarea
+                    value={laborDetail}
+                    onChange={(e) =>
+                      updateAt(index, (m) =>
+                        m.kind === "labor"
+                          ? { ...m, row: { ...m.row, description: joinLaborDesc(laborName, e.target.value) } }
+                          : m,
+                      )
+                    }
+                  />
+                ) : (
+                  <p className={cn("line-clamp-2 min-w-0 text-[10px] leading-snug text-muted-foreground", lineThrough)}>
+                    {laborDetail || "—"}
+                  </p>
+                )}
+              </div>
+              <div className={LAB_GRID_NUM_BORDERED}>
+                <InlinePlaceholderCell />
+              </div>
+              <div className={LAB_GRID_NUM_BORDERED}>
+                {editing ? (
+                  <InlineQtyCell
+                    draftKey={`${draftPrefix}-hours`}
+                    value={l.hours ? String(l.hours) : ""}
+                    fieldDrafts={fieldDrafts}
+                    focusFieldDraft={focusFieldDraft}
+                    setFieldDraft={setFieldDraft}
+                    clearFieldDraft={clearFieldDraft}
+                    onCommit={(v) => {
+                      const n = parseOptionalFloat(v) ?? 0;
+                      updateAt(index, (m) =>
+                        m.kind === "labor" ? { ...m, row: patchLaborLine(m.row, "hours", n, calcOpts) } : m,
+                      );
+                    }}
+                  />
+                ) : (
+                  <span className={cn("inline-flex h-7 w-full items-center justify-end text-xs", lineThrough)}>
+                    {l.hours.toFixed(2)}
+                  </span>
+                )}
+              </div>
+              <div className={LAB_GRID_NUM_BORDERED}>
+                {editing ? (
+                  <InlineMoneyCell
+                    draftKey={`${draftPrefix}-rate`}
+                    valueCents={l.rateCents}
+                    fieldDrafts={fieldDrafts}
+                    focusFieldDraft={focusFieldDraft}
+                    setFieldDraft={setFieldDraft}
+                    clearFieldDraft={clearFieldDraft}
+                    onCommitCents={(cents) =>
+                      updateAt(index, (m) =>
+                        m.kind === "labor" ? { ...m, row: patchLaborLine(m.row, "rate", cents, calcOpts) } : m,
+                      )
+                    }
+                  />
+                ) : (
+                  <ReadOnlyMoney cents={l.rateCents} className={lineThrough} />
+                )}
+              </div>
+              <div className={LAB_GRID_NUM_BORDERED}>
+                <ReadOnlyMoney cents={amountCents} className={cn("font-medium", lineThrough)} />
+              </div>
+              <div className={LAB_GRID_NUM_BORDERED}>
+                <LineDiscountStub editing={editing} />
+              </div>
+              <div className={LAB_GRID_NUM_BORDERED}>
+                <ReadOnlyMoney cents={amountCents} className={cn("font-semibold", lineThrough)} />
+              </div>
+              <div className={cn(LAB_GRID_CELL_BORDERED, "justify-center")}>
+                <TaxableCell
+                  value={laborTaxable}
+                  editing={editing}
+                  onChange={onToggleLaborTax}
+                />
+              </div>
+              <div className={LAB_GRID_CELL_END}>
+                {editing ? (
+                  <button
+                    type="button"
+                    onClick={() => removeAt(index)}
+                    aria-label="Remove line"
+                    className="flex size-6 items-center justify-center"
+                  >
+                    <X className="size-3.5 text-muted-foreground hover:text-destructive" />
+                  </button>
+                ) : null}
+              </div>
+            </>
+          )}
+        </SortableRow>
+      );
+    }
+
+    if (item.kind === "adjustment") {
+      const a = item.row;
+      const isFee = item.adjKind === "fee";
+      const templates = isFee ? feeTemplates : discountTemplates;
+      const total = calcAdjustmentTotal(a, laborCents, partsCents);
+      const amountKey = `${draftPrefix}-amount`;
+      const methodLabel = a.method === "PERCENT" ? `${a.amount / 100}%` : formatCents(a.amount);
+      const baseLabel =
+        a.base === "LABOR_PARTS" ? "Labor + parts" : a.base === "LABOR" ? "Labor" : "Parts";
+
+      return (
+        <SortableRow key={item.key} id={item.key} disabled>
+          {() => (
+            <>
+              <div className={cn(LAB_GRID_CELL_BORDERED, "justify-center")}>
+                <GripVertical className="size-3.5 text-muted-foreground/30" aria-hidden />
+              </div>
+              <div className={LAB_GRID_CELL_BORDERED}>
+                <EstimateLineTypeMenu
+                  value={item.adjKind}
+                  editing={editing}
+                  onChange={(t) => onTypeChange(index, t)}
+                  handlers={typeGuideHandlers}
+                />
+              </div>
+              <div className={LAB_GRID_CELL_BORDERED}>
+                {editing ? (
+                  <div className="flex min-w-0 items-center gap-0.5">
+                    {templates.length > 0 ? (
+                      <select
+                        className={cn(ADJ_SELECT, "max-w-[4.5rem] shrink-0")}
+                        value=""
+                        onChange={(e) => {
+                          const t = templates.find((x) => x.name === e.target.value);
+                          if (!t) return;
+                          commitAdjustment(a, item.adjKind, {
+                            name: t.name,
+                            method: t.method,
+                            base: t.base,
+                            amount: t.amount,
+                            ...(isFee ? { taxable: t.taxable ?? false } : {}),
+                          });
+                        }}
+                        aria-label={`Saved ${isFee ? "fee" : "discount"} preset`}
+                      >
+                        <option value="">Preset…</option>
+                        {templates.map((t) => (
+                          <option key={t.name} value={t.name}>
+                            {t.name}
+                          </option>
+                        ))}
+                      </select>
+                    ) : null}
+                    <Input
+                      defaultValue={a.name}
+                      key={`${a.id}-${a.name}`}
+                      onBlur={(e) => commitAdjustment(a, item.adjKind, { name: e.target.value })}
+                      className={cn(LAB_INPUT_FLAT, "min-w-0 flex-1")}
+                      placeholder={isFee ? "Fee name" : "Discount name"}
+                    />
+                  </div>
+                ) : (
+                  <p className="min-w-0 truncate text-xs text-brand-navy">{a.name}</p>
+                )}
+              </div>
+              <div className={LAB_GRID_CELL_BORDERED}>
+                {editing ? (
+                  <div className={DESC_STACK}>
+                    <select
+                      data-lab-description
+                      value={a.method}
+                      onChange={(e) =>
+                        commitAdjustment(a, item.adjKind, { method: e.target.value as AdjustMethod })
+                      }
+                      className={ADJ_SELECT}
+                      aria-label="Method"
+                    >
+                      <option value="FIXED">Fixed $</option>
+                      <option value="PERCENT">Percent %</option>
+                    </select>
+                    <select
+                      data-lab-description
+                      value={a.base}
+                      onChange={(e) =>
+                        commitAdjustment(a, item.adjKind, { base: e.target.value as AdjustBase })
+                      }
+                      className={ADJ_SELECT}
+                      aria-label="Calculate on"
+                    >
+                      <option value="LABOR_PARTS">Labor + parts</option>
+                      <option value="LABOR">Labor</option>
+                      <option value="PARTS">Parts</option>
+                    </select>
+                  </div>
+                ) : (
+                  <p className="text-[10px] leading-snug text-muted-foreground">
+                    {a.method === "PERCENT" ? "Percent" : "Fixed"} on {baseLabel}
+                  </p>
+                )}
+              </div>
+              <div className={LAB_GRID_NUM_BORDERED}>
+                <InlinePlaceholderCell />
+              </div>
+              <div className={LAB_GRID_NUM_BORDERED}>
+                <InlinePlaceholderCell />
+              </div>
+              <div className={LAB_GRID_NUM_BORDERED}>
+                <InlinePlaceholderCell />
+              </div>
+              <div className={LAB_GRID_NUM_BORDERED}>
+                <span className="inline-flex h-7 w-full items-center justify-end text-xs tabular-nums text-muted-foreground">
+                  {methodLabel}
+                </span>
+              </div>
+              <div className={LAB_GRID_NUM_BORDERED}>
+                {editing ? (
+                  <div className={DESC_STACK}>
+                    <Input
+                      type="text"
+                      inputMode="decimal"
+                      value={draftValue(fieldDrafts, amountKey, amountDisplay(a))}
+                      onFocus={() => focusFieldDraft(amountKey, amountDisplay(a))}
+                      onChange={(e) => {
+                        if (!isDecimalInput(e.target.value)) return;
+                        setFieldDraft(amountKey, e.target.value);
+                        const cents = parseAmountInput(e.target.value);
+                        if (cents !== null) commitAdjustment(a, item.adjKind, { amount: cents });
+                      }}
+                      onBlur={(e) => {
+                        const cents = parseAmountInput(e.target.value) ?? a.amount;
+                        commitAdjustment(a, item.adjKind, { amount: cents });
+                        clearFieldDraft(amountKey);
+                      }}
+                      className={cn(LAB_INPUT_FLAT, "w-full text-right")}
+                    />
+                    <span className="text-[9px] text-muted-foreground/60">
+                      {a.method === "PERCENT" ? "% rate" : "$ amount"}
+                    </span>
+                  </div>
+                ) : (
+                  <LineDiscountStub editing={false} />
+                )}
+              </div>
+              <div className={LAB_GRID_NUM_BORDERED}>
+                <span
+                  className={cn(
+                    "inline-flex h-7 w-full items-center justify-end text-xs font-semibold tabular-nums",
+                    !isFee && total > 0 && "text-destructive",
+                  )}
+                >
+                  {!isFee && total > 0 ? "−" : ""}
+                  {formatCents(total)}
+                </span>
+              </div>
+              <div className={cn(LAB_GRID_CELL_BORDERED, "justify-center")}>
+                {isFee ? (
+                  <TaxableCell
+                    value={Boolean(a.taxable)}
+                    editing={editing}
+                    onChange={(v) => commitAdjustment(a, "fee", { taxable: v })}
+                  />
+                ) : (
+                  <span className="text-[10px] text-muted-foreground/40">—</span>
+                )}
+              </div>
+              <div className={LAB_GRID_CELL_END}>
+                {editing ? (
+                  <button
+                    type="button"
+                    onClick={() => removeAt(index)}
+                    aria-label="Remove line"
+                    className="flex size-6 items-center justify-center"
+                  >
+                    <X className="size-3.5 text-muted-foreground hover:text-destructive" />
+                  </button>
+                ) : null}
+              </div>
+            </>
+          )}
+        </SortableRow>
+      );
+    }
+
+    const p = item.row;
+    const partDetail = formatPartDetail(p.partNumber, p.brand);
+    const amountCents = partLineTotal(p);
+
+    return (
+      <SortableRow key={item.key} id={item.key} disabled={!editing || !dndReady}>
+        {({ listeners, attributes, isDragging }) => (
+          <>
+            <div className={cn(LAB_GRID_CELL_BORDERED, "justify-center")}>
+              {editing && dndReady ? (
+                <SortableDragHandle listeners={listeners} attributes={attributes} isDragging={isDragging} />
+              ) : (
+                <GripVertical className="size-3.5 text-muted-foreground/30" aria-hidden />
+              )}
+            </div>
+            <div className={LAB_GRID_CELL_BORDERED}>
+              <EstimateLineTypeMenu
+                value={item.lineType}
+                scope="part"
+                typeOptions={[...PART_FAMILY_LINE_TYPES, "fee", "discount"]}
+                editing={editing}
+                onChange={(t) => onTypeChange(index, t)}
+                handlers={typeGuideHandlers}
+              />
+            </div>
+            <div className={LAB_GRID_CELL_BORDERED}>
+              {editing ? (
+                <Input
+                  value={p.description}
+                  onChange={(e) =>
+                    updateAt(index, (m) =>
+                      m.kind === "part" ? { ...m, row: { ...m.row, description: e.target.value } } : m,
+                    )
+                  }
+                  className={cn(LAB_INPUT_FLAT, "w-full")}
+                  placeholder="Enter name*"
+                />
+              ) : (
+                <p className={cn("min-w-0 truncate text-xs", lineThrough)}>{p.description || "—"}</p>
+              )}
+            </div>
+            <div className={LAB_GRID_CELL_BORDERED}>
+              {editing ? (
+                <LabDescriptionTextarea
+                  value={partDetail}
+                  placeholder="Part # · brand"
+                  onChange={(e) => {
+                    const { partNumber, brand } = parsePartDetail(e.target.value);
+                    updateAt(index, (m) =>
+                      m.kind === "part" ? { ...m, row: { ...m.row, partNumber, brand } } : m,
+                    );
+                  }}
+                />
+              ) : (
+                <p className={cn("line-clamp-2 min-w-0 text-[10px] leading-snug text-muted-foreground", lineThrough)}>
+                  {partDetail || "—"}
+                </p>
+              )}
+            </div>
+            <div className={LAB_GRID_NUM_BORDERED}>
+              {editing ? (
+                <InlineQtyCell
+                  draftKey={`${draftPrefix}-qty`}
+                  value={p.quantity ? String(p.quantity) : ""}
+                  fieldDrafts={fieldDrafts}
+                  focusFieldDraft={focusFieldDraft}
+                  setFieldDraft={setFieldDraft}
+                  clearFieldDraft={clearFieldDraft}
+                  integer
+                  onCommit={(v) => {
+                    const n = v === "" ? 0 : parseInt(v, 10) || 0;
+                    updateAt(index, (m) =>
+                      m.kind === "part" ? { ...m, row: patchPartLine(m.row, "qty", n, partTiers) } : m,
+                    );
+                  }}
+                />
+              ) : (
+                <span className={cn("inline-flex h-7 w-full items-center justify-end text-xs", lineThrough)}>
+                  {p.quantity}
+                </span>
+              )}
+            </div>
+            <div className={LAB_GRID_NUM_BORDERED} title={editing ? VENDOR_COST_TITLE : undefined}>
+              <ReadOnlyMoney cents={p.costCents} className={lineThrough} />
+            </div>
+            <div className={LAB_GRID_NUM_BORDERED}>
+              {editing ? (
+                <InlineMoneyCell
+                  draftKey={`${draftPrefix}-retail`}
+                  valueCents={p.retailCents}
+                  fieldDrafts={fieldDrafts}
+                  focusFieldDraft={focusFieldDraft}
+                  setFieldDraft={setFieldDraft}
+                  clearFieldDraft={clearFieldDraft}
+                  onCommitCents={(cents) =>
+                    updateAt(index, (m) =>
+                      m.kind === "part" ? { ...m, row: patchPartLine(m.row, "retail", cents, partTiers) } : m,
+                    )
+                  }
+                />
+              ) : (
+                <ReadOnlyMoney cents={p.retailCents} className={cn("font-medium", lineThrough)} />
+              )}
+            </div>
+            <div className={LAB_GRID_NUM_BORDERED}>
+              <ReadOnlyMoney cents={amountCents} className={cn("font-medium", lineThrough)} />
+            </div>
+            <div className={LAB_GRID_NUM_BORDERED}>
+              <LineDiscountStub editing={editing} />
+            </div>
+            <div className={LAB_GRID_NUM_BORDERED}>
+              <ReadOnlyMoney cents={amountCents} className={cn("font-semibold", lineThrough)} />
+            </div>
+            <div className={cn(LAB_GRID_CELL_BORDERED, "justify-center")}>
+              <TaxableCell
+                value={partsTaxable}
+                editing={editing}
+                onChange={onTogglePartsTax}
+              />
+            </div>
+            <div className={LAB_GRID_CELL_END}>
+              {editing ? (
+                <button
+                  type="button"
+                  onClick={() => removeAt(index)}
+                  aria-label="Remove line"
+                  className="flex size-6 items-center justify-center"
+                >
+                  <X className="size-3.5 text-muted-foreground hover:text-destructive" />
+                </button>
+              ) : null}
+            </div>
+          </>
+        )}
+      </SortableRow>
+    );
+  });
+
+  const listBody =
+    merged.length === 0 && !editing ? (
+      <div className="px-3 py-2 text-xs text-muted-foreground">No service lines on this job.</div>
+    ) : dndReady ? (
+      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
+        <SortableContext items={mergedIds} strategy={verticalListSortingStrategy}>
+          {rows}
+        </SortableContext>
+      </DndContext>
+    ) : (
+      rows
+    );
+
+  return (
+    <div className="border-t border-border/70">
+      <div className="overflow-x-auto">
+        <div className={LAB_LINE_GRID_MIN_W}>
+          {showHeaders ? (
+            <div className={cn(LAB_TABLE_HEAD, LAB_LINE_GRID_HEAD, "sticky top-0 z-[1] border-b py-0.5")}>
+              <span className={cn(LAB_GRID_BORDER, "min-h-7")} />
+              <span className={cn(LAB_GRID_BORDER, "px-1 text-left")}>Type</span>
+              <span className={cn(LAB_GRID_BORDER, "px-1 text-left")}>Name</span>
+              <span className={cn(LAB_GRID_BORDER, "px-1 text-left")}>Description</span>
+              <span className={cn(LAB_GRID_BORDER, "px-1 text-right")}>Qty</span>
+              <span className={cn(LAB_GRID_BORDER, "px-1 text-right")}>Cost</span>
+              <span className={cn(LAB_GRID_BORDER, "px-1 text-right")}>Price</span>
+              <span className={cn(LAB_GRID_BORDER, "px-1 text-right")}>Amount</span>
+              <span className={cn(LAB_GRID_BORDER, "px-1 text-right")}>Discount</span>
+              <span className={cn(LAB_GRID_BORDER, "px-1 text-right")}>Net Amount</span>
+              <span className={cn(LAB_GRID_BORDER, "px-1 text-center")}>Taxable</span>
+              <span className="min-h-7" />
+            </div>
+          ) : null}
+
+          {listBody}
+
+          {editing && (onAddLine || onLaborManual || onLaborLookup || onPartManual || onPartLookup || roId) ? (
+            <div className={cn(LAB_LINE_GRID, "border-t border-dashed border-border/70 bg-muted/10")}>
+              <span className={cn(LAB_GRID_BORDER, "min-h-7")} />
+              <div className={LAB_GRID_CELL_BORDERED}>
+                <EstimateLineTypeMenu
+                  value={addType}
+                  scope={addType === "labor" ? "labor" : addType === "fee" || addType === "discount" ? "all" : "part"}
+                  editing
+                  onChange={setAddType}
+                  handlers={typeGuideHandlers}
+                />
+              </div>
+              <div className={LAB_GRID_CELL_BORDERED}>
+                <div className="flex min-w-0 flex-wrap items-center gap-1">
+                  {addRowHasLookup ? (
+                    <EstimateLabLineAddSplit
+                      kind={addType === "labor" ? "labor" : "part"}
+                      onManual={() => addManualForType(addType)}
+                      onLookup={() => addLookupForType(addType)}
+                    />
+                  ) : (
+                    <button type="button" onClick={() => addManualForType(addType)} className={ADD_ROW_CHIP}>
+                      <Plus className="size-3" aria-hidden />
+                      Add line
+                    </button>
+                  )}
+                  <span className="text-[10px] text-muted-foreground">{addRowHint}</span>
+                </div>
+              </div>
+              <div className={LAB_GRID_CELL_BORDERED}>
+                <LabDescriptionTextarea
+                  disabled
+                  readOnly
+                  placeholder={
+                    addType === "part" || addType === "tire" ? "Part # · brand" : "Description"
+                  }
+                />
+              </div>
+              <span className={cn(LAB_GRID_NUM_BORDERED, "text-[10px] text-muted-foreground/40")}>—</span>
+              <span
+                className={cn(
+                  LAB_GRID_NUM_BORDERED,
+                  "inline-flex min-h-7 items-center justify-end text-[10px] text-muted-foreground/40",
+                )}
+                title={isPartFamily(addType) ? VENDOR_COST_TITLE : undefined}
+              >
+                {isPartFamily(addType) ? "—" : "0.00"}
+              </span>
+              <span className={cn(LAB_GRID_NUM_BORDERED, "text-[10px] text-muted-foreground/40")}>0.00</span>
+              <span className={cn(LAB_GRID_NUM_BORDERED, "text-[10px] text-muted-foreground/40")}>0.00</span>
+              <span className={cn(LAB_GRID_NUM_BORDERED, "text-[10px] text-muted-foreground/40")}>$0 / 0%</span>
+              <span className={cn(LAB_GRID_NUM_BORDERED, "text-[10px] text-muted-foreground/40")}>0.00</span>
+              <span className={cn(LAB_GRID_CELL_BORDERED, "justify-center text-[10px] text-muted-foreground/40")}>
+                —
+              </span>
+              <span className="min-h-7" />
+            </div>
+          ) : null}
+        </div>
+      </div>
+    </div>
+  );
+}

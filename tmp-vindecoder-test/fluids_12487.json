@@ -1,0 +1,147 @@
+ {
+    "success": true,
+    "timestamp": "2026-07-08T02:46:01+00:00",
+    "api_version": "2.0",
+    "data": [
+        {
+            "ItemMPText": "Distribution gear oil",
+            "QualColTextStr": "transfer case NV241",
+            "ValueText": "2,00",
+            "ADQuantityTextStr": "Liter (s)",
+            "AddTextStr": ""
+        },
+        {
+            "ItemMPText": "Transfer case specification",
+            "QualColTextStr": "transfer case NV241",
+            "ValueText": "ATF+4",
+            "ADQuantityTextStr": "",
+            "AddTextStr": ""
+        },
+        {
+            "ItemMPText": "Rear axle oil specification",
+            "QualColTextStr": "Rear axle 226 RBI",
+            "ValueText": "SAE 80W-90",
+            "ADQuantityTextStr": "",
+            "AddTextStr": ""
+        },
+        {
+            "ItemMPText": "Rear axle differential oil",
+            "QualColTextStr": "Rear axle 226 RBI",
+            "ValueText": "2,25",
+            "ADQuantityTextStr": "Liter (s)",
+            "AddTextStr": ""
+        },
+        {
+            "ItemMPText": "Gearbox oil",
+            "QualColTextStr": "NSG370 gearbox",
+            "ValueText": "1,50",
+            "ADQuantityTextStr": "Liter (s)",
+            "AddTextStr": ""
+        },
+        {
+            "ItemMPText": "Transmission oil specification",
+            "QualColTextStr": "NSG370 gearbox",
+            "ValueText": "Original Öl",
+            "ADQuantityTextStr": "",
+            "AddTextStr": ""
+        },
+        {
+            "ItemMPText": "Front axle differential oil",
+            "QualColTextStr": "front axle 216 FBI",
+            "ValueText": "1,30",
+            "ADQuantityTextStr": "Liter (s)",
+            "AddTextStr": ""
+        },
+        {
+            "ItemMPText": "Front axle differential oil",
+            "QualColTextStr": "front axle 186 FBI",
+            "ValueText": "1,00",
+            "ADQuantityTextStr": "Liter (s)",
+            "AddTextStr": ""
+        },
+        {
+            "ItemMPText": "Automatic transmission oil",
+            "QualColTextStr": "Automatic transmission NAG1, variable amount",
+            "ValueText": "5,00",
+            "ADQuantityTextStr": "Liter (s)",
+            "AddTextStr": ""
+        },
+        {
+            "ItemMPText": "Automatic transmission oil",
+            "QualColTextStr": "Automatic transmission NAG1, New gas station",
+            "ValueText": "7,70",
+            "ADQuantityTextStr": "Liter (s)",
+            "AddTextStr": ""
+        },
+        {
+            "ItemMPText": "Automatic transmission oil specification",
+            "QualColTextStr": "Automatic transmission NAG1",
+            "ValueText": "ATF+4",
+            "ADQuantityTextStr": "",
+            "AddTextStr": ""
+        },
+        {
+            "ItemMPText": "Coolant specification",
+            "QualColTextStr": "",
+            "ValueText": "Original Frostschutzmittel",
+            "ADQuantityTextStr": "",
+            "AddTextStr": ""
+        },
+        {
+            "ItemMPText": "Brake fluid when replacing",
+            "QualColTextStr": "",
+            "ValueText": "1,00",
+            "ADQuantityTextStr": "Liter (s)",
+            "AddTextStr": ""
+        },
+        {
+            "ItemMPText": "Refrigerant for air conditioner",
+            "QualColTextStr": "",
+            "ValueText": "510",
+            "ADQuantityTextStr": "Gram (s)",
+            "AddTextStr": ""
+        },
+        {
+            "ItemMPText": "Engine oil specification",
+            "QualColTextStr": "",
+            "ValueText": "MS-6395",
+            "ADQuantityTextStr": "",
+            "AddTextStr": ""
+        },
+        {
+            "ItemMPText": "Brake fluid specification",
+            "QualColTextStr": "",
+            "ValueText": "DOT 3|DOT 4",
+            "ADQuantityTextStr": "",
+            "AddTextStr": ""
+        },
+        {
+            "ItemMPText": "Refrigerant specification",
+            "QualColTextStr": "",
+            "ValueText": "R134a",
+            "ADQuantityTextStr": "",
+            "AddTextStr": ""
+        },
+        {
+            "ItemMPText": "Front axle oil specification",
+            "QualColTextStr": "",
+            "ValueText": "SAE 80W-90",
+            "ADQuantityTextStr": "",
+            "AddTextStr": ""
+        },
+        {
+            "ItemMPText": "Engine oil with filter",
+            "QualColTextStr": "",
+            "ValueText": "5,60",
+            "ADQuantityTextStr": "Liter (s)",
+            "AddTextStr": ""
+        },
+        {
+            "ItemMPText": "Coolant",
+            "QualColTextStr": "",
+            "ValueText": "9,90",
+            "ADQuantityTextStr": "Liter (s)",
+            "AddTextStr": ""
+        }
+    ]
+}

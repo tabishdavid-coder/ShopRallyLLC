@@ -1,0 +1,831 @@
+ {
+    "success": true,
+    "timestamp": "2026-07-08T02:41:55+00:00",
+    "api_version": "2.0",
+    "data": [
+        {
+            "name": "ABARTH",
+            "slug": "abarth"
+        },
+        {
+            "name": "AC",
+            "slug": "ac"
+        },
+        {
+            "name": "ACURA",
+            "slug": "acura"
+        },
+        {
+            "name": "AIXAM",
+            "slug": "aixam"
+        },
+        {
+            "name": "ALFA ROMEO",
+            "slug": "alfa-romeo"
+        },
+        {
+            "name": "ALPINA",
+            "slug": "alpina"
+        },
+        {
+            "name": "ALPINE",
+            "slug": "alpine"
+        },
+        {
+            "name": "AMC",
+            "slug": "amc"
+        },
+        {
+            "name": "ARO",
+            "slug": "aro"
+        },
+        {
+            "name": "ARTEGA",
+            "slug": "artega"
+        },
+        {
+            "name": "ASIA MOTORS",
+            "slug": "asia-motors"
+        },
+        {
+            "name": "ASTON MARTIN",
+            "slug": "aston-martin"
+        },
+        {
+            "name": "AUDI",
+            "slug": "audi"
+        },
+        {
+            "name": "AUSTIN",
+            "slug": "austin"
+        },
+        {
+            "name": "AUSTIN-HEALEY",
+            "slug": "austin-healey"
+        },
+        {
+            "name": "AUTO UNION",
+            "slug": "auto-union"
+        },
+        {
+            "name": "AUTOBIANCHI",
+            "slug": "autobianchi"
+        },
+        {
+            "name": "BARKAS",
+            "slug": "barkas"
+        },
+        {
+            "name": "BAW",
+            "slug": "ba"
+        },
+        {
+            "name": "BEDFORD",
+            "slug": "bedford"
+        },
+        {
+            "name": "BENTLEY",
+            "slug": "bentley"
+        },
+        {
+            "name": "BERTONE",
+            "slug": "bertone"
+        },
+        {
+            "name": "BESTURN (FAW)",
+            "slug": "besturn-fa"
+        },
+        {
+            "name": "BITTER",
+            "slug": "bitter"
+        },
+        {
+            "name": "BMW",
+            "slug": "bmw"
+        },
+        {
+            "name": "BOGDAN",
+            "slug": "bogdan"
+        },
+        {
+            "name": "BOND",
+            "slug": "bond"
+        },
+        {
+            "name": "BORGWARD",
+            "slug": "borg-ard"
+        },
+        {
+            "name": "BRILLIANCE",
+            "slug": "brilliance"
+        },
+        {
+            "name": "BRISTOL",
+            "slug": "bristol"
+        },
+        {
+            "name": "BUGATTI",
+            "slug": "bugatti"
+        },
+        {
+            "name": "BUICK",
+            "slug": "buick"
+        },
+        {
+            "name": "BYD",
+            "slug": "byd"
+        },
+        {
+            "name": "CADILLAC",
+            "slug": "cadillac"
+        },
+        {
+            "name": "CALLAWAY",
+            "slug": "calla-ay"
+        },
+        {
+            "name": "CARBODIES",
+            "slug": "carbodies"
+        },
+        {
+            "name": "CATERHAM",
+            "slug": "caterham"
+        },
+        {
+            "name": "CHANGAN",
+            "slug": "changan"
+        },
+        {
+            "name": "CHANGFENG",
+            "slug": "changfeng"
+        },
+        {
+            "name": "CHECKER",
+            "slug": "checker"
+        },
+        {
+            "name": "CHERY",
+            "slug": "chery"
+        },
+        {
+            "name": "CHEVROLET",
+            "slug": "chevrolet"
+        },
+        {
+            "name": "CHRYSLER",
+            "slug": "chrysler"
+        },
+        {
+            "name": "CITROËN",
+            "slug": "citroen"
+        },
+        {
+            "name": "CMC",
+            "slug": "cmc"
+        },
+        {
+            "name": "DACIA",
+            "slug": "dacia"
+        },
+        {
+            "name": "DAEWOO",
+            "slug": "dae-oo"
+        },
+        {
+            "name": "DAF",
+            "slug": "daf"
+        },
+        {
+            "name": "DAIHATSU",
+            "slug": "daihatsu"
+        },
+        {
+            "name": "DAIMLER",
+            "slug": "daimler"
+        },
+        {
+            "name": "DALLAS",
+            "slug": "dallas"
+        },
+        {
+            "name": "DATSUN",
+            "slug": "datsun"
+        },
+        {
+            "name": "DE LOREAN",
+            "slug": "de-lorean"
+        },
+        {
+            "name": "DE TOMASO",
+            "slug": "de-tomaso"
+        },
+        {
+            "name": "DERWAYS",
+            "slug": "der-ays"
+        },
+        {
+            "name": "DODGE",
+            "slug": "dodge"
+        },
+        {
+            "name": "DS",
+            "slug": "ds"
+        },
+        {
+            "name": "EMGRAND (GEELY)",
+            "slug": "emgrand-geely"
+        },
+        {
+            "name": "ENGLON (GEELY)",
+            "slug": "englon-geely"
+        },
+        {
+            "name": "FAW TIANJIN",
+            "slug": "fa-tianjin"
+        },
+        {
+            "name": "FERRARI",
+            "slug": "ferrari"
+        },
+        {
+            "name": "FIAT",
+            "slug": "fiat"
+        },
+        {
+            "name": "FISKER",
+            "slug": "fisker"
+        },
+        {
+            "name": "FORD",
+            "slug": "ford"
+        },
+        {
+            "name": "FORD OTOSAN",
+            "slug": "ford-otosan"
+        },
+        {
+            "name": "FORD USA",
+            "slug": "ford-usa"
+        },
+        {
+            "name": "FSO",
+            "slug": "fso"
+        },
+        {
+            "name": "GAC GONOW",
+            "slug": "gac-gono"
+        },
+        {
+            "name": "GAZ",
+            "slug": "gaz"
+        },
+        {
+            "name": "GEELY",
+            "slug": "geely"
+        },
+        {
+            "name": "GEO",
+            "slug": "geo"
+        },
+        {
+            "name": "GINETTA",
+            "slug": "ginetta"
+        },
+        {
+            "name": "GLAS",
+            "slug": "glas"
+        },
+        {
+            "name": "GMC",
+            "slug": "gmc"
+        },
+        {
+            "name": "GREAT WALL",
+            "slug": "great-all"
+        },
+        {
+            "name": "HAFEI",
+            "slug": "hafei"
+        },
+        {
+            "name": "HAIMA (FAW)",
+            "slug": "haima-fa"
+        },
+        {
+            "name": "HAIMA (ZHENGZHOU)",
+            "slug": "haima-zhengzhou"
+        },
+        {
+            "name": "HINDUSTAN",
+            "slug": "hindustan"
+        },
+        {
+            "name": "HOBBYCAR",
+            "slug": "hobbycar"
+        },
+        {
+            "name": "HONDA",
+            "slug": "honda"
+        },
+        {
+            "name": "HONDA (GAC)",
+            "slug": "honda-gac"
+        },
+        {
+            "name": "HUANGHAI",
+            "slug": "huanghai"
+        },
+        {
+            "name": "HUMMER",
+            "slug": "hummer"
+        },
+        {
+            "name": "HYUNDAI",
+            "slug": "hyundai"
+        },
+        {
+            "name": "INDIGO",
+            "slug": "indigo"
+        },
+        {
+            "name": "INFINITI",
+            "slug": "infiniti"
+        },
+        {
+            "name": "INNOCENTI",
+            "slug": "innocenti"
+        },
+        {
+            "name": "IRMSCHER",
+            "slug": "irmscher"
+        },
+        {
+            "name": "ISDERA",
+            "slug": "isdera"
+        },
+        {
+            "name": "ISH",
+            "slug": "ish"
+        },
+        {
+            "name": "ISUZU",
+            "slug": "isuzu"
+        },
+        {
+            "name": "IVECO",
+            "slug": "iveco"
+        },
+        {
+            "name": "IZH",
+            "slug": "izh"
+        },
+        {
+            "name": "JAC",
+            "slug": "jac"
+        },
+        {
+            "name": "JAGUAR",
+            "slug": "jaguar"
+        },
+        {
+            "name": "JEEP",
+            "slug": "jeep"
+        },
+        {
+            "name": "JENSEN",
+            "slug": "jensen"
+        },
+        {
+            "name": "JMC",
+            "slug": "jmc"
+        },
+        {
+            "name": "KIA",
+            "slug": "kia"
+        },
+        {
+            "name": "KTM",
+            "slug": "ktm"
+        },
+        {
+            "name": "LADA",
+            "slug": "lada"
+        },
+        {
+            "name": "LAMBORGHINI",
+            "slug": "lamborghini"
+        },
+        {
+            "name": "LANCIA",
+            "slug": "lancia"
+        },
+        {
+            "name": "LAND ROVER",
+            "slug": "land-rover"
+        },
+        {
+            "name": "LANDWIND (JMC)",
+            "slug": "land-ind-jmc"
+        },
+        {
+            "name": "LDV",
+            "slug": "ldv"
+        },
+        {
+            "name": "LEXUS",
+            "slug": "lexus"
+        },
+        {
+            "name": "LIFAN",
+            "slug": "lifan"
+        },
+        {
+            "name": "LIGIER",
+            "slug": "ligier"
+        },
+        {
+            "name": "LINCOLN",
+            "slug": "lincoln"
+        },
+        {
+            "name": "LOTUS",
+            "slug": "lotus"
+        },
+        {
+            "name": "LTI",
+            "slug": "lti"
+        },
+        {
+            "name": "LUXGEN",
+            "slug": "luxgen"
+        },
+        {
+            "name": "MAHINDRA",
+            "slug": "mahindra"
+        },
+        {
+            "name": "MAN",
+            "slug": "man"
+        },
+        {
+            "name": "MARCOS",
+            "slug": "marcos"
+        },
+        {
+            "name": "MASERATI",
+            "slug": "maserati"
+        },
+        {
+            "name": "MAYBACH",
+            "slug": "maybach"
+        },
+        {
+            "name": "MAZDA",
+            "slug": "mazda"
+        },
+        {
+            "name": "MCLAREN",
+            "slug": "mclaren"
+        },
+        {
+            "name": "MEGA",
+            "slug": "mega"
+        },
+        {
+            "name": "MERCEDES-BENZ",
+            "slug": "mercedes-benz"
+        },
+        {
+            "name": "METROCAB",
+            "slug": "metrocab"
+        },
+        {
+            "name": "MG",
+            "slug": "mg"
+        },
+        {
+            "name": "MIDDLEBRIDGE",
+            "slug": "middlebridge"
+        },
+        {
+            "name": "MINELLI",
+            "slug": "minelli"
+        },
+        {
+            "name": "MINI",
+            "slug": "mini"
+        },
+        {
+            "name": "MITSUBISHI",
+            "slug": "mitsubishi"
+        },
+        {
+            "name": "MITSUOKA",
+            "slug": "mitsuoka"
+        },
+        {
+            "name": "MORGAN",
+            "slug": "morgan"
+        },
+        {
+            "name": "MORRIS",
+            "slug": "morris"
+        },
+        {
+            "name": "MOSKVICH",
+            "slug": "moskvich"
+        },
+        {
+            "name": "NISSAN",
+            "slug": "nissan"
+        },
+        {
+            "name": "NISSAN (DONGFENG)",
+            "slug": "nissan-dongfeng"
+        },
+        {
+            "name": "NSU",
+            "slug": "nsu"
+        },
+        {
+            "name": "OLDSMOBILE",
+            "slug": "oldsmobile"
+        },
+        {
+            "name": "OLTCIT",
+            "slug": "oltcit"
+        },
+        {
+            "name": "OPEL",
+            "slug": "opel"
+        },
+        {
+            "name": "OSCA",
+            "slug": "osca"
+        },
+        {
+            "name": "PANOZ",
+            "slug": "panoz"
+        },
+        {
+            "name": "PANTHER",
+            "slug": "panther"
+        },
+        {
+            "name": "PAYKAN",
+            "slug": "paykan"
+        },
+        {
+            "name": "PEUGEOT",
+            "slug": "peugeot"
+        },
+        {
+            "name": "PIAGGIO",
+            "slug": "piaggio"
+        },
+        {
+            "name": "PININFARINA",
+            "slug": "pininfarina"
+        },
+        {
+            "name": "PLYMOUTH",
+            "slug": "plymouth"
+        },
+        {
+            "name": "PONTIAC",
+            "slug": "pontiac"
+        },
+        {
+            "name": "PORSCHE",
+            "slug": "porsche"
+        },
+        {
+            "name": "PREMIER",
+            "slug": "premier"
+        },
+        {
+            "name": "PROTON",
+            "slug": "proton"
+        },
+        {
+            "name": "PUCH",
+            "slug": "puch"
+        },
+        {
+            "name": "RANGER",
+            "slug": "ranger"
+        },
+        {
+            "name": "RAVON",
+            "slug": "ravon"
+        },
+        {
+            "name": "RAYTON FISSORE",
+            "slug": "rayton-fissore"
+        },
+        {
+            "name": "RELIANT",
+            "slug": "reliant"
+        },
+        {
+            "name": "RENAULT",
+            "slug": "renault"
+        },
+        {
+            "name": "RENAULT TRUCKS",
+            "slug": "renault-trucks"
+        },
+        {
+            "name": "RILEY",
+            "slug": "riley"
+        },
+        {
+            "name": "ROLLS-ROYCE",
+            "slug": "rolls-royce"
+        },
+        {
+            "name": "ROVER",
+            "slug": "rover"
+        },
+        {
+            "name": "RUF",
+            "slug": "ruf"
+        },
+        {
+            "name": "SAAB",
+            "slug": "saab"
+        },
+        {
+            "name": "SAMSUNG",
+            "slug": "samsung"
+        },
+        {
+            "name": "SANTANA",
+            "slug": "santana"
+        },
+        {
+            "name": "SEAT",
+            "slug": "seat"
+        },
+        {
+            "name": "SHELBY",
+            "slug": "shelby"
+        },
+        {
+            "name": "SHUANGHUAN",
+            "slug": "shuanghuan"
+        },
+        {
+            "name": "SIPANI",
+            "slug": "sipani"
+        },
+        {
+            "name": "SKODA",
+            "slug": "skoda"
+        },
+        {
+            "name": "SMART",
+            "slug": "smart"
+        },
+        {
+            "name": "SPECTRE",
+            "slug": "spectre"
+        },
+        {
+            "name": "SPYKER",
+            "slug": "spyker"
+        },
+        {
+            "name": "SSANGYONG",
+            "slug": "ssangyong"
+        },
+        {
+            "name": "STANDARD",
+            "slug": "standard"
+        },
+        {
+            "name": "STEYR",
+            "slug": "steyr"
+        },
+        {
+            "name": "STREETSCOOTER",
+            "slug": "streetscooter"
+        },
+        {
+            "name": "SUBARU",
+            "slug": "subaru"
+        },
+        {
+            "name": "SUZUKI",
+            "slug": "suzuki"
+        },
+        {
+            "name": "TAGAZ",
+            "slug": "tagaz"
+        },
+        {
+            "name": "TALBOT",
+            "slug": "talbot"
+        },
+        {
+            "name": "TATA",
+            "slug": "tata"
+        },
+        {
+            "name": "TAZZARI",
+            "slug": "tazzari"
+        },
+        {
+            "name": "TESLA",
+            "slug": "tesla"
+        },
+        {
+            "name": "THINK",
+            "slug": "think"
+        },
+        {
+            "name": "TOFAS",
+            "slug": "tofas"
+        },
+        {
+            "name": "TOYOTA",
+            "slug": "toyota"
+        },
+        {
+            "name": "TOYOTA (FAW)",
+            "slug": "toyota-fa"
+        },
+        {
+            "name": "TOYOTA (GAC)",
+            "slug": "toyota-gac"
+        },
+        {
+            "name": "TRABANT",
+            "slug": "trabant"
+        },
+        {
+            "name": "TRIUMPH",
+            "slug": "triumph"
+        },
+        {
+            "name": "TVR",
+            "slug": "tvr"
+        },
+        {
+            "name": "UAZ",
+            "slug": "uaz"
+        },
+        {
+            "name": "UMM",
+            "slug": "umm"
+        },
+        {
+            "name": "VAUXHALL",
+            "slug": "vauxhall"
+        },
+        {
+            "name": "VECTOR",
+            "slug": "vector"
+        },
+        {
+            "name": "VOLVO",
+            "slug": "volvo"
+        },
+        {
+            "name": "VW",
+            "slug": "v"
+        },
+        {
+            "name": "WARTBURG",
+            "slug": "artburg"
+        },
+        {
+            "name": "WESTFIELD",
+            "slug": "estfield"
+        },
+        {
+            "name": "WIESMANN",
+            "slug": "iesmann"
+        },
+        {
+            "name": "WOLSELEY",
+            "slug": "olseley"
+        },
+        {
+            "name": "YULON",
+            "slug": "yulon"
+        },
+        {
+            "name": "ZASTAVA",
+            "slug": "zastava"
+        },
+        {
+            "name": "ZAZ",
+            "slug": "zaz"
+        },
+        {
+            "name": "ZHONGXING (ZTE)",
+            "slug": "zhongxing-zte"
+        }
+    ]
+}

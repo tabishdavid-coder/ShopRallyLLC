@@ -1,0 +1,126 @@
+ {
+    "success": true,
+    "timestamp": "2026-07-08T02:42:26+00:00",
+    "api_version": "2.0",
+    "data": [
+        {
+            "ItemMPText": "Coolant",
+            "QualColTextStr": "with manual gearbox",
+            "ValueText": "7,60",
+            "ADQuantityTextStr": "Liter (s)",
+            "AddTextStr": ""
+        },
+        {
+            "ItemMPText": "Coolant",
+            "QualColTextStr": "with automatic transmission",
+            "ValueText": "7,70",
+            "ADQuantityTextStr": "Liter (s)",
+            "AddTextStr": ""
+        },
+        {
+            "ItemMPText": "Gearbox oil",
+            "QualColTextStr": "Gearbox GS6-17BG\/DG, variable amount",
+            "ValueText": "1,30",
+            "ADQuantityTextStr": "Liter (s)",
+            "AddTextStr": ""
+        },
+        {
+            "ItemMPText": "Gearbox oil",
+            "QualColTextStr": "Gearbox GS6-17BG\/DG, New gas station",
+            "ValueText": "1,40",
+            "ADQuantityTextStr": "Liter (s)",
+            "AddTextStr": ""
+        },
+        {
+            "ItemMPText": "Transmission oil specification",
+            "QualColTextStr": "Gearbox GS6-17BG\/DG",
+            "ValueText": "83 22 7 533 818",
+            "ADQuantityTextStr": "",
+            "AddTextStr": "Original oil"
+        },
+        {
+            "ItemMPText": "Automatic transmission oil",
+            "QualColTextStr": "Gearbox GA8HP45Z, New gas station",
+            "ValueText": "8,50",
+            "ADQuantityTextStr": "Liter (s)",
+            "AddTextStr": ""
+        },
+        {
+            "ItemMPText": "Rear axle differential oil",
+            "QualColTextStr": "axle 188LW",
+            "ValueText": "0,80",
+            "ADQuantityTextStr": "Liter (s)",
+            "AddTextStr": ""
+        },
+        {
+            "ItemMPText": "Conditioner oil specification",
+            "QualColTextStr": "",
+            "ValueText": "81 22 9 407 724",
+            "ADQuantityTextStr": "",
+            "AddTextStr": "Original oil"
+        },
+        {
+            "ItemMPText": "Engine oil with filter",
+            "QualColTextStr": "",
+            "ValueText": "5,20",
+            "ADQuantityTextStr": "Liter (s)",
+            "AddTextStr": ""
+        },
+        {
+            "ItemMPText": "Brake fluid when replacing",
+            "QualColTextStr": "",
+            "ValueText": "1,00",
+            "ADQuantityTextStr": "Liter (s)",
+            "AddTextStr": ""
+        },
+        {
+            "ItemMPText": "Engine oil specification",
+            "QualColTextStr": "",
+            "ValueText": "BMW Longlife-04",
+            "ADQuantityTextStr": "",
+            "AddTextStr": ""
+        },
+        {
+            "ItemMPText": "Refrigerant specification",
+            "QualColTextStr": "",
+            "ValueText": "R134a",
+            "ADQuantityTextStr": "",
+            "AddTextStr": ""
+        },
+        {
+            "ItemMPText": "Clutch fluid",
+            "QualColTextStr": "",
+            "ValueText": "0,00",
+            "ADQuantityTextStr": "Liter (s)",
+            "AddTextStr": "Fill the clutch fluid expansion tank up to the upper mark"
+        },
+        {
+            "ItemMPText": "Tank capacity",
+            "QualColTextStr": "",
+            "ValueText": "57",
+            "ADQuantityTextStr": "Liter (s)",
+            "AddTextStr": ""
+        },
+        {
+            "ItemMPText": "Coolant specification",
+            "QualColTextStr": "",
+            "ValueText": "81 22 9 407 454",
+            "ADQuantityTextStr": "",
+            "AddTextStr": ""
+        },
+        {
+            "ItemMPText": "Rear axle oil specification",
+            "QualColTextStr": "",
+            "ValueText": "33 11 7 695 240",
+            "ADQuantityTextStr": "",
+            "AddTextStr": "Original oil"
+        },
+        {
+            "ItemMPText": "Brake fluid specification",
+            "QualColTextStr": "",
+            "ValueText": "DOT 4 Class 6",
+            "ADQuantityTextStr": "",
+            "AddTextStr": ""
+        }
+    ]
+}

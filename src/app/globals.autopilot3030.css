@@ -1,0 +1,543 @@
+/**
+ * Autopilot Project 3030 — Deep Ocean Command palette.
+ * Loaded only when html[data-ap-shell="3030"].
+ * Maps legacy --brand-* tokens so existing pages inherit the new theme.
+ */
+
+html[data-ap-shell="3030"] {
+  /* ShopRally brand kit — navy chrome, azure accent, orange CTAs */
+  --ap-ink: #1e3a56;
+  --ap-surface: #f4f7fa;
+  --ap-surface-raised: #ffffff;
+  --ap-border: #d4dde6;
+
+  --ap-text: #1e3a56;
+  --ap-text-muted: #4a6275;
+  --ap-text-subtle: #5c7388;
+
+  --ap-primary: #f4581c;
+  --ap-primary-foreground: #ffffff;
+  --ap-accent: #00a9ff;
+  --ap-accent-foreground: #1e3a56;
+  --ap-accent-secondary: #15803d;
+  --ap-destructive: #c81e1e;
+  --ap-warning: #b45309;
+
+  --ap-chrome: #1e3a56;
+  --ap-chrome-foreground: #f0f4f8;
+  --ap-chrome-accent: #2a4a6a;
+  --ap-chrome-active: var(--ap-accent);
+  --ap-chrome-border: #2f5278;
+
+  --ap-rail-width: 4.25rem;
+  --ap-context-width: 14.5rem;
+  --ap-nav-width: calc(var(--ap-rail-width) + var(--ap-context-width));
+  --ap-topbar-height: 3.5rem;
+  --ap-preview-banner-height: 1.625rem;
+
+  --ap-motion-fast: 120ms cubic-bezier(0.4, 0, 0.2, 1);
+  --ap-motion-base: 200ms cubic-bezier(0.4, 0, 0.2, 1);
+
+  /* Subnav — pill chips (Growth Hub, module subnav) */
+  --ap-subnav-pill-bg-idle: var(--ap-surface-raised);
+  --ap-subnav-pill-text-idle: var(--ap-text);
+  --ap-subnav-pill-border-idle: var(--ap-border);
+  --ap-subnav-pill-bg-hover: #eef2f6;
+  --ap-subnav-pill-bg-active: var(--ap-primary);
+  --ap-subnav-pill-text-active: var(--ap-primary-foreground);
+
+  /* Subnav — underline tabs (RO workspace Concerns | Services | …) */
+  --ap-subnav-tab-text-idle: var(--ap-text-muted);
+  --ap-subnav-tab-text-hover: var(--ap-text);
+  --ap-subnav-tab-text-active: var(--ap-text);
+  --ap-subnav-tab-underline: var(--ap-text);
+  --ap-subnav-tab-bar-bg: oklch(0.975 0.008 245 / 0.55);
+
+  /* Top section nav (Customers, Schedule, Catalog, …) */
+  --ap-section-nav-bg: #e8eef4;
+  --ap-section-nav-border: #c5d0db;
+  --ap-section-nav-idle: var(--ap-text);
+  --ap-section-nav-active-bg: #ffffff;
+  --ap-section-nav-active-text: var(--ap-ink);
+
+  --ap-logo-mark-size-sm: 28px;
+  --ap-logo-mark-size-md: 40px;
+  --ap-logo-wordmark-tracking: 0.04em;
+
+  /* Bridge to existing ShopRally token names */
+  --brand-navy: var(--ap-ink);
+  --brand-light: var(--ap-accent);
+  --brand-orange: var(--ap-primary);
+  --brand-red: var(--ap-destructive);
+
+  --background: var(--ap-surface);
+  --foreground: var(--ap-text);
+  --card: var(--ap-surface-raised);
+  --card-foreground: var(--ap-text);
+  --popover: var(--ap-surface-raised);
+  --popover-foreground: var(--ap-text);
+  --primary: var(--ap-primary);
+  --primary-foreground: var(--ap-primary-foreground);
+  --secondary: #e8eef4;
+  --secondary-foreground: var(--ap-text);
+  --muted: #eef2f6;
+  --muted-foreground: var(--ap-text-muted);
+  --accent: #e6f6ff;
+  --accent-foreground: var(--ap-text);
+  --destructive: var(--ap-destructive);
+  --border: var(--ap-border);
+  --input: var(--ap-border);
+  --ring: var(--ap-accent);
+
+  --sidebar: var(--ap-chrome);
+  --sidebar-foreground: var(--ap-chrome-foreground);
+  --sidebar-muted-foreground: #a8bdd0;
+  --sidebar-primary: var(--ap-accent);
+  --sidebar-primary-foreground: var(--ap-ink);
+  --sidebar-accent: var(--ap-chrome-accent);
+  --sidebar-accent-foreground: oklch(0.99 0 0);
+  --sidebar-border: var(--ap-chrome-border);
+  --sidebar-ring: var(--ap-accent);
+
+  --crm-nav-muted: var(--ap-text-muted);
+  --crm-nav-label: var(--ap-text-muted);
+  --crm-caption: var(--ap-text-subtle);
+  --crm-panel: var(--ap-surface);
+  --crm-panel-border: var(--ap-border);
+  --crm-sidebar-width: var(--ap-nav-width);
+  --crm-chrome-border: var(--ap-border);
+
+  --radius: 0.45rem;
+}
+
+html[data-ap-shell="3030"] .ap-shell {
+  --font-heading: var(--font-geist-sans);
+  background: var(--ap-surface);
+  color: var(--ap-text);
+}
+
+html[data-ap-shell="3030"] .ap-sidebar {
+  display: none;
+  flex-direction: column;
+  flex-shrink: 0;
+  width: var(--ap-nav-width);
+  height: 100%;
+  background: var(--ap-chrome);
+  color: var(--ap-chrome-foreground);
+  border-right: 1px solid var(--ap-chrome-border);
+}
+
+@media (min-width: 768px) {
+  html[data-ap-shell="3030"] .ap-sidebar {
+    display: flex;
+  }
+}
+
+html[data-ap-shell="3030"] .ap-sidebar-header {
+  border-bottom: 1px solid var(--ap-chrome-border);
+}
+
+html[data-ap-shell="3030"] .ap-sidebar-footer {
+  border-top: 1px solid var(--ap-chrome-border);
+}
+
+html[data-ap-shell="3030"] .ap-sidebar-footer-caption {
+  font-size: 10px;
+  color: color-mix(in oklab, var(--ap-chrome-foreground) 50%, transparent);
+}
+
+html[data-ap-shell="3030"] .ap-sidebar-link {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  min-height: 2.25rem;
+  border-radius: 0.5rem;
+  padding: 0.5rem 0.625rem;
+  font-size: 13px;
+  color: color-mix(in oklab, var(--ap-chrome-foreground) 80%, transparent);
+  transition: background-color 150ms, color 150ms;
+}
+
+html[data-ap-shell="3030"] .ap-sidebar-link:hover {
+  background: var(--ap-chrome-accent);
+  color: white;
+}
+
+html[data-ap-shell="3030"] .ap-sidebar-link--active {
+  background: color-mix(in oklab, var(--ap-accent) 20%, transparent);
+  color: white;
+  font-weight: 600;
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--ap-accent) 40%, transparent);
+}
+
+html[data-ap-shell="3030"] .ap-sidebar-section-label {
+  padding: 0.5rem 0.5rem 0.25rem;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--ap-accent);
+}
+
+html[data-ap-shell="3030"] .ap-chrome-zone {
+  flex-direction: row;
+  height: 100%;
+}
+
+html[data-ap-shell="3030"] .ap-command-rail {
+  width: var(--ap-rail-width);
+  background: var(--ap-chrome);
+  color: var(--ap-chrome-foreground);
+  border-right: 1px solid var(--ap-chrome-border);
+}
+
+html[data-ap-shell="3030"] .ap-context-panel {
+  width: var(--ap-context-width);
+  background: var(--ap-surface-raised);
+  color: var(--ap-text);
+  border-right: 1px solid var(--ap-border);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+html[data-ap-shell="3030"] .ap-top-bar {
+  background: var(--ap-surface-raised);
+  border-bottom: 1px solid var(--ap-border);
+  box-shadow: 0 1px 0 oklch(0.22 0.008 264 / 0.04);
+}
+
+html[data-ap-shell="3030"] .ap-top-bar-inner {
+  height: var(--ap-topbar-height);
+  min-height: var(--ap-topbar-height);
+}
+
+html[data-ap-shell="3030"] .ap-top-section-nav {
+  border-top: 1px solid var(--ap-section-nav-border);
+  border-bottom: 1px solid var(--ap-section-nav-border);
+  background: var(--ap-section-nav-bg);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.55);
+}
+
+html[data-ap-shell="3030"] .ap-top-section-nav-idle {
+  color: var(--ap-section-nav-idle);
+}
+
+html[data-ap-shell="3030"] .ap-top-section-nav-idle:hover {
+  color: var(--ap-ink);
+  background: rgb(255 255 255 / 0.7);
+}
+
+html[data-ap-shell="3030"] .ap-top-section-nav-active {
+  color: var(--ap-section-nav-active-text);
+  background: var(--ap-section-nav-active-bg);
+  box-shadow:
+    inset 0 0 0 1px rgb(30 58 86 / 0.14),
+    inset 0 -2px 0 var(--ap-accent);
+}
+
+html[data-ap-shell="3030"] .ap-sidebar-context-divider {
+  margin: 0.75rem 0.5rem;
+  border-top: 1px solid oklch(1 0 0 / 0.12);
+}
+
+html[data-ap-shell="3030"] .ap-module-subnav,
+html[data-ap-shell="3030"] .ap-subnav-pills {
+  background: linear-gradient(to bottom, var(--ap-surface-raised), oklch(0.98 0.01 245));
+  border-bottom: 1px solid var(--ap-border);
+}
+
+html[data-ap-shell="3030"] .ap-subnav-tabs {
+  background: var(--ap-subnav-tab-bar-bg);
+  border-bottom: 1px solid var(--ap-border);
+}
+
+html[data-ap-shell="3030"] .ap-preview-banner {
+  background: linear-gradient(90deg, var(--ap-primary), oklch(0.32 0.07 245));
+  color: white;
+}
+
+html[data-ap-shell="3030"] .ap-settings-group-label {
+  font-size: 0.625rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ap-text-subtle);
+}
+
+html[data-ap-shell="3030"] .ap-context-panel-header {
+  border-bottom: 1px solid var(--ap-border);
+}
+
+html[data-ap-shell="3030"] .ap-context-section-label {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ap-accent);
+}
+
+html[data-ap-shell="3030"] .link-subtle,
+html[data-ap-shell="3030"] .link-muted {
+  color: var(--ap-primary);
+}
+
+html[data-ap-shell="3030"] .crm-nav-item-active,
+html[data-ap-shell="3030"] .crm-header-nav-item-active {
+  background: color-mix(in oklab, var(--ap-accent) 18%, transparent);
+  color: var(--ap-accent);
+}
+
+html[data-ap-shell="3030"] .ap-accent-btn {
+  background-color: var(--ap-primary);
+  color: var(--ap-primary-foreground);
+}
+
+html[data-ap-shell="3030"] .ap-accent-btn:hover {
+  background-color: color-mix(in oklab, var(--ap-primary) 90%, black);
+}
+
+html[data-ap-shell="3030"] .ap-context-nav-active {
+  background: color-mix(in oklab, var(--ap-accent) 15%, transparent);
+  color: var(--ap-accent);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--ap-accent) 30%, transparent);
+}
+
+html[data-ap-shell="3030"] .ap-stepper-step-active {
+  background: color-mix(in oklab, var(--ap-accent) 15%, transparent);
+  color: var(--ap-accent);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--ap-accent) 35%, transparent);
+}
+
+html[data-ap-shell="3030"] .ap-rail-link-idle {
+  color: color-mix(in oklab, var(--ap-chrome-foreground) 70%, transparent);
+}
+
+html[data-ap-shell="3030"] .ap-rail-link-idle:hover {
+  background: var(--ap-chrome-accent);
+  color: white;
+}
+
+html[data-ap-shell="3030"] .ap-accent-secondary-soft {
+  background: color-mix(in oklab, var(--ap-accent-secondary) 20%, transparent);
+  color: var(--ap-accent-secondary);
+}
+
+/* Shell utilities — plain CSS vars (avoids Turbopack corruption from arbitrary ap-token Tailwind classes) */
+html[data-ap-shell="3030"] .ap-rail-item-active {
+  background-color: var(--ap-accent);
+  color: white;
+  box-shadow: 0 0 0 1px var(--ap-accent);
+}
+
+html[data-ap-shell="3030"] .ap-rail-active-indicator {
+  background-color: var(--ap-accent);
+}
+
+html[data-ap-shell="3030"] .ap-bg-accent {
+  background-color: var(--ap-accent);
+}
+
+html[data-ap-shell="3030"] .ap-bg-primary {
+  background-color: var(--ap-primary);
+}
+
+html[data-ap-shell="3030"] .ap-bg-surface {
+  background-color: var(--ap-surface);
+}
+
+html[data-ap-shell="3030"] .ap-bg-surface-raised {
+  background-color: var(--ap-surface-raised);
+}
+
+html[data-ap-shell="3030"] .ap-text-accent {
+  color: var(--ap-accent);
+}
+
+html[data-ap-shell="3030"] .ap-text-muted {
+  color: var(--ap-text-muted);
+}
+
+html[data-ap-shell="3030"] .ap-text-subtle {
+  color: var(--ap-text-subtle);
+}
+
+html[data-ap-shell="3030"] .ap-text-accent-secondary {
+  color: var(--ap-accent-secondary);
+}
+
+html[data-ap-shell="3030"] .ap-text-primary {
+  color: var(--ap-primary);
+}
+
+html[data-ap-shell="3030"] .ap-text {
+  color: var(--ap-text);
+}
+
+html[data-ap-shell="3030"] .ap-border-color {
+  border-color: var(--ap-border);
+}
+
+html[data-ap-shell="3030"] .ap-context-nav-idle {
+  color: var(--ap-text-muted);
+}
+
+html[data-ap-shell="3030"] .ap-context-nav-idle:hover {
+  background: var(--ap-surface);
+  color: var(--ap-text);
+}
+
+/* Pill chip subnav — Growth Hub, SEO, Markups, … */
+html[data-ap-shell="3030"] .ap-subnav-pill--active,
+html[data-ap-shell="3030"] .ap-module-chip-active {
+  background: var(--ap-subnav-pill-bg-active);
+  color: var(--ap-subnav-pill-text-active);
+  box-shadow: 0 1px 2px rgb(0 0 0 / 0.08);
+}
+
+html[data-ap-shell="3030"] .ap-subnav-pill--idle,
+html[data-ap-shell="3030"] .ap-module-chip-idle {
+  background: var(--ap-subnav-pill-bg-idle);
+  color: var(--ap-subnav-pill-text-idle);
+  box-shadow: inset 0 0 0 1px var(--ap-subnav-pill-border-idle);
+}
+
+html[data-ap-shell="3030"] .ap-subnav-pill--idle:hover,
+html[data-ap-shell="3030"] .ap-module-chip-idle:hover {
+  background: var(--ap-subnav-pill-bg-hover);
+  color: var(--ap-subnav-pill-text-idle);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--ap-text) 18%, var(--ap-border));
+}
+
+html[data-ap-shell="3030"] .ap-subnav-pill--disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+/* Underline tab subnav — RO workspace Concerns | Services | … */
+html[data-ap-shell="3030"] .ap-subnav-tab--idle {
+  border-bottom-color: transparent;
+  color: var(--ap-subnav-tab-text-idle);
+}
+
+html[data-ap-shell="3030"] .ap-subnav-tab--idle:hover {
+  border-bottom-color: color-mix(in oklab, var(--ap-text-muted) 35%, transparent);
+  color: var(--ap-subnav-tab-text-hover);
+}
+
+html[data-ap-shell="3030"] .ap-subnav-tab--active {
+  border-bottom-color: var(--ap-subnav-tab-underline);
+  color: var(--ap-subnav-tab-text-active);
+  font-weight: 600;
+}
+
+html[data-ap-shell="3030"] .ap-mobile-nav-active {
+  color: var(--ap-accent);
+}
+
+html[data-ap-shell="3030"] .ap-mobile-nav-idle {
+  color: var(--ap-text-muted);
+}
+
+html[data-ap-shell="3030"] .ap-mobile-nav-bar {
+  border-top: 1px solid var(--ap-border);
+  background: var(--ap-surface-raised);
+}
+
+html[data-ap-shell="3030"] .ap-search-input {
+  border-color: var(--ap-border);
+  background: var(--ap-surface);
+}
+
+html[data-ap-shell="3030"] .ap-topbar-link-idle {
+  color: var(--ap-text-muted);
+}
+
+html[data-ap-shell="3030"] .ap-topbar-link-idle:hover {
+  color: var(--ap-text);
+}
+
+html[data-ap-shell="3030"] .ap-banner-platform {
+  border-color: rgb(244 88 28 / 0.2);
+  background: transparent;
+  color: inherit;
+  padding: 0;
+}
+
+html[data-ap-shell="3030"] .ap-badge-accent {
+  background-color: var(--ap-accent);
+}
+
+html[data-ap-shell="3030"] .ro-tab-badge--active {
+  background: var(--ap-accent);
+  color: white;
+}
+
+/* RO workspace tabs hidden — shell-level phase stepper replaces them on 3030 */
+html[data-ap-shell="3030"] .ro-tabs-bar--ap-stepper-hidden {
+  display: none;
+}
+
+/* Payments horizontal tabs — shell chip subnav replaces on 3030.
+ * Shop settings + markup sub-tabs stay visible: persistent sidebar (3031) hides
+ * the context panel that was meant to replace them, so settings-tabs.tsx is canonical. */
+html[data-ap-shell="3030"] nav[aria-label="Payments"] {
+  display: none;
+}
+
+/* Bay Pipeline — Deep Ocean column accents (3030 only) */
+html[data-ap-shell="3030"] .job-board-shell {
+  border-color: var(--ap-border);
+  background: var(--ap-surface-raised);
+  box-shadow: none;
+}
+
+html[data-ap-shell="3030"] .job-board-toolbar {
+  border-color: var(--ap-border);
+  background: var(--ap-surface-raised);
+}
+
+html[data-ap-shell="3030"] .job-board-col {
+  border-color: var(--ap-border);
+}
+
+html[data-ap-shell="3030"] .job-board-col-header-estimates {
+  border-top-color: var(--ap-primary);
+}
+
+html[data-ap-shell="3030"] .job-board-col-header-wip {
+  border-top-color: var(--ap-accent);
+}
+
+html[data-ap-shell="3030"] .job-board-col-header-completed {
+  border-top-color: var(--ap-accent-secondary);
+}
+
+html[data-ap-shell="3030"] .job-board-col-header-wip .job-board-col-title {
+  color: var(--ap-accent);
+}
+
+html[data-ap-shell="3030"] .job-board-col-header-estimates .job-board-col-badge {
+  background: var(--ap-primary);
+  border-color: color-mix(in oklab, var(--ap-primary) 70%, white);
+}
+
+html[data-ap-shell="3030"] .job-board-col-header-wip .job-board-col-badge {
+  background: var(--ap-accent);
+  border-color: color-mix(in oklab, var(--ap-accent) 60%, white);
+}
+
+html[data-ap-shell="3030"] .job-board-col-header-completed .job-board-col-badge {
+  background: var(--ap-accent-secondary);
+  border-color: color-mix(in oklab, var(--ap-accent-secondary) 60%, white);
+  color: var(--ap-chrome);
+}
+
+html[data-ap-shell="3030"] .job-board-card-workInProgress {
+  border-left-color: var(--ap-accent);
+}
+
+html[data-ap-shell="3030"] .job-board-card-selected {
+  border-color: color-mix(in oklab, var(--ap-accent) 35%, transparent);
+  background: color-mix(in oklab, var(--ap-accent) 8%, white);
+  box-shadow: 0 0 0 2px color-mix(in oklab, var(--ap-accent) 35%, transparent);
+}

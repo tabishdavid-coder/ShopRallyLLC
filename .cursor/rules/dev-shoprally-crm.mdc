@@ -1,0 +1,47 @@
+---
+description: Dev 3031 ShopRallyCRM — AutopilotShell, nav IA, and build rules
+globs: shoprally/**/*
+alwaysApply: false
+---
+
+# Dev 3031 — ShopRallyCRM
+
+**Agent name:** ShopRallyCRM  
+**Codename:** Dev 3031  
+**Port:** 3031 (`npm run dev`)  
+**Prompt:** `agents/ShopRallyCRM/CONTINUE.md`
+
+## Active shell (locked)
+
+- `AutopilotShell` in `src/app/(app)/layout.tsx` via `loadAppShell()`
+- Navigation: `AP_OPERATIONS_NAV_ITEMS` + top section nav in `src/lib/autopilot3030/nav.ts`
+- Do NOT use legacy `CrmShell` / `AppSidebar` as default chrome
+
+## Merged from Test 3031 (2026-07-06)
+
+- Tekmetric-style nav IA (Operations sidebar + top section tabs)
+- Jobs layout toggle (inline grid vs Tekmetric tables) — shop setting at `/settings/estimates/workspace`
+- Job board context actions (History / Messages / Car specs)
+- Estimate workspace contained layout (gray canvas + white jobs panel)
+
+## Form primitives (page-level)
+
+`CrmPageHeader`, `CrmFormLayout`, `CrmFormSection` in `src/components/crm/`
+
+Brand tokens: `brand-navy`, `brand-light`, `brand-red` from `globals.css`
+
+## Legacy dev ports
+
+| Command | Port | Notes |
+|---------|------|-------|
+| `npm run dev:3004` | 3004 | Design mode overlay on |
+| `npm run dev:3030` | 3030 | Isolated Autopilot preview |
+| `npm run dev:3001` | 3001 | Deprecated CrmShell |
+
+## Do not
+
+- Modify `_archive-repairpilot/` or legacy :3000 production code
+- Deploy or production build unless asked
+- Commit unless user asks
+
+Update `agents/ShopRallyCRM/BUILD-STATE.md` after meaningful progress.

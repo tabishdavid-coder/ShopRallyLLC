@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 40" fill="none" role="img" aria-label="Autopilot logo">
+  <rect x="0" y="4" width="32" height="32" rx="8" fill="#0F2A44"/>
+  <text x="16" y="25.5" text-anchor="middle" font-family="system-ui, sans-serif" font-size="13" font-weight="700" fill="#FFFFFF">A</text>
+  <rect x="18.5" y="13" width="2.5" height="13" rx="1.25" fill="#FF6B4A"/>
+  <path d="M18.5 13 L22 13 L22 15.5 L21 15.5 L21 24.5 L22 24.5 L22 26 L18.5 26 Z" fill="#FF6B4A"/>
+  <text x="44" y="27" font-family="system-ui, sans-serif" font-size="22" font-weight="600" letter-spacing="0.04em" fill="#0F2A44">Autopilot</text>
+  <rect x="44" y="32" width="88" height="2" rx="1" fill="url(#ap-gradient)"/>
+  <defs>
+    <linearGradient id="ap-gradient" x1="44" y1="33" x2="132" y2="33" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FF6B4A"/>
+      <stop offset="1" stop-color="#2DD4BF"/>
+    </linearGradient>
+  </defs>
+</svg>

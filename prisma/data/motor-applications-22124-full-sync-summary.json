@@ -1,0 +1,746 @@
+{
+  "baseVehicleId": 22124,
+  "syncedAt": "2026-07-08T01:39:05.340Z",
+  "startedAt": "2026-07-08T01:36:43.775Z",
+  "elapsedMs": 141564,
+  "dryRun": false,
+  "subgroupsProcessed": 144,
+  "subgroupsSkippedEmpty": 0,
+  "applicationsFetched": 846,
+  "applicationsUpserted": 846,
+  "applicationsDeleted": 0,
+  "errorCount": 0,
+  "systemCounts": {
+    "Powertrain": 414,
+    "Body & Frame": 120,
+    "Brakes": 84,
+    "Electrical": 69,
+    "HVAC": 69,
+    "Suspension": 54,
+    "Steering": 25,
+    "Vehicle": 11
+  },
+  "errors": [],
+  "subgroupDetails": [
+    {
+      "motorSubGroupId": 2,
+      "path": "Body & Frame > Control Module > Air Bag System",
+      "appCount": 9
+    },
+    {
+      "motorSubGroupId": 142,
+      "path": "Body & Frame > Passenger Restraint System > Seat Belt System",
+      "appCount": 46
+    },
+    {
+      "motorSubGroupId": 308,
+      "path": "Body & Frame > Passenger Restraint System > Seat Belt Warning System",
+      "appCount": 1
+    },
+    {
+      "motorSubGroupId": 58,
+      "path": "Body & Frame > Switches > Door Systems",
+      "appCount": 18
+    },
+    {
+      "motorSubGroupId": 20,
+      "path": "Body & Frame > Body Panels > Hood",
+      "appCount": 5
+    },
+    {
+      "motorSubGroupId": 153,
+      "path": "Body & Frame > Body Panels > Power Roof System",
+      "appCount": 4
+    },
+    {
+      "motorSubGroupId": 88,
+      "path": "Body & Frame > Body Panels > Trunk",
+      "appCount": 9
+    },
+    {
+      "motorSubGroupId": 123,
+      "path": "Body & Frame > Interior Trim & Panels > Console",
+      "appCount": 1
+    },
+    {
+      "motorSubGroupId": 171,
+      "path": "Body & Frame > Switches > Instrument Panel",
+      "appCount": 2
+    },
+    {
+      "motorSubGroupId": 139,
+      "path": "Body & Frame > Bumper System > Bumper Cover",
+      "appCount": 2
+    },
+    {
+      "motorSubGroupId": 2,
+      "path": "Body & Frame > Control Module > Air Bag System",
+      "appCount": 9
+    },
+    {
+      "motorSubGroupId": 58,
+      "path": "Body & Frame > Switches > Door Systems",
+      "appCount": 10
+    },
+    {
+      "motorSubGroupId": 171,
+      "path": "Body & Frame > Switches > Instrument Panel",
+      "appCount": 3
+    },
+    {
+      "motorSubGroupId": 2,
+      "path": "Body & Frame > Control Module > Air Bag System",
+      "appCount": 1
+    },
+    {
+      "motorSubGroupId": 1,
+      "path": "Vehicle > @ALL > @ALL",
+      "appCount": 1
+    },
+    {
+      "motorSubGroupId": 1,
+      "path": "Vehicle > @ALL > @ALL",
+      "appCount": 1
+    },
+    {
+      "motorSubGroupId": 140,
+      "path": "Brakes > Sensors > Anti-lock Brake System",
+      "appCount": 5
+    },
+    {
+      "motorSubGroupId": 41,
+      "path": "Brakes > Disc Brakes > Brake Caliper",
+      "appCount": 7
+    },
+    {
+      "motorSubGroupId": 44,
+      "path": "Brakes > Disc Brakes > Brake Pads",
+      "appCount": 3
+    },
+    {
+      "motorSubGroupId": 45,
+      "path": "Brakes > Disc Brakes > Brake Rotor",
+      "appCount": 5
+    },
+    {
+      "motorSubGroupId": 42,
+      "path": "Brakes > Drum Brakes > Brake Drum",
+      "appCount": 5
+    },
+    {
+      "motorSubGroupId": 46,
+      "path": "Brakes > Drum Brakes > Brake Shoes",
+      "appCount": 4
+    },
+    {
+      "motorSubGroupId": 93,
+      "path": "Brakes > Drum Brakes > Wheel Cylinder",
+      "appCount": 8
+    },
+    {
+      "motorSubGroupId": 1,
+      "path": "Vehicle > @ALL > @ALL",
+      "appCount": 4
+    },
+    {
+      "motorSubGroupId": 135,
+      "path": "Brakes > Hydraulic System > Brake Line",
+      "appCount": 9
+    },
+    {
+      "motorSubGroupId": 22,
+      "path": "Brakes > Switches > Master Cylinder",
+      "appCount": 5
+    },
+    {
+      "motorSubGroupId": 1,
+      "path": "Vehicle > @ALL > @ALL",
+      "appCount": 1
+    },
+    {
+      "motorSubGroupId": 71,
+      "path": "Brakes > Parking Brake > Parking Brake Cable",
+      "appCount": 9
+    },
+    {
+      "motorSubGroupId": 344,
+      "path": "Brakes > Power Assist > Brake Booster",
+      "appCount": 8
+    },
+    {
+      "motorSubGroupId": 140,
+      "path": "Brakes > Sensors > Anti-lock Brake System",
+      "appCount": 6
+    },
+    {
+      "motorSubGroupId": 22,
+      "path": "Brakes > Switches > Master Cylinder",
+      "appCount": 3
+    },
+    {
+      "motorSubGroupId": 1,
+      "path": "Vehicle > @ALL > @ALL",
+      "appCount": 1
+    },
+    {
+      "motorSubGroupId": 127,
+      "path": "Electrical > Entertainment System > Antenna",
+      "appCount": 2
+    },
+    {
+      "motorSubGroupId": 47,
+      "path": "Electrical > Interior Lighting > Bulbs",
+      "appCount": 9
+    },
+    {
+      "motorSubGroupId": 17,
+      "path": "Electrical > Exterior Lighting > Headlamp",
+      "appCount": 1
+    },
+    {
+      "motorSubGroupId": 91,
+      "path": "Electrical > Wiper & Washer System > Washer Fluid Pump",
+      "appCount": 1
+    },
+    {
+      "motorSubGroupId": 31,
+      "path": "Electrical > Wiper & Washer System > Washer Reservoir",
+      "appCount": 1
+    },
+    {
+      "motorSubGroupId": 203,
+      "path": "Electrical > Wiper & Washer System > Windshield",
+      "appCount": 1
+    },
+    {
+      "motorSubGroupId": 124,
+      "path": "Electrical > Wiper & Washer System > Wiper Linkage",
+      "appCount": 6
+    },
+    {
+      "motorSubGroupId": 126,
+      "path": "Electrical > Wiper & Washer System > Wiper Motor",
+      "appCount": 1
+    },
+    {
+      "motorSubGroupId": 1,
+      "path": "Vehicle > @ALL > @ALL",
+      "appCount": 1
+    },
+    {
+      "motorSubGroupId": 36,
+      "path": "Electrical > Engine > Alternator",
+      "appCount": 5
+    },
+    {
+      "motorSubGroupId": 78,
+      "path": "Electrical > Relays > Starting System",
+      "appCount": 4
+    },
+    {
+      "motorSubGroupId": 3,
+      "path": "Electrical > Power Distribution > Battery & Cables",
+      "appCount": 8
+    },
+    {
+      "motorSubGroupId": 272,
+      "path": "Electrical > Steering Column > Horn Components",
+      "appCount": 1
+    },
+    {
+      "motorSubGroupId": 86,
+      "path": "Suspension > Control Module > Tire Pressure Monitor",
+      "appCount": 2
+    },
+    {
+      "motorSubGroupId": 129,
+      "path": "Electrical > Latches & Locks > Lock Cylinder",
+      "appCount": 4
+    },
+    {
+      "motorSubGroupId": 170,
+      "path": "Electrical > Driver Information System > Instrument Cluster",
+      "appCount": 5
+    },
+    {
+      "motorSubGroupId": 47,
+      "path": "Electrical > Interior Lighting > Bulbs",
+      "appCount": 1
+    },
+    {
+      "motorSubGroupId": 178,
+      "path": "Electrical > Switches > Cruise Control System",
+      "appCount": 2
+    },
+    {
+      "motorSubGroupId": 182,
+      "path": "Electrical > Switches > Exterior Lighting",
+      "appCount": 4
+    },
+    {
+      "motorSubGroupId": 187,
+      "path": "Electrical > Switches > Power Distribution",
+      "appCount": 1
+    },
+    {
+      "motorSubGroupId": 102,
+      "path": "Electrical > Switches > Seats",
+      "appCount": 1
+    },
+    {
+      "motorSubGroupId": 188,
+      "path": "Electrical > Switches > Steering Column",
+      "appCount": 1
+    },
+    {
+      "motorSubGroupId": 184,
+      "path": "Electrical > Switches > Wiper & Washer System",
+      "appCount": 1
+    },
+    {
+      "motorSubGroupId": 172,
+      "path": "Electrical > Control Module > Body Control System",
+      "appCount": 3
+    },
+    {
+      "motorSubGroupId": 78,
+      "path": "Electrical > Relays > Starting System",
+      "appCount": 1
+    },
+    {
+      "motorSubGroupId": 1,
+      "path": "Vehicle > @ALL > @ALL",
+      "appCount": 1
+    },
+    {
+      "motorSubGroupId": 1,
+      "path": "Vehicle > @ALL > @ALL",
+      "appCount": 2
+    },
+    {
+      "motorSubGroupId": 185,
+      "path": "HVAC > Switches > Air Conditioning System",
+      "appCount": 2
+    },
+    {
+      "motorSubGroupId": 51,
+      "path": "HVAC > Air Conditioning System > Compressor",
+      "appCount": 4
+    },
+    {
+      "motorSubGroupId": 52,
+      "path": "HVAC > Air Conditioning System > Condenser Core",
+      "appCount": 4
+    },
+    {
+      "motorSubGroupId": 53,
+      "path": "HVAC > Air Conditioning System > Condenser Fan Motor",
+      "appCount": 5
+    },
+    {
+      "motorSubGroupId": 61,
+      "path": "HVAC > Air Distribution > HVAC Case",
+      "appCount": 4
+    },
+    {
+      "motorSubGroupId": 75,
+      "path": "HVAC > Air Conditioning System > Receiver Drier",
+      "appCount": 1
+    },
+    {
+      "motorSubGroupId": 76,
+      "path": "HVAC > Air Conditioning System > Refrigerant Line",
+      "appCount": 4
+    },
+    {
+      "motorSubGroupId": 23,
+      "path": "HVAC > Air Conditioning System > Relays",
+      "appCount": 1
+    },
+    {
+      "motorSubGroupId": 89,
+      "path": "HVAC > Control System > Valves & Actuators",
+      "appCount": 1
+    },
+    {
+      "motorSubGroupId": 34,
+      "path": "HVAC > Air Distribution > Air Filter",
+      "appCount": 1
+    },
+    {
+      "motorSubGroupId": 39,
+      "path": "HVAC > Control Module > Blower Motor",
+      "appCount": 5
+    },
+    {
+      "motorSubGroupId": 99,
+      "path": "Powertrain > Control Module > Control System",
+      "appCount": 3
+    },
+    {
+      "motorSubGroupId": 61,
+      "path": "HVAC > Air Distribution > HVAC Case",
+      "appCount": 1
+    },
+    {
+      "motorSubGroupId": 1,
+      "path": "Vehicle > @ALL > @ALL",
+      "appCount": 1
+    },
+    {
+      "motorSubGroupId": 89,
+      "path": "HVAC > Control System > Valves & Actuators",
+      "appCount": 1
+    },
+    {
+      "motorSubGroupId": 18,
+      "path": "HVAC > Heating > Heater Core",
+      "appCount": 4
+    },
+    {
+      "motorSubGroupId": 19,
+      "path": "HVAC > Heating > Heater Hose",
+      "appCount": 11
+    },
+    {
+      "motorSubGroupId": 99,
+      "path": "Powertrain > Control Module > Control System",
+      "appCount": 9
+    },
+    {
+      "motorSubGroupId": 185,
+      "path": "HVAC > Switches > Air Conditioning System",
+      "appCount": 4
+    },
+    {
+      "motorSubGroupId": 39,
+      "path": "HVAC > Control Module > Blower Motor",
+      "appCount": 1
+    },
+    {
+      "motorSubGroupId": 79,
+      "path": "Steering > Directional Control > Steering Gear Assembly",
+      "appCount": 7
+    },
+    {
+      "motorSubGroupId": 83,
+      "path": "Steering > Directional Control > Tie Rod",
+      "appCount": 2
+    },
+    {
+      "motorSubGroupId": 1,
+      "path": "Vehicle > @ALL > @ALL",
+      "appCount": 1
+    },
+    {
+      "motorSubGroupId": 72,
+      "path": "Steering > Hydraulic System > Power Steering Line",
+      "appCount": 6
+    },
+    {
+      "motorSubGroupId": 73,
+      "path": "Steering > Hydraulic System > Power Steering Pump",
+      "appCount": 3
+    },
+    {
+      "motorSubGroupId": 80,
+      "path": "Steering > Pivot Points > Steering Knuckle",
+      "appCount": 5
+    },
+    {
+      "motorSubGroupId": 192,
+      "path": "Steering > Control Module > Power Steering System",
+      "appCount": 1
+    },
+    {
+      "motorSubGroupId": 1,
+      "path": "Vehicle > @ALL > @ALL",
+      "appCount": 1
+    },
+    {
+      "motorSubGroupId": 29,
+      "path": "Suspension > Tire & Wheel > Tire",
+      "appCount": 1
+    },
+    {
+      "motorSubGroupId": 141,
+      "path": "Suspension > Tire & Wheel > Tire & Wheel Assembly",
+      "appCount": 4
+    },
+    {
+      "motorSubGroupId": 32,
+      "path": "Suspension > Tire & Wheel > Wheel",
+      "appCount": 1
+    },
+    {
+      "motorSubGroupId": 50,
+      "path": "Suspension > Vertical Dampening > Coil Spring",
+      "appCount": 5
+    },
+    {
+      "motorSubGroupId": 360,
+      "path": "Suspension > Vertical Dampening > Shock/Strut",
+      "appCount": 5
+    },
+    {
+      "motorSubGroupId": 81,
+      "path": "Suspension > Vertical Dampening > Strut",
+      "appCount": 1
+    },
+    {
+      "motorSubGroupId": 92,
+      "path": "Suspension > Hub & Bearings > Wheel Bearing",
+      "appCount": 1
+    },
+    {
+      "motorSubGroupId": 94,
+      "path": "Suspension > Hub & Bearings > Wheel Hub",
+      "appCount": 2
+    },
+    {
+      "motorSubGroupId": 77,
+      "path": "Suspension > Lateral Dampening > Stabilizer Bar",
+      "appCount": 7
+    },
+    {
+      "motorSubGroupId": 54,
+      "path": "Suspension > Pivot Points > Suspension Arm",
+      "appCount": 21
+    },
+    {
+      "motorSubGroupId": 96,
+      "path": "Suspension > Adjustments > Wheel Alignment",
+      "appCount": 3
+    },
+    {
+      "motorSubGroupId": 86,
+      "path": "Suspension > Control Module > Tire Pressure Monitor",
+      "appCount": 1
+    },
+    {
+      "motorSubGroupId": 86,
+      "path": "Suspension > Control Module > Tire Pressure Monitor",
+      "appCount": 1
+    },
+    {
+      "motorSubGroupId": 55,
+      "path": "Powertrain > Control System > Control Module",
+      "appCount": 2
+    },
+    {
+      "motorSubGroupId": 60,
+      "path": "Powertrain > Engine > Emission Control",
+      "appCount": 1
+    },
+    {
+      "motorSubGroupId": 37,
+      "path": "Powertrain > Driveline > Axle",
+      "appCount": 6
+    },
+    {
+      "motorSubGroupId": 1,
+      "path": "Vehicle > @ALL > @ALL",
+      "appCount": 1
+    },
+    {
+      "motorSubGroupId": 33,
+      "path": "Powertrain > Engine > Accessory Drive Belt",
+      "appCount": 9
+    },
+    {
+      "motorSubGroupId": 35,
+      "path": "Powertrain > Engine > Air Intake System",
+      "appCount": 12
+    },
+    {
+      "motorSubGroupId": 107,
+      "path": "Powertrain > Engine > Connecting Rod",
+      "appCount": 12
+    },
+    {
+      "motorSubGroupId": 56,
+      "path": "Powertrain > Relays > Cooling System",
+      "appCount": 30
+    },
+    {
+      "motorSubGroupId": 7,
+      "path": "Powertrain > Engine > Crankshaft",
+      "appCount": 23
+    },
+    {
+      "motorSubGroupId": 138,
+      "path": "Powertrain > Engine > Cylinder Block",
+      "appCount": 4
+    },
+    {
+      "motorSubGroupId": 60,
+      "path": "Powertrain > Engine > Emission Control",
+      "appCount": 20
+    },
+    {
+      "motorSubGroupId": 12,
+      "path": "Powertrain > Engine > Engine Assembly",
+      "appCount": 22
+    },
+    {
+      "motorSubGroupId": 108,
+      "path": "Powertrain > Engine > Engine Cylinder",
+      "appCount": 4
+    },
+    {
+      "motorSubGroupId": 62,
+      "path": "Powertrain > Engine > Exhaust System",
+      "appCount": 22
+    },
+    {
+      "motorSubGroupId": 111,
+      "path": "Powertrain > Engine > Flexplate",
+      "appCount": 6
+    },
+    {
+      "motorSubGroupId": 15,
+      "path": "Powertrain > Engine > Fuel Injection",
+      "appCount": 12
+    },
+    {
+      "motorSubGroupId": 64,
+      "path": "Powertrain > Relays > Fuel Supply System",
+      "appCount": 22
+    },
+    {
+      "motorSubGroupId": 67,
+      "path": "Powertrain > Engine > Ignition System",
+      "appCount": 9
+    },
+    {
+      "motorSubGroupId": 21,
+      "path": "Powertrain > Trans > Lubrication System",
+      "appCount": 19
+    },
+    {
+      "motorSubGroupId": 70,
+      "path": "Powertrain > Engine > Mounts",
+      "appCount": 16
+    },
+    {
+      "motorSubGroupId": 84,
+      "path": "Powertrain > Engine > Timing Belt",
+      "appCount": 8
+    },
+    {
+      "motorSubGroupId": 85,
+      "path": "Powertrain > Engine > Timing Chain",
+      "appCount": 12
+    },
+    {
+      "motorSubGroupId": 90,
+      "path": "Powertrain > Engine > Valvetrain",
+      "appCount": 36
+    },
+    {
+      "motorSubGroupId": 1,
+      "path": "Vehicle > @ALL > @ALL",
+      "appCount": 1
+    },
+    {
+      "motorSubGroupId": 21,
+      "path": "Powertrain > Trans > Lubrication System",
+      "appCount": 7
+    },
+    {
+      "motorSubGroupId": 95,
+      "path": "Powertrain > Trans > Trans Assembly",
+      "appCount": 13
+    },
+    {
+      "motorSubGroupId": 87,
+      "path": "Powertrain > Trans > Trans Mount",
+      "appCount": 4
+    },
+    {
+      "motorSubGroupId": 4,
+      "path": "Powertrain > Automatic Trans > Case & Components",
+      "appCount": 1
+    },
+    {
+      "motorSubGroupId": 143,
+      "path": "Powertrain > Automatic Trans > Shift Lever",
+      "appCount": 2
+    },
+    {
+      "motorSubGroupId": 118,
+      "path": "Powertrain > Automatic Trans > Torque Converter",
+      "appCount": 4
+    },
+    {
+      "motorSubGroupId": 49,
+      "path": "Powertrain > Manual Trans > Clutch Assembly",
+      "appCount": 2
+    },
+    {
+      "motorSubGroupId": 65,
+      "path": "Powertrain > Manual Trans > Hydraulic Clutch System",
+      "appCount": 8
+    },
+    {
+      "motorSubGroupId": 179,
+      "path": "Powertrain > Sensors > Automatic Trans",
+      "appCount": 2
+    },
+    {
+      "motorSubGroupId": 180,
+      "path": "Powertrain > Switches > Engine",
+      "appCount": 35
+    },
+    {
+      "motorSubGroupId": 181,
+      "path": "Powertrain > Control Module > Trans",
+      "appCount": 1
+    },
+    {
+      "motorSubGroupId": 180,
+      "path": "Powertrain > Switches > Engine",
+      "appCount": 8
+    },
+    {
+      "motorSubGroupId": 99,
+      "path": "Powertrain > Control Module > Control System",
+      "appCount": 5
+    },
+    {
+      "motorSubGroupId": 199,
+      "path": "Powertrain > Control Module > Engine Control System",
+      "appCount": 6
+    },
+    {
+      "motorSubGroupId": 181,
+      "path": "Powertrain > Control Module > Trans",
+      "appCount": 1
+    },
+    {
+      "motorSubGroupId": 300,
+      "path": "Powertrain > Hybrid Powertrain System > High Voltage System",
+      "appCount": 1
+    },
+    {
+      "motorSubGroupId": 56,
+      "path": "Powertrain > Relays > Cooling System",
+      "appCount": 1
+    },
+    {
+      "motorSubGroupId": 64,
+      "path": "Powertrain > Relays > Fuel Supply System",
+      "appCount": 4
+    },
+    {
+      "motorSubGroupId": 1,
+      "path": "Vehicle > @ALL > @ALL",
+      "appCount": 1
+    },
+    {
+      "motorSubGroupId": 332,
+      "path": "Vehicle > Universal Vehicle Operation > Universal Vehicle Operation",
+      "appCount": 10
+    }
+  ]
+}

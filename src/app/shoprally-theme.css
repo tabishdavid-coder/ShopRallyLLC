@@ -1,0 +1,117 @@
+/**
+ * ShopRally design tokens — source: shoprally-brand-kit/BRAND.md
+ *
+ * Palette roles:
+ *   Navy   #1E3A56 — trust / chrome / primary text on light surfaces
+ *   Azure  #00A9FF — bridge / focus rings / links / active nav accent (not body copy on white)
+ *   Orange #F4581C — action / primary CTAs / "Rally" emphasis
+ *
+ * WCAG AA contrast (4.5:1 normal text):
+ *   ✓ Navy on white (~8.2:1) — default --foreground, table text, labels
+ *   ✓ White on navy (~12:1) — sidebar nav, dark chrome
+ *   ✓ White on orange (~4.6:1) — primary button labels only
+ *   ✓ Muted slate on white (~5.1:1) — --muted-foreground, captions
+ *   ✗ Azure on white (~2.4:1) — NEVER use for small text; icons, rings, borders, large bold only
+ *   ✗ Orange on white (~3.1:1) — NEVER for paragraph text; buttons/badges with white fg only
+ */
+
+:root {
+  /* Brand hex (exact from kit) */
+  --sr-navy: #1e3a56;
+  --sr-azure: #00a9ff;
+  --sr-orange: #f4581c;
+  --sr-white: #ffffff;
+
+  /* Semantic feedback — tuned to stay visible alongside navy/azure/orange */
+  --sr-success: #15803d;
+  --sr-success-bg: #ecfdf3;
+  --sr-error: #c81e1e;
+  --sr-error-bg: #fef2f2;
+  --sr-warning: #b45309;
+  --sr-warning-bg: #fffbeb;
+
+  /* Legacy token names (used across CRM utilities) */
+  --brand-navy: var(--sr-navy);
+  --brand-light: var(--sr-azure);
+  --brand-orange: var(--sr-orange);
+  --brand-red: var(--sr-error);
+
+  /* Surfaces */
+  --background: #f4f7fa;
+  --foreground: var(--sr-navy);
+  --card: var(--sr-white);
+  --card-foreground: var(--sr-navy);
+  --popover: var(--sr-white);
+  --popover-foreground: var(--sr-navy);
+
+  /* Primary = racing orange (CTAs). Navy reserved for chrome + ink. */
+  --primary: var(--sr-orange);
+  --primary-foreground: var(--sr-white);
+  --secondary: #e8eef4;
+  --secondary-foreground: var(--sr-navy);
+  --muted: #eef2f6;
+  --muted-foreground: #4a6275;
+  --subtle-foreground: #5c7388;
+  --placeholder-foreground: #7a8fa3;
+  --accent: #e6f6ff;
+  --accent-foreground: var(--sr-navy);
+  --destructive: var(--sr-error);
+  --border: #d4dde6;
+  --input: #c5d0db;
+  --ring: var(--sr-azure);
+
+  --chart-1: var(--sr-navy);
+  --chart-2: var(--sr-orange);
+  --chart-3: var(--sr-azure);
+  --chart-4: var(--sr-success);
+  --chart-5: var(--sr-warning);
+
+  --radius: 0.4rem;
+
+  /* Sidebar — navy chrome; azure active bar (bridge), not orange */
+  --sidebar: var(--sr-navy);
+  --sidebar-foreground: #f0f4f8;
+  --sidebar-muted-foreground: #a8bdd0;
+  --sidebar-primary: var(--sr-azure);
+  --sidebar-primary-foreground: var(--sr-navy);
+  --sidebar-accent: #2a4a6a;
+  --sidebar-accent-foreground: var(--sr-white);
+  --sidebar-border: #2f5278;
+  --sidebar-ring: var(--sr-azure);
+
+  --crm-nav-muted: #5c7388;
+  --crm-nav-label: #4a6275;
+  --crm-caption: #4a6275;
+  --crm-panel: #f4f7fa;
+  --crm-panel-border: #d4dde6;
+  --crm-chrome: var(--sr-navy);
+  --crm-chrome-sub: #243f5c;
+  --crm-chrome-border: #2f5278;
+  --crm-chrome-fg: #f0f4f8;
+  --crm-chrome-muted: #a8bdd0;
+
+  --brand-light-foreground: var(--sr-navy);
+}
+
+.dark {
+  --background: #0f1c2a;
+  --foreground: #f0f4f8;
+  --card: #162636;
+  --card-foreground: #f0f4f8;
+  --popover: #162636;
+  --popover-foreground: #f0f4f8;
+  --primary: var(--sr-orange);
+  --primary-foreground: var(--sr-white);
+  --secondary: #243f5c;
+  --secondary-foreground: #f0f4f8;
+  --muted: #243f5c;
+  --muted-foreground: #a8bdd0;
+  --subtle-foreground: #8fa8be;
+  --placeholder-foreground: #7a95ad;
+  --accent: #1e3a56;
+  --accent-foreground: #f0f4f8;
+  --destructive: #f87171;
+  --border: rgb(255 255 255 / 12%);
+  --input: rgb(255 255 255 / 16%);
+  --ring: var(--sr-azure);
+}

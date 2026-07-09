@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ShopRally Intake Lab v2 — blended RO create</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <div class="lab-banner">
+      <strong>Intake Lab v2</strong> — blended Tekmetric + AutoLeap patterns · mock only · port 3010 · not dev :3004
+    </div>
+
+    <div class="shell">
+      <aside class="sidebar" aria-hidden="true">
+        <div class="sidebar-brand">ShopRally</div>
+        <nav class="sidebar-nav">
+          <span>Overview</span>
+          <span class="active">Job Board</span>
+          <span>Workflow</span>
+          <span>Messages</span>
+        </nav>
+      </aside>
+
+      <main class="main">
+        <header class="job-board-header">
+          <h1>Job Board</h1>
+          <div class="board-actions">
+            <input type="search" placeholder="Filter board…" class="board-search" disabled />
+            <button type="button" class="btn btn-primary" id="open-intake">+ New repair order</button>
+          </div>
+        </header>
+        <div class="kanban mock">
+          <div class="col"><h3>Estimates <span>12</span></h3><div class="card mock-card">RO #1021 · Smith</div></div>
+          <div class="col"><h3>In progress <span>3</span></h3><div class="card mock-card dim">—</div></div>
+          <div class="col"><h3>Completed <span>7</span></h3><div class="card mock-card dim">—</div></div>
+        </div>
+      </main>
+    </div>
+
+    <button type="button" class="fab" id="fab-open" aria-label="New repair order">+</button>
+
+    <div class="sheet-backdrop hidden" id="backdrop"></div>
+    <aside class="sheet hidden" id="sheet" role="dialog" aria-labelledby="sheet-title">
+      <header class="sheet-header">
+        <div>
+          <p class="eyebrow">Create repair order</p>
+          <h2 id="sheet-title">New repair order</h2>
+        </div>
+        <span class="draft-ro" id="draft-ro">Draft RO #1043</span>
+        <button type="button" class="icon-btn" id="close-sheet">×</button>
+      </header>
+
+      <div class="progress-chips" id="progress-chips"></div>
+
+      <form class="sheet-body" id="intake-form" onsubmit="return false">
+        <section class="form-section">
+          <h3 class="section-title">Customer</h3>
+          <div class="mode-pills" id="search-modes">
+            <button type="button" class="pill active" data-mode="name">Name</button>
+            <button type="button" class="pill" data-mode="phone">Phone</button>
+            <button type="button" class="pill" data-mode="plate">Plate</button>
+            <button type="button" class="pill" data-mode="vin">VIN</button>
+          </div>
+          <input type="search" id="customer-search" class="field" placeholder="Search customer…" autocomplete="off" />
+          <ul class="result-list hidden" id="customer-results"></ul>
+          <div class="selected-card hidden" id="customer-selected"></div>
+          <button type="button" class="link-btn" id="btn-add-customer">+ Add customer</button>
+        </section>
+
+        <section class="form-section">
+          <h3 class="section-title">Vehicle</h3>
+          <p class="section-hint hidden" id="vehicle-hint">Select from customer fleet or lookup by plate/VIN.</p>
+          <div class="vehicle-grid hidden" id="vehicle-grid"></div>
+          <div class="lookup-row">
+            <input type="text" id="vehicle-lookup" class="field" placeholder="Plate or VIN…" />
+            <select id="plate-state" class="field field-sm">
+              <option value="NY">NY</option>
+              <option value="TX">TX</option>
+              <option value="OK">OK</option>
+            </select>
+            <button type="button" class="btn btn-secondary" id="btn-lookup">Lookup</button>
+          </div>
+          <button type="button" class="link-btn" id="btn-add-vehicle">+ Add vehicle</button>
+          <div class="selected-card hidden" id="vehicle-selected"></div>
+        </section>
+
+        <section class="form-section">
+          <h3 class="section-title">Visit details</h3>
+          <label class="field-label" for="concern-input">Customer concerns</label>
+          <div class="concern-row">
+            <input type="text" id="concern-input" class="field" placeholder="Enter vehicle concern" />
+            <button type="button" class="btn btn-secondary" id="add-concern">Add</button>
+          </div>
+          <ul class="chips" id="concern-chips"></ul>
+
+          <div class="grid-2">
+            <div>
+              <label class="field-label" for="odometer">Odometer in</label>
+              <input type="number" id="odometer" class="field" placeholder="Miles" />
+            </div>
+            <label class="checkbox-row">
+              <input type="checkbox" id="odometer-na" /> Odometer N/A
+            </label>
+          </div>
+
+          <label class="field-label" for="visit-type">Visit type</label>
+          <select id="visit-type" class="field">
+            <option>Drop-off</option>
+            <option>Customer waiting</option>
+            <option>Scheduled appointment</option>
+            <option>Walk-in</option>
+          </select>
+
+          <label class="field-label" for="labor-rate">Labor rate</label>
+          <select id="labor-rate" class="field">
+            <option value="150">Standard — $150.00/hr</option>
+            <option value="175">Diagnostic — $175.00/hr</option>
+          </select>
+
+          <label class="field-label" for="lead-source">Lead source</label>
+          <select id="lead-source" class="field">
+            <option>No source</option>
+            <option>Google</option>
+            <option>Referral</option>
+            <option>Repeat customer</option>
+          </select>
+        </section>
+
+        <p class="error hidden" id="form-error"></p>
+      </form>
+
+      <footer class="sheet-footer">
+        <span class="kbd-hint">Alt + ↵</span>
+        <div class="footer-actions">
+          <button type="button" class="btn btn-ghost" id="btn-cancel">Cancel</button>
+          <button type="button" class="btn btn-primary" id="btn-create">Create repair order</button>
+        </div>
+      </footer>
+    </aside>
+
+    <!-- Modals -->
+    <div class="modal-backdrop hidden" id="modal-backdrop"></div>
+
+    <div class="modal hidden" id="modal-customer" role="dialog" aria-modal="true" aria-labelledby="modal-customer-title">
+      <header class="modal-header">
+        <h3 id="modal-customer-title">Add customer</h3>
+        <button type="button" class="icon-btn modal-close" aria-label="Close">×</button>
+      </header>
+      <div class="modal-body">
+        <div class="toggle-row">
+          <button type="button" class="toggle active" data-type="person">Person</button>
+          <button type="button" class="toggle" data-type="business">Business</button>
+        </div>
+        <div class="grid-2-tight">
+          <input id="new-first-name" class="field" placeholder="First name *" />
+          <input id="new-last-name" class="field" placeholder="Last name *" />
+        </div>
+        <input id="new-phone" class="field" placeholder="518-111-4787" type="tel" inputmode="tel" maxlength="12" />
+        <input id="new-email" class="field" placeholder="Email" type="email" />
+      </div>
+      <footer class="modal-footer">
+        <button type="button" class="btn btn-ghost modal-close">Cancel</button>
+        <button type="button" class="btn btn-primary" id="save-customer">Save customer</button>
+      </footer>
+    </div>
+
+    <div class="modal modal-wide hidden" id="modal-vehicle" role="dialog" aria-modal="true" aria-labelledby="modal-vehicle-title">
+      <header class="modal-header">
+        <div>
+          <h3 id="modal-vehicle-title">Add vehicle</h3>
+          <p class="modal-subtitle" id="modal-vehicle-subtitle">Decode by plate/VIN or pick year, make, and model.</p>
+        </div>
+        <button type="button" class="icon-btn modal-close" aria-label="Close">×</button>
+      </header>
+      <div class="modal-body">
+        <p class="modal-copy" id="vehicle-modal-customer">For customer: —</p>
+
+        <div id="vehicle-panel-pick">
+          <div class="tab-row" id="vehicle-tabs">
+            <button type="button" class="tab active" data-tab="lookup">Plate / VIN lookup</button>
+            <button type="button" class="tab" data-tab="manual">Manual entry</button>
+          </div>
+          <div id="vehicle-panel-lookup">
+            <div class="lookup-row">
+              <input type="text" id="modal-vehicle-query" class="field" placeholder="License plate or VIN…" />
+              <select id="modal-plate-state" class="field field-sm">
+                <option value="NY">NY</option>
+                <option value="TX">TX</option>
+                <option value="OK">OK</option>
+              </select>
+              <button type="button" class="btn btn-secondary" id="modal-vehicle-search">Search</button>
+            </div>
+            <p class="field-hint">Try <strong>JBD3839</strong> or VIN ending in …007886</p>
+            <div class="decode-box hidden" id="modal-decode-result"></div>
+            <p class="error-inline hidden" id="modal-vehicle-error"></p>
+          </div>
+          <div id="vehicle-panel-manual" class="hidden">
+            <div class="grid-2-tight">
+              <select id="veh-year" class="field" aria-label="Year">
+                <option value="">Year *</option>
+              </select>
+              <select id="veh-make" class="field" aria-label="Make">
+                <option value="">Make *</option>
+              </select>
+            </div>
+            <select id="veh-model" class="field" aria-label="Model">
+              <option value="">Model *</option>
+            </select>
+            <div class="grid-2-tight">
+              <input id="veh-plate" class="field" placeholder="Plate" />
+              <select id="veh-plate-state" class="field" aria-label="Plate state">
+                <option value="">State</option>
+              </select>
+            </div>
+            <input id="veh-vin" class="field" placeholder="VIN (optional)" maxlength="17" />
+          </div>
+        </div>
+
+        <div id="vehicle-panel-info" class="hidden">
+          <button type="button" class="vehicle-back-link" id="vehicle-change-pick">← Change vehicle</button>
+          <p class="field-hint info-hint">Confirm trim, plate, and VIN before saving.</p>
+          <label class="field-label" for="veh-info-summary">Vehicle</label>
+          <input id="veh-info-summary" class="field field-readonly" readonly />
+          <div class="info-grid">
+            <div>
+              <label class="field-label" for="veh-info-trim">Submodel</label>
+              <input id="veh-info-trim" class="field" placeholder="Trim / submodel" />
+            </div>
+            <div>
+              <label class="field-label" for="veh-info-engine">Engine</label>
+              <input id="veh-info-engine" class="field" placeholder="e.g. 3.5L V6" />
+            </div>
+            <div>
+              <label class="field-label" for="veh-info-drivetrain">Drivetrain</label>
+              <input id="veh-info-drivetrain" class="field" placeholder="FWD, AWD, RWD…" />
+            </div>
+            <div>
+              <label class="field-label" for="veh-info-transmission">Transmission</label>
+              <input id="veh-info-transmission" class="field" placeholder="Automatic, Manual…" />
+            </div>
+            <div>
+              <label class="field-label" for="veh-info-body">Body type</label>
+              <input id="veh-info-body" class="field" placeholder="Sedan, SUV…" />
+            </div>
+            <div>
+              <label class="field-label" for="veh-info-plate">License plate</label>
+              <input id="veh-info-plate" class="field" placeholder="Enter license plate" />
+            </div>
+            <div>
+              <label class="field-label" for="veh-info-plate-state">State</label>
+              <select id="veh-info-plate-state" class="field">
+                <option value="">Select state</option>
+              </select>
+            </div>
+            <div>
+              <label class="field-label" for="veh-info-vin">VIN</label>
+              <input id="veh-info-vin" class="field field-mono" placeholder="Enter VIN" maxlength="17" />
+            </div>
+            <div class="info-span-2">
+              <label class="field-label" for="veh-info-color">Color</label>
+              <input id="veh-info-color" class="field" placeholder="Enter color" />
+            </div>
+          </div>
+          <p class="error-inline hidden" id="modal-vehicle-info-error"></p>
+        </div>
+      </div>
+      <footer class="modal-footer">
+        <button type="button" class="btn btn-ghost modal-close">Cancel</button>
+        <button type="button" class="btn btn-primary" id="vehicle-continue">Continue</button>
+        <button type="button" class="btn btn-primary hidden" id="vehicle-save">Save</button>
+      </footer>
+    </div>
+
+    <div class="modal hidden" id="modal-transfer" role="dialog" aria-modal="true">
+      <header class="modal-header">
+        <h3>Transfer vehicle?</h3>
+        <button type="button" class="icon-btn modal-close">×</button>
+      </header>
+      <div class="modal-body">
+        <div class="alert alert-warn">This VIN is registered to <strong id="transfer-from">Ryan Davis</strong>. Transfer keeps service history with the vehicle.</div>
+        <p class="modal-copy">Transfer <strong id="transfer-vehicle-name">2014 Honda Accord EX-L</strong> to <strong id="transfer-to">test customer</strong>?</p>
+      </div>
+      <footer class="modal-footer">
+        <button type="button" class="btn btn-ghost" id="btn-duplicate">Create duplicate anyway</button>
+        <button type="button" class="btn btn-primary" id="btn-transfer">Transfer &amp; continue</button>
+      </footer>
+    </div>
+
+    <div class="modal hidden" id="modal-active-ro" role="dialog" aria-modal="true">
+      <header class="modal-header">
+        <h3>Active repair order exists</h3>
+        <button type="button" class="icon-btn modal-close">×</button>
+      </header>
+      <div class="modal-body">
+        <div class="alert alert-warn">There is 1 open RO for this customer and vehicle.</div>
+        <table class="mini-table">
+          <thead><tr><th>RO#</th><th>Created</th><th>Status</th></tr></thead>
+          <tbody><tr><td>#282</td><td>May 14</td><td>Balance due</td></tr></tbody>
+        </table>
+      </div>
+      <footer class="modal-footer">
+        <button type="button" class="btn btn-ghost modal-close">Cancel</button>
+        <button type="button" class="btn btn-secondary" id="btn-open-existing">Open RO #282</button>
+        <button type="button" class="btn btn-primary" id="btn-continue-new">Continue new RO</button>
+      </footer>
+    </div>
+
+    <div class="estimate-preview hidden" id="estimate-preview">
+      <header class="preview-header">
+        <div>
+          <p class="eyebrow">Estimate handoff</p>
+          <h2 id="preview-title">RO #1043 · Test Customer · 2014 Honda Accord</h2>
+        </div>
+        <button type="button" class="btn btn-ghost" id="preview-close">Close preview</button>
+      </header>
+      <div class="preview-body">
+        <div class="preview-toolbar">
+          <input class="field" placeholder="Search canned jobs…" disabled />
+          <span class="toolbar-chip">+ Job</span>
+          <span class="toolbar-chip">Labor guide</span>
+          <span class="toolbar-chip">Parts hub</span>
+        </div>
+        <div class="preview-concerns">
+          <h4>Service concerns <span class="badge">from intake</span></h4>
+          <ul id="preview-concerns"></ul>
+        </div>
+        <p class="preview-note">In production this is your existing Estimate tab — intake stops at RO create.</p>
+      </div>
+    </div>
+
+    <script src="app.js?v=6"></script>
+  </body>
+</html>

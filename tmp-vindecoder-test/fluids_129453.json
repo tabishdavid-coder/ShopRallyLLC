@@ -1,0 +1,8 @@
+ {
+    "success": false,
+    "timestamp": "2026-07-08T02:42:25+00:00",
+    "api_version": "2.0",
+    "data": null,
+    "message": "No capacity data found for this vehicle",
+    "error": true
+}

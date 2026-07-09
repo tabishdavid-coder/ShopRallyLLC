@@ -1,0 +1,42 @@
+# ShopRally Brand Kit
+
+## Colors
+| Role | Hex | Usage |
+|---|---|---|
+| Navy | #1E3A56 | Trust/steady. Backgrounds, "Shop" wordmark, first chevron (55% opacity in color versions) |
+| Azure | #00A9FF | Bridge/energy. Second chevron, links, secondary accents |
+| Racing orange | #F4581C | Action/forward. "Rally" wordmark, third chevron, primary buttons, CTAs |
+
+Rule: orange = action, navy = trust, azure = bridge. Never recolor the chevron sequence.
+
+## Typography
+- Wordmark: Inter SemiBold (600). All kit files have text converted to outlines - no font needed.
+- Product UI + marketing body: Inter (Google Fonts, free commercial use).
+
+## Mark construction (for designers)
+- Chevron height H; stroke = 15% of H; chevron tip depth = 24% of H
+- Chevron x-offsets: 8%, 44%, 80% of H; first chevron at 55% opacity (color versions only)
+- Wordmark cap height = 70% of H, baseline = chevron bottom
+- Mark-to-wordmark gap = 20% of H
+- Mono versions: single color, full opacity, no tints (embroidery/print safe)
+
+## File guide
+| File | Use |
+|---|---|
+| svg/lockup-horizontal-color | Website header, email signature, invoices, Google Business Profile |
+| svg/lockup-horizontal-color-on-dark | Navy/dark backgrounds: footer, ads, slide titles |
+| svg/lockup-horizontal-mono-* | Embroidery, decals, B&W print, single-color contexts |
+| svg/lockup-stacked-* | Square ad slots, splash screens, merch chest print |
+| svg/mark-* | Any use under 48px wide; social avatars; watermarks |
+| svg/app-icon + icons/ | App stores, PWA manifest (512/192), iOS (180), favicon.ico |
+| png/ | Ready exports for tools that do not accept SVG |
+
+## Rules
+1. Below 48px wide: mark only, never the wordmark.
+2. Clear space around lockup = one chevron width on all sides.
+3. Never place the color lockup on photos/busy backgrounds - use mono white on a navy overlay.
+4. "Rally" is always orange; "Shop" is navy on light, white on dark. Never both orange.
+5. Do not rotate, outline, shadow, or gradient the mark.
+
+Domains (register): getshoprally.com (primary), shoprallyhq.com, shoprally.io, shoprally.app
+Trademark: file ITU, Class 42 - "customer retention and marketing software for automotive repair facilities."

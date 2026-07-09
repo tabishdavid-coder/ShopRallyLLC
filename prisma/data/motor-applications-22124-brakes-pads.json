@@ -1,0 +1,50 @@
+{
+  "baseVehicleId": 22124,
+  "subGroupId": 44,
+  "syncedAt": "2026-07-08T01:25:17.729Z",
+  "count": 3,
+  "applications": [
+    {
+      "motorApplicationId": 23962783,
+      "baseVehicleId": 22124,
+      "motorSystemId": 2,
+      "motorGroupId": 17,
+      "motorSubGroupId": 44,
+      "nodeKey": "22124|s|2|g|17|sg|44",
+      "literalName": "Brake Pads R&R",
+      "displayName": "Brake Pads R&R",
+      "estimatedHours": 1,
+      "laborTimeInterval": "Hours",
+      "positionQualifier": "Front",
+      "qualifiersJson": []
+    },
+    {
+      "motorApplicationId": 23962784,
+      "baseVehicleId": 22124,
+      "motorSystemId": 2,
+      "motorGroupId": 17,
+      "motorSubGroupId": 44,
+      "nodeKey": "22124|s|2|g|17|sg|44",
+      "literalName": "Brake Pads R&R",
+      "displayName": "Brake Pads R&R",
+      "estimatedHours": 1,
+      "laborTimeInterval": "Hours",
+      "positionQualifier": "Front",
+      "qualifiersJson": []
+    },
+    {
+      "motorApplicationId": 23969500,
+      "baseVehicleId": 22124,
+      "motorSystemId": 2,
+      "motorGroupId": 17,
+      "motorSubGroupId": 44,
+      "nodeKey": "22124|s|2|g|17|sg|44",
+      "literalName": "Brake Pads R&R",
+      "displayName": "Brake Pads R&R",
+      "estimatedHours": 1,
+      "laborTimeInterval": "Hours",
+      "positionQualifier": "Rear",
+      "qualifiersJson": []
+    }
+  ]
+}

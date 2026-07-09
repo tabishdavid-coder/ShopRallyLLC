@@ -1,0 +1,50 @@
+ {
+    "success": true,
+    "timestamp": "2026-07-08T02:42:29+00:00",
+    "api_version": "2.0",
+    "data": {
+        "user": "shoprallyllc",
+        "total_queries": 18,
+        "total_days": 1,
+        "first_call": "2026-07-08 02:37:07",
+        "last_call": "2026-07-08 02:42:29",
+        "calls_today": 18,
+        "calls_yesterday": 0,
+        "calls_last_7_days": 18,
+        "calls_last_30_days": 18,
+        "current_period_calls": 18,
+        "subscription_start": "2026-07-08",
+        "subscription_end": "2026-08-07",
+        "endpoints": [
+            {
+                "endpoint": "decode_vin",
+                "calls": 7
+            },
+            {
+                "endpoint": "get_user_queries_stats",
+                "calls": 3
+            },
+            {
+                "endpoint": "decode_vin_all",
+                "calls": 3
+            },
+            {
+                "endpoint": "get_vehicle_capacities",
+                "calls": 2
+            },
+            {
+                "endpoint": "get_all_brands",
+                "calls": 1
+            },
+            {
+                "endpoint": "get_model_variants",
+                "calls": 1
+            },
+            {
+                "endpoint": "get_models_by_brand",
+                "calls": 1
+            }
+        ]
+    },
+    "message": "Success!"
+}

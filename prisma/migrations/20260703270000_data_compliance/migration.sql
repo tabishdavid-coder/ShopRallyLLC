@@ -1,0 +1,69 @@
+-- Data compliance: consent records, retention policy, customer fields, audit enum extensions
+
+ALTER TYPE "ShopAuditEventType" ADD VALUE IF NOT EXISTS 'CUSTOMER_CREATED';
+ALTER TYPE "ShopAuditEventType" ADD VALUE IF NOT EXISTS 'CUSTOMER_UPDATED';
+ALTER TYPE "ShopAuditEventType" ADD VALUE IF NOT EXISTS 'CUSTOMER_DELETED';
+ALTER TYPE "ShopAuditEventType" ADD VALUE IF NOT EXISTS 'CUSTOMER_ANONYMIZED';
+ALTER TYPE "ShopAuditEventType" ADD VALUE IF NOT EXISTS 'CUSTOMER_EXPORTED';
+ALTER TYPE "ShopAuditEventType" ADD VALUE IF NOT EXISTS 'CONSENT_GRANTED';
+ALTER TYPE "ShopAuditEventType" ADD VALUE IF NOT EXISTS 'CONSENT_REVOKED';
+ALTER TYPE "ShopAuditEventType" ADD VALUE IF NOT EXISTS 'MARKETING_OPT_IN_CHANGED';
+ALTER TYPE "ShopAuditEventType" ADD VALUE IF NOT EXISTS 'ESTIMATE_APPROVED_BY_CUSTOMER';
+ALTER TYPE "ShopAuditEventType" ADD VALUE IF NOT EXISTS 'ESTIMATE_LINK_CREATED';
+ALTER TYPE "ShopAuditEventType" ADD VALUE IF NOT EXISTS 'ESTIMATE_LINK_REVOKED';
+ALTER TYPE "ShopAuditEventType" ADD VALUE IF NOT EXISTS 'INVOICE_LINK_CREATED';
+ALTER TYPE "ShopAuditEventType" ADD VALUE IF NOT EXISTS 'INVOICE_LINK_REVOKED';
+ALTER TYPE "ShopAuditEventType" ADD VALUE IF NOT EXISTS 'SMS_SENT';
+ALTER TYPE "ShopAuditEventType" ADD VALUE IF NOT EXISTS 'CAMPAIGN_LAUNCHED';
+ALTER TYPE "ShopAuditEventType" ADD VALUE IF NOT EXISTS 'SETTINGS_CHANGED';
+ALTER TYPE "ShopAuditEventType" ADD VALUE IF NOT EXISTS 'EMPLOYEE_ROLE_CHANGED';
+ALTER TYPE "ShopAuditEventType" ADD VALUE IF NOT EXISTS 'RETENTION_JOB_RUN';
+ALTER TYPE "ShopAuditEventType" ADD VALUE IF NOT EXISTS 'DSAR_EXPORT';
+
+ALTER TABLE "Customer" ADD COLUMN IF NOT EXISTS "transactionalSmsConsent" BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE "Customer" ADD COLUMN IF NOT EXISTS "marketingEmailConsent" BOOLEAN NOT NULL DEFAULT false;
+ALTER TABLE "Customer" ADD COLUMN IF NOT EXISTS "deletedAt" TIMESTAMP(3);
+ALTER TABLE "Customer" ADD COLUMN IF NOT EXISTS "anonymizedAt" TIMESTAMP(3);
+
+CREATE TABLE IF NOT EXISTS "ShopDataPolicy" (
+    "shopId" TEXT NOT NULL,
+    "roRetentionDays" INTEGER NOT NULL DEFAULT 2555,
+    "auditRetentionDays" INTEGER NOT NULL DEFAULT 2555,
+    "messageRetentionDays" INTEGER NOT NULL DEFAULT 1095,
+    "consentRetentionDays" INTEGER NOT NULL DEFAULT 1460,
+    "anonymizeAfterDeleteDays" INTEGER NOT NULL DEFAULT 30,
+    "updatedAt" TIMESTAMP(3) NOT NULL,
+
+    CONSTRAINT "ShopDataPolicy_pkey" PRIMARY KEY ("shopId")
+);
+
+CREATE TABLE IF NOT EXISTS "ConsentRecord" (
+    "id" TEXT NOT NULL,
+    "shopId" TEXT NOT NULL,
+    "customerId" TEXT NOT NULL,
+    "channel" TEXT NOT NULL,
+    "purpose" TEXT NOT NULL,
+    "granted" BOOLEAN NOT NULL,
+    "disclosureVersion" TEXT NOT NULL,
+    "source" TEXT NOT NULL,
+    "collectedByUserId" TEXT,
+    "ipAddress" TEXT,
+    "userAgent" TEXT,
+    "revokedAt" TIMESTAMP(3),
+    "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    "metadata" JSONB,
+
+    CONSTRAINT "ConsentRecord_pkey" PRIMARY KEY ("id")
+);
+
+CREATE INDEX IF NOT EXISTS "ConsentRecord_shopId_customerId_purpose_idx" ON "ConsentRecord"("shopId", "customerId", "purpose");
+CREATE INDEX IF NOT EXISTS "ConsentRecord_shopId_createdAt_idx" ON "ConsentRecord"("shopId", "createdAt");
+
+ALTER TABLE "ShopDataPolicy" DROP CONSTRAINT IF EXISTS "ShopDataPolicy_shopId_fkey";
+ALTER TABLE "ShopDataPolicy" ADD CONSTRAINT "ShopDataPolicy_shopId_fkey" FOREIGN KEY ("shopId") REFERENCES "Shop"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+ALTER TABLE "ConsentRecord" DROP CONSTRAINT IF EXISTS "ConsentRecord_shopId_fkey";
+ALTER TABLE "ConsentRecord" ADD CONSTRAINT "ConsentRecord_shopId_fkey" FOREIGN KEY ("shopId") REFERENCES "Shop"("id") ON DELETE CASCADE ON UPDATE CASCADE;
+
+ALTER TABLE "ConsentRecord" DROP CONSTRAINT IF EXISTS "ConsentRecord_customerId_fkey";
+ALTER TABLE "ConsentRecord" ADD CONSTRAINT "ConsentRecord_customerId_fkey" FOREIGN KEY ("customerId") REFERENCES "Customer"("id") ON DELETE CASCADE ON UPDATE CASCADE;

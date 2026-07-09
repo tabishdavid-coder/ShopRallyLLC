@@ -1,0 +1,49 @@
+/** ShopRally product brand — single source for name, domain, and palette hex (design/docs). */
+
+export const BRAND = {
+  name: "ShopRally",
+  legalName: "ShopRally LLC",
+  formerName: "RepairPilot",
+  domain: "getshoprally.com",
+  url: "https://getshoprally.com",
+  tagline: "Shop management that keeps every bay moving.",
+  supportEmail: "info@getshoprally.com",
+} as const;
+
+/** Static brand assets under /public (from shoprally-brand-kit/svg/) */
+export const BRAND_ASSETS = {
+  /** Horizontal lockup — light backgrounds (header, login, exports) */
+  logoLockup: "/brand/lockup-horizontal-color.svg",
+  /** Horizontal lockup — navy sidebar / dark chrome */
+  logoLockupOnDark: "/brand/lockup-horizontal-color-on-dark.svg",
+  logoLockupMonoWhite: "/brand/lockup-horizontal-mono-white.svg",
+  logoLockupSvg: "/shoprally-logo.svg",
+  /** Squircle mark — favicons, collapsed sidebar, loading */
+  mark: "/brand/mark-color.svg",
+  markOnDark: "/brand/mark-color-on-dark.svg",
+  markMonoWhite: "/brand/mark-mono-white.svg",
+  markSvg: "/icon.svg",
+  appIcon: "/brand/app-icon.svg",
+  appleMark: "/apple-icon.svg",
+} as const;
+
+export const BRAND_LOGO_ALT =
+  "ShopRally logo — navy and orange wordmark with stylized mark";
+
+export const BRAND_MARK_ALT = "ShopRally mark — stylized icon on rounded square";
+
+/** Official ShopRally palette — mirrors CSS tokens in shoprally-theme.css */
+export const BRAND_COLORS = {
+  /** Navy — trust, chrome, primary text on light surfaces */
+  deep: "#1E3A56",
+  /** Racing orange — CTAs, Rally emphasis */
+  action: "#F4581C",
+  /** Azure — focus rings, active nav accent, links (not body copy on white) */
+  flow: "#00A9FF",
+  /** Destructive / urgent */
+  signal: "#C81E1E",
+  success: "#15803D",
+  warning: "#B45309",
+  white: "#FFFFFF",
+  palette: "ShopRally Official",
+} as const;

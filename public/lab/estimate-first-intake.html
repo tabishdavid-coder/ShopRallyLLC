@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ShopRally — Estimate-first intake (v2 mockup)</title>
+  <style>
+    :root {
+      --navy: #1a1c22; --blue: #00a3ff; --blue-soft: rgba(0,163,255,0.12);
+      --green: #059669; --green-soft: #ecfdf5; --muted: #64748b;
+      --border: rgba(0,163,255,0.25); --ease: cubic-bezier(0.22,1,0.36,1);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body { height: 100%; }
+    body { font-family: Inter, "Segoe UI", system-ui, sans-serif; background: #eef2f7; color: var(--navy); overflow: hidden; }
+
+    .test-bar {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+      background: linear-gradient(90deg, var(--navy), #2a3140);
+      color: white; padding: 8px 16px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap; font-size: 12px;
+    }
+    .test-bar strong { color: var(--blue); }
+    .test-bar button {
+      background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2);
+      color: white; border-radius: 6px; padding: 5px 10px; font-size: 11px; font-weight: 600; cursor: pointer;
+    }
+    .test-bar button:hover, .test-bar button.primary { background: var(--blue); border-color: var(--blue); }
+    .test-bar .note { margin-left: auto; font-size: 11px; opacity: 0.85; }
+
+    .app { position: absolute; top: 44px; left: 0; right: 0; bottom: 0; }
+    body.embedded .test-bar { display: none; }
+    body.embedded .app { top: 0; }
+    .sidebar { position: absolute; left: 0; top: 0; bottom: 0; width: 56px; background: var(--navy); }
+    .topbar {
+      position: absolute; left: 56px; right: 0; top: 0; height: 52px;
+      background: white; border-bottom: 1px solid #e2e8f0;
+      display: flex; align-items: center; padding: 0 20px; gap: 12px; font-size: 13px;
+    }
+    .logo { font-weight: 800; }
+
+    /* Job board */
+    .board {
+      position: absolute; left: 56px; top: 52px; right: 0; bottom: 0; padding: 20px 24px 80px;
+      transition: opacity 400ms, filter 400ms;
+    }
+    body.on-estimate .board { opacity: 0; pointer-events: none; filter: blur(4px); }
+    .board h1 { font-size: 20px; font-weight: 800; margin-bottom: 16px; }
+    .cols { display: grid; grid-template-columns: repeat(3,1fr); gap: 14px; }
+    .col-h { border-radius: 8px 8px 0 0; padding: 8px 12px; font-size: 10px; font-weight: 700; color: white; }
+    .col-h.est { background: var(--navy); }
+    .col-body { background: white; border: 1px solid #e2e8f0; border-top: none; border-radius: 0 0 8px 8px; padding: 8px; min-height: 300px; }
+
+    .fab {
+      position: fixed; bottom: 24px; right: 24px; z-index: 30;
+      background: var(--blue); color: white; border: none; border-radius: 999px;
+      padding: 14px 22px; font-size: 14px; font-weight: 700; cursor: pointer;
+      box-shadow: 0 8px 24px rgba(0,163,255,0.4);
+    }
+    body.on-estimate .fab { display: none; }
+
+    /* Estimate workspace */
+    .estimate {
+      position: absolute; left: 56px; top: 52px; right: 0; bottom: 0;
+      display: none; flex-direction: column; background: #f8fafc;
+    }
+    body.on-estimate .estimate { display: flex; animation: fadeIn 500ms var(--ease); }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+    .hero {
+      background: var(--navy); color: white; padding: 12px 20px;
+      display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;
+    }
+    .hero h2 { font-size: 17px; font-weight: 800; }
+    .hero .ro-badge {
+      background: rgba(0,163,255,0.2); color: var(--blue); font-size: 11px; font-weight: 700;
+      padding: 4px 10px; border-radius: 999px; margin-left: 8px;
+    }
+    .phases { display: flex; gap: 6px; }
+    .phase {
+      font-size: 11px; font-weight: 600; padding: 4px 10px; border-radius: 999px;
+      background: rgba(255,255,255,0.1); color: rgba(255,255,255,0.6);
+    }
+    .phase.on { background: var(--blue); color: white; }
+
+    /* Identity / intake strip */
+    .intake-strip {
+      background: white; border-bottom: 1px solid var(--border);
+      overflow: hidden; max-height: 320px;
+      transition: max-height 500ms var(--ease), opacity 400ms;
+    }
+    .intake-strip.collapsed { max-height: 52px; }
+    .intake-strip.done {
+      max-height: 48px; background: var(--green-soft);
+      border-color: rgba(5,150,105,0.25);
+    }
+
+    .checklist {
+      display: flex; gap: 8px; padding: 10px 20px 0; flex-wrap: wrap;
+    }
+    .pill {
+      font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em;
+      padding: 4px 10px; border-radius: 999px; border: 1px solid #e2e8f0;
+      color: var(--muted); background: #f8fafc; transition: all 300ms;
+    }
+    .pill.done { border-color: rgba(5,150,105,0.35); background: var(--green-soft); color: var(--green); }
+    .pill.done::before { content: "✓ "; }
+
+    .identity-bar {
+      padding: 12px 20px 14px; display: flex; gap: 10px; flex-wrap: wrap; align-items: center;
+      animation: slideDown 400ms var(--ease);
+    }
+    @keyframes slideDown { from { opacity: 0; transform: translateY(-8px); } to { opacity: 1; transform: none; } }
+
+    .search-wrap { flex: 1; min-width: 200px; position: relative; }
+    .search-wrap input {
+      width: 100%; border: 1px solid var(--border); border-radius: 8px;
+      padding: 10px 12px 10px 36px; font-size: 13px;
+    }
+    .search-wrap input:focus { outline: none; border-color: var(--blue); box-shadow: 0 0 0 3px rgba(0,163,255,0.12); }
+    .search-icon { position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--muted); }
+
+    .btn {
+      border-radius: 8px; padding: 10px 14px; font-size: 12px; font-weight: 700;
+      cursor: pointer; border: none; font-family: inherit;
+    }
+    .btn-outline { background: white; border: 1px solid #cbd5e1; color: var(--navy); }
+    .btn-blue { background: var(--blue); color: white; }
+    .btn-navy { background: var(--navy); color: white; }
+
+    .chips { display: flex; gap: 8px; flex-wrap: wrap; padding: 0 20px 12px; }
+    .chip {
+      display: inline-flex; align-items: center; gap: 6px;
+      background: var(--blue-soft); border: 1px solid rgba(0,163,255,0.3);
+      border-radius: 999px; padding: 6px 12px; font-size: 12px; font-weight: 600;
+    }
+    .chip.missing { border-style: dashed; color: var(--muted); background: #f8fafc; cursor: pointer; }
+    .chip button { background: none; border: none; cursor: pointer; color: var(--muted); }
+
+    .pill.req::after { content: " *"; color: #e11d48; }
+    .pill.missing-req { border-color: rgba(225,29,72,0.35); background: #fff1f2; color: #be123c; }
+
+    .visit-panel {
+      margin: 0 20px 14px; padding: 14px; border: 1px solid var(--border);
+      border-left: 3px solid var(--blue); border-radius: 10px; background: #fafbfc;
+    }
+    .visit-panel h4 { font-size: 12px; font-weight: 700; margin-bottom: 10px; }
+    .visit-grid { display: grid; grid-template-columns: 1fr 140px 140px; gap: 10px; align-items: end; }
+    @media (max-width: 700px) { .visit-grid { grid-template-columns: 1fr; } }
+    .field label { display: block; font-size: 11px; font-weight: 600; margin-bottom: 4px; }
+    .field label .req { color: #e11d48; }
+    .field input, .field select {
+      width: 100%; border: 1px solid var(--border); border-radius: 8px;
+      padding: 8px 10px; font-size: 12px;
+    }
+    .field-error { border-color: #e11d48 !important; box-shadow: 0 0 0 2px rgba(225,29,72,0.15); }
+    .odo-row { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-top: 10px; }
+    .odo-row label.check { display: flex; align-items: center; gap: 6px; font-size: 11px; font-weight: 500; cursor: pointer; }
+
+    /* Tabs + main */
+    .tabs { display: flex; background: white; border-bottom: 1px solid #e2e8f0; padding: 0 12px; }
+    .tab {
+      padding: 10px 14px; font-size: 12px; font-weight: 600; color: var(--muted);
+      border: none; background: none; cursor: pointer; border-bottom: 2px solid transparent; font-family: inherit;
+    }
+    .tab.on { color: var(--navy); border-bottom-color: var(--navy); }
+    .tab.gated { opacity: 0.45; cursor: not-allowed; }
+
+    .main { flex: 1; overflow-y: auto; padding: 20px; position: relative; }
+    .gate-overlay {
+      position: absolute; inset: 0; background: rgba(248,250,252,0.85);
+      display: flex; align-items: center; justify-content: center; z-index: 5;
+      backdrop-filter: blur(2px); transition: opacity 400ms;
+    }
+    .gate-overlay.hidden { opacity: 0; pointer-events: none; }
+    .gate-box {
+      background: white; border: 1px solid var(--border); border-radius: 12px;
+      padding: 24px 28px; text-align: center; max-width: 360px; box-shadow: 0 8px 30px rgba(0,0,0,0.08);
+    }
+    .gate-box h3 { font-size: 15px; margin-bottom: 6px; }
+    .gate-box p { font-size: 12px; color: var(--muted); margin-bottom: 14px; }
+
+    .empty-jobs {
+      border: 2px dashed #cbd5e1; border-radius: 12px; padding: 40px; text-align: center; background: white;
+    }
+    .job-card {
+      background: white; border: 1px solid #e2e8f0; border-radius: 12px; padding: 14px;
+      animation: slideDown 400ms var(--ease);
+    }
+
+    .totals { background: var(--navy); color: white; padding: 12px 20px; display: flex; justify-content: space-between; }
+    .totals strong { font-size: 18px; }
+
+    .concern-chip {
+      display: inline-flex; align-items: center; gap: 4px;
+      background: var(--navy); color: white; border-radius: 999px;
+      padding: 5px 12px; font-size: 12px; font-weight: 600; margin-top: 6px;
+    }
+
+    .compact-summary {
+      display: none; padding: 10px 20px; font-size: 12px; font-weight: 600; color: var(--green);
+    }
+    .intake-strip.done .compact-summary { display: block; }
+    .intake-strip.done .checklist, .intake-strip.done .identity-bar,
+    .intake-strip.done .chips, .intake-strip.done .visit-panel { display: none; }
+
+    /* Modal — full sub-intake */
+    .modal-backdrop {
+      position: fixed; inset: 0; background: rgba(26,28,34,0.55); z-index: 200;
+      display: none; align-items: center; justify-content: center; padding: 16px;
+    }
+    .modal-backdrop.open { display: flex; }
+    .modal {
+      background: white; border-radius: 12px; overflow: hidden;
+      width: min(680px, 100%); max-height: min(90vh, 720px);
+      display: flex; flex-direction: column;
+      box-shadow: 0 24px 60px rgba(0,0,0,0.25);
+    }
+    .modal-head { background: var(--navy); color: white; padding: 14px 20px; flex-shrink: 0; }
+    .modal-head .eyebrow { font-size: 10px; font-weight: 700; text-transform: uppercase; color: var(--blue); margin-bottom: 4px; }
+    .modal-head h3 { font-size: 17px; font-weight: 800; }
+    .modal-head p { font-size: 12px; color: rgba(255,255,255,0.72); margin-top: 4px; }
+    .modal-body { padding: 0; overflow-y: auto; flex: 1; }
+    .modal-foot {
+      padding: 12px 20px; border-top: 1px solid #eef2f7; background: #fafbfc;
+      display: flex; justify-content: space-between; align-items: center; gap: 8px; flex-shrink: 0;
+    }
+    .modal-foot .err { font-size: 11px; color: #e11d48; flex: 1; }
+
+    .type-toggle { display: flex; gap: 6px; padding: 14px 20px 0; }
+    .type-toggle button {
+      flex: 1; padding: 8px; border-radius: 8px; border: 1px solid #e2e8f0;
+      background: white; font-size: 12px; font-weight: 600; cursor: pointer;
+    }
+    .type-toggle button.on { border-color: var(--navy); background: var(--blue-soft); color: var(--navy); }
+
+    .section {
+      border: 1px solid var(--border); border-left: 3px solid var(--navy);
+      border-radius: 10px; padding: 14px; margin: 12px 20px;
+    }
+    .section.light { border-left-color: var(--blue); }
+    .section h4 { font-size: 12px; font-weight: 700; margin-bottom: 2px; }
+    .section .sub { font-size: 11px; color: var(--muted); margin-bottom: 10px; }
+    .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .grid3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+    .grid-addr { display: grid; grid-template-columns: 2fr 1fr 80px 90px; gap: 10px; margin-top: 10px; }
+    .section label { display: block; font-size: 11px; font-weight: 600; margin-bottom: 4px; margin-top: 8px; }
+    .section label:first-of-type { margin-top: 0; }
+    .section input, .section select, .section textarea {
+      width: 100%; border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; font-size: 13px; font-family: inherit;
+    }
+    .section textarea { min-height: 56px; resize: vertical; }
+    .checks { display: flex; flex-direction: column; gap: 8px; margin-top: 8px; }
+    .checks label { display: flex; align-items: flex-start; gap: 8px; font-weight: 500; font-size: 12px; margin: 0; cursor: pointer; }
+
+    .veh-tabs { display: flex; border-bottom: 1px solid #e2e8f0; padding: 0 12px; background: #fafbfc; flex-wrap: wrap; }
+    .veh-tab {
+      padding: 10px 12px; font-size: 10px; font-weight: 700; text-transform: uppercase;
+      letter-spacing: 0.03em; border: none; background: none; cursor: pointer;
+      border-bottom: 2px solid transparent; color: var(--muted); font-family: inherit;
+    }
+    .veh-tab.on { color: var(--blue); border-bottom-color: var(--blue); }
+    .veh-panel { display: none; padding-bottom: 4px; }
+    .veh-panel.on { display: block; }
+    .lookup-row { display: flex; gap: 8px; margin-top: 8px; }
+    .lookup-row input { flex: 1; }
+    .lookup-row select { width: 72px; }
+    .decode-note { font-size: 11px; color: var(--green); margin-top: 8px; }
+    .chip-edit { font-size: 10px; opacity: 0.7; margin-left: 4px; cursor: pointer; text-decoration: underline; }
+
+    .toast {
+      position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%) translateY(80px);
+      background: var(--navy); color: white; padding: 10px 18px; border-radius: 8px;
+      font-size: 13px; font-weight: 600; z-index: 300; opacity: 0; transition: all 350ms var(--ease);
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+    .results {
+      position: absolute; top: 100%; left: 0; right: 0; margin-top: 4px;
+      background: white; border: 1px solid #e2e8f0; border-radius: 8px; box-shadow: 0 8px 24px rgba(0,0,0,0.1);
+      z-index: 10; display: none;
+    }
+    .result { padding: 10px 12px; cursor: pointer; border-bottom: 1px solid #f1f5f9; font-size: 13px; }
+    .result:hover { background: var(--blue-soft); }
+    .result:last-child { border-bottom: none; }
+  </style>
+</head>
+<body>
+  <div class="test-bar">
+    <strong>ShopRally v2</strong> Estimate-first intake
+    <span style="opacity:0.8;font-size:11px">Lab only · not localhost:3004</span>
+    <button type="button" onclick="reset()">Reset</button>
+    <button type="button" class="primary" onclick="startNewRO()">+ New repair order</button>
+    <button type="button" onclick="runDemo()">Auto demo</button>
+    <span class="note" id="statusNote">Job board — click + New repair order</span>
+  </div>
+
+  <div class="app">
+    <div class="sidebar"></div>
+    <div class="topbar"><span class="logo">ShopRally</span> <span id="ctx">Job Board</span></div>
+
+    <div class="board" id="board">
+      <h1>Job Board</h1>
+      <p style="font-size:13px;color:var(--muted);margin-bottom:16px">
+        v2: one click lands on <strong>estimate</strong> with identity bar — no intake sheet first.
+      </p>
+      <div class="cols">
+        <div><div class="col-h est">ESTIMATES</div><div class="col-body"></div></div>
+        <div><div class="col-h" style="background:var(--blue)">WIP</div><div class="col-body"></div></div>
+        <div><div class="col-h" style="background:var(--green)">COMPLETED</div><div class="col-body"></div></div>
+      </div>
+    </div>
+
+    <button class="fab" type="button" onclick="startNewRO()">+ New repair order</button>
+
+    <div class="estimate" id="estimate">
+      <div class="hero">
+        <div>
+          <h2>RO #<span id="roNum">1380</span> <span class="ro-badge">Draft · intake active</span></h2>
+        </div>
+        <div class="phases">
+          <span class="phase on">Estimate</span><span class="phase">WIP</span><span class="phase">Payment</span>
+        </div>
+      </div>
+
+      <div class="intake-strip" id="intakeStrip">
+        <div class="checklist" id="checklist">
+          <span class="pill req" id="pillCust">Customer</span>
+          <span class="pill req" id="pillVeh">Vehicle</span>
+          <span class="pill req" id="pillConcern">Concern</span>
+          <span class="pill req" id="pillOdo">Odometer</span>
+        </div>
+        <div class="identity-bar">
+          <div class="search-wrap">
+            <span class="search-icon">⌕</span>
+            <input id="search" type="text" placeholder="Search name, phone, plate, or VIN…" oninput="onSearch()" onkeydown="if(event.key==='Enter'&&searchHits[0])pickCustomer(searchHits[0])" />
+            <div class="results" id="results"></div>
+          </div>
+          <button class="btn btn-outline" type="button" onclick="openCustModal()">+ Add customer</button>
+        </div>
+        <div class="chips" id="chipRow">
+          <span class="chip missing" id="custChip">+ Customer</span>
+          <span class="chip missing" id="vehChip">+ Vehicle</span>
+        </div>
+        <div class="visit-panel" id="visitPanel">
+          <h4>Visit details <span style="color:#e11d48">*</span> required before quoting</h4>
+          <div class="visit-grid">
+            <div class="field">
+              <label>Customer concern <span class="req">*</span></label>
+              <input id="concernIn" type="text" placeholder="Describe customer concern…" oninput="onConcernInput()" />
+              <div id="concernChipWrap"></div>
+            </div>
+            <div class="field">
+              <label>Odometer in <span class="req">*</span></label>
+              <input id="odoIn" type="text" inputmode="numeric" placeholder="Miles" oninput="onOdoInput()" />
+            </div>
+            <div class="field">
+              <label>Lead source</label>
+              <select id="leadSource"><option>Walk-in</option><option>Phone</option><option>Web</option></select>
+            </div>
+          </div>
+          <div class="odo-row">
+            <label class="check"><input type="checkbox" id="odoNA" onchange="onOdoNA()" /> Odometer not working</label>
+            <span id="visitErr" style="font-size:11px;color:#e11d48;display:none"></span>
+          </div>
+        </div>
+        <div class="compact-summary" id="compactSum">✓ Intake complete — ready to quote</div>
+      </div>
+
+      <div class="tabs">
+        <button class="tab">Concerns</button>
+        <button class="tab on" id="tabServices">Services</button>
+        <button class="tab">Inspections</button>
+        <button class="tab">Activity</button>
+      </div>
+
+      <div class="main">
+        <div class="gate-overlay" id="gate">
+          <div class="gate-box">
+            <h3>Complete intake to quote</h3>
+            <p>Required: customer, vehicle, <strong>concern</strong>, and <strong>odometer</strong> (or mark odometer N/A).</p>
+            <button class="btn btn-blue" type="button" onclick="document.getElementById('search').focus()">Continue intake ↑</button>
+          </div>
+        </div>
+        <div id="jobsArea">
+          <div class="empty-jobs" id="emptyJobs">
+            <p style="color:var(--muted);margin-bottom:12px">No jobs yet — intake completes unlocks quoting</p>
+            <button class="btn btn-navy" id="addJobBtn" type="button" onclick="addJob()" disabled>Add to estimate</button>
+          </div>
+        </div>
+      </div>
+      <div class="totals"><span>Total · GP</span><strong id="total">$0.00</strong></div>
+    </div>
+  </div>
+
+  <!-- Customer sub-intake modal -->
+  <div class="modal-backdrop" id="custModal">
+    <div class="modal">
+      <div class="modal-head">
+        <div class="eyebrow">Repair order · CRM</div>
+        <h3>Add customer</h3>
+        <p>Full profile for lookup, messaging, and repair history.</p>
+      </div>
+      <div class="modal-body">
+        <div class="type-toggle">
+          <button type="button" class="on" id="typePerson" onclick="setCustType('person')">Person</button>
+          <button type="button" id="typeBiz" onclick="setCustType('business')">Business</button>
+        </div>
+        <div class="section" id="custContactSec">
+          <h4>Contact</h4>
+          <p class="sub">Required for lookup and notifications</p>
+          <div class="grid2" id="personNames">
+            <div><label>First name <span style="color:#e11d48">*</span></label><input id="cFirst" value="Jordan" /></div>
+            <div><label>Last name <span style="color:#e11d48">*</span></label><input id="cLast" value="Walkin" /></div>
+          </div>
+          <div id="bizName" style="display:none"><label>Business name <span style="color:#e11d48">*</span></label><input id="cCompany" /></div>
+          <div class="grid2" style="margin-top:8px">
+            <div><label>Phone <span style="color:#e11d48">*</span></label><input id="cPhone" value="518-555-0142" inputmode="tel" /></div>
+            <div><label>Phone type</label><select id="cPhoneType"><option>Mobile</option><option>Home</option><option>Work</option></select></div>
+          </div>
+          <label>Email</label><input id="cEmail" type="email" placeholder="name@example.com" />
+        </div>
+        <div class="section light">
+          <h4>Address</h4>
+          <p class="sub">Optional — used for invoices and reminders</p>
+          <label>Address line 1</label><input id="cAddr" placeholder="123 Main St" />
+          <div class="grid-addr">
+            <div><label>City</label><input id="cCity" /></div>
+            <div><label>State</label><input id="cState" maxlength="2" placeholder="NY" /></div>
+            <div><label>ZIP</label><input id="cZip" /></div>
+          </div>
+        </div>
+        <div class="section">
+          <h4>Communication</h4>
+          <div class="checks">
+            <label><input type="checkbox" id="cSms" /> Transactional SMS (appointment & RO updates)</label>
+            <label><input type="checkbox" id="cEmailOpt" /> Marketing email</label>
+          </div>
+        </div>
+        <div class="section light">
+          <h4>Notes</h4>
+          <textarea id="cNotes" placeholder="Internal notes about this customer…"></textarea>
+        </div>
+      </div>
+      <div class="modal-foot">
+        <span class="err" id="custErr"></span>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-outline" type="button" onclick="closeCustModal()">Cancel</button>
+          <button class="btn btn-navy" type="button" onclick="saveCustomer()">Save customer</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Vehicle sub-intake modal -->
+  <div class="modal-backdrop" id="vehModal">
+    <div class="modal">
+      <div class="modal-head">
+        <div class="eyebrow">Repair order · CRM</div>
+        <h3>Add vehicle</h3>
+        <p id="vehForCust">For customer — decode by plate/VIN or enter YMM.</p>
+      </div>
+      <div class="modal-body">
+        <div class="veh-tabs">
+          <button type="button" class="veh-tab on" data-tab="lookup" onclick="setVehTab('lookup')">Lookup plate/VIN</button>
+          <button type="button" class="veh-tab" data-tab="custom" onclick="setVehTab('custom')">Custom vehicle</button>
+          <button type="button" class="veh-tab" data-tab="details" onclick="setVehTab('details')">Details</button>
+        </div>
+        <div class="veh-panel on" id="vp-lookup">
+          <div class="section light">
+            <h4>Lookup</h4>
+            <p class="sub">Plate or 17-character VIN</p>
+            <div class="lookup-row">
+              <input id="vLookup" placeholder="Plate or VIN" class="upper" oninput="this.value=this.value.toUpperCase()" />
+              <select id="vState"><option>NY</option><option>TX</option><option>CA</option><option>FL</option></select>
+              <button class="btn btn-blue" type="button" onclick="runDecode()">Search</button>
+            </div>
+            <p class="decode-note" id="decodeNote" style="display:none">✓ Decoded 2020 Honda Accord · VIN …ABC123</p>
+          </div>
+        </div>
+        <div class="veh-panel" id="vp-custom">
+          <div class="section">
+            <h4>Year · Make · Model</h4>
+            <div class="grid3">
+              <div><label>Year <span style="color:#e11d48">*</span></label><input id="vYear" inputmode="numeric" maxlength="4" value="2020" /></div>
+              <div><label>Make <span style="color:#e11d48">*</span></label><input id="vMake" value="Honda" /></div>
+              <div><label>Model <span style="color:#e11d48">*</span></label><input id="vModel" value="Accord" /></div>
+            </div>
+            <label>Trim / submodel</label><input id="vTrim" placeholder="EX-L" />
+          </div>
+        </div>
+        <div class="veh-panel" id="vp-details">
+          <div class="section light">
+            <h4>Vehicle details</h4>
+            <div class="grid2">
+              <div><label>VIN</label><input id="vVin" maxlength="17" placeholder="17-character VIN" class="upper" /></div>
+              <div><label>Unit #</label><input id="vUnit" /></div>
+            </div>
+            <div class="grid2" style="margin-top:8px">
+              <div><label>License plate</label><input id="vPlate" value="ABC1234" class="upper" /></div>
+              <div><label>Plate state</label><select id="vPlateState"><option>NY</option><option>TX</option></select></div>
+            </div>
+            <div class="grid2" style="margin-top:8px">
+              <div><label>Engine</label><input id="vEngine" placeholder="2.4L 4-cyl" /></div>
+              <div><label>Transmission</label><select id="vTrans"><option>Automatic</option><option>Manual</option><option>CVT</option></select></div>
+            </div>
+            <label>Color</label><input id="vColor" placeholder="Silver" />
+            <label>Vehicle notes</label><textarea id="vNotes" placeholder="Fleet unit, prior work…"></textarea>
+          </div>
+        </div>
+      </div>
+      <div class="modal-foot">
+        <span class="err" id="vehErr"></span>
+        <div style="display:flex;gap:8px">
+          <button class="btn btn-outline" type="button" onclick="closeVehModal()">Cancel</button>
+          <button class="btn btn-navy" type="button" onclick="saveVehicle()">Save vehicle</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script>
+    if (new URLSearchParams(location.search).get('embedded') === '1') {
+      document.body.classList.add('embedded');
+    }
+
+    const state = {
+      customer: null, vehicle: null, concern: null,
+      odo: "", odoNA: false, complete: false, roNum: 1380, custType: "person",
+    };
+    const searchHits = [
+      { name: "Jordan Walkin", phone: "518-555-0142", email: "jordan@example.com" },
+      { name: "Jordan Lee", phone: "518-555-8899", email: "" },
+    ];
+
+    function toast(msg) {
+      const t = document.getElementById("toast");
+      t.textContent = msg; t.classList.add("show");
+      setTimeout(() => t.classList.remove("show"), 2800);
+    }
+
+    function reset() {
+      Object.assign(state, { customer: null, vehicle: null, concern: null, odo: "", odoNA: false, complete: false });
+      document.body.classList.remove("on-estimate");
+      document.getElementById("search").value = "";
+      document.getElementById("concernIn").value = "";
+      document.getElementById("concernChipWrap").innerHTML = "";
+      document.getElementById("odoIn").value = "";
+      document.getElementById("odoNA").checked = false;
+      document.getElementById("odoIn").disabled = false;
+      document.getElementById("visitErr").style.display = "none";
+      document.getElementById("results").style.display = "none";
+      document.getElementById("intakeStrip").classList.remove("done");
+      document.getElementById("jobsArea").innerHTML = `<div class="empty-jobs" id="emptyJobs"><p style="color:var(--muted);margin-bottom:12px">No jobs yet — complete required intake first</p><button class="btn btn-navy" id="addJobBtn" type="button" onclick="addJob()" disabled>Add to estimate</button></div>`;
+      document.getElementById("total").textContent = "$0.00";
+      document.getElementById("gate").classList.remove("hidden");
+      document.getElementById("ctx").textContent = "Job Board";
+      document.getElementById("statusNote").textContent = "Job board — click + New repair order";
+      updateChips(); updatePills();
+    }
+
+    function startNewRO() {
+      state.roNum++;
+      document.getElementById("roNum").textContent = state.roNum;
+      document.body.classList.add("on-estimate");
+      document.getElementById("ctx").textContent = `RO #${state.roNum} · Estimate`;
+      document.getElementById("statusNote").textContent = "Required: customer, vehicle, concern, odometer";
+      toast(`Draft RO #${state.roNum} — complete required intake on estimate`);
+      setTimeout(() => document.getElementById("search").focus(), 400);
+    }
+
+    function onSearch() {
+      const q = document.getElementById("search").value.trim().toLowerCase();
+      const box = document.getElementById("results");
+      if (q.length < 2) { box.style.display = "none"; return; }
+      const hits = searchHits.filter(h => h.name.toLowerCase().includes(q) || h.phone.includes(q));
+      box.innerHTML = hits.map(h =>
+        `<div class="result" onclick='pickCustomer(${JSON.stringify(h)})'><strong>${h.name}</strong><br><span style="font-size:11px;color:#64748b">${h.phone}</span></div>`
+      ).join("") + `<div class="result" onclick="openCustModal()" style="font-weight:600">+ Add new customer</div>`;
+      box.style.display = "block";
+    }
+
+    function pickCustomer(c) {
+      state.customer = { ...c, type: "person" };
+      document.getElementById("results").style.display = "none";
+      document.getElementById("search").value = c.name;
+      updateChips(); updatePills(); checkComplete();
+      toast("Customer set — add vehicle (full form)");
+    }
+
+    function setCustType(t) {
+      state.custType = t;
+      document.getElementById("typePerson").classList.toggle("on", t === "person");
+      document.getElementById("typeBiz").classList.toggle("on", t === "business");
+      document.getElementById("personNames").style.display = t === "person" ? "grid" : "none";
+      document.getElementById("bizName").style.display = t === "business" ? "block" : "none";
+    }
+
+    function openCustModal() { document.getElementById("custErr").textContent = ""; document.getElementById("custModal").classList.add("open"); }
+    function closeCustModal() { document.getElementById("custModal").classList.remove("open"); }
+
+    function saveCustomer() {
+      const err = document.getElementById("custErr");
+      const phone = document.getElementById("cPhone").value.trim();
+      let name = "";
+      if (state.custType === "person") {
+        const f = document.getElementById("cFirst").value.trim();
+        const l = document.getElementById("cLast").value.trim();
+        if (!f || !l) { err.textContent = "First and last name required."; return; }
+        name = `${f} ${l}`;
+      } else {
+        name = document.getElementById("cCompany").value.trim();
+        if (!name) { err.textContent = "Business name required."; return; }
+      }
+      if (!phone) { err.textContent = "Phone is required."; return; }
+      state.customer = {
+        name, phone, email: document.getElementById("cEmail").value.trim(),
+        type: state.custType,
+        address: document.getElementById("cAddr").value.trim(),
+        city: document.getElementById("cCity").value.trim(),
+      };
+      closeCustModal();
+      document.getElementById("search").value = name;
+      updateChips(); updatePills(); checkComplete();
+      toast("Customer saved — add vehicle");
+    }
+
+    function openVehModal() {
+      if (!state.customer) { toast("Select customer first"); return; }
+      document.getElementById("vehForCust").textContent = `For ${state.customer.name} — decode by plate/VIN or enter YMM.`;
+      document.getElementById("vehErr").textContent = "";
+      document.getElementById("vehModal").classList.add("open");
+      setVehTab("lookup");
+    }
+    function closeVehModal() { document.getElementById("vehModal").classList.remove("open"); }
+
+    function setVehTab(tab) {
+      document.querySelectorAll(".veh-tab").forEach(b => b.classList.toggle("on", b.dataset.tab === tab));
+      document.querySelectorAll(".veh-panel").forEach(p => p.classList.remove("on"));
+      document.getElementById(`vp-${tab}`).classList.add("on");
+    }
+
+    function runDecode() {
+      document.getElementById("decodeNote").style.display = "block";
+      document.getElementById("vYear").value = "2020";
+      document.getElementById("vMake").value = "Honda";
+      document.getElementById("vModel").value = "Accord";
+      document.getElementById("vTrim").value = "EX-L";
+      document.getElementById("vVin").value = "1HGCV1F30LA123456";
+      document.getElementById("vPlate").value = document.getElementById("vLookup").value || "ABC1234";
+      document.getElementById("vEngine").value = "2.4L 4-cyl";
+      toast("VIN decoded — review Details tab");
+      setVehTab("details");
+    }
+
+    function saveVehicle() {
+      const err = document.getElementById("vehErr");
+      const year = document.getElementById("vYear").value.trim();
+      const make = document.getElementById("vMake").value.trim();
+      const model = document.getElementById("vModel").value.trim();
+      if (!year || !make || !model) { err.textContent = "Year, make, and model are required."; setVehTab("custom"); return; }
+      const trim = document.getElementById("vTrim").value.trim();
+      const label = [year, make, model, trim].filter(Boolean).join(" ");
+      const plate = document.getElementById("vPlate").value.trim();
+      const st = document.getElementById("vPlateState").value;
+      state.vehicle = {
+        label,
+        plate: plate ? `${plate} ${st}` : "",
+        vin: document.getElementById("vVin").value.trim(),
+        engine: document.getElementById("vEngine").value.trim(),
+      };
+      closeVehModal();
+      updateChips(); updatePills(); checkComplete();
+      toast("Vehicle saved — add required concern & odometer");
+    }
+
+    function updateChips() {
+      const c = document.getElementById("custChip");
+      const v = document.getElementById("vehChip");
+      if (state.customer) {
+        c.className = "chip";
+        c.innerHTML = `${state.customer.name} <span class="chip-edit" onclick="event.stopPropagation();openCustModal()">edit</span>`;
+        c.onclick = null;
+      } else {
+        c.className = "chip missing"; c.textContent = "+ Customer"; c.onclick = openCustModal;
+      }
+      if (state.vehicle) {
+        v.className = "chip";
+        v.innerHTML = `${state.vehicle.label} <span class="chip-edit" onclick="event.stopPropagation();openVehModal()">edit</span>`;
+        v.onclick = null;
+      } else if (state.customer) {
+        v.className = "chip missing"; v.textContent = "+ Vehicle"; v.onclick = openVehModal;
+      } else {
+        v.className = "chip missing"; v.textContent = "+ Vehicle"; v.onclick = null;
+      }
+    }
+
+    function onConcernInput() {
+      const v = document.getElementById("concernIn").value.trim();
+      const wrap = document.getElementById("concernChipWrap");
+      if (v.length >= 3) {
+        state.concern = v;
+        wrap.innerHTML = `<span class="concern-chip">${v} <button type="button" onclick="clearConcern()" style="background:none;border:none;color:white;cursor:pointer">×</button></span>`;
+        document.getElementById("concernIn").classList.remove("field-error");
+      } else {
+        state.concern = null;
+        wrap.innerHTML = "";
+      }
+      updatePills(); checkComplete();
+    }
+
+    function clearConcern() {
+      state.concern = null;
+      document.getElementById("concernIn").value = "";
+      document.getElementById("concernChipWrap").innerHTML = "";
+      document.getElementById("concernIn").style.display = "block";
+      updatePills(); checkComplete();
+    }
+
+    function onOdoInput() {
+      state.odo = document.getElementById("odoIn").value.replace(/\D/g, "");
+      document.getElementById("odoIn").value = state.odo;
+      if (state.odo) document.getElementById("odoIn").classList.remove("field-error");
+      updatePills(); checkComplete();
+    }
+
+    function onOdoNA() {
+      state.odoNA = document.getElementById("odoNA").checked;
+      document.getElementById("odoIn").disabled = state.odoNA;
+      if (state.odoNA) {
+        state.odo = "";
+        document.getElementById("odoIn").value = "";
+        document.getElementById("odoIn").classList.remove("field-error");
+      }
+      updatePills(); checkComplete();
+    }
+
+    function odoOk() { return state.odoNA || (state.odo && parseInt(state.odo, 10) >= 0); }
+
+    function updatePills() {
+      const set = (id, ok, req) => {
+        const el = document.getElementById(id);
+        el.classList.toggle("done", ok);
+        el.classList.toggle("missing-req", req && !ok);
+      };
+      set("pillCust", !!state.customer, true);
+      set("pillVeh", !!state.vehicle, true);
+      set("pillConcern", !!state.concern, true);
+      set("pillOdo", odoOk(), true);
+    }
+
+    function checkComplete() {
+      const ok = state.customer && state.vehicle && state.concern && odoOk();
+      const visitErr = document.getElementById("visitErr");
+      if (!state.concern && state.customer && state.vehicle) {
+        visitErr.textContent = "Concern is required.";
+        visitErr.style.display = "block";
+        document.getElementById("concernIn").classList.add("field-error");
+      } else if (!odoOk() && state.customer && state.vehicle) {
+        visitErr.textContent = "Odometer required or check N/A.";
+        visitErr.style.display = "block";
+        document.getElementById("odoIn").classList.add("field-error");
+      } else {
+        visitErr.style.display = "none";
+      }
+      if (ok && !state.complete) {
+        state.complete = true;
+        document.getElementById("intakeStrip").classList.add("done");
+        document.getElementById("gate").classList.add("hidden");
+        document.getElementById("addJobBtn").disabled = false;
+        document.querySelector(".ro-badge").textContent = "Ready to quote";
+        toast("Required intake complete — add first job");
+      } else if (!ok && state.complete) {
+        state.complete = false;
+        document.getElementById("intakeStrip").classList.remove("done");
+        document.getElementById("gate").classList.remove("hidden");
+        const btn = document.getElementById("addJobBtn");
+        if (btn) btn.disabled = true;
+      }
+    }
+
+    function addJob() {
+      if (!state.complete) { toast("Complete concern + odometer first"); return; }
+      document.getElementById("jobsArea").innerHTML = `
+        <div class="job-card">
+          <strong>Brake inspection & pad replacement</strong>
+          <p style="font-size:12px;color:#64748b;margin-top:6px">Concern: ${state.concern} · ${state.odoNA ? "Odo N/A" : state.odo + " mi"}</p>
+          <p style="font-size:12px;color:#64748b;margin-top:4px">Labor $187.50 · Parts $89.00 · Job $276.50</p>
+        </div>`;
+      document.getElementById("total").textContent = "$276.50";
+      document.getElementById("statusNote").textContent = "Complete — first job quoted";
+      toast("First job on estimate");
+    }
+
+    async function runDemo() {
+      reset(); await sleep(600);
+      startNewRO(); await sleep(900);
+      openCustModal(); await sleep(400);
+      saveCustomer(); await sleep(700);
+      openVehModal(); await sleep(300);
+      runDecode(); await sleep(500);
+      saveVehicle(); await sleep(600);
+      document.getElementById("concernIn").value = "Brake noise when stopping";
+      onConcernInput(); await sleep(400);
+      document.getElementById("odoIn").value = "62000";
+      onOdoInput(); await sleep(700);
+      addJob();
+    }
+    function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+
+    document.getElementById("custChip").onclick = openCustModal;
+    updateChips(); updatePills();
+  </script>
+</body>
+</html>

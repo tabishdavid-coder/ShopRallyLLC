@@ -1,0 +1,1507 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
+@import "./shoprally-theme.css";
+
+/* Exclude build output from class scanning (stale chunks re-introduce broken ap-token utilities). */
+@source not "../.next";
+@source not "../.next-3031";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  --font-heading: var(--font-sans);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar-muted-foreground: var(--sidebar-muted-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-subtle-foreground: var(--subtle-foreground);
+  --color-placeholder-foreground: var(--placeholder-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+  /*
+   * ShopRally brand kit — shoprally-brand-kit/BRAND.md
+   *   --brand-navy   #1E3A56  trust / chrome / body text on light
+   *   --brand-light  #00A9FF  focus rings, active nav accent (not small text on white)
+   *   --brand-orange #F4581C  primary CTAs
+   *   --brand-red    error / destructive
+   * Legacy token names kept for minimal UI churn.
+   */
+  --color-brand-navy: var(--brand-navy);
+  --color-brand-navy-foreground: #ffffff;
+  --color-brand-light: var(--brand-light);
+  --color-brand-light-foreground: var(--brand-navy);
+  --color-brand-orange: var(--brand-orange);
+  --color-brand-orange-foreground: #ffffff;
+  --color-brand-red: var(--brand-red);
+  --color-brand-red-foreground: #ffffff;
+  --color-success: var(--sr-success);
+  --color-success-bg: var(--sr-success-bg);
+  --color-warning: var(--sr-warning);
+  --color-warning-bg: var(--sr-warning-bg);
+  --color-crm-nav: var(--crm-nav-muted);
+  --color-crm-label: var(--crm-nav-label);
+  --color-crm-caption: var(--crm-caption);
+}
+
+:root {
+  --crm-sidebar-width: 260px;
+}
+
+/* Design mode — dev pick highlight (azure ring; navy text remains readable) */
+.design-mode-highlight {
+  outline: 3px solid var(--brand-light) !important;
+  outline-offset: 3px !important;
+  box-shadow: 0 0 0 6px rgb(0 169 255 / 0.28) !important;
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
+  html {
+    @apply font-sans;
+  }
+}
+
+  /* RO workspace surface (job board uses .job-board-shell) */
+@layer utilities {
+  .workspace-surface {
+    @apply rounded-xl border border-border/80 bg-[oklch(0.965_0.004_260)] p-4 md:p-5;
+  }
+
+  /* Preview landing — brand-tinted job board surface */
+  .crm-workspace {
+    @apply rounded-xl border border-border bg-card p-4 shadow-sm md:p-5;
+  }
+
+  /* ShopRally CRM — light content canvas, navy nav chrome */
+  .crm-shell {
+    --foreground: #1e3a56;
+    --muted-foreground: #4a6275;
+    --subtle-foreground: #5c7388;
+    --border: #d4dde6;
+    --crm-nav-muted: #5c7388;
+    --crm-nav-label: #4a6275;
+    --crm-caption: #4a6275;
+    --crm-chrome: #1e3a56;
+    --crm-chrome-sub: #243f5c;
+    --crm-chrome-border: #2f5278;
+    --crm-chrome-fg: #f0f4f8;
+    --crm-chrome-muted: #a8bdd0;
+    --sidebar-muted-foreground: var(--crm-chrome-muted);
+    --sidebar-accent: #2a4a6a;
+    --sidebar-border: var(--crm-chrome-border);
+    --crm-header-height: 6.25rem;
+    background: #f4f7fa;
+  }
+
+  .crm-body-row {
+    min-height: calc(100svh - var(--crm-header-height));
+  }
+
+  .crm-sidebar-panel {
+    width: var(--crm-sidebar-width, 220px);
+    flex-shrink: 0;
+    align-self: stretch;
+    min-height: calc(100svh - var(--crm-header-height));
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .crm-sidebar-nav {
+    flex: 0 0 auto;
+    overscroll-behavior: contain;
+  }
+
+  .crm-header-chrome {
+    background: var(--crm-chrome);
+    border-color: var(--crm-chrome-border);
+    color: var(--crm-chrome-fg);
+    --foreground: oklch(0.98 0.004 260);
+    --muted-foreground: oklch(0.88 0.012 260);
+  }
+
+  .crm-header-sub {
+    background: var(--crm-chrome-sub);
+    border-color: var(--crm-chrome-border);
+    color: var(--crm-chrome-fg);
+    --foreground: oklch(0.98 0.004 260);
+    --muted-foreground: oklch(0.88 0.012 260);
+  }
+
+  .crm-sidebar-chrome {
+    background: var(--crm-chrome);
+    border-color: var(--crm-chrome-border);
+    color: var(--crm-chrome-fg);
+  }
+
+  .crm-sidebar-nav-compact .crm-sidebar-nav-item {
+    @apply items-center gap-3 rounded-lg px-3 py-2.5;
+  }
+
+  /* Work sidebar — larger rows for shop-floor readability */
+  .crm-sidebar-work-nav .crm-sidebar-nav-item {
+    @apply font-sans min-h-11;
+  }
+
+  .crm-sidebar-work-nav .crm-sidebar-work-label {
+    @apply text-[15px] font-medium leading-snug tracking-normal;
+  }
+
+  .crm-shell .crm-sidebar-work-nav .crm-nav-item-idle .crm-sidebar-work-label {
+    color: oklch(0.86 0.012 260);
+  }
+
+  .crm-shell .crm-sidebar-work-nav .crm-nav-item-idle:hover .crm-sidebar-work-label {
+    color: oklch(0.98 0.004 260);
+  }
+
+  .crm-shell .crm-sidebar-work-nav .crm-nav-item-active .crm-sidebar-work-label {
+    @apply font-semibold;
+    color: oklch(1 0 0);
+  }
+
+  .crm-sidebar-work-nav .crm-sidebar-work-icon {
+    @apply size-[18px] shrink-0;
+  }
+
+  .crm-shell .crm-sidebar-work-nav .crm-nav-item-idle .crm-sidebar-work-icon {
+    color: oklch(0.74 0.014 260);
+  }
+
+  .crm-shell .crm-sidebar-work-nav .crm-nav-item-idle:hover .crm-sidebar-work-icon {
+    color: var(--brand-light);
+  }
+
+  .crm-shell .crm-sidebar-work-nav .crm-nav-item-active .crm-sidebar-work-icon {
+    color: var(--brand-light);
+  }
+
+  .crm-shell .crm-sidebar-work-nav .crm-nav-item-idle:hover {
+    background: oklch(1 0 0 / 0.1);
+  }
+
+  .crm-shell .crm-sidebar-work-nav .crm-nav-item-active {
+    background: oklch(0.68 0.145 230 / 0.2);
+    box-shadow:
+      inset 3px 0 0 var(--brand-light),
+      inset 0 0 0 1px oklch(0.68 0.145 230 / 0.35);
+  }
+
+  .crm-sidebar-glance-scroll {
+    background: var(--crm-chrome);
+    overflow: hidden;
+  }
+
+  .crm-sidebar-pulse-panel {
+    --pulse-fg: oklch(0.98 0.004 260);
+    --pulse-fg-muted: oklch(0.84 0.012 260);
+    --pulse-fg-subtle: oklch(0.74 0.014 260);
+    --pulse-accent-cyan: oklch(0.82 0.13 230);
+    --pulse-accent-green: oklch(0.84 0.15 155);
+    --pulse-accent-amber: oklch(0.88 0.13 85);
+    --pulse-tile-bg: oklch(0.31 0.012 260);
+    --pulse-tile-border: oklch(1 0 0 / 0.22);
+    --pulse-runrate-bg: oklch(0.34 0.035 230);
+    --pulse-runrate-border: oklch(0.78 0.13 230 / 0.45);
+
+    @apply h-full rounded-lg border border-white/20 bg-[oklch(0.27_0.012_260)] p-2 shadow-[inset_0_1px_0_oklch(1_0_0/0.14)];
+  }
+
+  .crm-sidebar-pulse-header {
+    @apply rounded-md border border-white/15 bg-white/[0.1];
+  }
+
+  .crm-sidebar-pulse-block {
+    @apply rounded-md border border-white/18 bg-white/[0.1] transition-colors hover:border-white/28 hover:bg-white/[0.14];
+  }
+
+  .crm-sidebar-kpi-tile {
+    background: var(--pulse-tile-bg);
+    border-color: var(--pulse-tile-border);
+    box-shadow: inset 0 1px 0 oklch(1 0 0 / 0.08);
+  }
+
+  .crm-pulse-section-label {
+    color: var(--pulse-fg-muted);
+    @apply mb-1 text-[10px] font-bold uppercase tracking-[0.12em];
+  }
+
+  .crm-pulse-kpi-value {
+    color: var(--pulse-fg);
+    @apply font-mono text-sm font-bold tabular-nums leading-none;
+  }
+
+  .crm-pulse-kpi-value--cyan {
+    color: var(--pulse-accent-cyan);
+  }
+
+  .crm-pulse-kpi-value--green {
+    color: var(--pulse-accent-green);
+  }
+
+  .crm-pulse-kpi-value--amber {
+    color: var(--pulse-accent-amber);
+  }
+
+  .crm-pulse-kpi-label {
+    color: var(--pulse-fg-muted);
+    @apply mt-1 text-[10px] font-semibold uppercase leading-tight tracking-wide;
+  }
+
+  .crm-pulse-kpi-sub {
+    color: var(--pulse-fg-subtle);
+    @apply mt-0.5 text-[9px];
+  }
+
+  .crm-pulse-runrate-tile {
+    background: var(--pulse-runrate-bg);
+    border-color: var(--pulse-runrate-border);
+    box-shadow: inset 3px 0 0 var(--pulse-accent-cyan);
+  }
+
+  .crm-pulse-runrate-value {
+    color: var(--pulse-fg);
+    @apply font-mono text-base font-bold tabular-nums leading-none;
+  }
+
+  .crm-pulse-runrate-label {
+    color: var(--pulse-fg-muted);
+    @apply mt-1 text-[10px] font-semibold uppercase tracking-wide;
+  }
+
+  .crm-pulse-meta {
+    color: var(--pulse-fg-subtle);
+  }
+
+  .crm-pulse-accent-text {
+    color: var(--pulse-accent-cyan);
+  }
+
+  .crm-pulse-alert-red {
+    background: oklch(0.42 0.14 25 / 0.55);
+    border-color: oklch(0.72 0.2 25 / 0.55);
+    color: oklch(0.95 0.04 25);
+  }
+
+  .crm-pulse-alert-green {
+    background: oklch(0.38 0.1 155 / 0.55);
+    border-color: oklch(0.72 0.16 155 / 0.5);
+    color: oklch(0.94 0.06 155);
+  }
+
+  .crm-pulse-alert-amber {
+    background: oklch(0.42 0.1 75 / 0.55);
+    border-color: oklch(0.78 0.14 75 / 0.5);
+    color: oklch(0.96 0.05 85);
+  }
+
+  .crm-pulse-footer-link {
+    color: var(--pulse-fg-muted);
+    @apply border-white/20 bg-white/[0.08] hover:bg-white/[0.14] hover:text-white;
+  }
+
+  /* RO workspace — ShopRally shell (distinct from competitor layout) */
+  .ro-workspace-panel {
+    @apply ring-1 ring-brand-navy/5;
+  }
+
+  .ro-workspace-hero {
+    background: linear-gradient(
+      180deg,
+      oklch(0.992 0.006 247) 0%,
+      oklch(0.978 0.01 247) 100%
+    );
+    border-bottom: 1px solid oklch(0.9 0.012 247);
+    color: var(--foreground);
+  }
+
+  .ro-workspace-hero-eyebrow {
+    color: oklch(0.5 0.04 249);
+  }
+
+  .ro-workspace-hero-title {
+    color: var(--brand-navy);
+  }
+
+  .ro-workspace-hero-toolbar {
+    color: oklch(0.42 0.035 249);
+  }
+
+  .ro-hero-divider {
+    width: 1px;
+    flex-shrink: 0;
+    background: oklch(0.86 0.012 247);
+  }
+
+  .ro-hero-action-btn {
+    transition: border-color 150ms ease, background-color 150ms ease, box-shadow 150ms ease;
+  }
+
+  .ro-lifecycle-strip--inline {
+    max-width: 100%;
+  }
+
+  .ro-lifecycle-strip--inline .ro-lifecycle-step {
+    white-space: nowrap;
+  }
+
+  .ro-workspace-hero-actions {
+    color: oklch(0.45 0.04 249);
+  }
+
+  .ro-workspace-hero-actions button,
+  .ro-workspace-hero-actions a {
+    color: inherit;
+  }
+
+  .ro-workspace-hero-actions button:hover,
+  .ro-workspace-hero-actions a:hover {
+    color: var(--brand-navy);
+  }
+
+  /*
+   * Estimate workspace — square buttons, forms, cards (Tekmetric-style).
+   * Scoped via .estimate-workspace on layout/panel; html[data-estimate-workspace]
+   * covers Radix portaled menus/dialogs.
+   */
+  .estimate-workspace {
+    --radius: 0;
+  }
+
+  .estimate-workspace
+    :is(
+      [class*="rounded-sm"],
+      [class*="rounded-md"],
+      [class*="rounded-lg"],
+      [class*="rounded-xl"],
+      [class*="rounded-2xl"],
+      [class*="rounded-3xl"],
+      [class*="rounded-4xl"],
+      [class*="rounded-t-"],
+      [class*="rounded-b-"],
+      [class*="rounded-l-"],
+      [class*="rounded-r-"],
+      .rounded
+    ):not([class*="rounded-full"]):not([data-slot="badge"]) {
+    border-radius: 0 !important;
+  }
+
+  .estimate-workspace :is([data-slot="checkbox"], [data-slot="input"], [data-slot="textarea"]) {
+    border-radius: 0 !important;
+  }
+
+  /* Service items grid — flat cells; description uses utility focus ring, not rounded box. */
+
+  html[data-estimate-workspace]
+    :is(
+      [data-slot="select-content"],
+      [data-slot="dropdown-menu-content"],
+      [data-slot="dropdown-menu-sub-content"],
+      [data-slot="popover-content"],
+      [data-slot="dialog-content"],
+      [data-slot="sheet-content"],
+      [data-slot="tooltip-content"]
+    ) {
+    border-radius: 0 !important;
+  }
+
+  .ro-lifecycle-connector {
+    background: oklch(0.86 0.012 247);
+  }
+
+  .ro-lifecycle-connector--done {
+    background: oklch(0.68 0.145 230 / 0.55);
+  }
+
+  .ro-lifecycle-step {
+    border: 1px solid transparent;
+  }
+
+  .ro-lifecycle-step--upcoming {
+    color: oklch(0.52 0.03 249);
+    background: oklch(0.96 0.006 247);
+  }
+
+  .ro-lifecycle-step--done {
+    color: oklch(0.38 0.06 249);
+    background: oklch(0.92 0.03 230 / 0.45);
+    border-color: oklch(0.68 0.145 230 / 0.25);
+  }
+
+  .ro-lifecycle-step--current {
+    color: oklch(0.34 0.06 249);
+    background: oklch(0.94 0.025 230 / 0.55);
+    border-color: oklch(0.78 0.06 230 / 0.35);
+  }
+
+  .ro-lifecycle-step--upcoming .ro-lifecycle-dot {
+    background: oklch(0.78 0.02 247);
+  }
+
+  .ro-lifecycle-step--done .ro-lifecycle-dot {
+    background: var(--brand-light);
+  }
+
+  .ro-lifecycle-step--current .ro-lifecycle-dot {
+    background: var(--brand-navy);
+    box-shadow: 0 0 0 2px oklch(0.68 0.145 230 / 0.35);
+  }
+
+  .ro-summary-chip {
+    border-radius: 9999px;
+    padding: 0.4375rem 0.8125rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    transition: background 150ms ease, color 150ms ease, box-shadow 150ms ease;
+  }
+
+  .ro-summary-chip--idle {
+    color: oklch(0.46 0.03 249);
+    background: oklch(0.96 0.006 247);
+    @apply hover:bg-muted hover:text-foreground;
+  }
+
+  .ro-summary-chip--active {
+    color: oklch(0.99 0 0);
+    background: var(--brand-navy);
+    box-shadow: inset 0 0 0 1px oklch(0.68 0.145 230 / 0.35);
+  }
+
+  /* RO workspace — compact meta bar (ShopRally context strip) */
+  .ro-context-bar {
+    display: flex;
+    align-items: center;
+    gap: 0.625rem;
+    border-bottom: 1px solid oklch(0.88 0.02 260);
+    background: oklch(0.97 0.008 260);
+    padding: 0.5rem 0.875rem;
+    color: var(--brand-navy);
+  }
+
+  @media (min-width: 768px) {
+    .ro-context-bar {
+      padding: 0.5rem 1rem;
+      gap: 0.75rem;
+    }
+  }
+
+  .ro-context-bar-chips {
+    row-gap: 0.375rem;
+  }
+
+  .ro-meta-chip {
+    display: inline-flex;
+    max-width: 100%;
+    align-items: center;
+    gap: 0.375rem;
+    border: 1px solid oklch(0.82 0.02 260);
+    border-radius: 0.375rem;
+    background: oklch(1 0 0);
+    padding: 0.1875rem 0.5625rem 0.1875rem 0.5rem;
+    box-shadow: 0 1px 2px oklch(0.2 0.02 260 / 0.06);
+  }
+
+  .ro-meta-chip--auth {
+    border-color: oklch(0.72 0.14 155 / 0.55);
+    background: oklch(0.42 0.09 155 / 0.35);
+  }
+
+  .ro-meta-chip--plate {
+    border-color: oklch(0.99 0 0 / 0.24);
+    background: oklch(0.99 0 0 / 0.12);
+  }
+
+  .ro-meta-chip--vin {
+    border-color: oklch(0.68 0.145 230 / 0.75);
+    background: oklch(0.38 0.06 230 / 0.45);
+    box-shadow:
+      inset 0 1px 0 oklch(1 0 0 / 0.1),
+      0 0 0 1px oklch(0.68 0.145 230 / 0.15);
+  }
+
+  .ro-meta-chip--vin .ro-meta-chip-label {
+    color: oklch(0.88 0.1 230);
+  }
+
+  .ro-meta-chip--vin .ro-meta-chip-value {
+    color: oklch(0.99 0 0);
+  }
+
+  .ro-meta-copy-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    margin-left: 0.125rem;
+    border-radius: 9999px;
+    padding: 0.1875rem;
+    color: oklch(0.9 0.08 230);
+    transition: background 150ms ease, color 150ms ease;
+  }
+
+  .ro-meta-copy-btn:hover {
+    background: oklch(0.68 0.145 230 / 0.28);
+    color: oklch(0.99 0 0);
+  }
+
+  .ro-meta-copy-btn:focus-visible {
+    outline: 2px solid var(--brand-light);
+    outline-offset: 1px;
+  }
+
+  .ro-meta-chip-label {
+    font-size: 0.5625rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: oklch(0.48 0.04 260);
+  }
+
+  .ro-meta-chip-value {
+    color: var(--brand-navy);
+    font-weight: 600;
+  }
+
+  .ro-meta-chip-value--placeholder {
+    color: oklch(0.55 0.02 247);
+    font-weight: 500;
+    font-style: italic;
+  }
+
+  .ro-context-bar .ro-meta-chip a.ro-meta-chip-value:hover,
+  .ro-context-bar .ro-meta-chip button.ro-meta-chip-value:hover {
+    color: var(--brand-light);
+  }
+
+  .ro-meta-divider {
+    width: 1px;
+    align-self: stretch;
+    min-height: 1.25rem;
+    background: oklch(0.82 0.02 260);
+  }
+
+  .ro-context-bar-details {
+    border-color: oklch(0.82 0.02 260) !important;
+    background: oklch(1 0 0) !important;
+    color: var(--brand-navy) !important;
+  }
+
+  .ro-context-bar-details:hover {
+    border-color: oklch(0.68 0.145 230 / 0.45) !important;
+    background: oklch(0.68 0.145 230 / 0.12) !important;
+    color: var(--brand-navy) !important;
+  }
+
+  .ro-lifecycle-trigger .ro-lifecycle-dot--current {
+    background: var(--brand-navy);
+    box-shadow: 0 0 0 2px oklch(0.68 0.145 230 / 0.3);
+  }
+
+  .ro-tabs-bar--embedded {
+    margin-top: 0;
+    flex-wrap: nowrap;
+    border: none;
+    background: transparent;
+    box-shadow: none;
+    padding: 0;
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .ro-tabs-bar--embedded::-webkit-scrollbar {
+    display: none;
+  }
+
+  .ro-tabs-trailing-divider {
+    width: 1px;
+    flex-shrink: 0;
+    background: oklch(0.86 0.012 247);
+  }
+
+  .ro-tabs-trailing {
+    overflow-x: auto;
+    scrollbar-width: none;
+  }
+
+  .ro-tabs-trailing::-webkit-scrollbar {
+    display: none;
+  }
+
+  .ro-lifecycle-strip--compact .ro-lifecycle-step {
+    padding: 0.125rem 0.375rem;
+    font-size: 0.5625rem;
+    letter-spacing: 0.05em;
+  }
+
+  .ro-lifecycle-strip--compact .ro-lifecycle-connector {
+    width: 0.625rem;
+    margin-inline: 0.125rem;
+  }
+
+  @media (min-width: 768px) {
+    .ro-lifecycle-strip--compact .ro-lifecycle-step {
+      font-size: 0.625rem;
+    }
+
+    .ro-lifecycle-strip--compact .ro-lifecycle-connector {
+      width: 0.875rem;
+    }
+  }
+
+  /* RO detail — left context rail (deprecated; kept for reopen chip if reused) */
+
+  .ro-sidebar-section-head--ro {
+    box-shadow: inset 3px 0 0 var(--brand-light);
+  }
+
+  .ro-sidebar-section-head--vehicle {
+    box-shadow: inset 3px 0 0 oklch(0.62 0.11 205);
+  }
+
+  .ro-sidebar-section-head--customer {
+    box-shadow: inset 3px 0 0 oklch(0.74 0.13 72);
+  }
+
+  .ro-sidebar-section-head--auth {
+    box-shadow: inset 3px 0 0 oklch(0.62 0.14 162);
+  }
+
+  .ro-sidebar-section-icon--ro {
+    color: var(--brand-light);
+  }
+
+  .ro-sidebar-section-icon--vehicle {
+    color: oklch(0.72 0.1 205);
+  }
+
+  .ro-sidebar-section-icon--customer {
+    color: oklch(0.82 0.12 72);
+  }
+
+  .ro-sidebar-section-icon--auth {
+    color: oklch(0.76 0.14 162);
+  }
+
+  .ro-sidebar-nested-trigger {
+    color: oklch(0.48 0.03 249);
+    background: oklch(0.965 0.006 247);
+    @apply hover:bg-muted/80 hover:text-foreground;
+  }
+
+  .ro-sidebar-nested-trigger[data-state="open"] {
+    color: var(--brand-navy);
+    background: oklch(0.94 0.012 230 / 0.35);
+  }
+
+  .ro-sidebar-accordion-trigger {
+    border-top: 1px solid oklch(0.9 0.012 247);
+    background: oklch(0.982 0.004 247);
+    box-shadow: inset 3px 0 0 oklch(0.68 0.145 230 / 0.35);
+    transition: background 150ms ease, color 150ms ease;
+  }
+
+  .ro-sidebar-accordion-trigger:hover {
+    background: oklch(0.96 0.008 247);
+    color: var(--brand-navy);
+  }
+
+  .ro-sidebar-accordion-trigger[data-state="open"] {
+    background: oklch(0.94 0.012 230 / 0.28);
+    box-shadow:
+      inset 3px 0 0 var(--brand-light),
+      inset 0 -1px 0 oklch(0.9 0.012 247);
+    color: var(--brand-navy);
+  }
+
+  .ro-sidebar-accordion-icon {
+    color: oklch(0.52 0.08 230);
+  }
+
+  .ro-sidebar-accordion-trigger[data-state="open"] .ro-sidebar-accordion-icon {
+    color: var(--brand-navy);
+  }
+
+  .ro-sidebar-accordion-content {
+    border-top: 1px solid oklch(0.92 0.01 247);
+    background: oklch(0.985 0.004 247);
+  }
+
+  /* RO workspace — segmented section tabs */
+  .ro-tabs-bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.25rem;
+    margin-top: 0.75rem;
+    padding: 0.3125rem;
+    border-radius: 0.625rem;
+    border: 1px solid oklch(0.9 0.012 247);
+    background: oklch(0.965 0.008 247 / 0.92);
+    box-shadow: inset 0 1px 0 oklch(1 0 0 / 0.55);
+  }
+
+  .ro-tabs-bar--embedded {
+    margin-top: 0;
+    border: none;
+    background: transparent;
+    box-shadow: none;
+    padding: 0;
+  }
+
+  .ro-tab {
+    display: inline-flex;
+    shrink: 0;
+    align-items: center;
+    gap: 0.4375rem;
+    border-radius: 0.4375rem;
+    padding: 0.5rem 0.8125rem;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    line-height: 1.2;
+    color: oklch(0.46 0.03 249);
+    transition:
+      background 150ms ease,
+      color 150ms ease,
+      box-shadow 150ms ease;
+  }
+
+  .ro-tab:hover {
+    color: var(--brand-navy);
+    background: oklch(1 0 0 / 0.72);
+  }
+
+  .ro-tab--active {
+    color: var(--brand-navy);
+    font-weight: 600;
+    background: oklch(0.97 0.015 230 / 0.45);
+    box-shadow:
+      inset 0 0 0 1px oklch(0.82 0.04 230 / 0.35),
+      inset 3px 0 0 oklch(0.58 0.12 230);
+  }
+
+  .ro-tab--active .ro-tab-icon {
+    color: oklch(0.48 0.1 230);
+    opacity: 1;
+  }
+
+  .ro-tab-icon {
+    opacity: 0.72;
+    transition: color 150ms ease, opacity 150ms ease;
+  }
+
+  .ro-tab:hover .ro-tab-icon {
+    opacity: 0.95;
+  }
+
+  .ro-tab-badge {
+    margin-left: 0.125rem;
+    display: inline-flex;
+    min-width: 1.125rem;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9999px;
+    padding: 0.0625rem 0.4375rem;
+    font-size: 0.625rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: 0.01em;
+    color: oklch(0.42 0.04 249);
+    background: oklch(0.9 0.015 247);
+  }
+
+  .ro-tab-badge--active {
+    color: var(--brand-navy);
+    background: oklch(0.82 0.12 230 / 0.35);
+  }
+
+  /* RO workspace — numbered phase stepper (ShopRally 3004) */
+  .ro-phase-stepper {
+    display: flex;
+    min-width: 0;
+    flex: 1;
+    flex-wrap: nowrap;
+    align-items: center;
+    gap: 0.25rem;
+    overflow-x: auto;
+    padding: 0.125rem 0;
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .ro-phase-stepper::-webkit-scrollbar {
+    display: none;
+  }
+
+  .ro-phase-stepper--embedded {
+    margin-top: 0;
+  }
+
+  .ro-phase-step {
+    display: inline-flex;
+    shrink: 0;
+    align-items: center;
+    gap: 0.4375rem;
+    border-radius: 0.5rem;
+    padding: 0.4375rem 0.625rem;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    line-height: 1.2;
+    transition:
+      background 150ms ease,
+      color 150ms ease,
+      box-shadow 150ms ease;
+  }
+
+  .ro-phase-step--upcoming {
+    color: oklch(0.5 0.03 249);
+  }
+
+  .ro-phase-step--upcoming:hover {
+    color: var(--brand-navy);
+    background: oklch(1 0 0 / 0.72);
+  }
+
+  .ro-phase-step--complete {
+    color: oklch(0.4 0.06 249);
+  }
+
+  .ro-phase-step--complete:hover {
+    color: var(--brand-navy);
+    background: oklch(0.94 0.025 230 / 0.45);
+  }
+
+  .ro-phase-step--active {
+    color: var(--brand-navy);
+    font-weight: 600;
+    background: oklch(0.94 0.025 230 / 0.55);
+    box-shadow: inset 0 0 0 1px oklch(0.78 0.06 230 / 0.35);
+  }
+
+  .ro-phase-number {
+    display: flex;
+    width: 1.25rem;
+    height: 1.25rem;
+    align-items: center;
+    justify-content: center;
+    border-radius: 9999px;
+    font-size: 0.625rem;
+    font-weight: 700;
+    line-height: 1;
+  }
+
+  .ro-phase-number--upcoming {
+    color: oklch(0.52 0.03 249);
+    background: oklch(0.92 0.01 247);
+  }
+
+  .ro-phase-number--complete {
+    color: var(--brand-navy);
+    background: oklch(0.82 0.12 230 / 0.35);
+  }
+
+  .ro-phase-number--active {
+    color: white;
+    background: var(--brand-navy);
+    box-shadow: 0 0 0 2px oklch(0.68 0.145 230 / 0.25);
+  }
+
+  .ro-phase-badge {
+    color: oklch(0.42 0.04 249);
+    background: oklch(0.9 0.015 247);
+  }
+
+  .ro-phase-step--active .ro-phase-badge {
+    color: var(--brand-navy);
+    background: oklch(0.82 0.12 230 / 0.35);
+  }
+
+  .ro-phase-stepper-trailing {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+
+  .ro-tab-care-divider {
+    margin-left: auto;
+    padding-left: 0.75rem;
+    border-left: 2px solid oklch(0.68 0.145 230 / 0.35);
+  }
+
+  .ro-tab-care-idle {
+    display: inline-flex;
+    shrink: 0;
+    align-items: center;
+    gap: 0.4375rem;
+    border-radius: 0.5rem;
+    padding: 0.5rem 0.9375rem;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    color: var(--brand-navy);
+    background: linear-gradient(
+      135deg,
+      oklch(0.94 0.07 230 / 0.95) 0%,
+      oklch(0.91 0.11 165 / 0.72) 100%
+    );
+    border: 1px solid oklch(0.68 0.145 230 / 0.55);
+    box-shadow:
+      0 1px 3px oklch(0.22 0.04 249 / 0.14),
+      inset 0 1px 0 oklch(1 0 0 / 0.65);
+    transition:
+      background 150ms ease,
+      color 150ms ease,
+      border-color 150ms ease,
+      box-shadow 150ms ease,
+      transform 150ms ease;
+  }
+
+  .ro-tab-care-idle:hover {
+    color: var(--brand-navy);
+    border-color: oklch(0.68 0.145 230 / 0.75);
+    background: linear-gradient(
+      135deg,
+      oklch(0.92 0.09 230) 0%,
+      oklch(0.89 0.13 165 / 0.85) 100%
+    );
+    box-shadow:
+      0 2px 6px oklch(0.68 0.145 230 / 0.22),
+      inset 0 1px 0 oklch(1 0 0 / 0.7);
+    transform: translateY(-1px);
+  }
+
+  .ro-tab-care-idle .ro-tab-icon {
+    color: oklch(0.48 0.14 230);
+    opacity: 1;
+  }
+
+  .ro-tab-care-active {
+    display: inline-flex;
+    shrink: 0;
+    align-items: center;
+    gap: 0.4375rem;
+    border-radius: 0.5rem;
+    padding: 0.5rem 0.9375rem;
+    font-size: 0.8125rem;
+    font-weight: 700;
+    letter-spacing: 0.01em;
+    color: var(--brand-navy);
+    background: linear-gradient(
+      135deg,
+      oklch(0.9 0.09 230) 0%,
+      oklch(0.87 0.14 165 / 0.88) 100%
+    );
+    border: 1px solid oklch(0.68 0.145 230 / 0.65);
+    box-shadow:
+      0 2px 8px oklch(0.68 0.145 230 / 0.28),
+      inset 0 0 0 1px oklch(1 0 0 / 0.35),
+      inset 3px 0 0 var(--brand-light);
+  }
+
+  .ro-tab-care-active .ro-tab-icon {
+    color: oklch(0.42 0.14 230);
+    opacity: 1;
+  }
+
+  .crm-mobile-nav-chrome {
+    background: var(--crm-chrome-sub);
+    border-color: var(--crm-chrome-border);
+  }
+
+  .crm-kanban-panel {
+    background: linear-gradient(
+      135deg,
+      oklch(0.97 0.025 247) 0%,
+      oklch(0.995 0.006 247) 55%,
+      oklch(1 0 0) 100%
+    );
+    border-color: oklch(0.72 0.04 249 / 0.35);
+  }
+
+  .crm-kanban-column {
+    background: oklch(1 0 0);
+  }
+
+  /* Light sidebar tokens scoped to preview shell only */
+  .preview-shell {
+    --sidebar: oklch(0.995 0.004 247);
+    --sidebar-foreground: oklch(0.23 0.03 249);
+    --sidebar-muted-foreground: oklch(0.43 0.04 249);
+    --sidebar-primary: var(--brand-navy);
+    --sidebar-primary-foreground: oklch(0.99 0 0);
+    --sidebar-accent: oklch(0.94 0.04 245);
+    --sidebar-accent-foreground: oklch(0.28 0.08 249);
+    --sidebar-border: oklch(0.905 0.012 247);
+    --sidebar-ring: var(--brand-light);
+  }
+
+  .preview-shell .preview-sidebar {
+    background: var(--sidebar);
+    color: var(--sidebar-foreground);
+  }
+
+  /* Readable copy on pale brand-light washes (callouts, info panels) */
+  .text-on-brand-wash {
+    color: var(--brand-light-foreground);
+  }
+}
+
+/* Accessible text links — ≥4.5:1 on white; focus + pointer per WCAG */
+@layer components {
+  .link-subtle {
+    @apply cursor-pointer font-medium text-brand-navy underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring;
+  }
+
+  .link-muted {
+    @apply cursor-pointer font-medium text-subtle-foreground underline-offset-4 hover:text-brand-navy hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring;
+  }
+
+  .link-on-dark {
+    @apply cursor-pointer font-medium text-white/90 underline-offset-4 hover:text-white hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring;
+  }
+
+  /** Info callout — cyan wash on white (replaces ad-hoc sky-* panels) */
+  .brand-callout {
+    @apply rounded-md border border-brand-light/30 bg-brand-light/10 px-3 py-2 text-sm text-brand-navy;
+  }
+
+  /* CRM nav — consistent active highlight (sidebar, tabs, pills) */
+  .crm-nav-item-idle {
+    @apply text-crm-nav hover:bg-muted/70 hover:text-foreground;
+  }
+
+  .crm-nav-item-active {
+    @apply bg-brand-light/40 font-semibold text-brand-navy;
+    box-shadow: inset 3px 0 0 var(--brand-light);
+  }
+
+  .crm-nav-tab-idle {
+    @apply text-crm-nav hover:bg-brand-light/20 hover:text-brand-navy;
+  }
+
+  .crm-nav-tab-active {
+    @apply bg-brand-light/35 font-semibold text-brand-navy;
+    box-shadow: inset 0 -3px 0 var(--brand-light);
+  }
+
+  .crm-nav-pill-idle {
+    @apply bg-muted text-crm-nav hover:bg-brand-light/25 hover:text-brand-navy;
+  }
+
+  .crm-nav-pill-active {
+    @apply bg-brand-navy font-semibold text-white shadow-sm;
+  }
+
+  /* Header section tabs — match sidebar active highlight on dark chrome */
+  .crm-shell .crm-header-chrome .crm-header-nav-item-idle {
+    color: oklch(0.86 0.012 260);
+    font-weight: 500;
+  }
+
+  .crm-shell .crm-header-chrome .crm-header-nav-item-idle:hover {
+    background: oklch(1 0 0 / 0.1);
+    color: oklch(0.98 0.004 260);
+  }
+
+  .crm-shell .crm-header-chrome .crm-header-nav-item-idle svg {
+    color: oklch(0.74 0.014 260);
+  }
+
+  .crm-shell .crm-header-chrome .crm-header-nav-item-idle:hover svg {
+    color: var(--brand-light);
+  }
+
+  .crm-shell .crm-header-chrome .crm-header-nav-item-active {
+    font-weight: 600;
+    color: oklch(1 0 0);
+    background: oklch(0.68 0.145 230 / 0.2);
+    box-shadow:
+      inset 3px 0 0 var(--brand-light),
+      inset 0 0 0 1px oklch(0.68 0.145 230 / 0.35);
+  }
+
+  .crm-shell .crm-header-chrome .crm-header-nav-item-active svg {
+    color: var(--brand-light);
+  }
+
+  /* Header chrome — ghost/outline buttons on brand charcoal (non-nav actions) */
+  .crm-shell .crm-header-chrome [data-slot="button"][data-variant="ghost"]:not(.crm-header-nav-item-idle):not(.crm-header-nav-item-active) {
+    color: oklch(0.94 0.008 260);
+    font-weight: 500;
+  }
+
+  .crm-shell .crm-header-chrome [data-slot="button"][data-variant="ghost"]:not(.crm-header-nav-item-idle):not(.crm-header-nav-item-active):hover {
+    background: oklch(1 0 0 / 0.1) !important;
+    color: oklch(1 0 0) !important;
+  }
+
+  .crm-shell .crm-header-chrome [data-slot="button"].crm-header-nav-item-idle,
+  .crm-shell .crm-header-chrome [data-slot="button"].crm-header-nav-item-active {
+    background: transparent;
+  }
+
+  .crm-shell .crm-header-chrome [data-slot="button"].crm-header-nav-item-idle:hover {
+    background: oklch(1 0 0 / 0.1);
+    color: oklch(0.98 0.004 260);
+  }
+
+  .crm-shell .crm-header-chrome [data-slot="button"].crm-header-nav-item-active {
+    font-weight: 600;
+    color: oklch(1 0 0);
+    background: oklch(0.68 0.145 230 / 0.2);
+    box-shadow:
+      inset 3px 0 0 var(--brand-light),
+      inset 0 0 0 1px oklch(0.68 0.145 230 / 0.35);
+  }
+
+  .crm-shell .crm-header-chrome [data-slot="button"][data-variant="outline"] {
+    border-color: oklch(1 0 0 / 0.28);
+    background: oklch(1 0 0 / 0.1);
+    color: var(--crm-chrome-fg);
+  }
+
+  .crm-shell .crm-header-chrome [data-slot="button"][data-variant="outline"]:hover {
+    border-color: oklch(1 0 0 / 0.35);
+    background: oklch(1 0 0 / 0.16);
+    color: var(--crm-chrome-fg);
+  }
+
+  /* Dark chrome overrides — scoped to CRM shell only */
+  .crm-shell .crm-nav-item-idle {
+    color: var(--crm-chrome-muted);
+  }
+
+  .crm-shell .crm-nav-item-idle:hover {
+    background: oklch(1 0 0 / 0.08);
+    color: var(--crm-chrome-fg);
+  }
+
+  .crm-shell .crm-nav-item-active {
+    @apply font-semibold text-white;
+    background: oklch(0.68 0.145 230 / 0.2);
+    box-shadow:
+      inset 3px 0 0 var(--brand-light),
+      inset 0 0 0 1px oklch(0.68 0.145 230 / 0.35);
+  }
+
+  .crm-shell .crm-nav-tab-idle {
+    color: oklch(0.95 0.008 260);
+    font-weight: 500;
+  }
+
+  .crm-shell .crm-nav-tab-idle:hover {
+    background: oklch(1 0 0 / 0.1);
+    color: oklch(1 0 0);
+  }
+
+  .crm-shell .crm-nav-tab-active {
+    @apply font-semibold text-white;
+    background: oklch(1 0 0 / 0.14);
+    box-shadow: inset 0 -3px 0 var(--brand-light);
+  }
+
+  .crm-shell .crm-nav-pill-idle {
+    background: oklch(1 0 0 / 0.1);
+    color: var(--crm-chrome-muted);
+  }
+
+  .crm-shell .crm-nav-pill-idle:hover {
+    background: oklch(1 0 0 / 0.14);
+    color: var(--crm-chrome-fg);
+  }
+
+  .crm-shell .crm-nav-pill-active {
+    @apply bg-brand-light font-semibold text-brand-navy shadow-sm;
+  }
+
+  /* Horizontal sub-nav tabs (RO, Settings, Payments, Marketing, …) */
+  .crm-subnav-tab-idle {
+    @apply border-b-2 border-transparent text-crm-nav hover:bg-brand-light/15 hover:text-brand-navy;
+  }
+
+  .crm-subnav-tab-active {
+    @apply border-b-2 border-transparent bg-brand-light/35 font-semibold text-brand-navy;
+    box-shadow: inset 0 -3px 0 var(--brand-light);
+  }
+
+  /* Underline tab subnav — shared with ap-subnav-tab (3030 overrides in globals.autopilot3030.css) */
+  .ap-subnav-tab--idle {
+    border-bottom-color: transparent;
+    color: oklch(0.48 0.03 249);
+  }
+
+  .ap-subnav-tab--idle:hover {
+    border-bottom-color: oklch(0.68 0.145 230 / 0.45);
+    color: var(--brand-navy);
+  }
+
+  .ap-subnav-tab--active {
+    border-bottom-color: var(--brand-navy);
+    color: var(--brand-navy);
+    font-weight: 600;
+  }
+
+  /* Vertical sub-nav sections (RO summary, nested panels) */
+  .crm-subnav-vertical-idle {
+    @apply text-crm-nav hover:bg-muted/70 hover:text-foreground;
+  }
+
+  .crm-subnav-vertical-active {
+    @apply bg-brand-light/40 font-semibold text-brand-navy;
+    box-shadow: inset 3px 0 0 var(--brand-light);
+  }
+
+  /* Top-bordered sub-nav tabs (parts hub status strip) */
+  .crm-subnav-tab-top-idle {
+    @apply text-crm-nav hover:bg-brand-light/15 hover:text-brand-navy;
+  }
+
+  .crm-subnav-tab-top-active {
+    @apply bg-brand-light/35 font-semibold text-brand-navy;
+    box-shadow: inset 0 3px 0 var(--brand-light);
+  }
+
+  /* Job board — ShopRally pipeline (charcoal / cyan / signal) */
+  .job-board-shell {
+    @apply rounded-xl border border-brand-navy/15 bg-gradient-to-br from-brand-light/12 via-card to-brand-navy/[0.03] p-4 shadow-sm md:p-5;
+  }
+
+  .job-board-toolbar {
+    @apply flex-nowrap gap-1.5 rounded-lg border border-brand-navy/12 bg-card/95 px-2.5 py-2 shadow-sm backdrop-blur-sm;
+    scrollbar-width: thin;
+  }
+
+  .job-board-col {
+    @apply flex h-full min-h-0 flex-col overflow-hidden rounded-xl border border-brand-navy/12 bg-card shadow-sm;
+  }
+
+  .job-board-col-header {
+    @apply sticky top-0 z-10 shrink-0 border-b bg-card px-3 py-2.5 shadow-sm;
+  }
+
+  .job-board-col-header-estimates {
+    border-top: 3px solid oklch(0.72 0.14 55);
+    @apply border-b-amber-200/70 bg-gradient-to-b from-amber-50/90 to-card;
+  }
+
+  .job-board-col-header-wip {
+    border-top: 3px solid var(--brand-light);
+    @apply border-b-brand-light/25 bg-gradient-to-b from-brand-light/10 to-card;
+  }
+
+  .job-board-col-header-completed {
+    border-top: 3px solid oklch(0.55 0.14 162);
+    @apply border-b-emerald-200/80 bg-gradient-to-b from-emerald-50/80 to-card;
+  }
+
+  .job-board-col-header-estimates .job-board-col-title {
+    @apply text-amber-950/90;
+  }
+
+  .job-board-col-header-wip .job-board-col-title {
+    @apply text-brand-navy;
+  }
+
+  .job-board-col-header-completed .job-board-col-title {
+    @apply text-emerald-900;
+  }
+
+  .job-board-col-title {
+    @apply text-[13px] font-bold uppercase tracking-[0.06em] text-foreground;
+  }
+
+  .job-board-col-badge {
+    @apply inline-flex h-5 min-w-5 items-center justify-center rounded-md border px-1.5 text-[10px] font-bold tabular-nums;
+  }
+
+  .job-board-col-header-estimates .job-board-col-badge {
+    @apply border-amber-400/50 bg-amber-700 text-white;
+  }
+
+  .job-board-col-header-wip .job-board-col-badge {
+    @apply border-brand-light/40 bg-brand-navy text-white;
+  }
+
+  .job-board-col-header-completed .job-board-col-badge {
+    @apply border-emerald-400/50 bg-emerald-700 text-white;
+  }
+
+  .job-board-col-subtitle {
+    @apply mt-1 text-[11px] leading-snug text-muted-foreground;
+  }
+
+  .job-board-col-count {
+    @apply font-semibold text-crm-nav;
+  }
+
+  .job-board-col-total {
+    @apply mt-1.5 text-[11px] font-semibold tabular-nums;
+  }
+
+  .job-board-col-header-estimates .job-board-col-total {
+    @apply text-amber-900/70;
+  }
+
+  .job-board-col-header-wip .job-board-col-total {
+    @apply text-brand-navy/75;
+  }
+
+  .job-board-col-header-completed .job-board-col-total {
+    @apply text-emerald-800/80;
+  }
+
+  .job-board-col-body {
+    @apply transition-colors;
+  }
+
+  .job-board-col-body-estimates {
+    @apply bg-amber-50/35;
+  }
+
+  .job-board-col-body-wip {
+    @apply bg-brand-light/[0.09];
+  }
+
+  .job-board-col-body-completed {
+    @apply bg-emerald-50/40;
+  }
+
+  .job-board-col-empty {
+    @apply flex h-24 items-center justify-center rounded-lg border border-dashed border-brand-navy/15 bg-card/90 text-xs font-medium text-muted-foreground;
+  }
+
+  .job-board-card {
+    @apply flex min-h-[9.25rem] flex-col overflow-hidden rounded-lg border border-brand-navy/12 bg-card p-2.5 shadow-sm transition-all hover:border-brand-navy/22 hover:shadow-md;
+  }
+
+  .job-board-card-header {
+    @apply flex items-start justify-between gap-1.5;
+  }
+
+  .job-board-card-footer {
+    @apply mt-auto flex items-end justify-between gap-2 border-t border-border/60 pt-2;
+  }
+
+  .job-board-card-icon-hint {
+    @apply inline-flex size-7 shrink-0 items-center justify-center rounded-md;
+  }
+
+  .job-board-card-estimates {
+    @apply border-l-[3px] border-l-amber-400/85;
+  }
+
+  .job-board-card-workInProgress {
+    @apply border-l-[3px] border-l-brand-light;
+  }
+
+  .job-board-card-completed {
+    @apply border-l-[3px] border-l-emerald-500/85;
+  }
+
+  .job-board-card-selected {
+    @apply border-brand-navy/35 bg-brand-light/15 ring-2 ring-brand-light/50 ring-offset-1;
+  }
+
+  .job-board-card-customer-auth {
+    @apply border-brand-navy/30 bg-brand-light/15 hover:border-brand-navy/45;
+  }
+
+  .job-board-card-shop-auth {
+    @apply border-emerald-400/40 bg-emerald-50/80 hover:border-emerald-500/50;
+  }
+
+  /* SMS threads — outbound uses navy tint (orange primary is CTAs only; poor contrast on long text) */
+  .msg-bubble-outbound {
+    @apply max-w-[80%] rounded-lg border border-brand-navy/15 border-l-[3px] border-l-brand-light bg-brand-navy/[0.06] px-3 py-1.5 text-sm text-brand-navy;
+  }
+
+  .msg-bubble-outbound-meta {
+    @apply mt-0.5 text-[10px] text-muted-foreground;
+  }
+
+  .msg-bubble-inbound {
+    @apply max-w-[80%] rounded-lg border bg-card px-3 py-1.5 text-sm text-foreground;
+  }
+
+  .msg-bubble-inbound-meta {
+    @apply mt-0.5 text-[10px] text-muted-foreground;
+  }
+
+  /* Master CRM release review — highlight planned UI on live tour */
+  .planned-change-highlight {
+    @apply relative z-10 rounded-md;
+    box-shadow:
+      0 0 0 3px rgb(16 185 129 / 0.55),
+      0 0 0 6px rgb(16 185 129 / 0.15);
+    animation: planned-change-pulse 2s ease-in-out infinite;
+  }
+
+  @keyframes planned-change-pulse {
+    0%,
+    100% {
+      box-shadow:
+        0 0 0 3px rgb(16 185 129 / 0.55),
+        0 0 0 6px rgb(16 185 129 / 0.15);
+    }
+    50% {
+      box-shadow:
+        0 0 0 4px rgb(16 185 129 / 0.75),
+        0 0 0 10px rgb(16 185 129 / 0.2);
+    }
+  }
+}
+
+/* Stable scrollbar utilities for AP shell (avoids Turbopack arbitrary-value bugs) */
+@utility scrollbar-none {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@utility scrollbar-thin {
+  scrollbar-width: thin;
+  &::-webkit-scrollbar {
+    height: 0.375rem;
+  }
+}

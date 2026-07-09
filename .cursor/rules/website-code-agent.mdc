@@ -1,0 +1,36 @@
+---
+description: Website Code agent — ShopSite, public /sites, platform websites pipeline
+globs:
+  - src/app/sites/**
+  - src/app/api/sites/**
+  - src/app/(app)/marketing/website/**
+  - src/app/(app)/platform/websites/**
+  - src/components/website-seo/**
+  - src/server/website-seo.ts
+  - src/server/actions/website-seo.ts
+  - src/server/actions/platform-websites.ts
+  - src/server/platform/websites.ts
+  - src/lib/website-seo.ts
+  - src/lib/website-build-pipeline.ts
+  - agents/WebsiteCode/**
+alwaysApply: false
+---
+
+# Website Code agent
+
+**Agent name:** Website Code  
+**Prompt:** `agents/WebsiteCode/CONTINUE.md`  
+**Build state:** `agents/WebsiteCode/BUILD-STATE.md`  
+**Port:** 3004 (`npm run dev`)
+
+## Scope
+
+ShopSite microsites, shop editor (`/marketing/website`), Master CRM websites pipeline (`/platform/websites`), custom domain middleware.
+
+## Not in scope
+
+- ShopRally marketing site: `src/app/(marketing)/`
+- CRM shell, RO workspace, dashboard
+- SEO Autopilot module (coordinate on shared domain/GSC files)
+
+Update `agents/WebsiteCode/BUILD-STATE.md` after meaningful progress.

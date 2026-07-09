@@ -1,0 +1,47 @@
+import { ShopAuditEventType } from "@/generated/prisma";
+
+const LABELS: Record<ShopAuditEventType, string> = {
+  [ShopAuditEventType.ESTIMATE_JOB_ADDED]: "Job added",
+  [ShopAuditEventType.ESTIMATE_JOB_UPDATED]: "Job updated",
+  [ShopAuditEventType.ESTIMATE_JOB_DELETED]: "Job deleted",
+  [ShopAuditEventType.ESTIMATE_JOB_SAVED]: "Job saved",
+  [ShopAuditEventType.ESTIMATE_LINE_ADDED]: "Line added",
+  [ShopAuditEventType.ESTIMATE_LINE_UPDATED]: "Line updated",
+  [ShopAuditEventType.ESTIMATE_LINE_DELETED]: "Line deleted",
+  [ShopAuditEventType.ESTIMATE_AUTHORIZATION_CHANGED]: "Authorization changed",
+  [ShopAuditEventType.ESTIMATE_FEE_ADDED]: "Fee added",
+  [ShopAuditEventType.ESTIMATE_FEE_UPDATED]: "Fee updated",
+  [ShopAuditEventType.ESTIMATE_FEE_DELETED]: "Fee deleted",
+  [ShopAuditEventType.ESTIMATE_DISCOUNT_ADDED]: "Discount added",
+  [ShopAuditEventType.ESTIMATE_DISCOUNT_UPDATED]: "Discount updated",
+  [ShopAuditEventType.ESTIMATE_DISCOUNT_DELETED]: "Discount deleted",
+  [ShopAuditEventType.PAYMENT_RECORDED]: "Payment recorded",
+  [ShopAuditEventType.PAYMENT_CHECKOUT_STARTED]: "Checkout started",
+  [ShopAuditEventType.PAYMENT_REFUND_REQUESTED]: "Refund requested",
+  [ShopAuditEventType.CUSTOMER_CREATED]: "Customer created",
+  [ShopAuditEventType.CUSTOMER_UPDATED]: "Customer updated",
+  [ShopAuditEventType.CUSTOMER_DELETED]: "Customer deleted",
+  [ShopAuditEventType.CUSTOMER_ANONYMIZED]: "Customer anonymized",
+  [ShopAuditEventType.CUSTOMER_EXPORTED]: "Customer export",
+  [ShopAuditEventType.CONSENT_GRANTED]: "Consent granted",
+  [ShopAuditEventType.CONSENT_REVOKED]: "Consent revoked",
+  [ShopAuditEventType.MARKETING_OPT_IN_CHANGED]: "Marketing opt-in changed",
+  [ShopAuditEventType.ESTIMATE_APPROVED_BY_CUSTOMER]: "Customer approved estimate",
+  [ShopAuditEventType.ESTIMATE_LINK_CREATED]: "Estimate link created",
+  [ShopAuditEventType.ESTIMATE_LINK_REVOKED]: "Estimate link revoked",
+  [ShopAuditEventType.INVOICE_LINK_CREATED]: "Invoice link created",
+  [ShopAuditEventType.INVOICE_LINK_REVOKED]: "Invoice link revoked",
+  [ShopAuditEventType.DEPOSIT_REQUEST_CREATED]: "Deposit request created",
+  [ShopAuditEventType.DEPOSIT_REQUEST_SENT]: "Deposit link sent",
+  [ShopAuditEventType.DEPOSIT_PAID]: "Deposit received",
+  [ShopAuditEventType.SMS_SENT]: "SMS sent",
+  [ShopAuditEventType.CAMPAIGN_LAUNCHED]: "Campaign launched",
+  [ShopAuditEventType.SETTINGS_CHANGED]: "Settings changed",
+  [ShopAuditEventType.EMPLOYEE_ROLE_CHANGED]: "Employee role changed",
+  [ShopAuditEventType.RETENTION_JOB_RUN]: "Retention job",
+  [ShopAuditEventType.DSAR_EXPORT]: "Data export request",
+};
+
+export function shopAuditEventLabel(type: ShopAuditEventType): string {
+  return LABELS[type] ?? type.replace(/_/g, " ").toLowerCase();
+}

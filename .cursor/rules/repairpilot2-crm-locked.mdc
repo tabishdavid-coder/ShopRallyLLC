@@ -1,0 +1,13 @@
+---
+description: Deprecated — see dev-3004-shoprally-crm.mdc
+globs: shoprally/**/*
+alwaysApply: false
+---
+
+# Deprecated
+
+This rule is superseded by **`dev-3004-shoprally-crm.mdc`**.
+
+Dev 3004 (ShopRallyCRM) uses `AppSidebar` + `TopBar` + `NAV_GROUPS` on port **3004**.
+
+See `agents/ShopRallyCRM/CONTINUE.md` for the active agent prompt.

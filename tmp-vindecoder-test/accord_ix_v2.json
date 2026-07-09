@@ -1,0 +1,357 @@
+ {
+    "success": true,
+    "timestamp": "2026-07-08T02:46:01+00:00",
+    "api_version": "2.0",
+    "data": [
+        {
+            "typeName": "1.6 EX (AC)",
+            "typeYears": "09.1983 - 10.1985",
+            "fullTitle": "HONDA ACCORD II (AC, AD) 1.6 EX (AC)"
+        },
+        {
+            "typeName": "1.6 EX (AC)",
+            "typeYears": "09.1983 - 10.1985",
+            "fullTitle": "HONDA ACCORD II Hatchback (AC, AD) 1.6 EX (AC)"
+        },
+        {
+            "typeName": "1.6 i (CG7)",
+            "typeYears": "10.1998 - 12.2002",
+            "fullTitle": "HONDA ACCORD VI (CK, CG, CH, CF8) 1.6 i (CG7)"
+        },
+        {
+            "typeName": "1.6 L (CA4)",
+            "typeYears": "11.1985 - 12.1989",
+            "fullTitle": "HONDA ACCORD III Aerodeck (CA) 1.6 L (CA4)"
+        },
+        {
+            "typeName": "1.6 L (CA4)",
+            "typeYears": "11.1985 - 12.1989",
+            "fullTitle": "HONDA ACCORD III (CA) 1.6 L (CA4)"
+        },
+        {
+            "typeName": "1.6 L\/EX (SJ, SY)",
+            "typeYears": "01.1979 - 09.1983",
+            "fullTitle": "HONDA ACCORD I Hatchback (SJ, SY) 1.6 L\/EX (SJ, SY)"
+        },
+        {
+            "typeName": "1.6 L\/EX (SY)",
+            "typeYears": "01.1978 - 09.1983",
+            "fullTitle": "HONDA ACCORD I (SJ, SY) 1.6 L\/EX (SY)"
+        },
+        {
+            "typeName": "1.6 LS (CG7)",
+            "typeYears": "10.1998 - 12.2002",
+            "fullTitle": "HONDA ACCORD VI (CK, CG, CH, CF8) 1.6 LS (CG7)"
+        },
+        {
+            "typeName": "1.8 EX (AD)",
+            "typeYears": "09.1983 - 10.1985",
+            "fullTitle": "HONDA ACCORD II (AC, AD) 1.8 EX (AD)"
+        },
+        {
+            "typeName": "1.8 EX (AD)",
+            "typeYears": "09.1983 - 10.1985",
+            "fullTitle": "HONDA ACCORD II Hatchback (AC, AD) 1.8 EX (AD)"
+        },
+        {
+            "typeName": "1.8 i (CG8)",
+            "typeYears": "10.1998 - 12.2002",
+            "fullTitle": "HONDA ACCORD VI (CK, CG, CH, CF8) 1.8 i (CG8)"
+        },
+        {
+            "typeName": "1.8 i (CH6)",
+            "typeYears": "12.1999 - 12.2002",
+            "fullTitle": "HONDA ACCORD VI Hatchback (CH, CL) 1.8 i (CH6)"
+        },
+        {
+            "typeName": "1.9 i (CE7)",
+            "typeYears": "02.1996 - 10.1998",
+            "fullTitle": "HONDA ACCORD V (CE, CF_) 1.9 i (CE7)"
+        },
+        {
+            "typeName": "2.0 (CD9)",
+            "typeYears": "09.1993 - 12.1997",
+            "fullTitle": "HONDA ACCORD V купе (CD) 2.0 (CD9)"
+        },
+        {
+            "typeName": "2.0 (CH7)",
+            "typeYears": "12.1999 - 12.2002",
+            "fullTitle": "HONDA ACCORD VI Hatchback (CH, CL) 2.0 (CH7)"
+        },
+        {
+            "typeName": "2.0 (CL7)",
+            "typeYears": "02.2003 - 05.2008",
+            "fullTitle": "HONDA ACCORD VII (CL, CN) 2.0 (CL7)"
+        },
+        {
+            "typeName": "2.0 (CM1)",
+            "typeYears": "04.2003 - 05.2008",
+            "fullTitle": "HONDA ACCORD VII Tourer (CM, CN) 2.0 (CM1)"
+        },
+        {
+            "typeName": "2.0 16V (CB3)",
+            "typeYears": "01.1990 - 03.1993",
+            "fullTitle": "HONDA ACCORD IV (CB) 2.0 16V (CB3)"
+        },
+        {
+            "typeName": "2.0 16V (CB3)",
+            "typeYears": "01.1990 - 03.1993",
+            "fullTitle": "HONDA ACCORD IV (CB) 2.0 16V (CB3)"
+        },
+        {
+            "typeName": "2.0 EX",
+            "typeYears": "10.1987 - 12.1989",
+            "fullTitle": "HONDA ACCORD III Aerodeck (CA) 2.0 EX"
+        },
+        {
+            "typeName": "2.0 EX (CA5)",
+            "typeYears": "10.1987 - 12.1989",
+            "fullTitle": "HONDA ACCORD III Aerodeck (CA) 2.0 EX (CA5)"
+        },
+        {
+            "typeName": "2.0 EX (CA5)",
+            "typeYears": "11.1985 - 05.1989",
+            "fullTitle": "HONDA ACCORD III Aerodeck (CA) 2.0 EX (CA5)"
+        },
+        {
+            "typeName": "2.0 EX (CA5)",
+            "typeYears": "11.1985 - 05.1989",
+            "fullTitle": "HONDA ACCORD III (CA) 2.0 EX (CA5)"
+        },
+        {
+            "typeName": "2.0 EX (CA5)",
+            "typeYears": "11.1985 - 12.1989",
+            "fullTitle": "HONDA ACCORD III (CA) 2.0 EX (CA5)"
+        },
+        {
+            "typeName": "2.0 EX (CA5)",
+            "typeYears": "11.1985 - 12.1989",
+            "fullTitle": "HONDA ACCORD III (CA) 2.0 EX (CA5)"
+        },
+        {
+            "typeName": "2.0 EXi (CA5)",
+            "typeYears": "01.1986 - 12.1989",
+            "fullTitle": "HONDA ACCORD III (CA) 2.0 EXi (CA5)"
+        },
+        {
+            "typeName": "2.0 EXi (CA5)",
+            "typeYears": "10.1987 - 12.1989",
+            "fullTitle": "HONDA ACCORD III Aerodeck (CA) 2.0 EXi (CA5)"
+        },
+        {
+            "typeName": "2.0 EXi (CA5)",
+            "typeYears": "11.1985 - 12.1987",
+            "fullTitle": "HONDA ACCORD III Aerodeck (CA) 2.0 EXi (CA5)"
+        },
+        {
+            "typeName": "2.0 EXi (CA5)",
+            "typeYears": "11.1985 - 12.1987",
+            "fullTitle": "HONDA ACCORD III (CA) 2.0 EXi (CA5)"
+        },
+        {
+            "typeName": "2.0 i",
+            "typeYears": "03.1993 - 01.1996",
+            "fullTitle": "HONDA ACCORD V (CC, CD) 2.0 i"
+        },
+        {
+            "typeName": "2.0 i",
+            "typeYears": "07.2008 - 12.2018",
+            "fullTitle": "HONDA ACCORD VIII универсал (CW) 2.0 i"
+        },
+        {
+            "typeName": "2.0 i (CG9)",
+            "typeYears": "10.1998 - 01.2001",
+            "fullTitle": "HONDA ACCORD VI (CK, CG, CH, CF8) 2.0 i (CG9)"
+        },
+        {
+            "typeName": "2.0 i (CU1)",
+            "typeYears": "06.2008 - 06.2015",
+            "fullTitle": "HONDA ACCORD VIII (CU) 2.0 i (CU1)"
+        },
+        {
+            "typeName": "2.0 i (CW1)",
+            "typeYears": "07.2008 - 12.2018",
+            "fullTitle": "HONDA ACCORD VIII универсал (CW) 2.0 i (CW1)"
+        },
+        {
+            "typeName": "2.0 i 16V",
+            "typeYears": "02.1998 - 06.2003",
+            "fullTitle": "HONDA ACCORD VI купе (CG) 2.0 i 16V"
+        },
+        {
+            "typeName": "2.0 i 16V (CA5)",
+            "typeYears": "01.1987 - 12.1987",
+            "fullTitle": "HONDA ACCORD III (CA) 2.0 i 16V (CA5)"
+        },
+        {
+            "typeName": "2.0 i 16V (CA5)",
+            "typeYears": "10.1987 - 12.1989",
+            "fullTitle": "HONDA ACCORD III (CA) 2.0 i 16V (CA5)"
+        },
+        {
+            "typeName": "2.0 i 16V (CB3)",
+            "typeYears": "01.1990 - 03.1993",
+            "fullTitle": "HONDA ACCORD IV (CB) 2.0 i 16V (CB3)"
+        },
+        {
+            "typeName": "2.0 i 16V (CC1)",
+            "typeYears": "01.1992 - 09.1993",
+            "fullTitle": "HONDA ACCORD IV купе (CB, CC) 2.0 i 16V (CC1)"
+        },
+        {
+            "typeName": "2.0 i 16V (CC9)",
+            "typeYears": "03.1993 - 12.1993",
+            "fullTitle": "HONDA ACCORD IV Aerodeck (CB) 2.0 i 16V (CC9)"
+        },
+        {
+            "typeName": "2.0 i LS (CE8)",
+            "typeYears": "02.1996 - 10.1998",
+            "fullTitle": "HONDA ACCORD V (CE, CF_) 2.0 i LS (CE8)"
+        },
+        {
+            "typeName": "2.0 i LS 16V (CE2)",
+            "typeYears": "09.1993 - 02.1998",
+            "fullTitle": "HONDA ACCORD V Aerodeck (CE) 2.0 i LS 16V (CE2)"
+        },
+        {
+            "typeName": "2.0 i S",
+            "typeYears": "03.1993 - 01.1996",
+            "fullTitle": "HONDA ACCORD V (CC, CD) 2.0 i S"
+        },
+        {
+            "typeName": "2.0 TDi (CF1)",
+            "typeYears": "04.1996 - 10.1998",
+            "fullTitle": "HONDA ACCORD V (CE, CF_) 2.0 TDi (CF1)"
+        },
+        {
+            "typeName": "2.0 TDi (CH8)",
+            "typeYears": "12.1999 - 10.2000",
+            "fullTitle": "HONDA ACCORD VI Hatchback (CH, CL) 2.0 TDi (CH8)"
+        },
+        {
+            "typeName": "2.0 Turbo DI (CH2)",
+            "typeYears": "02.1999 - 12.2002",
+            "fullTitle": "HONDA ACCORD VI (CK, CG, CH, CF8) 2.0 Turbo DI (CH2)"
+        },
+        {
+            "typeName": "2.0 Привод на все колеса (CL8)",
+            "typeYears": "02.2003 - 05.2008",
+            "fullTitle": "HONDA ACCORD VII (CL, CN) 2.0 Привод на все колеса (CL8)"
+        },
+        {
+            "typeName": "2.2 i 16V (CB7)",
+            "typeYears": "01.1990 - 03.1993",
+            "fullTitle": "HONDA ACCORD IV (CB) 2.2 i 16V (CB7)"
+        },
+        {
+            "typeName": "2.2 i 16V (CB8)",
+            "typeYears": "01.1991 - 12.1993",
+            "fullTitle": "HONDA ACCORD IV Aerodeck (CB) 2.2 i 16V (CB8)"
+        },
+        {
+            "typeName": "2.2 i 16V (CB8)",
+            "typeYears": "01.1991 - 12.1993",
+            "fullTitle": "HONDA ACCORD IV Aerodeck (CB) 2.2 i 16V (CB8)"
+        },
+        {
+            "typeName": "2.2 i 16V Automatik (CB7)",
+            "typeYears": "01.1990 - 03.1993",
+            "fullTitle": "HONDA ACCORD IV (CB) 2.2 i 16V Automatik (CB7)"
+        },
+        {
+            "typeName": "2.2 i ES (CD7)",
+            "typeYears": "09.1993 - 02.1998",
+            "fullTitle": "HONDA ACCORD V купе (CD) 2.2 i ES (CD7)"
+        },
+        {
+            "typeName": "2.2 i ES (CE1)",
+            "typeYears": "09.1993 - 02.1998",
+            "fullTitle": "HONDA ACCORD V Aerodeck (CE) 2.2 i ES (CE1)"
+        },
+        {
+            "typeName": "2.2 i VTEC (CE9)",
+            "typeYears": "02.1996 - 10.1998",
+            "fullTitle": "HONDA ACCORD V (CE, CF_) 2.2 i VTEC (CE9)"
+        },
+        {
+            "typeName": "2.2 i-CTDi (CN1)",
+            "typeYears": "01.2004 - 05.2008",
+            "fullTitle": "HONDA ACCORD VII (CL, CN) 2.2 i-CTDi (CN1)"
+        },
+        {
+            "typeName": "2.2 i-CTDi (CN2)",
+            "typeYears": "01.2004 - 05.2008",
+            "fullTitle": "HONDA ACCORD VII Tourer (CM, CN) 2.2 i-CTDi (CN2)"
+        },
+        {
+            "typeName": "2.2 i-DTEC (CU3)",
+            "typeYears": "07.2008 - 06.2015",
+            "fullTitle": "HONDA ACCORD VIII (CU) 2.2 i-DTEC (CU3)"
+        },
+        {
+            "typeName": "2.2 i-DTEC (CU3)",
+            "typeYears": "07.2008 - 06.2015",
+            "fullTitle": "HONDA ACCORD VIII (CU) 2.2 i-DTEC (CU3)"
+        },
+        {
+            "typeName": "2.2 i-DTEC (CW3)",
+            "typeYears": "07.2008 - 12.2018",
+            "fullTitle": "HONDA ACCORD VIII универсал (CW) 2.2 i-DTEC (CW3)"
+        },
+        {
+            "typeName": "2.2 i-DTEC (CW3)",
+            "typeYears": "07.2008 - 12.2018",
+            "fullTitle": "HONDA ACCORD VIII универсал (CW) 2.2 i-DTEC (CW3)"
+        },
+        {
+            "typeName": "2.2 Type-R (CH1)",
+            "typeYears": "02.1999 - 12.2002",
+            "fullTitle": "HONDA ACCORD VI (CK, CG, CH, CF8) 2.2 Type-R (CH1)"
+        },
+        {
+            "typeName": "2.3 (CL3)",
+            "typeYears": "01.2001 - 06.2003",
+            "fullTitle": "HONDA ACCORD VI (CK, CG, CH, CF8) 2.3 (CL3)"
+        },
+        {
+            "typeName": "2.3 (CL4)",
+            "typeYears": "11.2000 - 12.2002",
+            "fullTitle": "HONDA ACCORD VI Hatchback (CH, CL) 2.3 (CL4)"
+        },
+        {
+            "typeName": "2.3 i SR",
+            "typeYears": "03.1993 - 01.1996",
+            "fullTitle": "HONDA ACCORD V (CC, CD) 2.3 i SR"
+        },
+        {
+            "typeName": "2.4",
+            "typeYears": "07.2014 - 12.2018",
+            "fullTitle": "HONDA ACCORD IX седан (CR) 2.4"
+        },
+        {
+            "typeName": "2.4 (CL9)",
+            "typeYears": "02.2003 - 05.2008",
+            "fullTitle": "HONDA ACCORD VII (CL, CN) 2.4 (CL9)"
+        },
+        {
+            "typeName": "2.4 (CM2)",
+            "typeYears": "04.2003 - 05.2008",
+            "fullTitle": "HONDA ACCORD VII Tourer (CM, CN) 2.4 (CM2)"
+        },
+        {
+            "typeName": "2.4 i (CU2)",
+            "typeYears": "07.2008 - 06.2015",
+            "fullTitle": "HONDA ACCORD VIII (CU) 2.4 i (CU2)"
+        },
+        {
+            "typeName": "2.4 i (CW2)",
+            "typeYears": "07.2008 - 12.2018",
+            "fullTitle": "HONDA ACCORD VIII универсал (CW) 2.4 i (CW2)"
+        },
+        {
+            "typeName": "3.0 V6 24V (CG2)",
+            "typeYears": "02.1998 - 06.2003",
+            "fullTitle": "HONDA ACCORD VI купе (CG) 3.0 V6 24V (CG2)"
+        }
+    ]
+}
