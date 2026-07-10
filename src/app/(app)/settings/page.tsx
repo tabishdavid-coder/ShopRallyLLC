@@ -1,11 +1,9 @@
-import { notFound } from "next/navigation";
+import type { Metadata } from "next";
 
-import { ShopProfile } from "@/components/settings/shop-profile";
-import { getShopProfile } from "@/server/shop-profile";
+import { SettingsOverview } from "@/components/settings/settings-overview";
 
-export default async function ShopProfilePage() {
-  const shop = await getShopProfile();
-  if (!shop) notFound();
+export const metadata: Metadata = { title: "Shop Settings — ShopRally" };
 
-  return <ShopProfile shop={shop} />;
+export default function SettingsOverviewPage() {
+  return <SettingsOverview />;
 }

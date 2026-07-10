@@ -8,8 +8,8 @@ const globalForPrisma = globalThis as unknown as {
   prismaSchemaRevision?: number;
 };
 
-/** Bump when generated client shape changes (e.g. LaborOperation vehicle fields). */
-const PRISMA_SCHEMA_REVISION = 8;
+/** Bump when generated client shape changes (e.g. Shop.apptWeeklyHours). */
+const PRISMA_SCHEMA_REVISION = 10;
 
 function withDevPoolParams(url: string): string {
   if (process.env.NODE_ENV !== "development") return url;

@@ -72,6 +72,7 @@ export function AppointmentsView({
           weekStartIso={weekStartIso}
           dayStart={settings.apptDayStart}
           dayEnd={settings.apptDayEnd}
+          weeklyHours={settings.weeklyHours}
           appointments={appointments}
           selectedId={selectedId}
           onSelect={openDetail}

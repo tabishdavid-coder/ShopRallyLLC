@@ -120,7 +120,7 @@ export function SupportWidget() {
     });
   }
 
-  // Hide on /messages — composer + send button sit bottom-right and overlap this FAB.
+  // Hide on dedicated /messages page only. RO chat stacks above this FAB (see ro-messages).
   if (pathname.startsWith("/messages")) {
     return null;
   }

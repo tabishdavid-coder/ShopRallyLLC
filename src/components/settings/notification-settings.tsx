@@ -38,11 +38,16 @@ export function NotificationSettingsPanel({ initial }: { initial: NotificationSe
 
   return (
     <div className="max-w-3xl space-y-6">
-      <div>
-        <h2 className="text-lg font-semibold">Notifications</h2>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Control in-app alerts and where ShopRally sends shop emails when customers take action.
-        </p>
+      <div className="flex items-start gap-3">
+        <span className="flex size-8 shrink-0 items-center justify-center rounded-md bg-brand-navy/8 text-brand-navy">
+          <Bell className="size-4" aria-hidden />
+        </span>
+        <div>
+          <h2 className="text-base font-semibold">Notifications</h2>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Control in-app alerts and where ShopRally sends shop emails when customers take action.
+          </p>
+        </div>
       </div>
 
       <div className="rounded-lg border bg-card p-4 shadow-sm">

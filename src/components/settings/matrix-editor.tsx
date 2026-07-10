@@ -2,7 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Pencil, Trash2, Loader2, Check, X } from "lucide-react";
+import { Plus, Pencil, Trash2, Loader2, Check, X, Package, Wrench, type LucideIcon } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -26,6 +26,7 @@ const num = (s: string) => (s.trim() === "" ? null : parseFloat(s));
 export function PartsMatrixEditor({ tiers }: { tiers: PartTierRow[] }) {
   return (
     <MatrixTable
+      icon={Package}
       title="Parts Matrix"
       caption="Auto-applied when adding parts to estimates. Retail = cost × multiplier for the matching cost range."
       unit="$"
@@ -58,6 +59,7 @@ export function PartsMatrixEditor({ tiers }: { tiers: PartTierRow[] }) {
 export function LaborMatrixEditor({ tiers }: { tiers: LaborTierRow[] }) {
   return (
     <MatrixTable
+      icon={Wrench}
       title="Labor Matrix"
       caption="Applied to Labor Book hours when imported. Rate = base rate × multiplier for the matching hours range."
       unit="hrs"
@@ -81,6 +83,7 @@ export function LaborMatrixEditor({ tiers }: { tiers: LaborTierRow[] }) {
 type Row = { id: string; min: string; max: string; multiplier: number };
 
 function MatrixTable({
+  icon: Icon,
   title,
   caption,
   unit,
@@ -90,6 +93,7 @@ function MatrixTable({
   onUpdate,
   onDelete,
 }: {
+  icon?: LucideIcon;
   title: string;
   caption: string;
   unit: string;
@@ -145,9 +149,16 @@ function MatrixTable({
 
   return (
     <div className="rounded-lg border bg-card">
-      <div className="border-b px-4 py-3">
-        <h3 className="font-semibold">{title}</h3>
-        <p className="text-xs text-muted-foreground">{caption}</p>
+      <div className="flex items-start gap-3 border-b px-4 py-3">
+        {Icon ? (
+          <span className="flex size-8 shrink-0 items-center justify-center rounded-md bg-brand-navy/8 text-brand-navy">
+            <Icon className="size-4" aria-hidden />
+          </span>
+        ) : null}
+        <div>
+          <h3 className="font-semibold">{title}</h3>
+          <p className="text-xs text-muted-foreground">{caption}</p>
+        </div>
       </div>
       <table className="w-full text-sm">
         <thead>

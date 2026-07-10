@@ -12,6 +12,7 @@ import {
   parseTimeToMinutes,
   toDateInputValue,
 } from "@/lib/appointments";
+import { dateToBookingDayKey, type ApptWeeklyHours } from "@/lib/appt-hours";
 import type { AppointmentRow } from "@/server/appointments";
 
 const HOUR_HEIGHT = 56;
@@ -21,6 +22,7 @@ export function AppointmentsWeekCalendar({
   weekStartIso,
   dayStart,
   dayEnd,
+  weeklyHours,
   appointments,
   selectedId,
   onSelect,
@@ -29,6 +31,7 @@ export function AppointmentsWeekCalendar({
   weekStartIso: string;
   dayStart: string;
   dayEnd: string;
+  weeklyHours?: ApptWeeklyHours;
   appointments: AppointmentRow[];
   selectedId: string | null;
   onSelect: (id: string) => void;
@@ -69,6 +72,11 @@ export function AppointmentsWeekCalendar({
     return map;
   }, [appointments, days]);
 
+  function dayOpen(day: Date): boolean {
+    if (!weeklyHours) return true;
+    return weeklyHours[dateToBookingDayKey(day)]?.enabled ?? true;
+  }
+
   function blockStyle(a: AppointmentRow) {
     const start = new Date(a.startAt);
     const end = new Date(a.endAt);
@@ -80,7 +88,7 @@ export function AppointmentsWeekCalendar({
   }
 
   function handleDayClick(event: React.MouseEvent<HTMLDivElement>, day: Date) {
-    if (!onBookSlot) return;
+    if (!onBookSlot || !dayOpen(day)) return;
     const rect = event.currentTarget.getBoundingClientRect();
     const y = event.clientY - rect.top;
     const ratio = Math.min(Math.max(y / gridHeight, 0), 1);
@@ -97,18 +105,27 @@ export function AppointmentsWeekCalendar({
         {days.map((day) => {
           const { dow, md } = formatDayHeader(day);
           const isToday = isSameDay(day, today);
+          const open = dayOpen(day);
           return (
             <div
               key={day.toISOString()}
               className={cn(
                 "border-r border-brand-light/20 px-2 py-2 text-center last:border-r-0",
                 isToday && "bg-brand-light/15",
+                !open && "bg-muted/40",
               )}
             >
               <div className="text-xs text-muted-foreground">{dow}</div>
-              <div className={cn("text-sm font-semibold", isToday && "text-brand-navy")}>
+              <div
+                className={cn(
+                  "text-sm font-semibold",
+                  isToday && "text-brand-navy",
+                  !open && "text-muted-foreground",
+                )}
+              >
                 {md}
               </div>
+              {!open ? <div className="text-[10px] text-muted-foreground">Closed</div> : null}
             </div>
           );
         })}
@@ -129,18 +146,26 @@ export function AppointmentsWeekCalendar({
 
         {days.map((day, dayIdx) => {
           const isToday = isSameDay(day, today);
+          const open = dayOpen(day);
           return (
             <div
               key={day.toISOString()}
               className={cn(
                 "relative border-r border-brand-light/20 last:border-r-0",
-                isToday && "bg-brand-light/10",
-                onBookSlot && "cursor-pointer",
+                isToday && open && "bg-brand-light/10",
+                !open && "bg-muted/30",
+                onBookSlot && open && "cursor-pointer",
               )}
               style={{ height: gridHeight }}
               onClick={(e) => handleDayClick(e, day)}
-              role={onBookSlot ? "button" : undefined}
-              aria-label={onBookSlot ? `Book appointment on ${day.toLocaleDateString()}` : undefined}
+              role={onBookSlot && open ? "button" : undefined}
+              aria-label={
+                onBookSlot && open
+                  ? `Book appointment on ${day.toLocaleDateString()}`
+                  : !open
+                    ? `Closed ${day.toLocaleDateString()}`
+                    : undefined
+              }
             >
               {hours.map((m) => (
                 <div

@@ -4,6 +4,7 @@ import { prisma } from "@/db/client";
 import { getRepairOrder } from "@/server/repair-order";
 import { getShopId } from "@/lib/shop";
 import { PrintDocument } from "@/components/print/print-document";
+import { PrintRoLabel } from "@/components/print/print-ro-label";
 import { resolveTransparency, type DocTransparency } from "@/lib/transparency";
 import {
   resolveShopEstimateTerms,
@@ -17,6 +18,7 @@ const DOC_TITLES: Record<string, string> = {
   estimate: "Estimate",
   invoice: "Invoice",
   "repair-order": "Repair Order",
+  label: "RO Label",
 };
 
 export default async function PrintPage({
@@ -52,6 +54,10 @@ export default async function PrintPage({
       invoiceTermsHtml: true,
     },
   });
+
+  if (doc === "label") {
+    return <PrintRoLabel ro={ro} shop={shop} />;
+  }
 
   // The internal "repair-order" copy always shows everything; estimate/invoice
   // honor the shop's transparency settings.

@@ -2,7 +2,7 @@
 
 import type { ReactNode } from "react";
 import Link from "next/link";
-import { Printer, FileText, ClipboardList, Receipt, Camera, SlidersHorizontal } from "lucide-react";
+import { Printer, FileText, ClipboardList, Receipt, Camera, SlidersHorizontal, Tag } from "lucide-react";
 
 import {
   DropdownMenu,
@@ -11,6 +11,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { openRoLabelPrint } from "@/lib/ro-label";
 import { cn } from "@/lib/utils";
 
 type PrintMenuProps = {
@@ -52,6 +53,9 @@ export function PrintMenu({
         </DropdownMenuItem>
         <DropdownMenuItem onSelect={() => open("invoice")}>
           <Receipt className="size-4" /> Print Invoice
+        </DropdownMenuItem>
+        <DropdownMenuItem onSelect={() => openRoLabelPrint(roId)}>
+          <Tag className="size-4" /> Print RO Label
         </DropdownMenuItem>
         <DropdownMenuItem disabled title="Inspection print with images — coming soon">
           <Camera className="size-4" /> Print Inspection w/ Images

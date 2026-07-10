@@ -91,15 +91,20 @@ export function EmailSettingsPanel({ initial }: { initial: EmailSettings }) {
 
   return (
     <div className="max-w-3xl space-y-6">
-      <div>
-        <div className="flex flex-wrap items-center gap-2">
-          <h2 className="text-lg font-semibold">Email</h2>
-          <Badge variant={setupMeta.variant}>{setupMeta.label}</Badge>
+      <div className="flex items-start gap-3">
+        <span className="flex size-8 shrink-0 items-center justify-center rounded-md bg-brand-navy/8 text-brand-navy">
+          <Mail className="size-4" aria-hidden />
+        </span>
+        <div>
+          <div className="flex flex-wrap items-center gap-2">
+            <h2 className="text-base font-semibold">Email</h2>
+            <Badge variant={setupMeta.variant}>{setupMeta.label}</Badge>
+          </div>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Send estimates, invoices, maintenance plan links, and campaigns from your shop&apos;s own
+            email address — not a generic ShopRally address.
+          </p>
         </div>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Send estimates, invoices, maintenance plan links, and campaigns from your shop&apos;s own
-          email address — not a generic ShopRally address.
-        </p>
       </div>
 
       <div className="rounded-lg border bg-card p-4 shadow-sm">

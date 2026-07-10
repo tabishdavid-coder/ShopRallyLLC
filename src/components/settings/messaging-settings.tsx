@@ -139,15 +139,20 @@ export function MessagingSettingsPanel({ initial }: { initial: MessagingSettings
 
   return (
     <div className="max-w-3xl space-y-6">
-      <div>
-        <div className="flex flex-wrap items-center gap-2">
-          <h2 className="text-lg font-semibold">Phone &amp; SMS</h2>
-          <Badge variant={setupMeta.variant}>{setupMeta.label}</Badge>
+      <div className="flex items-start gap-3">
+        <span className="flex size-8 shrink-0 items-center justify-center rounded-md bg-brand-navy/8 text-brand-navy">
+          <MessageSquare className="size-4" aria-hidden />
+        </span>
+        <div>
+          <div className="flex flex-wrap items-center gap-2">
+            <h2 className="text-base font-semibold">Phone &amp; SMS</h2>
+            <Badge variant={setupMeta.variant}>{setupMeta.label}</Badge>
+          </div>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Managed by ShopRally platform — your shop number, isolated from other shops. Inbound texts
+            route to this shop only; outbound CRM texts send from your assigned Twilio number.
+          </p>
         </div>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Managed by ShopRally platform — your shop number, isolated from other shops. Inbound texts
-          route to this shop only; outbound CRM texts send from your assigned Twilio number.
-        </p>
       </div>
 
       <div className="rounded-lg border bg-card p-4 shadow-sm">
@@ -171,7 +176,16 @@ export function MessagingSettingsPanel({ initial }: { initial: MessagingSettings
         ) : null}
       </div>
 
-      <WizardSteps current={step} />
+      <WizardSteps
+        current={step}
+        onSelect={setStep}
+        completed={{
+          1: Boolean(twilio.trim() || initial.twilioPhoneNumber),
+          2: Boolean(twilio.trim() || initial.twilioPhoneNumber),
+          3: addendumAccepted,
+          4: smsEnabled,
+        }}
+      />
 
       {step === 1 ? (
         <div className="space-y-4 rounded-lg border bg-card p-4 shadow-sm">
@@ -524,31 +538,48 @@ export function MessagingSettingsPanel({ initial }: { initial: MessagingSettings
   );
 }
 
-function WizardSteps({ current }: { current: number }) {
+function WizardSteps({
+  current,
+  onSelect,
+  completed,
+}: {
+  current: number;
+  onSelect: (step: number) => void;
+  completed: Record<1 | 2 | 3 | 4, boolean>;
+}) {
   const steps = [
-    { n: 1, label: "Number" },
-    { n: 2, label: "Webhook" },
-    { n: 3, label: "Legal" },
-    { n: 4, label: "Enable" },
+    { n: 1 as const, label: "Number" },
+    { n: 2 as const, label: "Webhook" },
+    { n: 3 as const, label: "Legal" },
+    { n: 4 as const, label: "Enable" },
   ];
   return (
-    <ol className="flex gap-2">
+    <ol className="flex gap-2" aria-label="Phone & SMS setup steps">
       {steps.map((s) => {
-        const done = current > s.n;
+        const done = completed[s.n];
         const active = current === s.n;
         return (
-          <li
-            key={s.n}
-            className={`flex flex-1 items-center gap-2 rounded-md border px-3 py-2 text-sm ${
-              active ? "border-brand-navy bg-brand-navy/5 font-medium" : "border-border bg-card"
-            }`}
-          >
-            {done ? (
-              <CheckCircle2 className="size-4 text-emerald-600" />
-            ) : (
-              <Circle className={`size-4 ${active ? "text-brand-navy" : "text-muted-foreground"}`} />
-            )}
-            {s.label}
+          <li key={s.n} className="flex-1">
+            <button
+              type="button"
+              onClick={() => onSelect(s.n)}
+              aria-current={active ? "step" : undefined}
+              className={`flex w-full items-center gap-2 rounded-md border px-3 py-2 text-left text-sm transition-colors hover:border-brand-navy/40 hover:bg-brand-navy/5 ${
+                active
+                  ? "border-brand-navy bg-brand-navy/5 font-medium text-foreground"
+                  : "border-border bg-card text-foreground"
+              }`}
+            >
+              {done ? (
+                <CheckCircle2 className="size-4 shrink-0 text-emerald-600" aria-hidden />
+              ) : (
+                <Circle
+                  className={`size-4 shrink-0 ${active ? "text-brand-navy" : "text-muted-foreground"}`}
+                  aria-hidden
+                />
+              )}
+              {s.label}
+            </button>
           </li>
         );
       })}

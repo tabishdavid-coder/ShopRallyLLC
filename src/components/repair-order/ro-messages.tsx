@@ -1,20 +1,15 @@
 "use client";
 
 import { useEffect, useRef, useState, useTransition } from "react";
-import { MessageSquare, Send, Link2, Loader2 } from "lucide-react";
+import { createPortal } from "react-dom";
+import { MessageSquare, Send, Link2, Loader2, X, Minus } from "lucide-react";
 
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { SMS_ENABLED } from "@/lib/features";
 import type { MessageRow, SendResult } from "@/lib/messaging-types";
 import { getMessages, sendText, sendEstimateLink } from "@/server/actions/messaging";
+import { cn } from "@/lib/utils";
 
 function fmtTime(d: Date) {
   return new Date(d).toLocaleString("en-US", {
@@ -62,6 +57,8 @@ function RoMessagesPanel({
   const [internalOpen, setInternalOpen] = useState(false);
   const open = controlledOpen ?? internalOpen;
   const setOpen = controlledOnOpenChange ?? setInternalOpen;
+  const [minimized, setMinimized] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const [messages, setMessages] = useState<MessageRow[]>([]);
   const [body, setBody] = useState("");
   const [mode, setMode] = useState<"live" | "mock" | "fallback" | null>(null);
@@ -71,7 +68,19 @@ function RoMessagesPanel({
   const threadEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (!open) return;
+    setMounted(true);
+  }, []);
+
+  // Expanding when switching customer/RO (e.g. another job-board Chat click).
+  useEffect(() => {
+    setMinimized(false);
+  }, [customerId, roId]);
+
+  useEffect(() => {
+    if (!open) {
+      setMinimized(false);
+      return;
+    }
     setLoading(true);
     getMessages(customerId, roId)
       .then((m) => setMessages(m))
@@ -80,8 +89,8 @@ function RoMessagesPanel({
   }, [open, customerId, roId]);
 
   useEffect(() => {
-    if (open) threadEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, open]);
+    if (open && !minimized) threadEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, open, minimized]);
 
   function apply(res: SendResult) {
     if (res.messages) setMessages(res.messages);
@@ -105,31 +114,78 @@ function RoMessagesPanel({
     start(async () => apply(await sendEstimateLink(roId, "sms")));
   }
 
-  return (
-    <Dialog open={open} onOpenChange={setOpen}>
-      {hideTrigger ? null : (
-        <button
-          onClick={() => setOpen(true)}
-          aria-label="Messages"
-          title="Text customer"
-          className="rounded-md p-1 hover:bg-accent hover:text-foreground"
-        >
-          <MessageSquare className="size-4" />
-        </button>
-      )}
+  function close() {
+    setMinimized(false);
+    setOpen(false);
+  }
 
-      <DialogContent className="flex h-[600px] max-h-[85vh] flex-col gap-0 p-0 sm:max-w-md">
-        <DialogHeader className="border-b px-4 py-3">
-          <DialogTitle className="flex items-center gap-2 text-base">
-            {customerName}
-            {mode ? (
-              <Badge variant={mode === "live" ? "default" : "secondary"} className="text-[10px]">
-                {mode === "live" ? "SMS" : mode === "fallback" ? "Fallback" : "Mock (no live send)"}
-              </Badge>
-            ) : null}
-          </DialogTitle>
-          <DialogDescription>{customerPhone ?? "No phone number on file"}</DialogDescription>
-        </DialogHeader>
+  // Portal to body so `fixed` is viewport-correct (not clipped/offset by shell overflow
+  // or dnd-kit transforms on the job board).
+  const dock =
+    open && minimized ? (
+      <button
+        type="button"
+        onClick={() => setMinimized(false)}
+        className={cn(
+          // bottom-20 clears the Help FAB (~48px + bottom-5) so chip stacks above it
+          "fixed bottom-20 right-4 z-[70] flex max-w-[280px] items-center gap-2 rounded-md",
+          "border border-border bg-background px-3 py-2 text-left shadow-lg",
+          "ring-1 ring-foreground/10 hover:bg-accent"
+        )}
+        aria-label={`Expand chat with ${customerName}`}
+      >
+        <MessageSquare className="size-4 shrink-0 text-brand-navy" />
+        <span className="truncate text-sm font-medium">{customerName}</span>
+      </button>
+    ) : open && !minimized ? (
+      <div
+        role="dialog"
+        aria-modal="false"
+        aria-label={`Messages with ${customerName}`}
+        className={cn(
+          // Sit above Help FAB; leave ~5rem bottom + top breathing room in max-height
+          "fixed bottom-20 right-4 z-[70] flex w-[min(380px,calc(100vw-2rem))] flex-col overflow-hidden",
+          "h-[min(520px,calc(100vh-6.5rem))] max-h-[calc(100vh-6.5rem)] rounded-md border border-border",
+          "bg-background shadow-xl ring-1 ring-foreground/10"
+        )}
+      >
+        <div className="flex items-start justify-between gap-2 border-b px-4 py-3">
+          <div className="min-w-0">
+            <div className="flex items-center gap-2 text-base font-semibold leading-tight">
+              <span className="truncate">{customerName}</span>
+              {mode ? (
+                <Badge variant={mode === "live" ? "default" : "secondary"} className="shrink-0 text-[10px]">
+                  {mode === "live" ? "SMS" : mode === "fallback" ? "Fallback" : "Mock (no live send)"}
+                </Badge>
+              ) : null}
+            </div>
+            <p className="mt-0.5 text-sm text-muted-foreground">
+              {customerPhone ?? "No phone number on file"}
+            </p>
+          </div>
+          <div className="flex shrink-0 items-center gap-0.5">
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-sm"
+              onClick={() => setMinimized(true)}
+              aria-label="Minimize chat"
+              title="Minimize"
+            >
+              <Minus className="size-4" />
+            </Button>
+            <Button
+              type="button"
+              variant="ghost"
+              size="icon-sm"
+              onClick={close}
+              aria-label="Close chat"
+              title="Close"
+            >
+              <X className="size-4" />
+            </Button>
+          </div>
+        </div>
 
         {!marketingOptIn ? (
           <p className="border-b bg-amber-50 px-4 py-2 text-xs text-amber-900">
@@ -177,7 +233,13 @@ function RoMessagesPanel({
         {error ? <p className="border-t bg-destructive/10 px-4 py-1.5 text-xs text-destructive">{error}</p> : null}
 
         <div className="space-y-2 border-t p-3">
-          <Button variant="outline" size="sm" onClick={sendLink} disabled={pending || !customerPhone} className="w-full gap-1.5">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={sendLink}
+            disabled={pending || !customerPhone}
+            className="w-full gap-1.5"
+          >
             {pending ? <Loader2 className="size-4 animate-spin" /> : <Link2 className="size-4" />}
             Send estimate link
           </Button>
@@ -201,7 +263,26 @@ function RoMessagesPanel({
             </Button>
           </div>
         </div>
-      </DialogContent>
-    </Dialog>
+      </div>
+    ) : null;
+
+  return (
+    <>
+      {hideTrigger ? null : (
+        <button
+          type="button"
+          onClick={() => {
+            setMinimized(false);
+            setOpen(true);
+          }}
+          aria-label="Messages"
+          title="Text customer"
+          className="rounded-md p-1 hover:bg-accent hover:text-foreground"
+        >
+          <MessageSquare className="size-4" />
+        </button>
+      )}
+      {mounted && dock ? createPortal(dock, document.body) : null}
+    </>
   );
 }

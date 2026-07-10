@@ -10,6 +10,8 @@ This version has breaking changes — APIs, conventions, and file structure may 
 >
 > The sibling **`karvio/`** folder is a legacy platform fork — do not develop shop CRM there.
 
+**Design work:** For redesign / restyle / match-screenshot / fix-UI tasks, follow `.cursor/rules/design-quality-bar.mdc` (real visual upgrades, not incremental restyles).
+
 ## ShopRally marketing website — **primary** (2026-07-09)
 
 **Landing, pricing, features, launch, demo** → this repo only until the user says otherwise.

@@ -23,7 +23,7 @@ export default async function DashboardSnapshotPage({
 
   return (
     <Suspense fallback={null}>
-      <DailySnapshotView data={snapshot} widgets={widgets} />
+      <DailySnapshotView data={snapshot} widgets={widgets} shopId={shopId} />
     </Suspense>
   );
 }

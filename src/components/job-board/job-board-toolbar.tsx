@@ -24,6 +24,9 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import Link from "next/link";
+import { JobBoardAddColumnButton } from "@/components/job-board/job-board-add-column-button";
+import { JobBoardViewToggle } from "@/components/job-board/job-board-view-toggle";
+import { RoLabelPickerDialog } from "@/components/job-board/ro-label-picker-dialog";
 import { useRoIntakeOptional } from "@/components/repair-order/ro-intake-context";
 import { isAutopilot3030Shell } from "@/lib/autopilot3030/shell-variant";
 import { AP_TERMS } from "@/lib/autopilot3030/terminology";
@@ -41,8 +44,7 @@ import {
   type JobBoardVisibility,
 } from "@/lib/job-board-filters";
 import { APPOINTMENT_OPTIONS, LEAD_SOURCES } from "@/lib/options";
-import { JobBoardAddColumnButton } from "@/components/job-board/job-board-add-column-button";
-import { JobBoardViewToggle } from "@/components/job-board/job-board-view-toggle";
+import { openRoLabelPrint, type RoLabelOption } from "@/lib/ro-label";
 import { cn } from "@/lib/utils";
 
 const COMPACT_BTN =
@@ -83,6 +85,7 @@ export function JobBoardToolbar({
   view,
   sort,
   employees,
+  labelOptions = [],
 }: {
   query: string;
   employeeId: string;
@@ -94,6 +97,8 @@ export function JobBoardToolbar({
   view: JobBoardView;
   sort: JobBoardSort;
   employees: { id: string; name: string }[];
+  /** Visible board ROs for the RO Label picker. */
+  labelOptions?: RoLabelOption[];
 }) {
   const router = useRouter();
   const pathname = usePathname();
@@ -101,6 +106,15 @@ export function JobBoardToolbar({
   const { openIntake, config } = useRoIntakeOptional();
   const [isPending, startTransition] = useTransition();
   const [search, setSearch] = useState(query);
+  const [labelPickerOpen, setLabelPickerOpen] = useState(false);
+
+  const onRoLabelClick = useCallback(() => {
+    if (labelOptions.length === 1) {
+      openRoLabelPrint(labelOptions[0]!.id);
+      return;
+    }
+    setLabelPickerOpen(true);
+  }, [labelOptions]);
 
   const setFilter = useCallback(
     (key: string, value: string | null) => {
@@ -156,15 +170,21 @@ export function JobBoardToolbar({
       </div>
 
       <Button
+        type="button"
         variant="outline"
         size="sm"
         className={COMPACT_BTN}
-        disabled
-        title="RO labels — coming soon"
+        title="Print RO hang-tag label"
+        onClick={onRoLabelClick}
       >
         <Tag className="size-3.5" />
         <span className="hidden 2xl:inline">RO Label</span>
       </Button>
+      <RoLabelPickerDialog
+        open={labelPickerOpen}
+        onOpenChange={setLabelPickerOpen}
+        options={labelOptions}
+      />
 
       <DropdownMenu>
         <DropdownMenuTrigger asChild>

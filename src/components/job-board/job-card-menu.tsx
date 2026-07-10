@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Archive, ArrowRight, CheckCircle2, ExternalLink, MoreVertical } from "lucide-react";
+import { Archive, ArrowRight, CheckCircle2, ExternalLink, MoreVertical, Tag } from "lucide-react";
 
 import {
   DropdownMenu,
@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { isAutopilot3030Shell } from "@/lib/autopilot3030/shell-variant";
 import { AP_TERMS } from "@/lib/autopilot3030/terminology";
+import { openRoLabelPrint } from "@/lib/ro-label";
 import { defaultRoOpenHref } from "@/lib/ro-workspace";
 
 /** Per-card action menu. Handlers live on the board so it owns board state. */
@@ -58,6 +59,11 @@ export function JobCardMenu({
             <ExternalLink className="size-4" />
             {ap3030 ? `Open ${AP_TERMS.repairOrder.toLowerCase()}` : "Open repair order"}
           </Link>
+        </DropdownMenuItem>
+
+        <DropdownMenuItem onSelect={() => openRoLabelPrint(roId)}>
+          <Tag className="size-4" />
+          Print RO Label
         </DropdownMenuItem>
 
         <DropdownMenuSeparator />

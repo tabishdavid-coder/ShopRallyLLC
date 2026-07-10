@@ -2,6 +2,7 @@ import "server-only";
 
 import { prisma } from "@/db/client";
 import { getShopId } from "@/lib/shop";
+import type { ShopPlan, ShopStatus } from "@/generated/prisma";
 
 export type ShopProfileView = {
   id: string;
@@ -22,6 +23,8 @@ export type ShopProfileView = {
   email: string | null;
   website: string | null;
   logoUrl: string | null;
+  plan: ShopPlan;
+  status: ShopStatus;
 };
 
 /** Shop profile for Settings → Shop Profile (owner read-only on Master ID). */
@@ -48,6 +51,8 @@ export async function getShopProfile(shopId?: string): Promise<ShopProfileView |
       email: true,
       website: true,
       logoUrl: true,
+      plan: true,
+      status: true,
     },
   });
 }

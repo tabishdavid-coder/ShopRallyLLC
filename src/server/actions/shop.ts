@@ -8,6 +8,12 @@ import { getShopId } from "@/lib/shop";
 import { gates } from "@/server/permission-gates";
 import type { Transparency } from "@/lib/transparency";
 import type { Commissions } from "@/lib/commissions";
+import {
+  ApptWeeklyHoursSchema,
+  apptHoursEnvelope,
+  validateApptWeeklyHours,
+} from "@/lib/appt-hours";
+import type { Prisma } from "@/generated/prisma";
 
 export type ShopActionResult = { ok: true } | { ok: false; error: string };
 
@@ -74,23 +80,35 @@ export async function updateShopProfile(patch: ShopProfilePatch): Promise<ShopAc
 
 /* ───────────────────────── Appointments ───────────────────────── */
 
-const HHMM = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, "Use 24-hour HH:MM.");
 const AppointmentsInput = z.object({
-  apptDayStart: HHMM,
-  apptDayEnd: HHMM,
+  weeklyHours: ApptWeeklyHoursSchema,
   apptDefaultDurationMins: z.number().int().min(5).max(600),
 });
 
-export async function updateAppointments(input: z.infer<typeof AppointmentsInput>): Promise<ShopActionResult> {
+export async function updateAppointments(
+  input: z.infer<typeof AppointmentsInput>,
+): Promise<ShopActionResult> {
   const parsed = AppointmentsInput.safeParse(input);
-  if (!parsed.success) return { ok: false, error: parsed.error.issues[0]?.message ?? "Invalid input." };
-  if (parsed.data.apptDayEnd <= parsed.data.apptDayStart) {
-    return { ok: false, error: "End time must be after start time." };
+  if (!parsed.success) {
+    return { ok: false, error: parsed.error.issues[0]?.message ?? "Invalid input." };
   }
+  const hoursError = validateApptWeeklyHours(parsed.data.weeklyHours);
+  if (hoursError) return { ok: false, error: hoursError };
+
   const shopId = await getShopId();
   const denied = await gates.employeesManage(shopId);
   if (denied) return { ok: false, error: denied.error };
-  await prisma.shop.update({ where: { id: shopId }, data: parsed.data });
+
+  const envelope = apptHoursEnvelope(parsed.data.weeklyHours);
+  await prisma.shop.update({
+    where: { id: shopId },
+    data: {
+      apptWeeklyHours: parsed.data.weeklyHours as Prisma.InputJsonValue,
+      apptDayStart: envelope.dayStart,
+      apptDayEnd: envelope.dayEnd,
+      apptDefaultDurationMins: parsed.data.apptDefaultDurationMins,
+    },
+  });
   revalidatePath("/settings/appointments");
   revalidatePath("/appointments");
   return { ok: true };

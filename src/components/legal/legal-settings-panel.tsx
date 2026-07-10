@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { AlertTriangle, ExternalLink, FileText } from "lucide-react";
+import { AlertTriangle, ExternalLink, FileText, Scale } from "lucide-react";
 
 import type { AgreementType } from "@/generated/prisma";
 import {
@@ -10,6 +10,7 @@ import {
 import type { ShopCustomAgreementView } from "@/server/custom-msa";
 import { ShopDataExportButton } from "@/components/legal/shop-data-export-button";
 import { DATA_RETENTION_POLICY } from "@/lib/legal-subprocessors";
+import { SettingsHero } from "@/components/settings/settings-hero";
 
 type AcceptanceRow = {
   agreementVersion: string;
@@ -39,6 +40,12 @@ export function LegalSettingsPanel({
 
   return (
     <div className="space-y-6">
+      <SettingsHero
+        icon={Scale}
+        title="Legal"
+        description="Contracting entity, agreement history, and data-retention policy for your shop."
+      />
+
       {pendingReaccept ? (
         <div className="flex items-start gap-3 rounded-lg border border-brand-red/30 bg-brand-red/5 p-4">
           <AlertTriangle className="mt-0.5 size-5 shrink-0 text-brand-red" />

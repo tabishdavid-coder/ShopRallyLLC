@@ -18,11 +18,13 @@ import {
   Columns3,
   FileText,
   LayoutGrid,
+  Wrench,
+  type LucideIcon,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { subnavVerticalClass } from "@/lib/subnav-styles";
+import { SettingsHero, SettingsEmptyState } from "@/components/settings/settings-hero";
 import {
   saveLaborRates,
   saveShopFees,
@@ -43,6 +45,10 @@ import { JobBoardPipelineSettings } from "@/components/settings/job-board-pipeli
 import { TransparencySettings } from "@/components/settings/transparency-settings";
 import { EstimateTermsSettings } from "@/components/settings/estimate-terms-settings";
 import { EstimateJobsLayoutSettings } from "@/components/settings/estimate-jobs-layout-settings";
+import {
+  SettingsSubnav,
+  type SettingsSubnavItem,
+} from "@/components/settings/settings-subnav";
 import type { Transparency } from "@/lib/transparency";
 import type { EstimateJobsLayout } from "@/generated/prisma";
 
@@ -56,25 +62,25 @@ type Taxes = { salesTaxPct: number; taxOnLabor: boolean; taxOnParts: boolean; ta
 
 const input = "rounded-md border border-input bg-background px-2.5 py-1.5 text-sm outline-none focus:ring-1 focus:ring-ring";
 
-const SECTIONS = [
-  { key: "labor", label: "Labor Rates", icon: Timer },
-  { key: "fees", label: "Shop Fees", icon: HandCoins },
-  { key: "discounts", label: "Discounts", icon: BadgePercent },
-  { key: "taxes", label: "Taxes", icon: Receipt },
-  { key: "categories", label: "Job Categories", icon: FolderOpen },
-  { key: "payment", label: "Payment Settings", icon: CreditCard },
-  { key: "invoice", label: "Invoice Numbering", icon: Car },
-  { key: "quoteDisplay", label: "Quote & Invoice Display", icon: FileText },
-  { key: "estimateTerms", label: "Estimate Terms", icon: FileText },
-  { key: "estimateWorkspace", label: "Estimate Workspace", icon: LayoutGrid },
-  { key: "gp", label: "GP/hr Goal", icon: TrendingUp },
-  { key: "jobBoard", label: "Job Board", icon: Columns3 },
-  { key: "advanced", label: "Advanced Settings", icon: Settings2 },
-] as const;
+const SECTIONS: SettingsSubnavItem[] = [
+  { id: "labor", label: "Labor Rates", icon: Timer },
+  { id: "fees", label: "Shop Fees", icon: HandCoins },
+  { id: "discounts", label: "Discounts", icon: BadgePercent },
+  { id: "taxes", label: "Taxes", icon: Receipt },
+  { id: "categories", label: "Job Categories", icon: FolderOpen },
+  { id: "payment", label: "Payment Settings", icon: CreditCard },
+  { id: "invoice", label: "Invoice Numbering", icon: Car },
+  { id: "quoteDisplay", label: "Quote & Invoice Display", icon: FileText },
+  { id: "estimateTerms", label: "Estimate Terms", icon: FileText },
+  { id: "estimateWorkspace", label: "Estimate Workspace", icon: LayoutGrid },
+  { id: "gp", label: "GP/hr Goal", icon: TrendingUp },
+  { id: "jobBoard", label: "Job Board", icon: Columns3 },
+  { id: "advanced", label: "Advanced Settings", icon: Settings2 },
+];
 
-type SectionKey = (typeof SECTIONS)[number]["key"];
+type SectionKey = (typeof SECTIONS)[number]["id"];
 
-const SECTION_KEYS = new Set<string>(SECTIONS.map((s) => s.key));
+const SECTION_KEYS = new Set<string>(SECTIONS.map((s) => s.id));
 
 function resolveInitialSection(section: string | undefined): SectionKey {
   if (section === "quote-invoice-display" || section === "quoteDisplay") return "quoteDisplay";
@@ -111,55 +117,67 @@ export function RoSettings(props: {
   const [section, setSection] = useState<SectionKey>(() => resolveInitialSection(props.initialSection));
 
   return (
-    <div>
-      <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">RO Settings</p>
-      <div className="grid gap-4 md:grid-cols-[230px_1fr]">
-        <nav className="flex flex-col gap-0.5 rounded-lg border bg-card p-2">
-          {SECTIONS.map((s) => (
-            <button
-              key={s.key}
-              type="button"
-              onClick={() => setSection(s.key)}
-              aria-current={section === s.key ? "page" : undefined}
-              className={subnavVerticalClass(section === s.key, "rounded-md font-medium")}
-            >
-              <s.icon className="size-4" /> {s.label}
-            </button>
-          ))}
-        </nav>
-
-        <div className="rounded-lg border bg-card p-5">
-          {section === "labor" ? <LaborRatesSection rows={props.laborRates} /> : null}
-          {section === "fees" ? <ShopFeesSection rows={props.fees} /> : null}
-          {section === "discounts" ? <DiscountsSection rows={props.discounts} /> : null}
-          {section === "taxes" ? <TaxesSection initial={props.taxes} zip={props.zip} /> : null}
-          {section === "gp" ? <GpGoalSection initial={props.gpGoal} /> : null}
-          {section === "jobBoard" ? (
-            <div className="space-y-8">
-              <JobBoardPipelineSettings initial={props.pipeline} />
-              <JobBoardArchiveSection initial={props.archive} />
-            </div>
-          ) : null}
-          {section === "advanced" ? <AdvancedSection initial={props.advanced} /> : null}
-          {section === "categories" ? <Soon title="Job Categories" desc="Group jobs into categories for reporting and required-field rules." /> : null}
-          {section === "payment" ? <Soon title="Payment Settings" desc="Accepted payment methods, surcharges, and processor configuration." /> : null}
-          {section === "invoice" ? <Soon title="Invoice Numbering" desc="Set the invoice number prefix and next sequence number." /> : null}
-          {section === "quoteDisplay" ? (
-            <TransparencySettings initial={props.transparency} showHeading={false} />
-          ) : null}
-          {section === "estimateTerms" ? (
-            <EstimateTermsSettings
-              initialEstimateHtml={props.estimateTerms.initialEstimateHtml}
-              initialInvoiceHtml={props.estimateTerms.initialInvoiceHtml}
-              version={props.estimateTerms.version}
-              updatedAt={props.estimateTerms.updatedAt}
-            />
-          ) : null}
-          {section === "estimateWorkspace" ? (
-            <EstimateJobsLayoutSettings initialLayout={props.estimateJobsLayout} />
-          ) : null}
-        </div>
-      </div>
+    <div className="space-y-5">
+      <SettingsHero
+        icon={Wrench}
+        title="RO Settings"
+        description="Labor rates, fees, taxes, invoicing, and estimate terms — the rules that price every repair order."
+      />
+      <SettingsSubnav
+        items={SECTIONS}
+        ariaLabel="RO settings sections"
+        activeId={section}
+        onSelect={(id) => setSection(id as SectionKey)}
+        contentCard
+      >
+        {section === "labor" ? <LaborRatesSection rows={props.laborRates} /> : null}
+        {section === "fees" ? <ShopFeesSection rows={props.fees} /> : null}
+        {section === "discounts" ? <DiscountsSection rows={props.discounts} /> : null}
+        {section === "taxes" ? <TaxesSection initial={props.taxes} zip={props.zip} /> : null}
+        {section === "gp" ? <GpGoalSection initial={props.gpGoal} /> : null}
+        {section === "jobBoard" ? (
+          <div className="space-y-8">
+            <JobBoardPipelineSettings initial={props.pipeline} />
+            <JobBoardArchiveSection initial={props.archive} />
+          </div>
+        ) : null}
+        {section === "advanced" ? <AdvancedSection initial={props.advanced} /> : null}
+        {section === "categories" ? (
+          <Soon
+            icon={FolderOpen}
+            title="Job Categories"
+            desc="Group jobs into categories for reporting and required-field rules."
+          />
+        ) : null}
+        {section === "payment" ? (
+          <Soon
+            icon={CreditCard}
+            title="Payment Settings"
+            desc="Accepted payment methods, surcharges, and processor configuration."
+          />
+        ) : null}
+        {section === "invoice" ? (
+          <Soon
+            icon={Car}
+            title="Invoice Numbering"
+            desc="Set the invoice number prefix and next sequence number."
+          />
+        ) : null}
+        {section === "quoteDisplay" ? (
+          <TransparencySettings initial={props.transparency} showHeading={false} />
+        ) : null}
+        {section === "estimateTerms" ? (
+          <EstimateTermsSettings
+            initialEstimateHtml={props.estimateTerms.initialEstimateHtml}
+            initialInvoiceHtml={props.estimateTerms.initialInvoiceHtml}
+            version={props.estimateTerms.version}
+            updatedAt={props.estimateTerms.updatedAt}
+          />
+        ) : null}
+        {section === "estimateWorkspace" ? (
+          <EstimateJobsLayoutSettings initialLayout={props.estimateJobsLayout} />
+        ) : null}
+      </SettingsSubnav>
     </div>
   );
 }
@@ -184,11 +202,18 @@ function useSaver() {
   return { saved, error, pending, run };
 }
 
-function SectionHeader({ title, desc }: { title: string; desc: string }) {
+function SectionHeader({ title, desc, icon: Icon }: { title: string; desc: string; icon?: LucideIcon }) {
   return (
-    <div className="mb-4">
-      <h3 className="text-base font-semibold">{title}</h3>
-      <p className="text-sm text-muted-foreground">{desc}</p>
+    <div className="mb-4 flex items-start gap-3">
+      {Icon ? (
+        <span className="flex size-8 shrink-0 items-center justify-center rounded-md bg-brand-navy/8 text-brand-navy">
+          <Icon className="size-4" aria-hidden />
+        </span>
+      ) : null}
+      <div>
+        <h3 className="text-base font-semibold">{title}</h3>
+        <p className="text-sm text-muted-foreground">{desc}</p>
+      </div>
     </div>
   );
 }
@@ -224,13 +249,15 @@ function SaveBar({
   );
 }
 
-function Soon({ title, desc }: { title: string; desc: string }) {
+function Soon({ title, desc, icon }: { title: string; desc: string; icon: LucideIcon }) {
   return (
     <div>
-      <SectionHeader title={title} desc={desc} />
-      <div className="rounded-md border border-dashed bg-muted/30 p-6 text-sm text-muted-foreground">
-        Coming soon — this will flow through to the rest of the app once configured.
-      </div>
+      <SectionHeader title={title} desc={desc} icon={icon} />
+      <SettingsEmptyState
+        icon={icon}
+        title="Not set up yet"
+        description="Coming soon — this will flow through to the rest of the app once configured."
+      />
     </div>
   );
 }
@@ -269,47 +296,50 @@ function LaborRatesSection({ rows: initial }: { rows: LaborRateRow[] }) {
   return (
     <div>
       <SectionHeader
+        icon={Timer}
         title="Labor Rates"
         desc="The shop labor rate is the hourly rate you charge your customers. Customers will never see this rate, and you can enter multiple rates for different kinds of customers."
       />
-      <table className="w-full text-sm">
-        <thead>
-          <tr className="border-b text-left text-muted-foreground">
-            <th className="w-12 py-2 font-medium">Default</th>
-            <th className="py-2 font-medium">Labor Rate Name</th>
-            <th className="w-40 py-2 text-right font-medium">Labor Rate</th>
-            <th className="w-8" />
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((r, i) => (
-            <tr key={i} className="border-b">
-              <td className="py-2">
-                <input type="radio" name="default-rate" checked={r.isDefault} onChange={() => setDefault(i)} className="size-4 accent-primary" />
-              </td>
-              <td className="py-2 pr-2">
-                <input className={cn(input, "w-full")} value={r.name} onChange={(e) => set(i, { name: e.target.value })} placeholder="Labor rate name" />
-              </td>
-              <td className="py-2">
-                <div className="flex items-center justify-end gap-1">
-                  <span className="text-muted-foreground">$</span>
-                  <input
-                    type="number" min={0} step="0.01"
-                    className={cn(input, "w-28 text-right")}
-                    value={r.rate}
-                    onChange={(e) => set(i, { rate: Number(e.target.value) })}
-                  />
-                </div>
-              </td>
-              <td className="py-2 text-right">
-                {rows.length > 1 ? (
-                  <button onClick={() => remove(i)} aria-label="Remove" className="text-muted-foreground hover:text-destructive"><X className="size-4" /></button>
-                ) : null}
-              </td>
+      <div className="overflow-hidden rounded-lg border">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b bg-muted/40 text-left text-xs font-semibold uppercase tracking-wide text-subtle-foreground">
+              <th className="w-16 px-4 py-2.5 font-medium">Default</th>
+              <th className="py-2.5 font-medium">Labor Rate Name</th>
+              <th className="w-40 py-2.5 text-right font-medium">Labor Rate</th>
+              <th className="w-10 px-3" />
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {rows.map((r, i) => (
+              <tr key={i} className="border-b last:border-0">
+                <td className="px-4 py-2">
+                  <input type="radio" name="default-rate" checked={r.isDefault} onChange={() => setDefault(i)} className="size-4 accent-primary" />
+                </td>
+                <td className="py-2 pr-2">
+                  <input className={cn(input, "w-full")} value={r.name} onChange={(e) => set(i, { name: e.target.value })} placeholder="Labor rate name" />
+                </td>
+                <td className="py-2">
+                  <div className="flex items-center justify-end gap-1">
+                    <span className="text-muted-foreground">$</span>
+                    <input
+                      type="number" min={0} step="0.01"
+                      className={cn(input, "w-28 text-right")}
+                      value={r.rate}
+                      onChange={(e) => set(i, { rate: Number(e.target.value) })}
+                    />
+                  </div>
+                </td>
+                <td className="px-3 py-2 text-right">
+                  {rows.length > 1 ? (
+                    <button onClick={() => remove(i)} aria-label="Remove" className="rounded p-1 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"><X className="size-4" /></button>
+                  ) : null}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
       <SaveBar label="Save Labor Rates" onSave={() => run(() => saveLaborRates(rows))} saved={saved} error={error} pending={pending} onAdd={add} addLabel="Add Labor Rate" />
     </div>
   );
@@ -326,51 +356,53 @@ function ShopFeesSection({ rows: initial }: { rows: FeeRow[] }) {
 
   return (
     <div>
-      <SectionHeader title="Shop Fees" desc="Set up your standard shop fees here, and select how they should be applied on repair orders." />
-      <table className="w-full text-sm">
-        <thead>
-          <tr className="border-b text-left text-muted-foreground">
-            <th className="py-2 font-medium">Auto Apply</th>
-            <th className="py-2 font-medium">Fee</th>
-            <th className="py-2 font-medium">Method</th>
-            <th className="py-2 font-medium">Calculate on</th>
-            <th className="py-2 font-medium">Amount</th>
-            <th className="py-2 font-medium">Cap</th>
-            <th className="py-2 text-center font-medium">Taxable</th>
-            <th className="w-6" />
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((r, i) => (
-            <tr key={i} className="border-b align-middle">
-              <td className="py-2 pr-2">
-                <select className={input} value={r.autoApply ? "ROs" : "none"} onChange={(e) => set(i, { autoApply: e.target.value === "ROs" })}>
-                  <option value="ROs">ROs</option>
-                  <option value="none">Don&apos;t auto-apply</option>
-                </select>
-              </td>
-              <td className="py-2 pr-2"><input className={cn(input, "w-32")} value={r.name} onChange={(e) => set(i, { name: e.target.value })} placeholder="Fee name" /></td>
-              <td className="py-2 pr-2"><MethodSelect value={r.method} onChange={(m) => set(i, { method: m })} /></td>
-              <td className="py-2 pr-2"><BaseSelect value={r.base} onChange={(b) => set(i, { base: b })} /></td>
-              <td className="py-2 pr-2">
-                <div className="flex items-center gap-1">
-                  <input type="number" min={0} step="0.01" className={cn(input, "w-20")} value={r.amount} onChange={(e) => set(i, { amount: Number(e.target.value) })} />
-                  <span className="text-muted-foreground">{r.method === "PERCENT" ? "%" : "$"}</span>
-                </div>
-              </td>
-              <td className="py-2 pr-2">
-                <div className="flex items-center gap-1">
-                  <span className="text-muted-foreground">$</span>
-                  <input type="number" min={0} step="0.01" className={cn(input, "w-20")} value={r.cap ?? ""} placeholder="—" onChange={(e) => set(i, { cap: e.target.value === "" ? null : Number(e.target.value) })} />
-                </div>
-              </td>
-              <td className="py-2 text-center"><input type="checkbox" checked={r.taxable} onChange={(e) => set(i, { taxable: e.target.checked })} className="size-4 accent-primary" /></td>
-              <td className="py-2 text-right"><button onClick={() => remove(i)} aria-label="Remove" className="text-muted-foreground hover:text-destructive"><X className="size-4" /></button></td>
+      <SectionHeader icon={HandCoins} title="Shop Fees" desc="Set up your standard shop fees here, and select how they should be applied on repair orders." />
+      <div className="overflow-x-auto rounded-lg border">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b bg-muted/40 text-left text-xs font-semibold uppercase tracking-wide text-subtle-foreground">
+              <th className="px-4 py-2.5 font-medium">Auto Apply</th>
+              <th className="py-2.5 font-medium">Fee</th>
+              <th className="py-2.5 font-medium">Method</th>
+              <th className="py-2.5 font-medium">Calculate on</th>
+              <th className="py-2.5 font-medium">Amount</th>
+              <th className="py-2.5 font-medium">Cap</th>
+              <th className="py-2.5 text-center font-medium">Taxable</th>
+              <th className="w-10 px-3" />
             </tr>
-          ))}
-          {rows.length === 0 ? <tr><td colSpan={8} className="py-6 text-center text-muted-foreground">No fees yet.</td></tr> : null}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {rows.map((r, i) => (
+              <tr key={i} className="border-b align-middle last:border-0">
+                <td className="px-4 py-2">
+                  <select className={input} value={r.autoApply ? "ROs" : "none"} onChange={(e) => set(i, { autoApply: e.target.value === "ROs" })}>
+                    <option value="ROs">ROs</option>
+                    <option value="none">Don&apos;t auto-apply</option>
+                  </select>
+                </td>
+                <td className="py-2 pr-2"><input className={cn(input, "w-32")} value={r.name} onChange={(e) => set(i, { name: e.target.value })} placeholder="Fee name" /></td>
+                <td className="py-2 pr-2"><MethodSelect value={r.method} onChange={(m) => set(i, { method: m })} /></td>
+                <td className="py-2 pr-2"><BaseSelect value={r.base} onChange={(b) => set(i, { base: b })} /></td>
+                <td className="py-2 pr-2">
+                  <div className="flex items-center gap-1">
+                    <input type="number" min={0} step="0.01" className={cn(input, "w-20")} value={r.amount} onChange={(e) => set(i, { amount: Number(e.target.value) })} />
+                    <span className="text-muted-foreground">{r.method === "PERCENT" ? "%" : "$"}</span>
+                  </div>
+                </td>
+                <td className="py-2 pr-2">
+                  <div className="flex items-center gap-1">
+                    <span className="text-muted-foreground">$</span>
+                    <input type="number" min={0} step="0.01" className={cn(input, "w-20")} value={r.cap ?? ""} placeholder="—" onChange={(e) => set(i, { cap: e.target.value === "" ? null : Number(e.target.value) })} />
+                  </div>
+                </td>
+                <td className="py-2 text-center"><input type="checkbox" checked={r.taxable} onChange={(e) => set(i, { taxable: e.target.checked })} className="size-4 accent-primary" /></td>
+                <td className="px-3 py-2 text-right"><button onClick={() => remove(i)} aria-label="Remove" className="rounded p-1 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"><X className="size-4" /></button></td>
+              </tr>
+            ))}
+            {rows.length === 0 ? <tr><td colSpan={8} className="py-6 text-center text-muted-foreground">No fees yet.</td></tr> : null}
+          </tbody>
+        </table>
+      </div>
       <SaveBar label="Save Fees" onSave={() => run(() => saveShopFees(rows))} saved={saved} error={error} pending={pending} onAdd={add} addLabel="Add Fee" />
     </div>
   );
@@ -387,42 +419,44 @@ function DiscountsSection({ rows: initial }: { rows: DiscountRow[] }) {
 
   return (
     <div>
-      <SectionHeader title="Discounts" desc="Set up your standard shop discounts here, and select how they should be applied on repair orders. You can always come back to edit these." />
-      <table className="w-full text-sm">
-        <thead>
-          <tr className="border-b text-left text-muted-foreground">
-            <th className="py-2 font-medium">Discount</th>
-            <th className="py-2 font-medium">Method</th>
-            <th className="py-2 font-medium">Calculate on</th>
-            <th className="py-2 font-medium">Amount</th>
-            <th className="py-2 font-medium">Cap</th>
-            <th className="w-6" />
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((r, i) => (
-            <tr key={i} className="border-b">
-              <td className="py-2 pr-2"><input className={cn(input, "w-40")} value={r.name} onChange={(e) => set(i, { name: e.target.value })} placeholder="Discount name" /></td>
-              <td className="py-2 pr-2"><MethodSelect value={r.method} onChange={(m) => set(i, { method: m })} /></td>
-              <td className="py-2 pr-2"><BaseSelect value={r.base} onChange={(b) => set(i, { base: b })} /></td>
-              <td className="py-2 pr-2">
-                <div className="flex items-center gap-1">
-                  <input type="number" min={0} step="0.01" className={cn(input, "w-20")} value={r.amount} onChange={(e) => set(i, { amount: Number(e.target.value) })} />
-                  <span className="text-muted-foreground">{r.method === "PERCENT" ? "%" : "$"}</span>
-                </div>
-              </td>
-              <td className="py-2 pr-2">
-                <div className="flex items-center gap-1">
-                  <span className="text-muted-foreground">$</span>
-                  <input type="number" min={0} step="0.01" className={cn(input, "w-20")} value={r.cap ?? ""} placeholder="—" onChange={(e) => set(i, { cap: e.target.value === "" ? null : Number(e.target.value) })} />
-                </div>
-              </td>
-              <td className="py-2 text-right"><button onClick={() => remove(i)} aria-label="Remove" className="text-muted-foreground hover:text-destructive"><X className="size-4" /></button></td>
+      <SectionHeader icon={BadgePercent} title="Discounts" desc="Set up your standard shop discounts here, and select how they should be applied on repair orders. You can always come back to edit these." />
+      <div className="overflow-x-auto rounded-lg border">
+        <table className="w-full text-sm">
+          <thead>
+            <tr className="border-b bg-muted/40 text-left text-xs font-semibold uppercase tracking-wide text-subtle-foreground">
+              <th className="px-4 py-2.5 font-medium">Discount</th>
+              <th className="py-2.5 font-medium">Method</th>
+              <th className="py-2.5 font-medium">Calculate on</th>
+              <th className="py-2.5 font-medium">Amount</th>
+              <th className="py-2.5 font-medium">Cap</th>
+              <th className="w-10 px-3" />
             </tr>
-          ))}
-          {rows.length === 0 ? <tr><td colSpan={6} className="py-6 text-center text-muted-foreground">No discounts yet.</td></tr> : null}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {rows.map((r, i) => (
+              <tr key={i} className="border-b last:border-0">
+                <td className="px-4 py-2"><input className={cn(input, "w-40")} value={r.name} onChange={(e) => set(i, { name: e.target.value })} placeholder="Discount name" /></td>
+                <td className="py-2 pr-2"><MethodSelect value={r.method} onChange={(m) => set(i, { method: m })} /></td>
+                <td className="py-2 pr-2"><BaseSelect value={r.base} onChange={(b) => set(i, { base: b })} /></td>
+                <td className="py-2 pr-2">
+                  <div className="flex items-center gap-1">
+                    <input type="number" min={0} step="0.01" className={cn(input, "w-20")} value={r.amount} onChange={(e) => set(i, { amount: Number(e.target.value) })} />
+                    <span className="text-muted-foreground">{r.method === "PERCENT" ? "%" : "$"}</span>
+                  </div>
+                </td>
+                <td className="py-2 pr-2">
+                  <div className="flex items-center gap-1">
+                    <span className="text-muted-foreground">$</span>
+                    <input type="number" min={0} step="0.01" className={cn(input, "w-20")} value={r.cap ?? ""} placeholder="—" onChange={(e) => set(i, { cap: e.target.value === "" ? null : Number(e.target.value) })} />
+                  </div>
+                </td>
+                <td className="px-3 py-2 text-right"><button onClick={() => remove(i)} aria-label="Remove" className="rounded p-1 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"><X className="size-4" /></button></td>
+              </tr>
+            ))}
+            {rows.length === 0 ? <tr><td colSpan={6} className="py-6 text-center text-muted-foreground">No discounts yet.</td></tr> : null}
+          </tbody>
+        </table>
+      </div>
       <SaveBar label="Save Discounts" onSave={() => run(() => saveDiscountTemplates(rows))} saved={saved} error={error} pending={pending} onAdd={add} addLabel="Add Discount" />
     </div>
   );
@@ -441,7 +475,7 @@ function TaxesSection({ initial, zip }: { initial: Taxes; zip: string | null }) 
 
   return (
     <div>
-      <SectionHeader title="Taxes" desc="Sales tax is calculated on the repair order. Set your rate here to be applied to repair orders; it can be modified on each RO if necessary." />
+      <SectionHeader icon={Receipt} title="Taxes" desc="Sales tax is calculated on the repair order. Set your rate here to be applied to repair orders; it can be modified on each RO if necessary." />
 
       <h4 className="mb-2 font-semibold">Sales Tax</h4>
       {zip ? (
@@ -487,7 +521,7 @@ function GpGoalSection({ initial }: { initial: number | null }) {
   const { saved, error, pending, run } = useSaver();
   return (
     <div>
-      <SectionHeader title="GP/hr Goal" desc="Set a target gross-profit per labor hour. The estimate shows GP/hr so you can compare against this goal." />
+      <SectionHeader icon={TrendingUp} title="GP/hr Goal" desc="Set a target gross-profit per labor hour. The estimate shows GP/hr so you can compare against this goal." />
       <label className="mb-1 block text-sm text-muted-foreground">Target GP per hour</label>
       <div className="flex items-center gap-1">
         <span className="text-muted-foreground">$</span>
@@ -508,6 +542,7 @@ function JobBoardArchiveSection({ initial }: { initial: CompletedRoArchiveSettin
   return (
     <div>
       <SectionHeader
+        icon={Columns3}
         title="Completed column auto-archive"
         desc="Paid repair orders move off the job board automatically after the period you choose. ROs with an open balance stay visible until collected."
       />
@@ -586,7 +621,7 @@ function AdvancedSection({ initial }: { initial: AdvancedSettings }) {
 
   return (
     <div>
-      <SectionHeader title="Advanced Settings" desc="Control which data is required to complete work and post a repair order." />
+      <SectionHeader icon={Settings2} title="Advanced Settings" desc="Control which data is required to complete work and post a repair order." />
 
       <div className="grid gap-2 sm:grid-cols-2">
         {REQUIRED_FIELDS.map((f) => (

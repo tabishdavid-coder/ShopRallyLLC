@@ -16,6 +16,7 @@ import {
   jobBoardListSummary,
   sortJobBoardListRows,
 } from "@/lib/job-board-list-utils";
+import { buildRoLabelOptions } from "@/lib/ro-label";
 import { JobBoardToolbar } from "@/components/job-board/job-board-toolbar";
 import { JobBoardDnd } from "@/components/job-board/job-board-dnd";
 import { JobBoardListView } from "@/components/job-board/job-board-list-view";
@@ -65,6 +66,7 @@ export default async function JobBoardPage({
   const ap3030 = isAutopilot3030Shell();
   const listRows = sortJobBoardListRows(flattenJobBoard(board), sort);
   const listSummary = jobBoardListSummary(listRows);
+  const labelOptions = buildRoLabelOptions(board);
 
   return (
     <div className="job-board-shell flex h-full min-h-0 flex-col gap-4 overflow-hidden">
@@ -93,6 +95,7 @@ export default async function JobBoardPage({
         view={view}
         sort={sort}
         employees={employees}
+        labelOptions={labelOptions}
       />
       <div className="min-h-0 flex-1 overflow-x-auto overflow-y-hidden">
         {view === "list" ? (

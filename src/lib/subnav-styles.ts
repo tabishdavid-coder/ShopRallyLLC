@@ -2,9 +2,13 @@ import { cn } from "@/lib/utils";
 
 /**
  * Horizontal sub-nav patterns:
- * - `subnavTabClass` — underline tabs (Settings, Payments, CRM secondary nav). Do not change for settings.
+ * - `subnavTabClass` — underline tabs (Settings top strip, Payments, CRM secondary nav).
  * - `apSubnavPillClass` / `ApSubnavPills` — pill chips (3030 module subnav: Growth Hub, SEO, …).
  * - `apSubnavTabClass` / `ApSubnavTabs` — underline + icon tabs (RO workspace Concerns | Services | …).
+ *
+ * Vertical settings sub-nav (Shop Profile, RO Settings, Communications, Markups):
+ * - Use `SettingsSubnav` + `subnavVerticalClass` — do not add a second horizontal tab row
+ *   under the Settings top strip.
  */
 
 /** Horizontal sub-nav row (RO tabs, Settings, Payments, …). */

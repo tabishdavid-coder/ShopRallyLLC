@@ -27,6 +27,7 @@ export function useJobBoardMessagesOptional() {
 export function JobBoardMessagesProvider({ children }: { children: ReactNode }) {
   const [open, setOpen] = useState(false);
   const [target, setTarget] = useState<JobBoardMessagesTarget | null>(null);
+  const [dockKey, setDockKey] = useState(0);
 
   const openRoMessages = useCallback((next: JobBoardMessagesTarget) => {
     if (!SMS_ENABLED) {
@@ -37,6 +38,8 @@ export function JobBoardMessagesProvider({ children }: { children: ReactNode }) 
     }
     setTarget(next);
     setOpen(true);
+    // Remount dock so a minimized chip expands on every Chat click.
+    setDockKey((k) => k + 1);
   }, []);
 
   const value = useMemo(() => ({ openRoMessages }), [openRoMessages]);
@@ -46,6 +49,7 @@ export function JobBoardMessagesProvider({ children }: { children: ReactNode }) 
       {children}
       {target && SMS_ENABLED ? (
         <RoMessages
+          key={dockKey}
           customerId={target.customerId}
           customerName={target.customerName}
           customerPhone={target.customerPhone}

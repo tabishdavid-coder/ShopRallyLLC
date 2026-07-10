@@ -304,7 +304,7 @@ export function JobBoardLandingMock() {
           <Search className="absolute left-2.5 top-2.5 size-4 text-muted-foreground" />
           <Input placeholder="Search job board…" className="border-brand-light/40 bg-white pl-8" />
         </div>
-        <Button type="button" variant="outline" size="sm" className="gap-1.5" disabled>
+        <Button type="button" variant="outline" size="sm" className="gap-1.5" title="Print RO hang-tag label">
           <Tag className="size-4" /> RO Label
         </Button>
         <Button type="button" variant="outline" size="sm" className="gap-1.5">

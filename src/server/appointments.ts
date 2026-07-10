@@ -8,11 +8,17 @@ import {
   vehicleShortLabel,
 } from "@/lib/appointments";
 import type { AppointmentStatus } from "@/generated/prisma";
+import {
+  apptHoursEnvelope,
+  parseApptWeeklyHours,
+  type ApptWeeklyHours,
+} from "@/lib/appt-hours";
 
 export type AppointmentSettings = {
   apptDayStart: string;
   apptDayEnd: string;
   apptDefaultDurationMins: number;
+  weeklyHours: ApptWeeklyHours;
 };
 
 export type AppointmentRow = {
@@ -124,12 +130,19 @@ export async function getAppointmentSettings(
       apptDayStart: true,
       apptDayEnd: true,
       apptDefaultDurationMins: true,
+      apptWeeklyHours: true,
     },
   });
+  const weeklyHours = parseApptWeeklyHours(shop?.apptWeeklyHours, {
+    dayStart: shop?.apptDayStart,
+    dayEnd: shop?.apptDayEnd,
+  });
+  const envelope = apptHoursEnvelope(weeklyHours);
   return {
-    apptDayStart: shop?.apptDayStart ?? "08:00",
-    apptDayEnd: shop?.apptDayEnd ?? "17:00",
+    apptDayStart: envelope.dayStart,
+    apptDayEnd: envelope.dayEnd,
     apptDefaultDurationMins: shop?.apptDefaultDurationMins ?? 60,
+    weeklyHours,
   };
 }
 

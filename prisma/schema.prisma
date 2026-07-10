@@ -641,9 +641,13 @@ model Shop {
   // Job board — column titles + optional custom sections (JSON).
   jobBoardPipeline Json?
   // Settings → Appointments (shop hours + default appointment length).
+  // Flat start/end are the week envelope (earliest open start → latest open end)
+  // kept for calendar grid + legacy consumers; per-day hours live in apptWeeklyHours.
   apptDayStart           String? @default("08:00")
   apptDayEnd             String? @default("17:00")
   apptDefaultDurationMins Int    @default(60)
+  // Per-weekday hours: { mon: { enabled, start, end }, … sun }. Null → derive from flat fields.
+  apptWeeklyHours        Json?
   // Public online booking (/book/[slug]).
   bookingSlug            String? @unique
   onlineBookingEnabled   Boolean @default(false)

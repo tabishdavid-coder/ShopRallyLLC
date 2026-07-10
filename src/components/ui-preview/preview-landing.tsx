@@ -9,6 +9,7 @@ import { ShopDayHeader } from "@/components/ui-preview/landing/shop-day-header";
 import { StageProgress } from "@/components/ui-preview/landing/stage-progress";
 import type { DashboardData } from "@/lib/dashboard";
 import type { JobBoard } from "@/lib/job-board";
+import { buildRoLabelOptions } from "@/lib/ro-label";
 import type { Shop } from "@/lib/shop";
 
 type PreviewLandingProps = {
@@ -34,6 +35,7 @@ export function PreviewLanding({
   appointmentOption,
 }: PreviewLandingProps) {
   const attentionItems = buildAttentionItems(board, unreadSmsCount);
+  const labelOptions = buildRoLabelOptions(board);
 
   return (
     <div className="space-y-4">
@@ -58,6 +60,7 @@ export function PreviewLanding({
           view="board"
           sort="number"
           employees={employees}
+          labelOptions={labelOptions}
         />
         <JobBoardDnd board={board} showColumnTotals />
       </div>

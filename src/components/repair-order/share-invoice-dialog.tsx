@@ -131,12 +131,12 @@ export function ShareInvoiceDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="gap-0 p-0 sm:max-w-lg">
-        <DialogHeader className="border-b px-5 py-3.5">
-          <DialogTitle className="text-lg font-semibold">Share Invoice</DialogTitle>
+      <DialogContent className="w-full gap-0 overflow-hidden p-0 sm:max-w-lg">
+        <DialogHeader className="min-w-0 border-b px-5 py-3.5 pr-12">
+          <DialogTitle className="truncate text-lg font-semibold">Share Invoice</DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-4 px-5 py-4">
+        <div className="min-w-0 space-y-4 overflow-hidden px-5 py-4">
           {stripeEnabled === false ? (
             <p className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">
               Online Pay invoice is disabled until Stripe is configured. The link still opens a view-only invoice;
@@ -270,7 +270,7 @@ export function ShareInvoiceDialog({
               placeholder={
                 linkLoading ? "Loading invoice link…" : linkError ?? "Invoice link unavailable."
               }
-              className="block w-full resize-none rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-ring"
+              className="box-border block w-full min-w-0 resize-none break-words rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-ring"
             />
           </div>
 
@@ -284,18 +284,18 @@ export function ShareInvoiceDialog({
           ) : null}
         </div>
 
-        <div className="flex items-center gap-2 border-t px-5 py-3">
+        <div className="flex min-w-0 flex-wrap items-center gap-2 border-t px-5 py-3">
           <button
             type="button"
             onClick={copyLink}
             disabled={!link}
-            className="flex items-center gap-1.5 text-sm font-medium text-primary disabled:opacity-50"
+            className="flex min-w-0 items-center gap-1.5 text-sm font-medium text-primary disabled:opacity-50"
           >
-            {copied ? <Check className="size-4" /> : <Link2 className="size-4" />}
+            {copied ? <Check className="size-4 shrink-0" /> : <Link2 className="size-4 shrink-0" />}
             {copied ? "COPIED" : "COPY INVOICE LINK"}
           </button>
-          <HelpCircle className="size-4 text-muted-foreground" />
-          <div className="ml-auto flex items-center gap-2">
+          <HelpCircle className="size-4 shrink-0 text-muted-foreground" />
+          <div className="ml-auto flex shrink-0 items-center gap-2">
             <Button variant="ghost" size="sm" onClick={() => onOpenChange(false)}>
               CANCEL
             </Button>

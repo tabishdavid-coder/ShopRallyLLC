@@ -1,0 +1,36 @@
+---
+description: Raise the bar for design/redesign/restyle work — real visual upgrades, not incremental restyles
+alwaysApply: true
+---
+
+# Design quality bar
+
+## When this applies
+
+Design, redesign, restyle, "match screenshot", "make it look better", "fix UI", layout/nav redesigns, or any visual polish request.
+
+## The bar
+
+Output must feel like a **deliberate redesign**: clearer hierarchy, better spacing rhythm, consistent chrome, improved scanability. If the result still looks like the old UI with new colors/borders, you failed.
+
+## Do
+
+- Study reference screenshots carefully (`Read` the image files — don't guess from filenames)
+- Prefer **structural** layout changes when flow/density/grouping is broken — not only `className` tweaks
+- Use ShopRally brand (navy / light-blue / red-orange); do **not** copy AutoLeap teal or Tekmetric colored rail headers
+- Read and follow `.claude/skills/frontend-design/SKILL.md` and the user's frontend design rules
+- Keep all existing functionality and click handlers unless asked to change behavior
+
+## Don't
+
+- Ship "same layout, slightly different border/padding"
+- Narrow/widen panels randomly without matching spacing intent from the reference
+- Leave inconsistent patterns across sibling screens (settings tabs, drawers, dialogs, etc.)
+
+## Model choice
+
+For design-heavy tasks, prefer a high-capability model for the implementing subagent when the parent can choose (e.g. `claude-4.6-sonnet`, `claude-opus`, or `gpt-5.x` high tiers from the available list). Do **not** default to the weakest/fastest model for redesigns.
+
+## Verify
+
+After redesign, compare against the reference. Call out remaining gaps honestly — do not claim parity you didn't achieve.

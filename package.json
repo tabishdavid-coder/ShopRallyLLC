@@ -24,6 +24,7 @@
     "db:seed-dummy-customers": "tsx scripts/seed-dummy-customers.ts",
     "db:seed-dummy-repairs": "tsx scripts/seed-dummy-repair-scenario.ts",
     "db:seed-snapshot-demo": "tsx scripts/seed-daily-snapshot-demo.ts",
+    "db:seed-dashboard-demo": "tsx scripts/seed-dashboard-demo.ts",
     "db:build-labor": "tsx --tsconfig ./tsconfig.scripts.json scripts/build-labor-dataset.ts",
     "db:build-labor-ny": "tsx --tsconfig ./tsconfig.scripts.json scripts/build-ny-labor-library.ts",
     "db:cleanup-labor": "tsx --tsconfig ./tsconfig.scripts.json scripts/cleanup-labor-cache.ts",

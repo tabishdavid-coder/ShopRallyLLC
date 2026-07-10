@@ -125,12 +125,12 @@ export function ShareEstimateDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="gap-0 p-0 sm:max-w-lg">
-        <DialogHeader className="border-b px-5 py-3.5">
-          <DialogTitle className="text-lg font-semibold">Share Estimate</DialogTitle>
+      <DialogContent className="w-full gap-0 overflow-hidden p-0 sm:max-w-lg">
+        <DialogHeader className="min-w-0 border-b px-5 py-3.5 pr-12">
+          <DialogTitle className="truncate text-lg font-semibold">Share Estimate</DialogTitle>
         </DialogHeader>
 
-        <div className="space-y-4 px-5 py-4">
+        <div className="min-w-0 space-y-4 overflow-hidden px-5 py-4">
           {/* Method */}
           {shareMethods.length > 1 ? (
             <fieldset>
@@ -254,7 +254,7 @@ export function ShareEstimateDialog({
               placeholder={
                 linkLoading ? "Loading estimate link…" : linkError ?? "Estimate link unavailable."
               }
-              className="block w-full resize-none rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-ring"
+              className="box-border block w-full min-w-0 resize-none break-words rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-ring"
             />
             <p className="mt-1 text-xs text-muted-foreground">Character limit {MAX}</p>
           </div>
@@ -275,18 +275,18 @@ export function ShareEstimateDialog({
         </div>
 
         {/* Footer */}
-        <div className="flex items-center gap-2 border-t px-5 py-3">
+        <div className="flex min-w-0 flex-wrap items-center gap-2 border-t px-5 py-3">
           <button
             type="button"
             onClick={copyLink}
             disabled={!link}
-            className="flex items-center gap-1.5 text-sm font-medium text-primary disabled:opacity-50"
+            className="flex min-w-0 items-center gap-1.5 text-sm font-medium text-primary disabled:opacity-50"
           >
-            {copied ? <Check className="size-4" /> : <Link2 className="size-4" />}
+            {copied ? <Check className="size-4 shrink-0" /> : <Link2 className="size-4 shrink-0" />}
             {copied ? "COPIED" : "COPY ESTIMATE LINK"}
           </button>
-          <HelpCircle className="size-4 text-muted-foreground" />
-          <div className="ml-auto flex items-center gap-2">
+          <HelpCircle className="size-4 shrink-0 text-muted-foreground" />
+          <div className="ml-auto flex shrink-0 items-center gap-2">
             <Button variant="ghost" size="sm" onClick={() => onOpenChange(false)}>
               CANCEL
             </Button>
