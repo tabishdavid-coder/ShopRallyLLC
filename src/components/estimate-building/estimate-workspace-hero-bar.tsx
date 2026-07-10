@@ -2,17 +2,9 @@
 
 import { Badge } from "@/components/ui/badge";
 import { EstimateLabServiceAdvisorSelect } from "@/components/estimate-building/estimate-lab-service-advisor-select";
-import { RO_STATUS_PILL } from "@/lib/ro-status";
+import { RO_STATUS_LABEL, RO_STATUS_PILL } from "@/lib/ro-status";
 import { cn } from "@/lib/utils";
 import type { ROStatus } from "@/generated/prisma";
-
-const PHASE_LABEL: Record<ROStatus, string> = {
-  ESTIMATE: "Estimate",
-  APPROVED: "Approved",
-  IN_PROGRESS: "In progress",
-  COMPLETED: "Completed",
-  INVOICED: "Invoiced",
-};
 
 function formatRoCreated(iso: string) {
   const d = new Date(iso);
@@ -60,7 +52,7 @@ export function EstimateWorkspaceHeroBar({
   actions: React.ReactNode;
 }) {
   const pill = RO_STATUS_PILL[roStatus];
-  const phase = PHASE_LABEL[roStatus];
+  const phase = RO_STATUS_LABEL[roStatus];
   const createdMeta = `Created ${formatRoCreated(createdAt)}${createdByName ? ` by ${createdByName}` : ""}`;
 
   return (

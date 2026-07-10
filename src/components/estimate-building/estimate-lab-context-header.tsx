@@ -6,6 +6,8 @@ import { Badge } from "@/components/ui/badge";
 
 import { EstimateLabContextStack } from "@/components/estimate-building/estimate-lab-context-inline-fields";
 
+import { EstimateLabOdometerBar } from "@/components/estimate-building/estimate-lab-odometer-bar";
+
 import { EstimateLabServiceAdvisorSelect } from "@/components/estimate-building/estimate-lab-service-advisor-select";
 
 import type { EstimateWorkspaceVariant } from "@/components/estimate-building/estimate-building-lab-panel";
@@ -17,27 +19,11 @@ import type { EditableVehicle } from "@/components/repair-order/edit-vehicle-dia
 import type { EstimateContextDrawerData } from "@/lib/estimate-context-drawer-types";
 import type { EstimateLabVehicleSpecsBundle } from "@/lib/estimate-lab-vehicle-specs";
 
-import { RO_STATUS_PILL } from "@/lib/ro-status";
+import { RO_STATUS_LABEL, RO_STATUS_PILL } from "@/lib/ro-status";
 
 import { cn } from "@/lib/utils";
 
 import type { ROStatus } from "@/generated/prisma";
-
-
-
-const PHASE_LABEL: Record<ROStatus, string> = {
-
-  ESTIMATE: "Estimate",
-
-  APPROVED: "Approved",
-
-  IN_PROGRESS: "In progress",
-
-  COMPLETED: "Completed",
-
-  INVOICED: "Invoiced",
-
-};
 
 
 
@@ -89,7 +75,11 @@ export function EstimateLabContextHeader({
 
   mileageIn,
 
+  mileageOut,
+
   odometerNotWorking,
+
+  reqOdometer,
 
   drawerData,
 
@@ -125,7 +115,11 @@ export function EstimateLabContextHeader({
 
   mileageIn: number | null;
 
+  mileageOut: number | null;
+
   odometerNotWorking: boolean;
+
+  reqOdometer?: boolean;
 
   drawerData: EstimateContextDrawerData | null;
 
@@ -139,7 +133,7 @@ export function EstimateLabContextHeader({
 
   const pill = RO_STATUS_PILL[roStatus];
 
-  const phase = PHASE_LABEL[roStatus];
+  const phase = RO_STATUS_LABEL[roStatus];
 
   const createdMeta = `Created ${formatRoCreated(createdAt)}${createdByName ? ` by ${createdByName}` : ""}`;
 
@@ -199,21 +193,43 @@ export function EstimateLabContextHeader({
 
           </h2>
 
-          <EstimateLabServiceAdvisorSelect
+          <div className="flex shrink-0 flex-wrap items-center justify-end gap-2">
 
-            roId={roId}
+            <EstimateLabOdometerBar
 
-            serviceWriterId={serviceWriterId}
+              roId={roId}
 
-            serviceWriters={serviceWriters}
+              mileageIn={mileageIn}
 
-            canEdit={canEdit}
+              mileageOut={mileageOut}
 
-            compact
+              odometerNotWorking={odometerNotWorking}
 
-            className="shrink-0"
+              canEdit={canEdit}
 
-          />
+              reqOdometer={reqOdometer}
+
+              compact
+
+            />
+
+            <EstimateLabServiceAdvisorSelect
+
+              roId={roId}
+
+              serviceWriterId={serviceWriterId}
+
+              serviceWriters={serviceWriters}
+
+              canEdit={canEdit}
+
+              compact
+
+              className="shrink-0"
+
+            />
+
+          </div>
 
         </div>
 

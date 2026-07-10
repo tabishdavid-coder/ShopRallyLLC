@@ -394,7 +394,7 @@ export function EstimateLabContextDrawer({
 
           className={cn(
 
-            "fixed inset-y-0 right-0 z-50 flex h-full w-full flex-col gap-0 overflow-hidden bg-[#f8fafc] p-0 shadow-2xl outline-none",
+            "fixed inset-y-0 right-0 z-50 flex h-full w-full flex-col gap-0 overflow-hidden bg-background p-0 shadow-2xl outline-none",
 
             "border-l border-brand-navy/10 sm:max-w-[min(58rem,calc(100vw-0.5rem))]",
 

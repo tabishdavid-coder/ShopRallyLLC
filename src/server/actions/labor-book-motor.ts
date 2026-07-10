@@ -26,7 +26,11 @@ import {
 
   getLaborCatalogMode,
 
+  isLaborAiEnabled,
+
   isReferenceTaxonomyMode,
+
+  motorCatalogDataAvailable,
 
   type LaborCatalogMode,
 
@@ -54,6 +58,8 @@ import {
 
 } from "@/server/services/motor/motor-applications";
 
+import { isMotorLaborEnabled } from "@/server/services/motor/motor-config";
+
 import { getMotorCatalogTree } from "@/server/services/motor/motor-taxonomy";
 
 import { resolveMotorBaseVehicleId } from "@/server/services/motor/motor-vehicle";
@@ -79,6 +85,14 @@ export type LaborBookMotorInitResult =
       source: LaborBookMotorSource;
 
       catalogMode: LaborCatalogMode;
+
+      /** MOTOR data (licensed or sandbox overlay) is available for this vehicle. */
+
+      motorAvailable: boolean;
+
+      /** AI first-principles generation is enabled (LABOR_AI_ENABLED). Parked by default. */
+
+      aiEnabled: boolean;
 
       tree: LaborBookMotorSidebarNode[];
 
@@ -254,10 +268,15 @@ function referenceTaxonomyInit(
 
     catalogMode: "reference",
 
+    motorAvailable: false,
+
+    aiEnabled: isLaborAiEnabled(),
+
     tree: mapMotorLaborSystemsToSidebar(MOTOR_LABOR_SYSTEMS),
 
-    syncBanner:
-      "Shop labor guide — taxonomy browse + cache/AI hours. MOTOR sandbox disconnected.",
+    syncBanner: isLaborAiEnabled()
+      ? "Shop labor guide — taxonomy browse + cache/AI hours. MOTOR sandbox disconnected."
+      : "Shop labor guide — MOTOR sandbox disconnected. Load MOTOR test data (MOTOR_SANDBOX_CACHE=true) for BOOK hours.",
 
   };
 
@@ -282,6 +301,10 @@ function shopLibraryInit(
     source: "shop",
 
     catalogMode: getLaborCatalogMode(),
+
+    motorAvailable: motorCatalogDataAvailable(),
+
+    aiEnabled: isLaborAiEnabled(),
 
     tree: mapMotorLaborSystemsToSidebar(MOTOR_LABOR_SYSTEMS),
 
@@ -511,17 +534,15 @@ export async function getLaborBookMotorApplications(
 
     if (isReferenceTaxonomyMode()) {
 
-      const cacheRows = await getReferenceLaborOperations(laborVehicle, motorSubGroupId);
-
-      if (cacheRows.length) return { ok: true, rows: cacheRows };
-
-
-
-      if (allowSandboxMotorDbCache()) {
+      // MOTOR is the primary source: when the sandbox overlay is on, serve MOTOR
+      // (BOOK) applications first and only fall back to shop cache when MOTOR misses.
+      if (allowSandboxMotorDbCache() && baseVehicleId) {
 
         let apps = await getMotorApplicationsForSubGroup(baseVehicleId, motorSubGroupId);
 
-        if (!apps.length && autoSyncIfEmpty) {
+        // Only hit the live MOTOR API to backfill when keys exist; offline sandbox
+        // serves whatever was loaded via `npm run db:load-motor-sandbox`.
+        if (!apps.length && autoSyncIfEmpty && isMotorLaborEnabled()) {
 
           await syncMotorApplicationsForVehicle({
 
@@ -551,7 +572,10 @@ export async function getLaborBookMotorApplications(
 
       }
 
+      // MOTOR miss (or overlay off) → shop cache / canned rows for this component.
+      const cacheRows = await getReferenceLaborOperations(laborVehicle, motorSubGroupId);
 
+      if (cacheRows.length) return { ok: true, rows: cacheRows };
 
       return { ok: true, rows: [] };
 
@@ -622,8 +646,9 @@ export async function getLaborBookMotorInit(vehicleId: string): Promise<LaborBoo
 
 
   try {
-    if (isReferenceTaxonomyMode()) {
-      // Skip MOTOR BaseVehicleID / sandbox mapping while building shop labor guide.
+    // MOTOR is the primary labor source. When no MOTOR data is available (no license
+    // and sandbox overlay off) fall back to the shop taxonomy/AI reference guide.
+    if (!motorCatalogDataAvailable()) {
       return referenceTaxonomyInit(null);
     }
 
@@ -659,7 +684,11 @@ export async function getLaborBookMotorInit(vehicleId: string): Promise<LaborBoo
 
       applicationCount === 0
 
-        ? `MOTOR catalog loaded but no labor applications synced. Run: npm run sync:motor-applications -- --baseVehicleId=${baseVehicleId}`
+        ? isMotorLaborEnabled()
+
+          ? `MOTOR catalog loaded but no labor applications synced. Run: npm run sync:motor-applications -- --baseVehicleId=${baseVehicleId}`
+
+          : `MOTOR taxonomy loaded (sandbox). Load test applications: npm run db:load-motor-sandbox`
 
         : undefined;
 
@@ -673,7 +702,13 @@ export async function getLaborBookMotorInit(vehicleId: string): Promise<LaborBoo
 
       source: "motor",
 
+      // Sandbox overlay is presented as the licensed MOTOR Catalog experience (BOOK tier).
+
       catalogMode: "licensed",
+
+      motorAvailable: true,
+
+      aiEnabled: isLaborAiEnabled(),
 
       tree: mapMotorTreeToSidebar(tree),
 

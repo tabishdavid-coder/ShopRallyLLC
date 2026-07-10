@@ -376,7 +376,10 @@ export function RoContextDeck({
 
         <RoWorkflowDropdown
           roId={ro.id}
+          roNumber={ro.number}
           roStatus={ro.status}
+          customerName={customerDisplayName(c)}
+          phone={c.phone}
           canArchive={canArchiveRo}
           className="h-8 shrink-0"
         />
@@ -585,9 +588,7 @@ export function RoContextDeck({
                   </CollapsibleContent>
                 </Collapsible>
                 <RoVehicleSpecsPanel
-                  vehicleId={v.id}
                   specs={vehicleSpecs}
-                  lightTheme
                 />
               </>
             ) : null}

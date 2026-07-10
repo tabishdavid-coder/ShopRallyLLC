@@ -10,6 +10,9 @@ export const LABOR_CATALOG_MODE_ENV = "LABOR_CATALOG_MODE";
 /** Opt-in: re-enable reading sandbox-synced MotorCatalogApplication rows in reference/dev. */
 export const MOTOR_SANDBOX_CACHE_ENV = "MOTOR_SANDBOX_CACHE";
 
+/** Toggle the AI first-principles / AI-DRAFT labor generation path. */
+export const LABOR_AI_ENABLED_ENV = "LABOR_AI_ENABLED";
+
 function hasMotorApiKeys(): boolean {
   const pub = process.env.MOTOR_PUBLIC_KEY?.trim();
   const priv =
@@ -55,6 +58,25 @@ export function allowSandboxMotorDbCache(): boolean {
   if (!isReferenceTaxonomyMode()) return false;
   if (process.env.MOTOR_ENABLED === "false") return false;
   const flag = process.env.MOTOR_SANDBOX_CACHE?.trim().toLowerCase();
+  return flag === "true" || flag === "1";
+}
+
+/**
+ * True when any MOTOR catalog data (licensed OR sandbox overlay) may be served.
+ * This is the single "MOTOR is the primary labor source" gate for the Labor Book.
+ */
+export function motorCatalogDataAvailable(): boolean {
+  return isLicensedMotorCatalog() || allowSandboxMotorDbCache();
+}
+
+/**
+ * AI first-principles / AI-DRAFT labor generation. **Parked by default** (2026-07-09
+ * pivot to MOTOR). Enable per-env with LABOR_AI_ENABLED=true only when you want the
+ * AI estimate path back as a gap-filler. Server-side env read — thread the resolved
+ * value to client components (never exposed as NEXT_PUBLIC).
+ */
+export function isLaborAiEnabled(): boolean {
+  const flag = process.env.LABOR_AI_ENABLED?.trim().toLowerCase();
   return flag === "true" || flag === "1";
 }
 

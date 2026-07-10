@@ -39,7 +39,7 @@ function QuickAction({
   children: React.ReactNode;
 }) {
   const className =
-    "inline-flex size-7 shrink-0 items-center justify-center rounded-md text-muted-foreground hover:bg-accent hover:text-brand-navy";
+    "inline-flex size-7 shrink-0 items-center justify-center rounded-md border border-transparent text-muted-foreground transition-colors hover:border-brand-navy/20 hover:bg-white/85 hover:text-brand-navy focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-light/70";
 
   if (href) {
     return (
@@ -89,11 +89,11 @@ function CopyFieldButton({ value, label }: { value: string; label: string }) {
 }
 
 const CONTEXT_CARD =
-  "group flex min-h-11 min-w-0 shrink-0 cursor-pointer items-center gap-2 rounded-md border-2 border-brand-navy/30 bg-white px-3 py-2.5 text-left shadow-sm transition-all hover:border-brand-navy/50 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-navy/30";
+  "group relative flex min-h-11 min-w-0 shrink-0 cursor-pointer items-center gap-2 overflow-hidden rounded-lg border border-brand-navy/35 bg-gradient-to-r from-brand-light/20 via-white to-white px-3 py-2.5 text-left shadow-[0_1px_0_rgba(22,88,142,0.12),0_8px_18px_rgba(15,23,42,0.05)] transition-all duration-150 before:absolute before:inset-y-2 before:left-0 before:w-1 before:rounded-r-full before:bg-brand-navy/75 hover:-translate-y-px hover:border-brand-navy/65 hover:from-brand-light/30 hover:shadow-[0_1px_0_rgba(22,88,142,0.16),0_10px_22px_rgba(15,23,42,0.08)] focus-within:border-brand-navy focus-within:ring-2 focus-within:ring-brand-light/70";
 
 function ContextCardChevron() {
   return (
-    <span className="flex shrink-0 items-center self-center pl-0.5 text-muted-foreground group-hover:text-brand-navy">
+    <span className="relative z-10 flex size-7 shrink-0 items-center justify-center self-center rounded-full border border-brand-navy/15 bg-white/80 text-brand-navy/65 transition-colors group-hover:border-brand-navy/30 group-hover:bg-brand-navy group-hover:text-white">
       <ChevronRight className="size-4" aria-hidden />
     </span>
   );
@@ -157,7 +157,7 @@ export function EstimateLabContextStack({
             tabIndex={0}
             onClick={() => openDrawerTab("profile")}
             onKeyDown={(e) => onCardKeyDown(e, () => openDrawerTab("profile"))}
-            className="flex min-w-0 flex-1 items-center gap-2"
+            className="relative z-10 flex min-w-0 flex-1 items-center gap-2 focus-visible:outline-none"
             aria-label={`Open customer profile for ${displayName || "customer"}`}
           >
             <UserRound
@@ -181,7 +181,7 @@ export function EstimateLabContextStack({
 
           {phoneFormatted ? (
             <div
-              className="flex shrink-0 items-center gap-0.5 self-center"
+              className="relative z-10 flex shrink-0 items-center gap-0.5 self-center"
               onClick={(e) => e.stopPropagation()}
               onKeyDown={(e) => e.stopPropagation()}
             >
@@ -213,7 +213,7 @@ export function EstimateLabContextStack({
               tabIndex={0}
               onClick={() => openDrawerTab("vehicles")}
               onKeyDown={(e) => onCardKeyDown(e, () => openDrawerTab("vehicles"))}
-              className="flex min-w-0 flex-1 items-center gap-2"
+              className="relative z-10 flex min-w-0 flex-1 items-center gap-2 focus-visible:outline-none"
               aria-label={`Open vehicles for ${vehicleLabel.full || "vehicle"}`}
             >
               <Car
@@ -279,7 +279,7 @@ export function EstimateLabContextStack({
               tabIndex={0}
               onClick={() => openDrawerTab("vehicles")}
               onKeyDown={(e) => onCardKeyDown(e, () => openDrawerTab("vehicles"))}
-              className="flex min-w-0 flex-1 items-center gap-2 text-base text-muted-foreground"
+              className="relative z-10 flex min-w-0 flex-1 items-center gap-2 text-base text-muted-foreground focus-visible:outline-none"
               aria-label="Open vehicles — no vehicle on this RO"
             >
               <Car className="size-4.5 shrink-0 text-brand-navy/75" aria-hidden />

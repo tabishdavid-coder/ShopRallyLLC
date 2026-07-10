@@ -7,6 +7,7 @@ import {
   TireOrderStatus,
 } from "@/generated/prisma";
 import { customerDisplayName } from "@/lib/format";
+import { RO_STATUS_LABEL } from "@/lib/ro-status";
 import type {
   ReportFilters,
   ReportPayload,
@@ -46,14 +47,6 @@ const PAYMENT_METHOD_LABELS: Record<string, string> = {
   CHECK: "Check",
   OTHER: "Other",
   STORE_CREDIT: "Store credit",
-};
-
-const RO_STATUS_LABELS: Record<ROStatus, string> = {
-  ESTIMATE: "Estimate",
-  APPROVED: "Approved",
-  IN_PROGRESS: "Work in progress",
-  COMPLETED: "Completed",
-  INVOICED: "Invoiced",
 };
 
 function startOfDay(d: Date): Date {
@@ -594,7 +587,7 @@ async function buildRoByStatusReport(
   const rows = groups
     .map((g) => ({
       status: g.status,
-      statusLabel: RO_STATUS_LABELS[g.status],
+      statusLabel: RO_STATUS_LABEL[g.status],
       count: g._count._all,
       totalCents: g._sum.totalCents ?? 0,
     }))
@@ -606,7 +599,7 @@ async function buildRoByStatusReport(
     slug: "ro-by-status",
     title: "ROs by Status",
     description: "Current repair order counts by workflow status.",
-    periodLabel: filters.status ? RO_STATUS_LABELS[filters.status as ROStatus] : "All statuses",
+    periodLabel: filters.status ? RO_STATUS_LABEL[filters.status as ROStatus] : "All statuses",
     periodStart: period.start.toISOString(),
     periodEnd: period.end.toISOString(),
     kpis: [

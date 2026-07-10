@@ -13,6 +13,20 @@ const SANDBOX_VIN_BASE_VEHICLE_ID: Record<string, number> = {
   [normalizeVin("19XFA1F51AE028415")]: 22124,
 };
 
+/**
+ * Offline YMM → BaseVehicleID fallback for the sandbox catalog (Civic 22124). Lets a
+ * demo vehicle resolve MOTOR test data even without the exact sandbox VIN. Only used
+ * when the sandbox overlay is on (MOTOR_SANDBOX_CACHE=true) and no live match is found.
+ */
+const SANDBOX_YMM_BASE_VEHICLE_ID: Array<{ base: number; match: (v: Vehicle) => boolean }> = [
+  {
+    base: 22124,
+    match: (v) =>
+      (v.make ?? "").trim().toLowerCase() === "honda" &&
+      (v.model ?? "").trim().toLowerCase().startsWith("civic"),
+  },
+];
+
 function motorVehicleLookupEnabled(): boolean {
   return isLicensedMotorCatalog() || allowSandboxMotorDbCache();
 }
@@ -134,7 +148,8 @@ export async function resolveMotorBaseVehicleId(vehicle: Vehicle): Promise<numbe
     withRel: "EWT",
     AttributeStandard: "MOTOR",
   });
-  if (!res.ok) return null;
+  // Live search unavailable (e.g. no keys in sandbox dev) → offline YMM fallback.
+  if (!res.ok) return resolveSandboxBaseVehicleId(vehicle, key);
 
   const picked = pickBestVehicle(unwrapVehicleItems(res.data), vehicle);
   if (!picked?.BaseVehicleID) {
@@ -145,14 +160,16 @@ export async function resolveMotorBaseVehicleId(vehicle: Vehicle): Promise<numbe
 }
 
 function resolveSandboxBaseVehicleId(vehicle: Vehicle, cacheKeyValue: string): number | null {
-  // Sandbox VIN→BaseVehicleID map only when MOTOR_SANDBOX_CACHE is opted in.
+  // Sandbox VIN/YMM → BaseVehicleID map only when MOTOR_SANDBOX_CACHE is opted in.
   if (!allowSandboxMotorDbCache()) return null;
 
   const rawVin = vehicle.vin?.trim();
-  if (!rawVin) return null;
+  let mapped = rawVin ? SANDBOX_VIN_BASE_VEHICLE_ID[normalizeVin(rawVin)] : undefined;
 
-  const mapped = SANDBOX_VIN_BASE_VEHICLE_ID[normalizeVin(rawVin)];
-  if (!mapped) return null;
+  if (mapped == null) {
+    mapped = SANDBOX_YMM_BASE_VEHICLE_ID.find((entry) => entry.match(vehicle))?.base;
+  }
+  if (mapped == null) return null;
 
   baseVehicleCache.set(cacheKeyValue, {
     id: mapped,

@@ -19,7 +19,7 @@ function parseMiles(text: string): number | null | "invalid" {
   return n;
 }
 
-/** Inline odometer in/out — Tekmetric-style fields in the estimate hero strip. */
+/** Inline odometer in/out — compact header control or full-width strip. */
 export function EstimateLabOdometerBar({
   roId,
   mileageIn,
@@ -27,6 +27,8 @@ export function EstimateLabOdometerBar({
   odometerNotWorking,
   canEdit,
   reqOdometer = false,
+  compact = false,
+  className,
 }: {
   roId: string;
   mileageIn: number | null;
@@ -34,6 +36,8 @@ export function EstimateLabOdometerBar({
   odometerNotWorking: boolean;
   canEdit: boolean;
   reqOdometer?: boolean;
+  compact?: boolean;
+  className?: string;
 }) {
   const save = useRoMileageSave(roId);
   const [inText, setInText] = useState(mileageIn != null ? String(mileageIn) : "");
@@ -119,8 +123,84 @@ export function EstimateLabOdometerBar({
 
   const outDisplay = mileageOut != null ? fmtMiles(mileageOut) : "—";
 
+  if (compact) {
+    return (
+      <div
+        className={cn(
+          "inline-flex min-w-0 items-center gap-1.5 rounded-md border border-border bg-white/90 px-1.5 py-1 shadow-sm",
+          className,
+        )}
+      >
+        <label className="inline-flex min-w-0 items-center gap-1 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+          <span>In{reqOdometer && !notWorking ? "*" : ""}</span>
+          {canEdit ? (
+            <Input
+              id="lab-odometer-in"
+              value={notWorking ? "" : inText}
+              onChange={(e) => setInText(e.target.value.replace(/\D/g, ""))}
+              onBlur={saveIn}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") (e.target as HTMLInputElement).blur();
+              }}
+              placeholder={notWorking ? "N/W" : "Miles"}
+              disabled={notWorking || pending}
+              inputMode="numeric"
+              aria-label="Odometer in"
+              className={cn(
+                "h-7 w-[4.75rem] px-1.5 text-xs font-medium tabular-nums",
+                notWorking && "bg-muted/40 text-muted-foreground",
+              )}
+            />
+          ) : (
+            <span className="text-xs font-medium tabular-nums text-foreground">{inDisplay}</span>
+          )}
+        </label>
+
+        <label className="inline-flex min-w-0 items-center gap-1 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+          <span>Out</span>
+          {canEdit ? (
+            <Input
+              id="lab-odometer-out"
+              value={outText}
+              onChange={(e) => setOutText(e.target.value.replace(/\D/g, ""))}
+              onBlur={saveOut}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") (e.target as HTMLInputElement).blur();
+              }}
+              placeholder="Miles"
+              disabled={pending}
+              inputMode="numeric"
+              aria-label="Odometer out"
+              className="h-7 w-[4.75rem] px-1.5 text-xs font-medium tabular-nums"
+            />
+          ) : (
+            <span className="text-xs font-medium tabular-nums text-foreground">{outDisplay}</span>
+          )}
+        </label>
+
+        {canEdit ? (
+          <label
+            className="inline-flex cursor-pointer items-center gap-1 whitespace-nowrap text-[10px] font-semibold uppercase tracking-wide text-muted-foreground"
+            title="Odometer not working"
+          >
+            <Checkbox
+              checked={notWorking}
+              onCheckedChange={(v) => onNotWorkingChange(!!v)}
+              disabled={pending}
+              aria-label="Odometer not working"
+              className="size-3.5"
+            />
+            N/W
+          </label>
+        ) : null}
+
+        {error ? <span className="text-[10px] font-medium text-brand-red">{error}</span> : null}
+      </div>
+    );
+  }
+
   return (
-    <div className="shrink-0 border-b border-border bg-slate-50/70 px-4 py-2">
+    <div className={cn("shrink-0 border-b border-border bg-slate-50/70 px-4 py-2", className)}>
       <div className="flex flex-wrap items-end gap-x-5 gap-y-2">
         <div className="min-w-[9.5rem] space-y-1">
           <Label

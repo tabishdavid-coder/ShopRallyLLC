@@ -30,10 +30,10 @@ const OPTIONS: {
 export function PaymentAmounts({ paidCents, totalCents }: { paidCents: number; totalCents: number }) {
   if (totalCents <= 0) return null;
   return (
-    <span className="min-w-0 truncate text-[11px] tabular-nums">
-      <span className="font-semibold text-foreground">{formatCents(paidCents)}</span>
-      <span className="text-muted-foreground"> of </span>
-      <span className="font-semibold text-brand-navy">{formatCents(totalCents)}</span>
+    <span className="min-w-0 truncate text-base tabular-nums leading-tight tracking-tight">
+      <span className="font-bold text-foreground">{formatCents(paidCents)}</span>
+      <span className="font-medium text-muted-foreground"> of </span>
+      <span className="font-bold text-brand-navy">{formatCents(totalCents)}</span>
     </span>
   );
 }

@@ -7,6 +7,7 @@ import {
 } from "@/lib/labor-categories";
 import {
   allowSandboxMotorDbCache,
+  isLaborAiEnabled,
   isLicensedMotorCatalog,
   isReferenceTaxonomyMode,
 } from "@/lib/labor-catalog-mode";
@@ -483,6 +484,15 @@ export async function lookupLaborSuggestion(
       cached: false,
       dataSource: "shop_history",
     };
+  }
+
+  // AI first-principles / AI-DRAFT is parked by default (pivot to MOTOR). MOTOR (above)
+  // and shop history already returned when available; only the ungrounded AI guess is
+  // gated here. Re-enable with LABOR_AI_ENABLED=true to restore AI gap-fill.
+  if (!isLaborAiEnabled()) {
+    throw new Error(
+      "AI labor drafts are turned off (LABOR_AI_ENABLED=false). No MOTOR/shop match for this request — browse the MOTOR Catalog or add a canned job.",
+    );
   }
 
   const resolved = await resolveLaborSuggestionWithFallback(vehicle, request, motorContext);

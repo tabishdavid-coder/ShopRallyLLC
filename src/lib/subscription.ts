@@ -24,6 +24,7 @@ export type SubscriptionFeature =
   | "payments"
   | "sms"
   | "laborGuide"
+  | "motorLabor"
   | "reports"
   | "integrations"
   | "multiLocation"
@@ -46,6 +47,7 @@ const FEATURE_MAP: Record<SubscriptionFeature, PlanFeature | null> = {
   payments: "integrations",
   sms: "customerSms",
   laborGuide: "laborGuide",
+  motorLabor: "motorLabor",
   reports: "reports",
   integrations: "integrations",
   multiLocation: "multiLocation",

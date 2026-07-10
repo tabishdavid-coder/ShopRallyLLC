@@ -3,7 +3,7 @@
 import { RoVehicleSpecsPanel } from "@/components/repair-order/ro-vehicle-specs-panel";
 import type { EstimateLabVehicleSpecsBundle } from "@/lib/estimate-lab-vehicle-specs";
 
-/** Vehicle Specs (+ recalls) for the estimate right rail. */
+/** Vehicle Specs for the estimate right rail. */
 export function EstimateLabVehicleSpecsSection({
   data,
   canEdit: _canEdit,
@@ -13,9 +13,7 @@ export function EstimateLabVehicleSpecsSection({
 }) {
   return (
     <RoVehicleSpecsPanel
-      vehicleId={data.vehicleId}
       specs={data.specs}
-      lightTheme
       embedded
     />
   );

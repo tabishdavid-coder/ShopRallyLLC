@@ -28,7 +28,6 @@ import { EstimateLabRoHeader } from "@/components/estimate-building/estimate-lab
 import { EstimateLabContextDrawerProvider } from "@/components/estimate-building/estimate-lab-context-drawer-provider";
 import { EstimateLabContextDeeplink } from "@/components/estimate-building/estimate-lab-context-deeplink";
 import { EstimateLabContextHeader } from "@/components/estimate-building/estimate-lab-context-header";
-import { EstimateLabOdometerBar } from "@/components/estimate-building/estimate-lab-odometer-bar";
 import { EstimateLabWorkTabs } from "@/components/estimate-building/estimate-lab-work-tabs";
 import { EstimateLabActivityTab } from "@/components/estimate-building/estimate-lab-activity-tab";
 import { EstimateLabInspectionsTab } from "@/components/estimate-building/estimate-lab-inspections-tab";
@@ -354,20 +353,13 @@ export async function EstimateBuildingLabPanel({
         serviceWriters={sidebarOptions.serviceWriters}
         canEdit={canEdit}
         mileageIn={ro.mileageIn}
+        mileageOut={ro.mileageOut}
         odometerNotWorking={ro.odometerNotWorking}
+        reqOdometer={sidebarOptions.reqOdometer}
         customer={customerRecord}
         vehicle={editableVehicle}
         drawerData={contextDrawerData}
         vehicleSpecs={vehicleSpecsBundle}
-      />
-
-      <EstimateLabOdometerBar
-        roId={ro.id}
-        mileageIn={ro.mileageIn}
-        mileageOut={ro.mileageOut}
-        odometerNotWorking={ro.odometerNotWorking}
-        canEdit={canEdit}
-        reqOdometer={sidebarOptions.reqOdometer}
       />
 
       {!canEdit && hasJobs ? (

@@ -10,6 +10,7 @@ export type PlanFeature =
   | "cannedJobs"
   | "partsTech"
   | "laborGuide"
+  | "motorLabor"
   | "customerEmail"
   | "customerSms"
   | "digitalInspections"
@@ -440,6 +441,7 @@ const starterFeatures: PlanFeatureSet = {
   cannedJobs: true,
   partsTech: false,
   laborGuide: true,
+  motorLabor: false,
   customerEmail: true,
   customerSms: false,
   digitalInspections: true,
@@ -468,6 +470,7 @@ const professionalFeatures: PlanFeatureSet = {
   cannedJobs: true,
   partsTech: true,
   laborGuide: true,
+  motorLabor: true,
   customerEmail: true,
   customerSms: true,
   digitalInspections: true,
@@ -496,6 +499,7 @@ const EliteFeatures: PlanFeatureSet = {
   cannedJobs: true,
   partsTech: true,
   laborGuide: true,
+  motorLabor: true,
   customerEmail: true,
   customerSms: true,
   digitalInspections: true,

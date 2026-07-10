@@ -25,14 +25,14 @@ export default async function ApprovePage({
     .reduce((s, j) => s + j.totalCents, 0);
 
   return (
-    <div className="min-h-screen bg-muted/30 px-4 py-8">
+    <div className="min-h-screen bg-brand-navy/[0.04] px-4 py-8">
       <div className="mx-auto max-w-xl space-y-5">
         <ShopRallyLogo href="https://getshoprally.com" size="sm" />
 
-        <div className="rounded-2xl border bg-card p-6 shadow-sm">
-          <div className="border-b pb-4">
-            <p className="text-sm text-muted-foreground">{view.shopName}</p>
-            <h1 className="mt-1 text-xl font-bold">Estimate for RO #{view.number}</h1>
+        <div className="overflow-hidden rounded-2xl border border-brand-navy/15 bg-card shadow-sm">
+          <div className="border-b border-brand-navy/10 bg-gradient-to-r from-brand-navy/[0.07] via-white to-brand-light/[0.12] p-6 pb-4">
+            <p className="text-sm font-medium text-brand-navy/80">{view.shopName}</p>
+            <h1 className="mt-1 text-xl font-bold text-brand-navy">Estimate for RO #{view.number}</h1>
             <p className="mt-1 text-sm text-muted-foreground">
               {view.customerName} · {view.vehicleLabel}
               {view.odometerNotWorking
@@ -45,7 +45,7 @@ export default async function ApprovePage({
           </div>
 
           {/* Jobs (read-only summary) */}
-          <div className="divide-y py-2">
+          <div className="divide-y px-6 py-2">
             {view.jobs.length === 0 ? (
               <p className="py-4 text-sm text-muted-foreground">No jobs on this estimate.</p>
             ) : (
@@ -67,7 +67,7 @@ export default async function ApprovePage({
           </div>
 
           {/* Totals */}
-          <div className="space-y-1.5 border-t pt-4 text-sm">
+          <div className="space-y-1.5 border-t border-brand-navy/10 px-6 py-4 text-sm">
             <Row label="Labor" value={formatCents(view.laborSubtotalCents)} />
             <Row label="Parts" value={formatCents(view.partsSubtotalCents)} />
             {view.shopSuppliesCents > 0 ? (
@@ -80,7 +80,7 @@ export default async function ApprovePage({
               <Row label="Discounts" value={formatCents(-view.discountCents)} />
             ) : null}
             <Row label="Tax" value={formatCents(view.taxCents)} />
-            <div className="flex justify-between border-t pt-2 text-base font-bold">
+            <div className="flex justify-between border-t border-brand-navy/10 pt-2 text-base font-bold text-brand-navy">
               <span>Total</span>
               <span className="tabular-nums">{formatCents(view.totalCents)}</span>
             </div>

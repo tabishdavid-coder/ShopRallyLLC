@@ -24,9 +24,6 @@ type AcknowledgmentBlock = {
   version?: string | null;
 };
 
-const NAVY = "#1b3a6b";
-const LINK = "#1c6bba";
-
 function fmtDT(d: Date | null | undefined) {
   if (!d) return "N/A";
   const s = new Date(d).toLocaleString("en-US", {
@@ -85,10 +82,7 @@ export function PrintDocument({
             // eslint-disable-next-line @next/next/no-img-element
             <img src={shop.logoUrl} alt={shop?.name ?? "Shop"} className="size-20 shrink-0 rounded object-contain" />
           ) : (
-            <div
-              className="flex size-20 shrink-0 items-center justify-center rounded text-2xl font-black text-white"
-              style={{ background: NAVY }}
-            >
+            <div className="flex size-20 shrink-0 items-center justify-center rounded bg-brand-navy text-2xl font-black text-white">
               {initials(shop?.name ?? "Shop").toUpperCase()}
             </div>
           )}
@@ -98,8 +92,8 @@ export function PrintDocument({
             {shop?.address2 ? <div>{shop.address2}</div> : null}
             {(cityLine || shop?.zip) ? <div>{[cityLine, shop?.zip].filter(Boolean).join(" ")}</div> : null}
             {shop?.phone ? <div>{shop.phone}</div> : null}
-            {shop?.email ? <div style={{ color: LINK }}>{shop.email}</div> : null}
-            {shop?.website ? <div style={{ color: LINK }}>{shop.website}</div> : null}
+            {shop?.email ? <div className="font-medium text-brand-navy underline decoration-brand-light/70 underline-offset-2">{shop.email}</div> : null}
+            {shop?.website ? <div className="font-medium text-brand-navy underline decoration-brand-light/70 underline-offset-2">{shop.website}</div> : null}
           </div>
         </div>
         <div className="text-right leading-relaxed">
@@ -142,7 +136,7 @@ export function PrintDocument({
                 <tbody>
                   {job.laborLines.map((l, k) => (
                     <tr key={l.id} className="border-b border-slate-100">
-                      <td className="w-16 py-1 pl-2 align-top italic" style={{ color: LINK }}>{k === 0 ? "Labor:" : ""}</td>
+                      <td className="w-16 py-1 pl-2 align-top font-medium italic text-brand-navy">{k === 0 ? "Labor:" : ""}</td>
                       <td className="py-1">{l.description}</td>
                       <td className="w-14 py-1 text-right tabular-nums text-slate-500">{T.laborHours && l.hours ? `${l.hours} hr` : ""}</td>
                       {showCost ? <td className="w-20 py-1 text-right tabular-nums text-slate-500">{formatCents(l.rateCents)}</td> : null}
@@ -151,7 +145,7 @@ export function PrintDocument({
                   ))}
                   {job.partLines.map((p, k) => (
                     <tr key={p.id} className="border-b border-slate-100">
-                      <td className="w-16 py-1 pl-2 align-top italic" style={{ color: LINK }}>{k === 0 ? "Part:" : ""}</td>
+                      <td className="w-16 py-1 pl-2 align-top font-medium italic text-brand-navy">{k === 0 ? "Part:" : ""}</td>
                       <td className="py-1">
                         {T.partBrand && p.brand ? `${p.brand} ` : ""}{p.description}
                         {T.partNumbers && p.partNumber ? <span className="text-slate-500"> (#{p.partNumber})</span> : null}
@@ -167,7 +161,7 @@ export function PrintDocument({
               <div className="flex items-center gap-4 border-t border-slate-300 px-2 py-1.5">
                 <div className="flex items-center gap-2 text-[12px]">
                   {approved ? (
-                    <span style={{ color: LINK }}>✓ Approved on {fmtDT(ro.authorizedAt)}</span>
+                    <span className="text-brand-navy">✓ Approved on {fmtDT(ro.authorizedAt)}</span>
                   ) : (
                     <>
                       <span className="inline-block size-3 border border-slate-500" /> APPROVE
@@ -249,7 +243,7 @@ export function PrintDocument({
       ) : null}
 
       {/* Footer */}
-      <div className="fixed inset-x-0 bottom-0 flex justify-between border-t border-slate-200 px-8 py-2 text-[11px]" style={{ color: NAVY }}>
+      <div className="fixed inset-x-0 bottom-0 flex justify-between border-t border-brand-navy/15 px-8 py-2 text-[11px] text-brand-navy">
         <span>{shop?.name ?? "Shop"} - RO# {ro.number}</span>
         <span>Printed on {fmtDT(new Date())} - Page 1 of 1</span>
       </div>

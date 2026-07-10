@@ -1,6 +1,6 @@
 "use client";
 
-import { useTransition } from "react";
+import { useState, useTransition } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import {
@@ -27,21 +27,17 @@ import {
 import { useEstimateActionToast } from "@/components/repair-order/estimate-action-toast";
 import { COLUMN_OF, type BoardColumn } from "@/lib/job-board";
 import { roEstimateActionHref } from "@/lib/ro-context-actions";
+import { RO_STATUS_LABEL } from "@/lib/ro-status";
 import { cn } from "@/lib/utils";
 import {
-  approveRepairOrder,
   archiveRepairOrder,
   moveRepairOrderToCoreColumn,
 } from "@/server/actions/job-board";
+import { AuthorizeEstimateDialog } from "@/components/repair-order/authorize-estimate-dialog";
 import type { ROStatus } from "@/generated/prisma";
 
-const PHASE_LABEL: Record<ROStatus, string> = {
-  ESTIMATE: "Quoted",
-  APPROVED: "In bay",
-  IN_PROGRESS: "In bay",
-  COMPLETED: "Complete",
-  INVOICED: "Invoiced",
-};
+const RAIL_PERFORMANCE_TRIGGER_CLASS =
+  "group h-auto min-h-10 gap-2 rounded-md border border-brand-navy/35 bg-white px-2.5 py-1.5 text-brand-navy shadow-sm transition-colors hover:border-brand-navy/45 hover:bg-brand-navy/5 active:bg-slate-50 focus-visible:ring-2 focus-visible:ring-brand-light/55 focus-visible:ring-offset-1 disabled:opacity-50 [&_svg]:text-brand-navy";
 
 function currentColumn(status: ROStatus): BoardColumn {
   return COLUMN_OF[status];
@@ -49,20 +45,29 @@ function currentColumn(status: ROStatus): BoardColumn {
 
 export function RoWorkflowDropdown({
   roId,
+  roNumber,
   roStatus,
+  customerName,
+  phone,
   canArchive = false,
   className,
+  triggerVariant = "default",
 }: {
   roId: string;
+  roNumber: number;
   roStatus: ROStatus;
+  customerName: string;
+  phone: string | null;
   canArchive?: boolean;
   className?: string;
+  triggerVariant?: "default" | "rail";
 }) {
   const router = useRouter();
   const { toast } = useEstimateActionToast();
+  const [authorizeOpen, setAuthorizeOpen] = useState(false);
   const [pending, startTransition] = useTransition();
 
-  const phase = PHASE_LABEL[roStatus];
+  const phase = RO_STATUS_LABEL[roStatus];
   const column = currentColumn(roStatus);
 
   function run(action: () => Promise<{ ok: boolean; error?: string }>, success: string) {
@@ -84,7 +89,10 @@ export function RoWorkflowDropdown({
   const canCollectPayment =
     roStatus === "COMPLETED" || roStatus === "INVOICED";
 
+  const isRailTrigger = triggerVariant === "rail";
+
   return (
+    <>
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
         <Button
@@ -93,17 +101,42 @@ export function RoWorkflowDropdown({
           size="sm"
           disabled={pending}
           className={cn(
-            "h-8 gap-1 border-brand-navy/25 px-2 text-[11px] font-semibold text-brand-navy",
+            isRailTrigger
+              ? RAIL_PERFORMANCE_TRIGGER_CLASS
+              : "h-8 gap-1 border-brand-navy/25 px-2 text-[11px] font-semibold text-brand-navy",
             className,
           )}
           aria-label={`Workflow — ${phase}`}
         >
-          <span className="flex min-w-0 items-center gap-1 truncate">
-            <GitBranch className="size-3.5 shrink-0" aria-hidden />
-            <span className="hidden sm:inline">Workflow</span>
-            <span className="truncate font-normal text-muted-foreground">· {phase}</span>
-          </span>
-          <ChevronDown className="size-3.5 shrink-0 opacity-60" aria-hidden />
+          {isRailTrigger ? (
+            <>
+              <span className="flex min-w-0 items-center gap-2 text-left">
+                <span className="flex size-7 shrink-0 items-center justify-center rounded-md border border-brand-navy/20 bg-slate-50 text-brand-navy shadow-sm transition-colors group-hover:border-brand-navy/30 group-hover:bg-white">
+                  <GitBranch className="size-3.5" aria-hidden />
+                </span>
+                <span className="flex min-w-0 items-center gap-1.5">
+                  <span className="text-[10px] font-semibold uppercase leading-none tracking-[0.12em] text-brand-navy/75">
+                    Workflow
+                  </span>
+                  <span className="max-w-full truncate rounded-full border border-brand-navy/15 bg-slate-50 px-2 py-0.5 text-[11px] font-semibold leading-none text-brand-navy shadow-[inset_0_1px_0_rgb(255_255_255_/_0.75)]">
+                    {phase}
+                  </span>
+                </span>
+              </span>
+              <span className="ml-auto flex size-6 shrink-0 items-center justify-center rounded-md border border-brand-navy/15 bg-slate-50 text-brand-navy transition-colors group-hover:border-brand-navy/25 group-hover:bg-white">
+                <ChevronDown className="size-3.5 opacity-70" aria-hidden />
+              </span>
+            </>
+          ) : (
+            <>
+              <span className="flex min-w-0 items-center gap-1 truncate">
+                <GitBranch className="size-3.5 shrink-0" aria-hidden />
+                <span className="hidden sm:inline">Workflow</span>
+                <span className="truncate font-normal text-muted-foreground">· {phase}</span>
+              </span>
+              <ChevronDown className="size-3.5 shrink-0 opacity-60" aria-hidden />
+            </>
+          )}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="start" className="w-56">
@@ -127,9 +160,7 @@ export function RoWorkflowDropdown({
         {canStartWork ? (
           <DropdownMenuItem
             disabled={pending}
-            onSelect={() =>
-              run(() => approveRepairOrder(roId), "Approved — work started")
-            }
+            onSelect={() => setAuthorizeOpen(true)}
           >
             <CheckCircle2 className="size-4" />
             Approve & start work
@@ -160,7 +191,7 @@ export function RoWorkflowDropdown({
             }
           >
             <Wrench className="size-4" />
-            Mark in bay
+            Move to work in progress
           </DropdownMenuItem>
         ) : null}
 
@@ -216,5 +247,14 @@ export function RoWorkflowDropdown({
         ) : null}
       </DropdownMenuContent>
     </DropdownMenu>
+    <AuthorizeEstimateDialog
+      open={authorizeOpen}
+      onOpenChange={setAuthorizeOpen}
+      roId={roId}
+      roNumber={roNumber}
+      customerName={customerName}
+      phone={phone}
+    />
+    </>
   );
 }

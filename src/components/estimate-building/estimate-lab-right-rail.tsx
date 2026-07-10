@@ -153,18 +153,12 @@ function computeAuthCounts(jobs: AuthJob[]) {
 }
 
 function PaymentStatusStrip({
-  roId,
-  roStatus,
-  canArchive = false,
   canEdit,
   allowPreview = true,
   actualPaidCents,
   totalCents,
   className,
 }: {
-  roId: string;
-  roStatus: ROStatus;
-  canArchive?: boolean;
   canEdit: boolean;
   allowPreview?: boolean;
   actualPaidCents: number;
@@ -179,7 +173,7 @@ function PaymentStatusStrip({
 
   return (
     <div className={cn("border-b border-brand-light/25 bg-white px-3 py-2.5", className)}>
-      <div className="flex items-center gap-1.5">
+      <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1">
         <EstimateLabPaymentStatusMenu
           canEdit={canEdit}
           allowPreview={allowPreview}
@@ -187,13 +181,7 @@ function PaymentStatusStrip({
           totalCents={totalCents}
           inline
         />
-        <RoWorkflowDropdown
-          roId={roId}
-          roStatus={roStatus}
-          canArchive={canArchive}
-          className="h-7 min-w-0 flex-1 justify-between"
-        />
-        <span className="ml-auto flex shrink-0 items-center gap-1.5">
+        <span className="flex min-w-0 flex-1 items-center gap-1.5">
           <PaymentAmounts paidCents={paidCents} totalCents={totalCents} />
           {isPreviewing ? (
             <span
@@ -205,6 +193,37 @@ function PaymentStatusStrip({
           ) : null}
         </span>
       </div>
+    </div>
+  );
+}
+
+function WorkflowStatusStrip({
+  roId,
+  roNumber,
+  roStatus,
+  customerName,
+  phone,
+  canArchive = false,
+}: {
+  roId: string;
+  roNumber: number;
+  roStatus: ROStatus;
+  customerName: string;
+  phone: string | null;
+  canArchive?: boolean;
+}) {
+  return (
+    <div className="border-b border-border bg-white px-3 py-2.5">
+      <RoWorkflowDropdown
+        roId={roId}
+        roNumber={roNumber}
+        roStatus={roStatus}
+        customerName={customerName}
+        phone={phone}
+        canArchive={canArchive}
+        className="w-full justify-between"
+        triggerVariant="rail"
+      />
     </div>
   );
 }
@@ -477,6 +496,8 @@ function EstimateLabRightRailBody(props: EstimateLabRightRailProps) {
   const {
     roId,
     roNumber,
+    roStatus,
+    canArchive,
     customerName,
     customerFirstName,
     phone,
@@ -578,6 +599,15 @@ function EstimateLabRightRailBody(props: EstimateLabRightRailProps) {
         </OrderSummaryAccordion>
       ) : null}
 
+      <WorkflowStatusStrip
+        roId={roId}
+        roNumber={roNumber}
+        roStatus={roStatus}
+        customerName={customerName}
+        phone={phone}
+        canArchive={canArchive}
+      />
+
       {showTotals ? (
         <OrderSummaryAccordion icon={Wallet} title="Totals">
           <div className="space-y-1.5">
@@ -657,9 +687,6 @@ export function EstimateLabRightRail(props: EstimateLabRightRailProps) {
           declined={authCounts.declined}
         />
         <PaymentStatusStrip
-          roId={props.roId}
-          roStatus={props.roStatus}
-          canArchive={props.canArchive}
           canEdit={props.canEdit}
           allowPreview={props.allowPaymentPreview}
           actualPaidCents={props.financial.paidCents}
@@ -691,9 +718,6 @@ export function EstimateLabRightRail(props: EstimateLabRightRailProps) {
               className="shrink-0"
             />
             <PaymentStatusStrip
-              roId={props.roId}
-              roStatus={props.roStatus}
-              canArchive={props.canArchive}
               canEdit={props.canEdit}
               allowPreview={props.allowPaymentPreview}
               actualPaidCents={props.financial.paidCents}

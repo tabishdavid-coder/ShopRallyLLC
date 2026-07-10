@@ -153,6 +153,9 @@ function motorApplicationToHit(row: LaborBookMotorApplicationDto): LaborGuideHit
     laborOperations: row.operationType ? [row.operationType] : [row.literalName],
     notes: row.operationType ? `Operation: ${row.operationType}` : undefined,
     source: "catalog",
+    // Licensed MOTOR Estimated Work Time → BOOK tier (see laborTierFromDataSource).
+    // Carried through variantToCartLine so cart/job lines keep the BOOK badge.
+    dataSource: "motor_ewt",
     categoryPath: undefined,
   };
 }
@@ -192,7 +195,7 @@ export function motorApplicationsToGridRows(
       system: null,
       includes: row.operationType ? `Operation: ${row.operationType}` : undefined,
       source: "catalog",
-      sourceLabel: "MOTOR",
+      sourceLabel: "BOOK",
     });
   }
 

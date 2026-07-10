@@ -343,6 +343,7 @@ function JobsBrowseColumn({
   onGenerateAi,
   generating,
   motorMode,
+  aiEnabled = false,
   emptyJobsMessage,
   estimateButtonLabel = "Estimate with AI",
   onBack,
@@ -360,6 +361,8 @@ function JobsBrowseColumn({
   onQuickAddMotor?: (row: LaborGridRow) => void;
   onGenerateAi: () => void;
   motorMode?: boolean;
+  /** AI generation enabled (LABOR_AI_ENABLED). When false the AI CTA is hidden. */
+  aiEnabled?: boolean;
   emptyJobsMessage?: string;
   estimateButtonLabel?: string;
   onBack?: () => void;
@@ -432,19 +435,27 @@ function JobsBrowseColumn({
                 ? "No MOTOR applications synced for this component."
                 : "No jobs match this selection for your vehicle.")}
           </p>
-          {emptySubcategoryId === "brakes-pads" && emptyOperationId === "pads-rr" ? (
+          {aiEnabled && emptySubcategoryId === "brakes-pads" && emptyOperationId === "pads-rr" ? (
             <p className="max-w-xs text-xs">
               Cached jobs may be pads+rotors only — select <strong>Pads &amp; rotors</strong> in the
               Operation column, or generate a pads-only job with AI.
             </p>
-          ) : emptySubcategoryId?.startsWith("brakes") ? (
+          ) : aiEnabled && emptySubcategoryId?.startsWith("brakes") ? (
             <p className="max-w-xs text-xs">
               Try another position or operation, or generate with AI for this vehicle.
             </p>
           ) : null}
-          <Button variant="outline" size="sm" className="gap-1.5" onClick={onGenerateAi} disabled={generating}>
-            <Sparkles className="size-4" /> {estimateButtonLabel}
-          </Button>
+          {aiEnabled ? (
+            <Button variant="outline" size="sm" className="gap-1.5" onClick={onGenerateAi} disabled={generating}>
+              <Sparkles className="size-4" /> {estimateButtonLabel}
+            </Button>
+          ) : (
+            <p className="max-w-xs text-xs text-muted-foreground">
+              {motorMode
+                ? "Pick another MOTOR component, or add a canned job."
+                : "Try another component or search, or add a canned job."}
+            </p>
+          )}
         </div>
       )}
     </div>
@@ -853,6 +864,9 @@ export function SmartLaborGuide({
   const [motorInitLoading, setMotorInitLoading] = useState(false);
   const [motorSource, setMotorSource] = useState<LaborBookMotorSource>("shop");
   const [catalogMode, setCatalogMode] = useState<LaborCatalogMode>("reference");
+  // AI labor generation is parked by default (pivot to MOTOR). Server tells us if
+  // LABOR_AI_ENABLED=true; when false we hide the "Estimate with AI" affordances.
+  const [aiEnabled, setAiEnabled] = useState(false);
   const [baseVehicleId, setBaseVehicleId] = useState<number | null>(null);
   const [motorTree, setMotorTree] = useState<LaborBookMotorSidebarNode[]>([]);
   const [syncBanner, setSyncBanner] = useState<string | null>(null);
@@ -902,12 +916,14 @@ export function SmartLaborGuide({
         setMotorTree([]);
         setBaseVehicleId(null);
         setSyncBanner(null);
+        setAiEnabled(false);
       } else {
         setMotorSource(res.source);
         setCatalogMode(res.catalogMode);
         setMotorTree(res.tree);
         setBaseVehicleId(res.baseVehicleId);
         setSyncBanner(res.syncBanner ?? null);
+        setAiEnabled(res.aiEnabled);
       }
       setMotorInitLoading(false);
     });
@@ -1574,15 +1590,21 @@ export function SmartLaborGuide({
                       setError(null);
                     }}
                     onKeyDown={(e) => {
-                      if (e.key === "Enter" && request.trim()) {
+                      if (e.key === "Enter" && request.trim() && aiEnabled) {
                         e.preventDefault();
                         generateAi();
                       }
                     }}
-                    placeholder="Search cached jobs or describe a repair to generate with AI…"
+                    placeholder={
+                      aiEnabled
+                        ? "Search cached jobs or describe a repair to generate with AI…"
+                        : catalogMode === "licensed"
+                          ? "Search the MOTOR catalog for this vehicle…"
+                          : "Search cached jobs for this vehicle…"
+                    }
                     className="h-11 flex-1 border-0 bg-transparent pl-0 pr-2 shadow-none focus-visible:ring-0"
                   />
-                  {request.trim() ? (
+                  {request.trim() && aiEnabled ? (
                     <Button
                       onClick={() => generateAi()}
                       disabled={generating}
@@ -1598,12 +1620,12 @@ export function SmartLaborGuide({
                     </Button>
                   ) : searching ? (
                     <Loader2 className="mr-3 size-4 shrink-0 animate-spin text-brand-light" />
-                  ) : (
+                  ) : aiEnabled ? (
                     <span className="mr-3 hidden items-center gap-1 rounded-full bg-brand-light/10 px-2 py-0.5 text-[10px] font-medium text-brand-navy sm:inline-flex">
                       <Sparkles className="size-3 text-brand-light" />
                       AI
                     </span>
-                  )}
+                  ) : null}
                 </div>
 
                 <div className="flex flex-wrap items-center gap-2">
@@ -1752,6 +1774,7 @@ export function SmartLaborGuide({
                           positionHint={null}
                           emptySubcategoryId={null}
                           motorMode={useTaxonomyJobsColumn}
+                          aiEnabled={aiEnabled}
                           emptyJobsMessage={catalogLabels.emptySubGroupMessage}
                           estimateButtonLabel={catalogLabels.estimateButtonLabel}
                           onSelectHit={setSelectedHit}
@@ -1868,6 +1891,7 @@ export function SmartLaborGuide({
                       positionHint={positionBrowseHint}
                       emptySubcategoryId={selectedSubcategory}
                       emptyOperationId={selectedOperation}
+                      aiEnabled={aiEnabled}
                       onSelectHit={setSelectedHit}
                       onQuickAdd={addVariantToCart}
                       onBack={backLegacyFromJobs}
@@ -1916,15 +1940,22 @@ export function SmartLaborGuide({
                       Try the opposite position chip above, or browse Brakes in the column picker.
                     </p>
                   ) : null}
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="gap-1.5"
-                    onClick={() => generateAi()}
-                    disabled={generating}
-                  >
-                    <Sparkles className="size-4" /> Generate with AI
-                  </Button>
+                  {aiEnabled ? (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="gap-1.5"
+                      onClick={() => generateAi()}
+                      disabled={generating}
+                    >
+                      <Sparkles className="size-4" /> Generate with AI
+                    </Button>
+                  ) : (
+                    <p className="max-w-sm text-xs">
+                      Browse the {catalogMode === "licensed" ? "MOTOR catalog" : "labor guide"} by
+                      system on the left, or add a canned job.
+                    </p>
+                  )}
                 </div>
               ) : null}
             </div>

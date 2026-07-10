@@ -113,17 +113,29 @@ export function PartsHub({
     setOpen(false); setView("home"); setTab("NEEDED"); resetCatalog(); setPhone(empty); setError(null);
   }
 
-  function launchPartsTech() {
+  function launchPartsTech(jobId?: string | null) {
     setError(null);
     resetCatalog();
+    if (jobId) setTarget(jobId);
+    setOpen(true);
     setView("catalog");
     setBooting(true);
-    startPunchout(roId, null).then((res) => {
+    startPunchout(roId, jobId ?? null).then((res) => {
       setBooting(false);
       if (res.ok && res.mode === "live") setPunchoutUrl(res.redirectUrl);
       else if (!res.ok) setError(res.error);
     });
   }
+
+  /** Job-card PartsTech button (and other surfaces) open the same catalog flow. */
+  useEffect(() => {
+    function onOpenPartsTech(e: Event) {
+      const detail = (e as CustomEvent<{ jobId?: string }>).detail;
+      launchPartsTech(detail?.jobId ?? null);
+    }
+    window.addEventListener("shoprally:open-parts-tech", onOpenPartsTech);
+    return () => window.removeEventListener("shoprally:open-parts-tech", onOpenPartsTech);
+  }, [roId]);
 
   // Close + refresh when a live punchout posts its cart back for mapping.
   useEffect(() => {
@@ -331,7 +343,7 @@ export function PartsHub({
             <>
               {/* Launch actions */}
               <div className="flex items-center gap-2 border-b px-5 py-3">
-                <Button onClick={launchPartsTech} className="gap-1.5">
+                <Button onClick={() => launchPartsTech()} className="gap-1.5">
                   <ShoppingCart className="size-4" /> PartsTech
                 </Button>
                 <Button variant="outline" onClick={() => { setError(null); setView("phone"); }} className="gap-1.5">

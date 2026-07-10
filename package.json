@@ -29,6 +29,7 @@
     "db:cleanup-labor": "tsx --tsconfig ./tsconfig.scripts.json scripts/cleanup-labor-cache.ts",
     "db:refresh-labor": "tsx --tsconfig ./tsconfig.scripts.json scripts/refresh-labor-cache.ts",
     "db:apply-labor-floors": "tsx --tsconfig ./tsconfig.scripts.json scripts/apply-labor-hour-floors.ts",
+    "db:load-motor-sandbox": "tsx --tsconfig ./tsconfig.scripts.json scripts/load-motor-sandbox.ts",
     "test:motor": "tsx --tsconfig ./tsconfig.scripts.json scripts/test-motor-api.ts",
     "sync:motor-taxonomy": "tsx --tsconfig ./tsconfig.scripts.json scripts/sync-motor-taxonomy.ts",
     "generate:shop-library": "tsx --tsconfig ./tsconfig.scripts.json scripts/generate-shop-library-from-motor.ts",

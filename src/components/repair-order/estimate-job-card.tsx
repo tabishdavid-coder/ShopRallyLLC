@@ -17,10 +17,9 @@ import {
   Info,
   ListTree,
   Wrench,
-  FolderPlus,
   MoreVertical,
   Save,
-  Search,
+  ShoppingCart,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -54,7 +53,7 @@ import {
 } from "@/lib/matrix";
 import type { JobEditDraft } from "@/components/repair-order/estimate-selection-context";
 import { cn } from "@/lib/utils";
-import { saveJob, deleteJob, setJobTax, assignJobTechnician } from "@/server/actions/estimate";
+import { saveJob, deleteJob, setJobTax } from "@/server/actions/estimate";
 import type { DraggableAttributes } from "@dnd-kit/core";
 import { SaveAsCannedJobDialog } from "@/components/canned-jobs/save-as-canned-job-dialog";
 import { addDiscount, addFee } from "@/server/actions/adjustments";
@@ -162,10 +161,6 @@ function isPartFamilyType(type: InlineLineType): type is PartFamilyType {
   return type !== "labor" && type !== "fee" && type !== "discount";
 }
 
-/** Lab job-card line actions — navy outline (industry-standard, ShopRally palette). */
-const LAB_LINE_ACTION =
-  "h-8 gap-1 border-2 border-brand-navy/35 bg-white px-2.5 text-[11px] font-bold uppercase tracking-wide text-brand-navy shadow-none hover:bg-brand-light/15";
-
 /**
  * Shared Labor / Parts numeric column widths so Hours↔Qty, Rate↔Retail, Total↔Total
  * (and remove) align vertically. Parts has Cost; Labor uses an empty spacer of the same width.
@@ -180,7 +175,10 @@ const COL_RATE = "w-28";
 const COL_TOTAL = "w-28";
 /** Shared Labor/Parts remove column — fixed width so X buttons stack vertically. */
 const COL_REMOVE = "w-8";
-const REMOVE_CELL = cn(COL_REMOVE, "px-1 text-center align-middle");
+const REMOVE_CELL = cn(COL_REMOVE, "px-1 py-1.5 align-middle");
+const REMOVE_CELL_INNER = "flex h-8 items-center justify-center";
+const FOOTER_ACTION_BUTTON =
+  "h-8 gap-1.5 px-3 text-xs font-semibold uppercase tracking-wide text-brand-navy hover:border-brand-navy/25 hover:bg-brand-light/10 hover:text-brand-navy";
 
 function MatrixStatusPill({
   label,
@@ -347,7 +345,6 @@ export function EstimateJobCard({
   laborTiers = [],
   baseRateCents = 0,
   gpGoalCents,
-  technicians = [],
   roId,
   customerApproved = false,
   approvalSignature = null,
@@ -408,12 +405,6 @@ export function EstimateJobCard({
   function toggleTax(patch: { laborTaxable?: boolean; partsTaxable?: boolean }) {
     startQuick(async () => {
       await setJobTax(job.id, patch);
-      router.refresh();
-    });
-  }
-  function assignJobTech(technicianId: string | null) {
-    startQuick(async () => {
-      await assignJobTechnician(job.id, technicianId);
       router.refresh();
     });
   }
@@ -659,11 +650,14 @@ export function EstimateJobCard({
 
   function addPartLookup() {
     if (!canEdit) return;
-    if (onOpenParts && variant === "lab") {
+    if (onOpenParts) {
       onOpenParts("lookup");
       return;
     }
-    addPartManual();
+    // Production estimate: open Parts Hub → PartsTech (same flow as hero Parts Hub).
+    window.dispatchEvent(
+      new CustomEvent("shoprally:open-parts-tech", { detail: { jobId: job.id } }),
+    );
   }
 
   function addPartLine() {
@@ -934,35 +928,6 @@ export function EstimateJobCard({
             <div className="ml-auto flex shrink-0 items-center gap-1">
               {canEdit ? (
                 <>
-                  {!isLab ? (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      disabled
-                      title="Add category — coming soon"
-                      className="h-7 gap-1 px-2 text-[11px] font-semibold uppercase tracking-wide"
-                    >
-                      <FolderPlus className="size-3.5" /> Add Category
-                      <ChevronDown className="size-3 opacity-60" />
-                    </Button>
-                  ) : null}
-                  <select
-                    className={cn(
-                      "rounded-md border border-input bg-background px-1.5 text-[10px] font-semibold uppercase tracking-wide text-foreground",
-                      isLab ? "h-7 max-w-[6.5rem]" : "h-7 max-w-[8.5rem] px-2",
-                    )}
-                    value={job.technicianId ?? ""}
-                    onChange={(e) => assignJobTech(e.target.value || null)}
-                    disabled={technicians.length === 0 || quickPending}
-                    aria-label="Assign technician to job"
-                  >
-                    <option value="">{variant === "lab" ? "Assign technician" : "+ Assign"}</option>
-                    {technicians.map((t) => (
-                      <option key={t.id} value={t.id}>
-                        {t.name}
-                      </option>
-                    ))}
-                  </select>
                   {isLab ? (
                     <EstimateLabJobMenu
                       disabled={!canEdit || pending}
@@ -1059,20 +1024,6 @@ export function EstimateJobCard({
                 Pending
               </Badge>
             )}
-            <select
-              className="hidden h-7 max-w-[6.5rem] rounded-md border border-input bg-background px-1.5 text-[10px] font-semibold uppercase tracking-wide text-foreground sm:block"
-              value={job.technicianId ?? ""}
-              onChange={(e) => assignJobTech(e.target.value || null)}
-              disabled={technicians.length === 0 || quickPending}
-              aria-label="Assign technician to job"
-            >
-              <option value="">Tech</option>
-              {technicians.map((t) => (
-                <option key={t.id} value={t.id}>
-                  {t.name}
-                </option>
-              ))}
-            </select>
             <div className="ml-auto flex shrink-0 items-center gap-1.5">
               <EstimateLabSaveStatus state={labSaveState} />
               <EstimateLabJobMenu
@@ -1431,14 +1382,16 @@ export function EstimateJobCard({
                   </td>
                   {editing ? (
                     <td className={REMOVE_CELL}>
-                      <button
-                        type="button"
-                        onClick={() => setLabor((rows) => rows.filter((_, j) => j !== i))}
-                        aria-label="Remove labor"
-                        className="inline-flex size-7 items-center justify-center"
-                      >
-                        <X className="size-4 text-muted-foreground hover:text-destructive" />
-                      </button>
+                      <div className={REMOVE_CELL_INNER}>
+                        <button
+                          type="button"
+                          onClick={() => setLabor((rows) => rows.filter((_, j) => j !== i))}
+                          aria-label="Remove labor"
+                          className="inline-flex h-8 w-7 items-center justify-center"
+                        >
+                          <X className="size-4 text-muted-foreground hover:text-destructive" />
+                        </button>
+                      </div>
                     </td>
                   ) : null}
                 </tr>
@@ -1451,28 +1404,19 @@ export function EstimateJobCard({
               <Button
                 variant="outline"
                 size="sm"
-                className="gap-1.5 text-xs font-semibold uppercase tracking-wide text-brand-navy hover:text-brand-navy"
+                className={FOOTER_ACTION_BUTTON}
                 onClick={() => setLabor((rows) => [...rows, newLaborRow(baseRateCents, laborTiers)])}
               >
                 <Plus className="size-4" /> Add Labor
               </Button>
               <Button
-                variant="ghost"
+                variant="outline"
                 size="sm"
-                className="gap-1.5 text-xs font-semibold uppercase tracking-wide text-brand-navy hover:bg-brand-light/10 hover:text-brand-navy"
+                className={FOOTER_ACTION_BUTTON}
                 onClick={addLaborLookup}
                 title="Labor Book — search flat-rate operations"
               >
                 <ListTree className="size-4" /> Labor Book
-              </Button>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="gap-1.5 text-xs font-semibold uppercase tracking-wide text-muted-foreground"
-                disabled
-                title="Maintenance schedule — coming soon"
-              >
-                <Search className="size-4" /> Maintenance Schedule
               </Button>
             </div>
           ) : null}
@@ -1628,7 +1572,7 @@ export function EstimateJobCard({
                             <span
                               className={`ml-2 rounded px-1.5 py-0.5 text-[10px] font-semibold uppercase ${
                                 p.source === "PARTSTECH"
-                                  ? "bg-blue-100 text-blue-800"
+                                  ? "bg-brand-light/20 text-brand-navy"
                                   : "bg-red-100 text-red-700"
                               }`}
                             >
@@ -1813,14 +1757,16 @@ export function EstimateJobCard({
                     </td>
                     {editing ? (
                       <td className={REMOVE_CELL}>
-                        <button
-                          type="button"
-                          onClick={() => setParts((rows) => rows.filter((_, j) => j !== i))}
-                          aria-label="Remove part"
-                          className="inline-flex size-7 items-center justify-center"
-                        >
-                          <X className="size-4 text-muted-foreground hover:text-destructive" />
-                        </button>
+                        <div className={REMOVE_CELL_INNER}>
+                          <button
+                            type="button"
+                            onClick={() => setParts((rows) => rows.filter((_, j) => j !== i))}
+                            aria-label="Remove part"
+                            className="inline-flex h-8 w-7 items-center justify-center"
+                          >
+                            <X className="size-4 text-muted-foreground hover:text-destructive" />
+                          </button>
+                        </div>
                       </td>
                     ) : null}
                   </tr>
@@ -1837,15 +1783,23 @@ export function EstimateJobCard({
           )}
 
           {editing && !isLab ? (
-            <div className="flex items-center gap-2 border-t border-border bg-white px-3 py-2">
+            <div className={cn("flex flex-wrap items-center gap-2 border-t bg-white px-3 py-2", jobDivider)}>
               <Button
                 variant="outline"
                 size="sm"
-                className={cn(LAB_LINE_ACTION, "border-brand-navy/20 font-semibold normal-case tracking-normal")}
+                className={FOOTER_ACTION_BUTTON}
                 onClick={() => setParts((rows) => [...rows, newPartRow(partTiers)])}
               >
                 <Plus className="size-4" /> Add Part
-                <ChevronDown className="size-3.5 opacity-60" />
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                className={FOOTER_ACTION_BUTTON}
+                onClick={addPartLookup}
+                title="PartsTech — search catalogs and import parts"
+              >
+                <ShoppingCart className="size-4" /> PartsTech
               </Button>
             </div>
           ) : null}

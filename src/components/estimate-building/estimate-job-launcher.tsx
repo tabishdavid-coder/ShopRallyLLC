@@ -3,7 +3,6 @@
 import { useState, useTransition, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import {
-  CalendarClock,
   ListTree,
   DollarSign,
   Loader2,
@@ -98,14 +97,6 @@ export function EstimateJobLauncher({
       label: "Add New Job",
       description: "Start a blank service card and add labor/parts manually.",
       icon: <Plus className="size-5 text-brand-navy" />,
-    },
-    {
-      id: "maintenance",
-      label: "Maintenance Schedule",
-      description: "Vehicle maintenance intervals — coming soon.",
-      icon: <CalendarClock className="size-5 text-muted-foreground" />,
-      disabled: true,
-      stubMessage: "Maintenance schedule picker is not wired yet.",
     },
     {
       id: "sublet",

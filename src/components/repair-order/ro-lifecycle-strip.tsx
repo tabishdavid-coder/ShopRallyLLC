@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 const STEPS: { label: string; match: ROStatus[] }[] = [
   { label: "Intake", match: ["ESTIMATE"] },
   { label: "Quoted", match: ["ESTIMATE"] },
-  { label: "In bay", match: ["APPROVED", "IN_PROGRESS"] },
+  { label: "Work in progress", match: ["APPROVED", "IN_PROGRESS"] },
   { label: "Complete", match: ["COMPLETED"] },
   { label: "Invoiced", match: ["INVOICED"] },
 ];
