@@ -46,6 +46,7 @@ export function JobBoardPipelineSettings({ initial }: { initial: JobBoardPipelin
         return;
       }
       setColumns((prev) => prev.filter((c) => c.id !== id));
+      setError(null);
     });
   }
 
@@ -55,6 +56,7 @@ export function JobBoardPipelineSettings({ initial }: { initial: JobBoardPipelin
         <h4 className="text-sm font-semibold">Pipeline sections</h4>
         <p className="text-sm text-muted-foreground">
           Rename the three core stages or remove custom sections you added on the job board.
+          Custom sections must be empty before they can be deleted.
         </p>
       </div>
 
@@ -70,9 +72,18 @@ export function JobBoardPipelineSettings({ initial }: { initial: JobBoardPipelin
                   type="button"
                   variant="ghost"
                   size="sm"
-                  className="h-8 text-destructive hover:text-destructive"
+                  className="h-8 rounded-none text-destructive hover:text-destructive"
                   disabled={pending}
-                  onClick={() => removeCustom(col.id)}
+                  onClick={() => {
+                    if (
+                      !window.confirm(
+                        `Delete section “${col.title}”? It must be empty (no repair orders).`,
+                      )
+                    ) {
+                      return;
+                    }
+                    removeCustom(col.id);
+                  }}
                 >
                   <Trash2 className="size-3.5" /> Remove
                 </Button>

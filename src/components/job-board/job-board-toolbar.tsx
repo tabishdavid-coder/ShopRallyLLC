@@ -46,7 +46,7 @@ import { JobBoardViewToggle } from "@/components/job-board/job-board-view-toggle
 import { cn } from "@/lib/utils";
 
 const COMPACT_BTN =
-  "h-7 shrink-0 gap-1 px-2 text-xs [&_svg:not([class*='size-'])]:size-3.5";
+  "h-7 shrink-0 gap-1 rounded-none px-2 text-xs [&_svg:not([class*='size-'])]:size-3.5";
 
 function FilterButton({
   active,
@@ -192,7 +192,7 @@ export function JobBoardToolbar({
             <SlidersHorizontal className="size-3.5" />
             Filters
             {secondaryFilterCount > 0 ? (
-              <span className="rounded-full bg-brand-navy px-1.5 py-px text-[10px] font-medium text-white">
+              <span className="rounded-none bg-brand-navy px-1.5 py-px text-[10px] font-medium text-white">
                 {secondaryFilterCount}
               </span>
             ) : null}

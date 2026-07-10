@@ -8,20 +8,20 @@ export const JOB_BOARD_COLUMN_META: Record<
   { title: string; subtitle: string }
 > = {
   estimates: {
-    title: "Estimates",
+    title: "ESTIMATES",
     subtitle: "Quotes awaiting customer or shop authorization",
   },
   workInProgress: {
-    title: "Work in Progress",
+    title: "WORK IN PROGRESS",
     subtitle: "Authorized jobs actively in the bay",
   },
   completed: {
-    title: "Completed",
+    title: "COMPLETED",
     subtitle: "Ready to invoice or collect payment",
   },
 };
 
-/** Branded column chrome — each column has a distinct status-zone tint. */
+/** Branded column chrome — Palette C accents (orange / azure / green). */
 export const JOB_BOARD_COLUMN: Record<
   BoardColumn,
   { header: string; body: string; dropOver: string }
@@ -29,35 +29,35 @@ export const JOB_BOARD_COLUMN: Record<
   estimates: {
     header: "job-board-col-header job-board-col-header-estimates",
     body: "job-board-col-body job-board-col-body-estimates",
-    dropOver: "bg-amber-100/45",
+    dropOver: "job-board-col-drop-estimates",
   },
   workInProgress: {
     header: "job-board-col-header job-board-col-header-wip",
     body: "job-board-col-body job-board-col-body-wip",
-    dropOver: "bg-brand-light/35",
+    dropOver: "job-board-col-drop-wip",
   },
   completed: {
     header: "job-board-col-header job-board-col-header-completed",
     body: "job-board-col-body job-board-col-body-completed",
-    dropOver: "bg-emerald-100/50",
+    dropOver: "job-board-col-drop-completed",
   },
 };
 
-/** Shared chip base — single contextual label per card (Garage360-class density). */
+/** Rectangular status chips — mock STATUS_STYLE (wait / ok / paid / due). */
 const CHIP_BASE =
-  "inline-flex h-5 w-fit max-w-full shrink-0 items-center gap-1 truncate rounded-md border px-2 py-0.5 text-[10px] font-semibold leading-none";
+  "inline-flex h-5 w-fit max-w-full shrink-0 items-center gap-1 truncate rounded-none border px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-[0.04em] leading-none";
 
 /** Primary context chips — one per card, priority-ordered in job-card.tsx. */
 export const JOB_BOARD_CONTEXT_CHIP = {
-  paid: `${CHIP_BASE} border-emerald-300/80 bg-emerald-50 text-emerald-800`,
-  approved: `${CHIP_BASE} border-brand-navy/20 bg-brand-light/20 text-brand-navy`,
-  pending: `${CHIP_BASE} border-amber-300/70 bg-amber-50 text-amber-900`,
-  alert: `${CHIP_BASE} border-brand-red/35 bg-brand-red/8 text-brand-red`,
+  paid: `${CHIP_BASE} border-[#B7E2CB] bg-[#E4F5EC] text-[#137347]`,
+  approved: `${CHIP_BASE} border-[#BCD9F5] bg-[#E7F1FD] text-[#0F5FB0]`,
+  pending: `${CHIP_BASE} border-[#F0CFA4] bg-[#FDF0E2] text-[#9A5200]`,
+  alert: `${CHIP_BASE} border-[#EFC2C2] bg-[#FBEAEA] text-[#A32626]`,
 } as const;
 
 /** Legacy status pills — used outside job cards (dashboard widgets, etc.). */
 const PILL_BASE =
-  "inline-flex h-5 w-fit shrink-0 items-center rounded-md border px-2 py-0.5 text-[10px] font-semibold";
+  "inline-flex h-5 w-fit shrink-0 items-center rounded-none border px-2 py-0.5 text-[10px] font-semibold";
 
 export const JOB_BOARD_STATUS_PILL: Record<
   ROStatus,
@@ -89,11 +89,11 @@ export function jobBoardCardClass(opts: {
   selected: boolean;
   auth: "customer" | "shop" | null;
   column?: BoardColumn;
+  /** @deprecated AgeDot uses its own class; top accent bar is column-driven. */
+  tone?: "fresh" | "amber" | "stale" | "ready" | "neutral";
 }): string {
   const parts = ["job-board-card"];
   if (opts.column) parts.push(`job-board-card-${opts.column}`);
   if (opts.selected) parts.push("job-board-card-selected");
-  if (opts.auth === "customer") parts.push("job-board-card-customer-auth");
-  if (opts.auth === "shop") parts.push("job-board-card-shop-auth");
   return parts.join(" ");
 }

@@ -1,17 +1,60 @@
 "use client";
 
-import Link from "next/link";
 import { useRouter } from "next/navigation";
 
 import { JobCardContextActions } from "@/components/job-board/job-card-context-actions";
-import { JobBoardHistoryProvider } from "@/components/job-board/job-board-history-provider";
+import {
+  JobBoardHistoryProvider,
+  useJobBoardContextOptional,
+} from "@/components/job-board/job-board-history-provider";
 import { JobBoardMessagesProvider } from "@/components/job-board/job-board-messages-provider";
 import { RelativeTime } from "@/components/ui/relative-time";
 import { customerDisplayName, formatCents } from "@/lib/format";
+import type { JobCard as JobCardData } from "@/lib/job-board";
 import type { JobBoardListRow } from "@/lib/job-board-list-utils";
 import { JOB_BOARD_STATUS_PILL } from "@/lib/job-board-theme";
 import { defaultRoOpenHref } from "@/lib/ro-workspace";
 import { cn } from "@/lib/utils";
+
+function stopRowNav(e: React.SyntheticEvent) {
+  e.stopPropagation();
+}
+
+function JobBoardListCustomerName({ card }: { card: JobCardData }) {
+  const ctx = useJobBoardContextOptional();
+  const name = customerDisplayName(card.customer, { nameOrder: "firstLast" });
+  const className =
+    "block w-full truncate border-0 bg-transparent p-0 text-left font-medium text-foreground hover:text-brand-navy hover:underline cursor-pointer";
+
+  if (!ctx) {
+    return <span className={className}>{name}</span>;
+  }
+
+  return (
+    <button
+      type="button"
+      className={className}
+      onClick={(e) => {
+        stopRowNav(e);
+        ctx.openCustomerHistory({
+          customerId: card.customer.id,
+          customerName: name,
+          customerFirstName: card.customer.firstName,
+          customerLastName: card.customer.lastName,
+          customerPhone: card.customer.phone,
+          marketingOptIn: card.customer.marketingOptIn,
+          roId: card.id,
+          roNumber: card.number,
+          vehicleId: card.vehicle?.id ?? null,
+          vehicle: card.vehicle,
+        });
+      }}
+      onPointerDown={stopRowNav}
+    >
+      {name}
+    </button>
+  );
+}
 
 function vehicleLine(row: JobBoardListRow): string {
   const v = row.card.vehicle;
@@ -49,7 +92,7 @@ export function JobBoardListView({
       defaultAppointmentDurationMins={defaultAppointmentDurationMins}
     >
       <JobBoardMessagesProvider>
-        <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-lg border border-border/80 bg-card shadow-sm">
+        <div className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-none border border-border/80 bg-card shadow-sm">
           <div className="flex shrink-0 items-center justify-between gap-3 border-b border-border/70 px-3 py-2 text-xs text-muted-foreground">
             <span>
               <span className="font-semibold text-foreground">{summary.count}</span> repair orders
@@ -102,13 +145,7 @@ export function JobBoardListView({
                           {row.column.title}
                         </td>
                         <td className="max-w-[12rem] px-3 py-2.5">
-                          <Link
-                            href={`/customers?customer=${card.customer.id}`}
-                            onClick={(e) => e.stopPropagation()}
-                            className="block truncate font-medium text-foreground hover:text-brand-navy hover:underline"
-                          >
-                            {customerDisplayName(card.customer)}
-                          </Link>
+                          <JobBoardListCustomerName card={card} />
                         </td>
                         <td className="max-w-[14rem] truncate px-3 py-2.5 text-xs text-muted-foreground">
                           {vehicleLine(row)}
@@ -116,7 +153,7 @@ export function JobBoardListView({
                         <td className="px-3 py-2.5">
                           <span
                             className={cn(
-                              "inline-flex rounded-md border px-2 py-0.5 text-[10px] font-semibold",
+                              "inline-flex rounded-none border px-2 py-0.5 text-[10px] font-semibold",
                               balanceDue
                                 ? "border-brand-red/35 bg-brand-red/8 text-brand-red"
                                 : card.paymentPosted
@@ -144,7 +181,9 @@ export function JobBoardListView({
                               roId={card.id}
                               roNumber={card.number}
                               customerId={card.customer.id}
-                              customerName={customerDisplayName(card.customer)}
+                              customerName={customerDisplayName(card.customer, {
+                                nameOrder: "firstLast",
+                              })}
                               customerFirstName={card.customer.firstName}
                               customerLastName={card.customer.lastName}
                               customerPhone={card.customer.phone}
@@ -152,6 +191,7 @@ export function JobBoardListView({
                               vehicleId={card.vehicle?.id ?? null}
                               vehicleLabel={vehicleLine(row)}
                               vehicle={card.vehicle}
+                              unreadSmsCount={card.unreadSmsCount}
                               iconOnly
                             />
                           </div>

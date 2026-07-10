@@ -126,6 +126,7 @@ export async function getJobBoard(opts: {
       jobBoardColumnId: true,
       totalCents: true,
       createdAt: true,
+      completedAt: true,
       authorizedAt: true,
       approvedVia: true,
       approvalSentAt: true,
@@ -135,6 +136,7 @@ export async function getJobBoard(opts: {
           id: true,
           firstName: true,
           lastName: true,
+          company: true,
           phone: true,
           marketingOptIn: true,
         },
@@ -163,6 +165,24 @@ export async function getJobBoard(opts: {
     },
   });
 
+  const customerIds = [...new Set(ros.map((r) => r.customer.id))];
+  const unreadByCustomer = new Map<string, number>();
+  if (customerIds.length > 0) {
+    const unreadGroups = await prisma.message.groupBy({
+      by: ["customerId"],
+      where: {
+        shopId: opts.shopId,
+        customerId: { in: customerIds },
+        direction: "INBOUND",
+        readAt: null,
+      },
+      _count: { _all: true },
+    });
+    for (const g of unreadGroups) {
+      unreadByCustomer.set(g.customerId, g._count._all);
+    }
+  }
+
   const cardsByColumnId: Record<string, JobCard[]> = Object.fromEntries(
     pipeline.columns.map((c) => [c.id, [] as JobCard[]]),
   );
@@ -180,6 +200,15 @@ export async function getJobBoard(opts: {
     const canArchive =
       paymentPosted && (ro.status === "COMPLETED" || ro.status === "INVOICED");
 
+    const core = COLUMN_OF[ro.status];
+    // Approximate stage entry: no dedicated board-column-entered timestamp.
+    const stageEnteredAt =
+      core === "workInProgress"
+        ? (ro.authorizedAt ?? ro.createdAt)
+        : core === "completed"
+          ? (ro.completedAt ?? ro.createdAt)
+          : ro.createdAt;
+
     const card: JobCard = {
       id: ro.id,
       number: ro.number,
@@ -188,6 +217,7 @@ export async function getJobBoard(opts: {
       vehicle: ro.vehicle,
       totalCents: ro.totalCents,
       createdAt: ro.createdAt,
+      stageEnteredAt,
       hasInspection: ro._count.inspections > 0,
       invoiceBalanceCents: balanceCents,
       authorizedAt: ro.authorizedAt,
@@ -197,6 +227,7 @@ export async function getJobBoard(opts: {
       lastPaymentMethod: lastPayment?.method ?? null,
       lastPaymentAt: lastPayment?.paidAt ?? null,
       paymentPosted,
+      unreadSmsCount: unreadByCustomer.get(ro.customer.id) ?? 0,
       canArchive,
     };
 
@@ -204,7 +235,6 @@ export async function getJobBoard(opts: {
     if (!cardsByColumnId[columnId]) cardsByColumnId[columnId] = [];
     cardsByColumnId[columnId].push(card);
 
-    const core = COLUMN_OF[ro.status];
     if (core === "estimates") estimates.push(card);
     else if (core === "workInProgress") workInProgress.push(card);
     else completed.push(card);

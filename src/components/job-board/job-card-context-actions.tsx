@@ -10,13 +10,17 @@ import { roEstimateActionHref } from "@/lib/ro-context-actions";
 import { cn } from "@/lib/utils";
 
 const ICON_BTN =
-  "size-7 shrink-0 rounded-md p-0 text-brand-navy/65 hover:bg-brand-light/25 hover:text-brand-navy";
+  "size-7 shrink-0 rounded-none p-0 text-muted-foreground hover:bg-muted/80 hover:text-brand-navy";
+
+/** Full-bleed footer actions — 3 equal cells with dividers (mock action bar). */
+const LABELED_BTN =
+  "job-board-card-action-btn h-auto min-h-8 flex-1 gap-1 rounded-none border-0 bg-transparent px-1 py-2 text-[11px] font-medium shadow-none";
 
 function stopCardNav(e: React.SyntheticEvent) {
   e.stopPropagation();
 }
 
-/** History / Message / Car specs open job board drawers when providers are mounted. */
+/** History / Chat / Vehicle open job board drawers when providers are mounted. */
 export function JobCardContextActions({
   roId,
   roNumber,
@@ -29,8 +33,10 @@ export function JobCardContextActions({
   vehicleId,
   vehicleLabel,
   vehicle,
+  unreadSmsCount = 0,
   className,
   iconOnly = false,
+  labeled = false,
 }: {
   roId: string;
   roNumber: number;
@@ -50,13 +56,19 @@ export function JobCardContextActions({
     plate: string | null;
     plateState: string | null;
   } | null;
+  unreadSmsCount?: number;
   className?: string;
   iconOnly?: boolean;
+  /** Screenshot-style labeled footer actions (History / Chat / Vehicle). */
+  labeled?: boolean;
 }) {
   const ctx = useJobBoardContextOptional();
   const messages = useJobBoardMessagesOptional();
 
-  const btnClass = iconOnly ? ICON_BTN : undefined;
+  const showLabels = labeled || !iconOnly;
+  const btnClass = labeled ? LABELED_BTN : iconOnly ? ICON_BTN : undefined;
+  const variant = labeled || iconOnly ? "ghost" : "outline";
+  const size = labeled ? "sm" : iconOnly ? "icon" : "sm";
 
   const vehicleSeed =
     vehicle ??
@@ -84,47 +96,59 @@ export function JobCardContextActions({
     vehicle: vehicleSeed,
   };
 
+  const chatLabel = labeled ? "Chat" : "Message";
+  const vehicleActionLabel = labeled ? "Vehicle" : "Car specs";
+
+  const iconClass = labeled ? "size-4 shrink-0" : "size-3.5 shrink-0";
+
   return (
     <div
-      className={cn("flex gap-0.5", className)}
+      className={cn(
+        labeled ? "job-board-card-actions flex w-full items-stretch" : "flex items-center gap-0.5",
+        className,
+      )}
       onClick={stopCardNav}
       onPointerDown={stopCardNav}
     >
       {ctx ? (
         <Button
           type="button"
-          variant={iconOnly ? "ghost" : "outline"}
-          size={iconOnly ? "icon" : "sm"}
+          variant={variant}
+          size={size}
           className={btnClass}
           title="Customer history"
           aria-label="Customer history"
           onClick={() => ctx.openCustomerHistory(historyTarget)}
         >
-          <History className="size-3.5 shrink-0" aria-hidden />
-          {!iconOnly ? "History" : null}
+          <History className={iconClass} aria-hidden />
+          {showLabels ? "History" : null}
         </Button>
       ) : (
         <Button
           asChild
-          variant={iconOnly ? "ghost" : "outline"}
-          size={iconOnly ? "icon" : "sm"}
+          variant={variant}
+          size={size}
           className={btnClass}
           title="Customer history"
         >
           <Link href={roEstimateActionHref(roId, "history")} aria-label="Customer history">
-            <History className="size-3.5 shrink-0" aria-hidden />
-            {!iconOnly ? "History" : null}
+            <History className={iconClass} aria-hidden />
+            {showLabels ? "History" : null}
           </Link>
         </Button>
       )}
       {messages ? (
         <Button
           type="button"
-          variant={iconOnly ? "ghost" : "outline"}
-          size={iconOnly ? "icon" : "sm"}
-          className={btnClass}
+          variant={variant}
+          size={size}
+          className={cn(btnClass, "relative")}
           title="Message customer"
-          aria-label="Message customer"
+          aria-label={
+            unreadSmsCount > 0
+              ? `Message customer, ${unreadSmsCount} unread`
+              : "Message customer"
+          }
           onClick={() =>
             messages.openRoMessages({
               customerId,
@@ -135,28 +159,49 @@ export function JobCardContextActions({
             })
           }
         >
-          <MessageSquare className="size-3.5 shrink-0" aria-hidden />
-          {!iconOnly ? "Message" : null}
+          <span className="relative inline-flex">
+            <MessageSquare className={iconClass} aria-hidden />
+            {unreadSmsCount > 0 ? (
+              <span className="job-board-card-chat-badge">
+                {unreadSmsCount > 9 ? "9+" : unreadSmsCount}
+              </span>
+            ) : null}
+          </span>
+          {showLabels ? chatLabel : null}
         </Button>
       ) : (
         <Button
           asChild
-          variant={iconOnly ? "ghost" : "outline"}
-          size={iconOnly ? "icon" : "sm"}
-          className={btnClass}
+          variant={variant}
+          size={size}
+          className={cn(btnClass, "relative")}
           title="Message customer"
         >
-          <Link href={roEstimateActionHref(roId, "messages")} aria-label="Message customer">
-            <MessageSquare className="size-3.5 shrink-0" aria-hidden />
-            {!iconOnly ? "Message" : null}
+          <Link
+            href={roEstimateActionHref(roId, "messages")}
+            aria-label={
+              unreadSmsCount > 0
+                ? `Message customer, ${unreadSmsCount} unread`
+                : "Message customer"
+            }
+          >
+            <span className="relative inline-flex">
+              <MessageSquare className={iconClass} aria-hidden />
+              {unreadSmsCount > 0 ? (
+                <span className="job-board-card-chat-badge">
+                  {unreadSmsCount > 9 ? "9+" : unreadSmsCount}
+                </span>
+              ) : null}
+            </span>
+            {showLabels ? chatLabel : null}
           </Link>
         </Button>
       )}
       {ctx && vehicleId ? (
         <Button
           type="button"
-          variant={iconOnly ? "ghost" : "outline"}
-          size={iconOnly ? "icon" : "sm"}
+          variant={variant}
+          size={size}
           className={btnClass}
           title="Vehicle specifications"
           aria-label="Vehicle specifications"
@@ -169,20 +214,20 @@ export function JobCardContextActions({
             })
           }
         >
-          <Car className="size-3.5 shrink-0" aria-hidden />
-          {!iconOnly ? "Car specs" : null}
+          <Car className={iconClass} aria-hidden />
+          {showLabels ? vehicleActionLabel : null}
         </Button>
       ) : (
         <Button
           asChild
-          variant={iconOnly ? "ghost" : "outline"}
-          size={iconOnly ? "icon" : "sm"}
+          variant={variant}
+          size={size}
           className={btnClass}
           title="Vehicle specifications"
         >
           <Link href={roEstimateActionHref(roId, "specs")} aria-label="Vehicle specifications">
-            <Car className="size-3.5 shrink-0" aria-hidden />
-            {!iconOnly ? "Car specs" : null}
+            <Car className={iconClass} aria-hidden />
+            {showLabels ? vehicleActionLabel : null}
           </Link>
         </Button>
       )}

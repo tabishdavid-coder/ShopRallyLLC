@@ -42,7 +42,7 @@ import { cn } from "@/lib/utils";
 
 const COMPACT_BTN =
 
-  "h-7 shrink-0 gap-1 px-2 text-xs [&_svg:not([class*='size-'])]:size-3.5";
+  "h-7 shrink-0 gap-1 rounded-none px-2 text-xs [&_svg:not([class*='size-'])]:size-3.5";
 
 
 
@@ -106,7 +106,7 @@ export function JobBoardViewToggle({
 
         className={cn(
 
-          "inline-flex shrink-0 rounded-md border bg-card p-0.5",
+          "inline-flex shrink-0 rounded-none border bg-card p-0.5",
 
           isPending && "opacity-70",
 

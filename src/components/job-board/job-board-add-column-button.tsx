@@ -46,7 +46,7 @@ export function JobBoardAddColumnButton({ className }: { className?: string }) {
           variant="outline"
           size="sm"
           className={cn(
-            "h-7 shrink-0 gap-1 px-2 text-xs [&_svg:not([class*='size-'])]:size-3.5",
+            "h-7 shrink-0 gap-1 rounded-none px-2 text-xs [&_svg:not([class*='size-'])]:size-3.5",
             className,
           )}
           title="Add pipeline section"

@@ -37,19 +37,19 @@ export function defaultJobBoardPipelineConfig(): JobBoardPipelineConfig {
       {
         id: "estimates",
         kind: "estimates",
-        title: "Estimates",
+        title: "ESTIMATES",
         subtitle: "Quotes awaiting customer or shop authorization",
       },
       {
         id: "workInProgress",
         kind: "workInProgress",
-        title: "Work in Progress",
+        title: "WORK IN PROGRESS",
         subtitle: "Authorized jobs actively in the bay",
       },
       {
         id: "completed",
         kind: "completed",
-        title: "Completed",
+        title: "COMPLETED",
         subtitle: "Ready to invoice or collect payment",
       },
     ],

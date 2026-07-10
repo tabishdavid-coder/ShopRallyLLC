@@ -48,7 +48,7 @@ export function JobCardMenu({
         onPointerDown={stop}
         onClick={stop}
         aria-label="Repair order actions"
-        className="flex size-8 shrink-0 items-center justify-center rounded-md text-muted-foreground outline-none transition-colors hover:bg-accent hover:text-foreground data-[state=open]:bg-accent"
+        className="flex size-8 shrink-0 items-center justify-center rounded-none text-muted-foreground outline-none transition-colors hover:bg-accent hover:text-foreground data-[state=open]:bg-accent"
       >
         <MoreVertical className="size-4" />
       </DropdownMenuTrigger>

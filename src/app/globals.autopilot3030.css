@@ -484,60 +484,85 @@ html[data-ap-shell="3030"] nav[aria-label="Payments"] {
   display: none;
 }
 
-/* Bay Pipeline — Deep Ocean column accents (3030 only) */
+/* Bay Pipeline — Palette C accents (orange / azure / green) */
 html[data-ap-shell="3030"] .job-board-shell {
-  border-color: var(--ap-border);
-  background: var(--ap-surface-raised);
+  --jb-ink: #0b1f3b;
+  --jb-azure: #1e7fe0;
+  --jb-orange: #e86a10;
+  --jb-green: #1c9e5a;
+  --jb-red: #c93838;
+  --jb-slate: #5b7295;
+  --jb-faint: #8ca2c0;
+  --jb-surface: #f0f3f8;
+  --jb-card: #ffffff;
+  --jb-line: #dde5ef;
+  --jb-hover-line: #b9c8dc;
+  border-radius: 0;
+  border-color: var(--jb-line);
+  background: var(--jb-surface);
   box-shadow: none;
 }
 
 html[data-ap-shell="3030"] .job-board-toolbar {
-  border-color: var(--ap-border);
-  background: var(--ap-surface-raised);
+  border-color: var(--jb-line);
+  background: var(--jb-card);
 }
 
 html[data-ap-shell="3030"] .job-board-col {
-  border-color: var(--ap-border);
+  border: none;
+  background: transparent;
 }
 
 html[data-ap-shell="3030"] .job-board-col-header-estimates {
-  border-top-color: var(--ap-primary);
+  border-top-color: var(--jb-orange);
 }
 
 html[data-ap-shell="3030"] .job-board-col-header-wip {
-  border-top-color: var(--ap-accent);
+  border-top-color: var(--jb-azure);
 }
 
 html[data-ap-shell="3030"] .job-board-col-header-completed {
-  border-top-color: var(--ap-accent-secondary);
+  border-top-color: var(--jb-green);
 }
 
-html[data-ap-shell="3030"] .job-board-col-header-wip .job-board-col-title {
-  color: var(--ap-accent);
+html[data-ap-shell="3030"] .job-board-col-header-estimates .job-board-col-title,
+html[data-ap-shell="3030"] .job-board-col-header-wip .job-board-col-title,
+html[data-ap-shell="3030"] .job-board-col-header-completed .job-board-col-title {
+  color: var(--jb-ink);
 }
 
 html[data-ap-shell="3030"] .job-board-col-header-estimates .job-board-col-badge {
-  background: var(--ap-primary);
-  border-color: color-mix(in oklab, var(--ap-primary) 70%, white);
+  background: var(--jb-orange);
+  border-color: transparent;
+  color: white;
 }
 
 html[data-ap-shell="3030"] .job-board-col-header-wip .job-board-col-badge {
-  background: var(--ap-accent);
-  border-color: color-mix(in oklab, var(--ap-accent) 60%, white);
+  background: var(--jb-azure);
+  border-color: transparent;
+  color: white;
 }
 
 html[data-ap-shell="3030"] .job-board-col-header-completed .job-board-col-badge {
-  background: var(--ap-accent-secondary);
-  border-color: color-mix(in oklab, var(--ap-accent-secondary) 60%, white);
-  color: var(--ap-chrome);
+  background: var(--jb-green);
+  border-color: transparent;
+  color: white;
 }
 
-html[data-ap-shell="3030"] .job-board-card-workInProgress {
-  border-left-color: var(--ap-accent);
+html[data-ap-shell="3030"] .job-board-col-header-estimates .job-board-col-total-amount {
+  color: var(--jb-orange);
+}
+
+html[data-ap-shell="3030"] .job-board-col-header-wip .job-board-col-total-amount {
+  color: var(--jb-azure);
+}
+
+html[data-ap-shell="3030"] .job-board-col-header-completed .job-board-col-total-amount {
+  color: var(--jb-green);
 }
 
 html[data-ap-shell="3030"] .job-board-card-selected {
-  border-color: color-mix(in oklab, var(--ap-accent) 35%, transparent);
-  background: color-mix(in oklab, var(--ap-accent) 8%, white);
-  box-shadow: 0 0 0 2px color-mix(in oklab, var(--ap-accent) 35%, transparent);
+  border-color: var(--jb-azure);
+  background: #f2f8fe;
+  box-shadow: 0 1px 2px rgba(11, 31, 59, 0.05);
 }

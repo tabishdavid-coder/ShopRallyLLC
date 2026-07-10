@@ -50,7 +50,8 @@ export async function runCompletedRoAutoArchive(shopId: string): Promise<AutoArc
         },
       ],
     },
-    data: { archivedAt: new Date() },
+    // Clear custom-section membership so archived ROs don't block section delete.
+    data: { archivedAt: new Date(), jobBoardColumnId: null },
   });
 
   return { archivedCount: result.count, settings };

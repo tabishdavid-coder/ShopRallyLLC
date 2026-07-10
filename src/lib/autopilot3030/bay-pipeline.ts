@@ -6,7 +6,7 @@ import { isAutopilot3030Shell } from "@/lib/autopilot3030/shell-variant";
 /** Kanban column labels — industry-standard shop terminology. */
 export const AP_BAY_PIPELINE_COLUMN_LABELS: Record<BoardColumn, string> = {
   estimates: JOB_BOARD_COLUMN_META.estimates.title,
-  workInProgress: "Work in Progress",
+  workInProgress: JOB_BOARD_COLUMN_META.workInProgress.title,
   completed: JOB_BOARD_COLUMN_META.completed.title,
 };
 
@@ -16,10 +16,7 @@ export const AP_BAY_PIPELINE_COLUMN_META: Record<
   { title: string; subtitle: string }
 > = {
   estimates: JOB_BOARD_COLUMN_META.estimates,
-  workInProgress: {
-    title: "Work in Progress",
-    subtitle: "Authorized jobs actively in the bay",
-  },
+  workInProgress: JOB_BOARD_COLUMN_META.workInProgress,
   completed: JOB_BOARD_COLUMN_META.completed,
 };
 

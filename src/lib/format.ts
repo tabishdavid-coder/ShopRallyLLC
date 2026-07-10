@@ -1,11 +1,23 @@
-/** Display a customer: company name for businesses, else "LastName FirstName". */
-export function customerDisplayName(c: {
-  firstName: string;
-  lastName: string;
-  company?: string | null;
-}): string {
+export type CustomerNameOrder = "lastFirst" | "firstLast";
+
+/**
+ * Display a customer: company name when set, else person name.
+ * Default order is Tekmetric-style "Last First"; pass `nameOrder: "firstLast"`
+ * for "First Last" (e.g. job board cards).
+ */
+export function customerDisplayName(
+  c: {
+    firstName: string;
+    lastName: string;
+    company?: string | null;
+  },
+  opts?: { nameOrder?: CustomerNameOrder },
+): string {
   if (c.company?.trim()) return c.company.trim();
-  const name = `${c.lastName} ${c.firstName}`.trim();
+  const name =
+    opts?.nameOrder === "firstLast"
+      ? `${c.firstName} ${c.lastName}`.trim()
+      : `${c.lastName} ${c.firstName}`.trim();
   return name || "—";
 }
 

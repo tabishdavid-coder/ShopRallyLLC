@@ -13,12 +13,15 @@ export function PipelineViewToggle({ className }: { className?: string }) {
   const onWorkflow = pathname === "/workflow";
 
   return (
-    <div className={cn("inline-flex rounded-md border bg-card p-0.5", className)}>
+    <div className={cn("inline-flex rounded-none border bg-card p-0.5", className)}>
       <Button
         asChild
         variant={onWorkflow ? "ghost" : "default"}
         size="sm"
-        className={cn("h-8 gap-1.5", !onWorkflow && "bg-brand-navy text-white hover:bg-brand-navy/90")}
+        className={cn(
+          "h-8 gap-1.5 rounded-none",
+          !onWorkflow && "bg-brand-navy text-white hover:bg-brand-navy/90",
+        )}
       >
         <Link href="/job-board">
           <Columns3 className="size-4" />
@@ -29,7 +32,10 @@ export function PipelineViewToggle({ className }: { className?: string }) {
         asChild
         variant={onWorkflow ? "default" : "ghost"}
         size="sm"
-        className={cn("h-8 gap-1.5", onWorkflow && "bg-brand-navy text-white hover:bg-brand-navy/90")}
+        className={cn(
+          "h-8 gap-1.5 rounded-none",
+          onWorkflow && "bg-brand-navy text-white hover:bg-brand-navy/90",
+        )}
       >
         <Link href="/workflow">
           <LayoutGrid className="size-4" />

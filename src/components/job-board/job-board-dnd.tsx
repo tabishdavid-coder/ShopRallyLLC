@@ -26,6 +26,7 @@ import { CSS } from "@dnd-kit/utilities";
 import { Loader2 } from "lucide-react";
 
 import { JobCard } from "@/components/job-board/job-card";
+import { JobBoardDeleteColumnButton } from "@/components/job-board/job-board-delete-column-button";
 import { JobBoardHistoryProvider } from "@/components/job-board/job-board-history-provider";
 import { JobBoardMessagesProvider } from "@/components/job-board/job-board-messages-provider";
 import { JobCardMenu } from "@/components/job-board/job-card-menu";
@@ -40,6 +41,7 @@ import {
 } from "@/lib/job-board";
 import {
   pipelineColumnStyleKind,
+  type PipelineColumnKind,
 } from "@/lib/job-board-pipeline";
 import { defaultRoOpenHref } from "@/lib/ro-workspace";
 import { moveRepairOrder, archiveRepairOrder } from "@/server/actions/job-board";
@@ -215,7 +217,11 @@ export function JobBoardDnd({
       const reordered = arrayMove(items, oldIndex, newIndex).map((c) => {
         if (c.id !== id || !targetKind || targetKind === "custom") return c;
         if (COLUMN_OF[c.status] === targetKind) return c;
-        return { ...c, status: COLUMN_STATUS[targetKind] };
+        return {
+          ...c,
+          status: COLUMN_STATUS[targetKind],
+          stageEnteredAt: new Date(),
+        };
       });
       persistArgs = { toColumnId: overC, orderedIds: reordered.map((c) => c.id), movedId: id };
       return { ...next, [overC]: reordered };
@@ -240,7 +246,11 @@ export function JobBoardDnd({
       const targetKind = columnDefs.find((c) => c.id === toColumnId)?.kind;
       const moved =
         targetKind && targetKind !== "custom"
-          ? { ...card, status: COLUMN_STATUS[targetKind] }
+          ? {
+              ...card,
+              status: COLUMN_STATUS[targetKind],
+              stageEnteredAt: new Date(),
+            }
           : card;
       const target = [...(prev[toColumnId] ?? []), moved];
       persistArgs = { toColumnId, orderedIds: target.map((c) => c.id), movedId: cardId };
@@ -263,11 +273,13 @@ export function JobBoardDnd({
       if (!from) return prev;
       const card = prev[from].find((c) => c.id === cardId);
       if (!card) return prev;
+      const now = new Date();
       const approved = {
         ...card,
         status: RO_STATUS.IN_PROGRESS,
-        authorizedAt: new Date(),
+        authorizedAt: now,
         approvedVia: "SHOP",
+        stageEnteredAt: now,
       };
       return {
         ...prev,
@@ -326,6 +338,7 @@ export function JobBoardDnd({
             <Column
               key={def.id}
               columnId={def.id}
+              kind={def.kind}
               styleKind={pipelineColumnStyleKind(def.kind)}
               title={def.title}
               subtitle={def.subtitle}
@@ -333,6 +346,7 @@ export function JobBoardDnd({
               columnTotal={showColumnTotals ? columnTotal(columns[def.id] ?? []) : null}
               compact={compact}
               emptyHint={dropHint}
+              movePending={pending}
               moveTargets={columnDefs.map((c) => ({ id: c.id, title: c.title }))}
               onMove={moveCard}
               onAuthorize={setAuthorizeTarget}
@@ -361,7 +375,7 @@ export function JobBoardDnd({
       </DndContext>
 
       {pending ? (
-        <div className="pointer-events-none fixed bottom-4 right-4 flex items-center gap-2 rounded-md bg-brand-navy px-3 py-1.5 text-xs text-white shadow-lg">
+        <div className="pointer-events-none fixed bottom-4 right-4 flex items-center gap-2 rounded-none bg-brand-navy px-3 py-1.5 text-xs text-white shadow-lg">
           <Loader2 className="size-3.5 animate-spin" /> Saving…
         </div>
       ) : null}
@@ -372,7 +386,9 @@ export function JobBoardDnd({
           onOpenChange={(o) => !o && setAuthorizeTarget(null)}
           roId={authorizeTarget.id}
           roNumber={authorizeTarget.number}
-          customerName={customerDisplayName(authorizeTarget.customer)}
+          customerName={customerDisplayName(authorizeTarget.customer, {
+            nameOrder: "firstLast",
+          })}
           phone={authorizeTarget.customer.phone}
           onShopApproved={() => optimisticShopApprove(authorizeTarget.id)}
         />
@@ -384,6 +400,7 @@ export function JobBoardDnd({
 
 function Column({
   columnId,
+  kind,
   styleKind,
   title,
   subtitle,
@@ -391,6 +408,7 @@ function Column({
   columnTotal: totalCents,
   compact,
   emptyHint,
+  movePending,
   moveTargets,
   onMove,
   onAuthorize,
@@ -400,6 +418,7 @@ function Column({
   cardHref,
 }: {
   columnId: string;
+  kind: PipelineColumnKind;
   styleKind: BoardColumn;
   title: string;
   subtitle: string;
@@ -407,6 +426,7 @@ function Column({
   columnTotal: number | null;
   compact: boolean;
   emptyHint: string;
+  movePending: boolean;
   moveTargets: { id: string; title: string }[];
   onMove: (cardId: string, toColumnId: string) => void;
   onAuthorize: (card: JobCardData) => void;
@@ -417,21 +437,31 @@ function Column({
 }) {
   const { setNodeRef, isOver } = useDroppable({ id: columnId });
   const theme = JOB_BOARD_COLUMN[styleKind];
+  const canDelete = kind === "custom";
   return (
     <div className="job-board-col">
-      <div className={theme.header}>
-        <div className="flex items-start justify-between gap-2">
-          <div className="min-w-0">
-            <div className="flex flex-wrap items-center gap-2">
-              <h2 className="job-board-col-title">{title}</h2>
-              <span className="job-board-col-badge">{cards.length}</span>
-            </div>
-            <p className="job-board-col-subtitle">{subtitle}</p>
-            {totalCents != null ? (
-              <p className="job-board-col-total">{formatCents(totalCents)} pipeline</p>
-            ) : null}
+      <div className={cn(theme.header, "relative", canDelete && "pr-9")}>
+        <div className="min-w-0">
+          <div className="flex flex-wrap items-center gap-2">
+            <h2 className="job-board-col-title">{title}</h2>
+            <span className="job-board-col-badge">{cards.length}</span>
           </div>
+          {subtitle ? <p className="job-board-col-subtitle">{subtitle}</p> : null}
+          {totalCents != null ? (
+            <p className="job-board-col-total">
+              <span className="job-board-col-total-amount">{formatCents(totalCents)}</span>
+              <span className="job-board-col-total-label"> PIPELINE</span>
+            </p>
+          ) : null}
         </div>
+        {canDelete ? (
+          <JobBoardDeleteColumnButton
+            columnId={columnId}
+            title={title}
+            cardCount={cards.length}
+            disabled={movePending}
+          />
+        ) : null}
       </div>
 
       <SortableContext items={cards.map((c) => c.id)} strategy={verticalListSortingStrategy}>

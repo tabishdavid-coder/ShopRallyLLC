@@ -90,7 +90,8 @@ export async function moveRepairOrder(raw: MoveInput): Promise<ActionResult> {
   });
   if (!moved) return { ok: false, error: "Repair order not found." };
 
-  const fromColumnId = moved.jobBoardColumnId ?? COLUMN_OF[moved.status];
+  // Same resolution as the board UI (custom bucket overrides status grouping).
+  const fromColumnId = resolveRoPipelineColumnId(moved, pipeline);
   const changingColumn = fromColumnId !== toColumnId;
   const toCore = coreKindForColumnId(toColumnId, pipeline);
   const fromCore = isCorePipelineColumnId(fromColumnId) ? fromColumnId : COLUMN_OF[moved.status];
@@ -320,7 +321,8 @@ export async function archiveRepairOrder(roId: string): Promise<ActionResult> {
 
   const updated = await prisma.repairOrder.updateMany({
     where: { id: roId, shopId, archivedAt: null },
-    data: { archivedAt: new Date() },
+    // Clear custom-section membership so an empty column is deletable after archive.
+    data: { archivedAt: new Date(), jobBoardColumnId: null },
   });
   if (updated.count === 0) return { ok: false, error: "Repair order not found." };
 
@@ -391,7 +393,10 @@ export async function addJobBoardPipelineColumn(title: string): Promise<ActionRe
   return { ok: true };
 }
 
-/** Remove a custom section (ROs in it return to status-based columns). */
+/**
+ * Remove a custom section. Refuses if any ROs are still assigned to it —
+ * cards must be moved out first (no silent reassignment).
+ */
 export async function removeJobBoardPipelineColumn(columnId: string): Promise<ActionResult> {
   const shopId = await getShopId();
   const perm = await requirePermission(shopId, "employees.manage");
@@ -404,6 +409,19 @@ export async function removeJobBoardPipelineColumn(columnId: string): Promise<Ac
     return { ok: false, error: "Only custom sections can be removed." };
   }
 
+  // Match the job board: only active (non-archived) cards block delete.
+  // Archived ROs are hidden from the board but previously kept jobBoardColumnId.
+  const occupied = await prisma.repairOrder.count({
+    where: { shopId, jobBoardColumnId: columnId, archivedAt: null },
+  });
+  if (occupied > 0) {
+    return {
+      ok: false,
+      error: `This section still has ${occupied} repair order${occupied === 1 ? "" : "s"}. Move them out before deleting.`,
+    };
+  }
+
+  // Drop leftover assignments (archived / orphans) so the column id is fully free.
   await prisma.repairOrder.updateMany({
     where: { shopId, jobBoardColumnId: columnId },
     data: { jobBoardColumnId: null },
@@ -414,6 +432,7 @@ export async function removeJobBoardPipelineColumn(columnId: string): Promise<Ac
   });
 
   revalidatePath("/job-board");
+  revalidatePath("/dashboard");
   revalidatePath("/settings/ro-settings");
   return { ok: true };
 }
