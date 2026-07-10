@@ -55,7 +55,7 @@ export function SeoAutopilotOverviewPanel() {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>SEO Autopilot</CardTitle>
+          <CardTitle>Growth Engine SEO</CardTitle>
           <CardDescription>
             Automate weekly audits and optimization for your shop websites. Included on{" "}
             {PLANS.ENTERPRISE.name}; available as a $49/mo add-on on {PLANS.PROFESSIONAL.name}.

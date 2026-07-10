@@ -31,7 +31,7 @@ const PILLARS = [
     icon: Wrench,
     title: "Run your shop",
     description:
-      "Repair orders, job board, and inventory — DVIs, Labor AI on every tier, licensed flat-rate data on Pro+.",
+      "Repair orders, job board, canned jobs, and DVIs — licensed MOTOR on Pro+, optional +$50/mo on Core.",
     accent: "border-brand-navy/20 bg-brand-navy/5",
     iconBg: "bg-brand-navy text-white",
   },
@@ -55,11 +55,11 @@ const PILLARS = [
 
 const FEATURES = [
   { icon: Calendar, label: "Appointments & online booking" },
-  { icon: BookOpen, label: "Labor AI · licensed data on Pro+" },
-  { icon: MessageSquare, label: "Two-way SMS & campaigns" },
+  { icon: BookOpen, label: "Licensed MOTOR on Pro+" },
+  { icon: MessageSquare, label: "Two-way SMS & Growth Engine" },
   { icon: Globe, label: "ShopSite & Local SEO" },
-  { icon: BarChart3, label: "Live dashboard & Daily Outline" },
-  { icon: Shield, label: "DVIs — MPI & photo markup" },
+  { icon: BarChart3, label: "Operations Daily Snapshot" },
+  { icon: Shield, label: "Digital vehicle inspections" },
   { icon: Star, label: "Maintenance subscriptions" },
 ] as const;
 
@@ -139,7 +139,7 @@ export function HomePageContent({ foundingSpotsClaimed = 0 }: { foundingSpotsCla
 
             <p className="mx-auto mt-5 max-w-2xl text-lg leading-relaxed text-slate-600">
               {preLaunch
-                ? "Between legacy desktop CRM and budget add-on stacks — one modern platform with in-depth training on every plan."
+                ? "Between legacy desktop CRM and budget add-on stacks — one modern platform from job board to Growth Engine."
                 : `Premium all-in-one for independents — ${PLANS.STARTER.name} from $${repairPilotStarterMonthly(true)}/mo, ${PLANS.PROFESSIONAL.name} flagship from $${repairPilotAllInMonthly(true)}/mo, ${PLANS.ENTERPRISE.name} from $${repairPilotOverdriveMonthly(true)}/mo.`}
             </p>
 
@@ -217,7 +217,7 @@ export function HomePageContent({ foundingSpotsClaimed = 0 }: { foundingSpotsCla
                 Built for how repair shops actually work
               </h2>
               <p className="mt-4 leading-relaxed text-slate-600">
-                From the first phone call to the final payment — repair orders, licensed labor data, Labor AI, and
+                From the first phone call to the final payment — repair orders, licensed MOTOR on Pro+, and
                 customer history stay connected. No re-entry between systems.
               </p>
               <ul className="mt-6 space-y-3">
@@ -225,9 +225,9 @@ export function HomePageContent({ foundingSpotsClaimed = 0 }: { foundingSpotsCla
                   DASHBOARD_PLAN_COPY.featuresAllTiers,
                   DVI_PLAN_COPY.featuresAllTiers,
                   LABOR_PLAN_COPY.featuresIgnition,
-                  "Canned jobs & markup matrices on Pro+",
-                  "PartsTech integration & inventory",
-                  "Customer approval links via SMS",
+                  "Job board, canned jobs & email estimates on Core",
+                  "PartsTech, inventory & plate/VIN decode on Pro+",
+                  "Growth Engine automations & win-back on Pro+",
                 ].map((item) => (
                   <li key={item} className="flex items-start gap-2 text-sm text-slate-700">
                     <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-brand-navy" />
@@ -268,17 +268,17 @@ export function HomePageContent({ foundingSpotsClaimed = 0 }: { foundingSpotsCla
             </h2>
             <p className="mt-4 text-white/75">
               Budget CRMs charge extra for booking, SMS, and reviews. ShopRally {PLANS.PROFESSIONAL.name}{" "}
-              bundles the Growth Engine from ${repairPilotAllInMonthly(true)}/mo annual — with team training
-              included.
+              bundles Growth Engine automations & win-back from ${repairPilotAllInMonthly(true)}/mo annual —
+              with Google review management included.
             </p>
           </div>
           <ul className="mx-auto mt-10 grid max-w-3xl gap-3 sm:grid-cols-2">
             {[
-              "Online booking widget",
-              "SMS & email campaigns",
-              "Google Reviews sync",
-              "Review request automations",
-              "Advisor review inbox",
+              "Two-way SMS",
+              "Online booking",
+              "Growth Engine — automations & win-back",
+              "Google review management",
+              "License plate & VIN decoding",
             ].map((item) => (
               <li
                 key={item}

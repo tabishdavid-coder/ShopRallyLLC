@@ -1,8 +1,8 @@
 # Growth Positioning — ShopRally vs Shop CRM Market
 
-**Last updated:** 2026-07-05  
+**Last updated:** 2026-07-09  
 **Use for:** `/pricing`, sales one-pagers, onboarding deck, website hero copy  
-**Strategy context:** [`COMPETITIVE-GAP-STRATEGY.md`](./COMPETITIVE-GAP-STRATEGY.md)
+**Canonical prices & bullets:** `src/lib/plans.ts` (`PLANS`, `pricingCard.bullets`) + `src/lib/billing-shared.ts` (`BILLING_PLAN_FEATURES`)
 
 ---
 
@@ -14,13 +14,27 @@
 
 ---
 
+## Public plan card (canonical — Jul 2026)
+
+Annual rates shown on `/pricing` (list / monthly billing in parentheses):
+
+| Plan | Annual /mo | Monthly /mo | Headline offer |
+|------|------------|-------------|----------------|
+| **Core** | **$109** | $119 | ShopRally CRM suite, unlimited users/ROs & estimates, email estimates & invoices, job board, canned jobs, DVIs, Operations Daily Snapshot; **MOTOR +$50/mo** |
+| **Pro** | **$239** | $279 | Everything in Core, plus licensed MOTOR, plate & VIN decode, OEM specs & fluid capacities, PartsTech, two-way SMS, online booking, Growth Engine (automations & win-back), Google review management |
+| **Elite** | **$409** | $479 | Everything in Pro, plus AI receptionist + review replies, ShopSite & Local SEO included ($228/mo value), maintenance programs, AI SEO/campaign drafting, dedicated onboarding · migration included |
+
+**Web presence add-ons (Core/Pro):** ShopSite **$99/mo**, Local SEO **$129/mo**, bundle **$199/mo** (+ launch setup). Included on Elite.
+
+---
+
 ## Pillar A — Growth included (not bolted on)
 
 **Target:** Shops paying Tekmetric ($349) + Tekmetric Marketing ($345) or Shopmonkey + CRM Essentials ($314).
 
 | Claim | Proof in ShopRally | Competitor gap |
 |-------|-----------------|----------------|
-| SMS campaigns & automations in base | `/marketing/campaigns`, Inngest batch sends | Tekmetric Marketing separate product |
+| SMS campaigns & automations in base Pro | `/marketing/campaigns`, Inngest batch sends | Tekmetric Marketing separate product |
 | Win-back for lapsed customers | `/marketing/campaigns/winback` | Often manual or Kukui overlay |
 | Online booking on your domain | `/book/[slug]`, ShopSite embed | Tekmetric booking beta in Marketing tier |
 | Google Reviews hub | `/marketing/reviews` | Shopmonkey CRM Essentials gate |
@@ -28,7 +42,7 @@
 
 **Hero copy:** *"Run your shop and grow it — without a $345 marketing add-on."*
 
-**Subhead:** *Campaigns, automations, booking, reviews, and two-way texting included. No second subscription."*
+**Subhead:** *Campaigns, automations, booking, reviews, and two-way texting on Pro. No second subscription."*
 
 ---
 
@@ -75,7 +89,7 @@
 | Matrix parts/labor pricing | ✅ Settings + job cards | — |
 | Per-service authorization counts | 🟡 Estimate Building Lab | Production RO right rail |
 | Inline odometer + customer fields | 🟡 Lab components | Merged to `/repair-orders/[id]/estimate` |
-| Canned jobs + concerns | ✅ | — |
+| Canned jobs & concerns | ✅ | — |
 | Month-to-month (vs AutoLeap annual) | ✅ | — |
 
 **Hero copy:** *"Edit estimates inline — with Tekmetric-class matrix pricing and no annual contract."*
@@ -103,9 +117,10 @@
 
 | | Tekmetric Grow | AutoLeap Pro | Shopmonkey Std | **ShopRally Pro** |
 |---|:---:|:---:|:---:|:---:|
-| Base price (2026) | ~$349/mo | ~$309/mo | ~$399/mo | TBD |
-| Marketing module | +$345/mo | Elite tier | +$314/mo | **Included** |
-| Shop website | ❌ | ❌ | ❌ | **Included** |
+| Base price (annual shown) | ~$349/mo | ~$309/mo | ~$399/mo | **$239/mo** |
+| Marketing / Growth Engine | +$345/mo | Elite tier | +$314/mo | **Included** |
+| Licensed MOTOR labor | Partnership add-on | Varies | Varies | **Included on Pro** |
+| Shop website | ❌ | ❌ | ❌ | **Elite / $99 add-on** |
 | MSO platform console | ❌ | ❌ | ❌ | **Included** |
 | Maintenance programs | ❌ | ❌ | ❌ | **Elite** |
 | Work request → RO | ❌ | ⚠️ | ✅ | **Sprint 2** |
@@ -120,30 +135,41 @@
 
 | Objection | Response |
 |-----------|----------|
-| "We already use Tekmetric." | ShopRally includes marketing, website, and MSO tools Tekmetric charges extra for — plus platform onboarding if you operate multiple locations. |
+| "We already use Tekmetric." | ShopRally Pro includes Growth Engine (booking, SMS, win-back, reviews) Tekmetric charges as Marketing — plus platform onboarding if you operate multiple locations. |
 | "AutoLeap has better estimate UX." | Sprint 1 merges our Estimate Building Lab to production; you get inline editing **and** matrix depth, month-to-month. |
 | "Shopmonkey Work Request is great." | Forms Hub Sprint 2 matches work-request → Estimate; plus native campaigns without CRM Essentials pricing. |
-| "We need MOTOR labor times." | Quick Labor AI today; MOTOR partnership on roadmap — honest about gap. |
+| "We need MOTOR labor times." | Licensed MOTOR is included on Pro & Elite; +$50/mo on Core. |
 | "Is PartsTech live?" | UI ready; live when partner credentials configured — don't claim until env flipped. |
 
 ---
 
 ## /pricing page sections (recommended)
 
-1. **Hero** — Pillar A headline + "Growth included" badge  
-2. **Compare** — Table above (3 competitors max)  
-3. **Growth Engine** — Campaigns, automations, booking, reviews, ShopSite screenshots  
-4. **Platform** — MSO console screenshot (unique)  
-5. **Plans** — Starter / Professional / Premier from `src/lib/plans.ts`  
-6. **FAQ** — Contract, migrations, integrations honesty  
+1. **Hero** — Pillar A headline + plan cards from `PLANS`  
+2. **Compare** — Feature matrix (`COMPARISON_ROWS`)  
+3. **Growth Engine** — Campaigns, automations, booking, reviews  
+4. **Platform** — MSO console (unique)  
+5. **Plans** — Core / Pro / Elite from `src/lib/plans.ts`  
+6. **FAQ** — MOTOR, ShopSite/SEO, migrations, integrations honesty  
 
 ---
 
 ## What NOT to put on marketing site yet
 
-- MOTOR / Mitchell licensed labor guide  
 - Live PartsTech ordering (unless env verified)  
 - Time clock / tech efficiency reports  
-- Inspection photo gallery  
+- Inspection photo gallery as shipping  
 - Public REST API / Zapier  
-- "AI receptionist" as production-ready (say "coming" or "beta")
+- Claim "AI receptionist" as production-ready without beta label  
+
+---
+
+## Sync rule
+
+When pricing cards change, update in this order:
+
+1. `PLANS[].pricingCard.bullets` + cents in `src/lib/plans.ts`  
+2. `BILLING_PLAN_FEATURES` in `src/lib/billing-shared.ts`  
+3. FAQ / comparison rows / `LABOR_PLAN_COPY` / `DASHBOARD_PLAN_COPY`  
+4. Marketing: home, features, pricing hero, drip, `marketing-launch.ts`, this doc  
+5. CRM surfaces that hardcode web-presence dollars (subscription, SEO actions)  

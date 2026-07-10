@@ -227,12 +227,12 @@ export function WebsiteSeoEditor({
             {aiSeoAutopilot ? (
               <p className="rounded-lg border border-brand-light/40 bg-brand-light/10 px-3 py-2 text-xs text-brand-navy">
                 <Sparkles className="mr-1 inline size-3.5" />
-                SEO Autopilot may AI-refine services and meta tags on the bi-weekly schedule. Review
+                Growth Engine SEO may AI-refine services and meta tags on the bi-weekly schedule. Review
                 and edit this content before publishing — nothing goes live without your action.
               </p>
             ) : (
               <p className="rounded-lg border bg-muted/40 px-3 py-2 text-xs text-muted-foreground">
-                SEO Autopilot adds template service pages from canned jobs. Upgrade to{" "}
+                Growth Engine SEO adds template service pages from canned jobs. Upgrade to{" "}
                 {PLANS.ENTERPRISE.name} for AI-assisted copy refinement.
               </p>
             )}

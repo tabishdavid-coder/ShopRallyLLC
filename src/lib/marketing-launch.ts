@@ -55,7 +55,7 @@ export const MARKET_POSITIONING = {
   eyebrow: "Where ShopRally fits",
   headline: "Premium shop software — not legacy, not piecemeal",
   subhead:
-    "Legacy systems split workflow across desktop installs and agency retainers. Budget cloud CRMs look cheap until SMS, booking, reviews, and website work stack on. ShopRally is the modern all-in-one — with in-depth training included on every tier.",
+    "Legacy systems split workflow across desktop installs and agency retainers. Budget cloud CRMs look cheap until SMS, booking, reviews, and website work stack on. ShopRally is the modern all-in-one — Core CRM through Elite full stack.",
   tiers: [
     {
       id: "legacy" as const,
@@ -78,7 +78,7 @@ export const MARKET_POSITIONING = {
       subPrice: "CRM + SMS + booking + reviews + agency SEO",
       points: [
         "Sticker prices from $79/mo — until you need growth tools",
-        "No native ShopSite, SEO Autopilot, or maintenance programs",
+        "No native ShopSite, Growth Engine SEO, or maintenance programs",
         "AI receptionist and review automation sold separately upstream",
         "Five logins, five invoices, five support contacts",
       ],
@@ -87,14 +87,13 @@ export const MARKET_POSITIONING = {
       id: "premium" as const,
       label: "ShopRally premium",
       summary: "Cloud CRM, Growth Engine, training & optional full stack",
-      priceLabel: "From $219/mo",
-      subPrice: "Pro flagship · licensed labor + Growth Engine · Elite full stack",
+      priceLabel: `From $${repairPilotAllInMonthly(true)}/mo`,
+      subPrice: "Pro flagship · licensed MOTOR + Growth Engine · Elite full stack",
       points: [
-        "In-depth training on Core — team program on Pro, white-glove on Elite",
-        "Labor AI on Core · licensed flat-rate data + Labor AI on Pro & Elite",
-        "Live dashboard, Daily Outline & daily profitable reports on every plan",
-        "DVIs with MPI templates, photo markup & customer share on every plan",
-        "Growth Engine on Pro: booking, SMS, campaigns, Google Reviews",
+        "Core: ShopRally CRM suite, DVIs, email estimates, job board & Operations Daily Snapshot",
+        "MOTOR labor data +$50/mo on Core · included on Pro & Elite",
+        "Pro: plate & VIN decode, OEM specs & fluids, PartsTech, SMS, booking, Growth Engine",
+        "Google review management on Pro · AI review replies on Elite",
         "Elite adds AI receptionist, ShopSite, Local SEO & maintenance programs",
         "One customer record from job board to invoice to campaign",
       ],
@@ -104,8 +103,8 @@ export const MARKET_POSITIONING = {
 
 export const FOUNDING_BENEFITS = [
   "Lock founding-shop pricing for life (annual billing)",
-  "White-glove migration from Tekmetric, Shopmonkey, or pen & paper",
-  "In-depth training included on every plan tier",
+  "White-glove migration from Tekmetric, Shopmonkey, or pen & paper on Elite",
+  "Licensed MOTOR included on Pro & Elite",
   "Direct line to product — your feedback shapes v1",
   "Priority onboarding before public launch",
   "Founding shop badge in our launch story",
@@ -125,26 +124,26 @@ export const VS_BUDGET_COMPETITORS = [
     torque360: "Included on Starter+",
   },
   {
-    category: "Live dashboard & daily reports",
-    shoprally: "Daily Outline + daily profitable reports on every plan",
+    category: "Operations Daily Snapshot",
+    shoprally: "Included on every plan",
     garage360: "Basic reporting on Clever+ · no shop-day snapshot",
     torque360: "Limited dashboards on higher tiers",
   },
   {
     category: "Labor guide & flat-rate data",
-    shoprally: `${PLANS.STARTER.name}: Labor AI · ${PLANS.PROFESSIONAL.name}+: licensed data + Labor AI`,
+    shoprally: `${PLANS.STARTER.name}: MOTOR +$50/mo · ${PLANS.PROFESSIONAL.name}+: licensed MOTOR included`,
     garage360: "Genius $199/mo for labor guides · no Growth Engine",
     torque360: "Labor on higher tiers · no native marketing stack",
   },
   {
     category: "SMS, booking & campaigns",
-    shoprally: `Growth Engine on ${PLANS.PROFESSIONAL.name} ($${repairPilotAllInMonthly(true)}/mo annual)`,
+    shoprally: `Growth Engine automations & win-back on ${PLANS.PROFESSIONAL.name} ($${repairPilotAllInMonthly(true)}/mo annual)`,
     garage360: "Not included on any CRM tier",
     torque360: "One-way SMS on Starter · two-way on Turbo",
   },
   {
     category: "Review management",
-    shoprally: `Google sync & inbox on ${PLANS.PROFESSIONAL.name}`,
+    shoprally: `Google review management on ${PLANS.PROFESSIONAL.name}`,
     garage360: "Not included",
     torque360: "Auto review mgmt on Turbo (~$180/mo)",
   },

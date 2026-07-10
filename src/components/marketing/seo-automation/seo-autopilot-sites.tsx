@@ -128,7 +128,7 @@ export function SeoAutopilotSitesPanel() {
       <Card>
         <CardHeader>
           <CardTitle>Sites &amp; settings</CardTitle>
-          <CardDescription>Upgrade to manage websites under SEO Autopilot.</CardDescription>
+          <CardDescription>Upgrade to manage websites under Growth Engine SEO.</CardDescription>
         </CardHeader>
         <CardContent>
           <Button asChild>

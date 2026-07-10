@@ -18,7 +18,7 @@ import { HeroPlatformPreview } from "@/components/marketing-site/hero-platform-p
 import { MarketPositioningSection } from "@/components/marketing-site/market-positioning-section";
 import { Button } from "@/components/ui/button";
 import { MARKETING_LAUNCH } from "@/lib/marketing-launch";
-import { COMPETITOR_BENCHMARK, DVI_PLAN_COPY, LABOR_PLAN_COPY, PLANS, repairPilotAllInMonthly, repairPilotOverdriveMonthly } from "@/lib/plans";
+import { COMPETITOR_BENCHMARK, LABOR_PLAN_COPY, PLANS, repairPilotAllInMonthly, repairPilotOverdriveMonthly } from "@/lib/plans";
 
 const MODULES = [
   {
@@ -26,30 +26,30 @@ const MODULES = [
     title: "Shop management",
     description:
       "Repair orders, job board, canned jobs, parts, inventory, and tech board — DVIs included on every plan.",
-    items: ["Kanban job board", DVI_PLAN_COPY.featuresAllTiers, "Live dashboard & Daily Outline", "In-depth training included"],
+    items: ["Kanban job board", "Digital vehicle inspections", "Operations Daily Snapshot", "Digital estimates & invoices via email"],
     accent: "from-brand-navy/10 to-brand-light/10 border-brand-navy/20",
   },
   {
     icon: Zap,
-    title: "Payments & POS",
+    title: "Payments & vehicle data",
     description:
-      "Build estimates fast with Labor AI on Core, or licensed flat-rate data plus Labor AI on Pro+. Send approval links by SMS, invoice, and collect through Stripe Connect.",
-    items: ["Text-to-approve estimates", "Stripe Connect payouts", "Invoice sharing", LABOR_PLAN_COPY.featuresIgnition],
+      "Licensed MOTOR on Pro+ (optional +$50/mo on Core), plate & VIN decode, OEM specs, and Stripe Connect payouts on Pro+.",
+    items: ["Licensed MOTOR on Pro+", "License plate & VIN decoding", "OEM specs & fluid capacities", LABOR_PLAN_COPY.featuresIgnition],
     accent: "from-brand-light/10 to-brand-light/20 border-brand-light/30",
   },
   {
     icon: Star,
     title: "Growth Engine",
     description:
-      "Marketing built in — booking, SMS, campaigns, and review management on Pro. Full AI suite on Elite.",
-    items: ["Online booking", "SMS campaigns", "Review management", `AI Google Reviews on ${PLANS.ENTERPRISE.name}`],
+      "Marketing built in — booking, SMS, automations & win-back, and Google review management on Pro. Full AI suite on Elite.",
+    items: ["Two-way SMS", "Online booking", "Growth Engine — automations & win-back", "Google review management"],
     accent: "from-brand-light/20 to-brand-light/5 border-brand-light/50",
   },
   {
     icon: Globe,
     title: "Website & SEO",
     description:
-      "Two separate monthly subscriptions — ShopSite for your hosted website and Local SEO for rankings, Search Console, and Autopilot.",
+      "Two separate monthly subscriptions — ShopSite for your hosted website and Local SEO for rankings, Search Console, and Growth Engine SEO.",
     items: ["ShopSite $99/mo", "Local SEO $129/mo", "Bundle $199/mo", `Launch setup included on ${PLANS.ENTERPRISE.name}`],
     accent: "from-brand-navy/5 to-white border-brand-navy/15",
   },
@@ -62,7 +62,7 @@ const HIGHLIGHTS = [
   { icon: Package, label: "Inventory" },
   { icon: Globe, label: "ShopSite" },
   { icon: Search, label: "Local SEO" },
-  { icon: BarChart3, label: "Live dashboard & Daily Outline" },
+  { icon: BarChart3, label: "Operations Daily Snapshot" },
 ] as const;
 
 export function FeaturesPageContent() {

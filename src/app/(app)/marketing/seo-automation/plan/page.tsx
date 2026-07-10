@@ -21,7 +21,7 @@ export default async function SeoAutopilotPlanPage({
       const label = SEO_STRIPE_CATALOG[result.catalogId]?.label ?? "SEO add-on";
       checkoutMessage = result.alreadyFulfilled
         ? `${label} is already active on your shop.`
-        : `${label} purchased — SEO Autopilot is now enabled.`;
+        : `${label} purchased — Growth Engine SEO is now enabled.`;
     } else {
       checkoutError = result.error;
     }

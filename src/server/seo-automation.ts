@@ -449,7 +449,7 @@ export async function addExternalSeoProperty(shopId: string, rawDomain: string) 
     where: { shopId_domain: { shopId, domain } },
   });
   if (existing) {
-    return { ok: false as const, error: "That site is already in your SEO Autopilot list." };
+    return { ok: false as const, error: "That site is already in your Growth Engine SEO list." };
   }
 
   await prisma.seoProperty.create({

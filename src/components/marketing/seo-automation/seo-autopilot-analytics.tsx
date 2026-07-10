@@ -54,7 +54,7 @@ export function SeoAutopilotAnalyticsPanel() {
       <Card>
         <CardHeader>
           <CardTitle>Search analytics</CardTitle>
-          <CardDescription>Upgrade to access SEO Autopilot analytics.</CardDescription>
+          <CardDescription>Upgrade to access Growth Engine SEO analytics.</CardDescription>
         </CardHeader>
         <CardContent>
           <Button asChild>

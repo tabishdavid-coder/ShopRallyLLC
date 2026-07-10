@@ -28,10 +28,10 @@ export const GROWTH_BUNDLES: Record<
   },
   presence: {
     name: "Presence",
-    tagline: "Get found in your town — ShopSite plus SEO Autopilot.",
+    tagline: "Get found in your town — ShopSite plus Growth Engine SEO.",
   },
   autopilot: {
-    name: "Autopilot",
+    name: "Growth Engine SEO",
     tagline: "Managed SEO — audits, content, Search Console, and monthly reports.",
   },
 };
@@ -102,7 +102,7 @@ export const GROWTH_PRODUCTS: Record<
     bundle: "presence",
   },
   seoAutopilot: {
-    label: "SEO Autopilot",
+    label: "Growth Engine SEO",
     shortDescription: "Automated SEO audits, content, Search Console, and monthly reports.",
     href: "/marketing/seo-automation",
     bundle: "autopilot",
@@ -169,5 +169,5 @@ export const GROWTH_ENGINE_BREADCRUMBS = {
 export const GROWTH_ENGINE_PLAN_LABELS = {
   core: "Growth Engine (Outreach, automations, maintenance programs, booking)",
   shopSite: "ShopSite — shop microsite & custom domain",
-  seoAutopilot: "SEO Autopilot — managed local SEO",
+  seoAutopilot: "Growth Engine SEO — managed local SEO",
 } as const;

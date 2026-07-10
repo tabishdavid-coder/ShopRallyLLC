@@ -68,38 +68,38 @@ export type PlanDefinition = {
   features: PlanFeatureSet;
 };
 
-/** Labor tiers — Core = Labor AI; Pro+ = licensed flat-rate catalog + Labor AI. */
+/** Labor tiers — Core = shop CRM; MOTOR +$50/mo on Core; Pro+ includes licensed MOTOR. */
 export const LABOR_PLAN_COPY = {
-  ignitionHighlight: "Labor AI — AI-guided estimates & shop library",
-  momentumHighlight: "Licensed labor data + Labor AI",
+  ignitionHighlight: "Shop library & estimate tooling",
+  momentumHighlight: "Licensed MOTOR labor data",
   comparisonByPlan: {
-    STARTER: "Labor AI",
-    PROFESSIONAL: "Licensed data + Labor AI",
-    ENTERPRISE: "Licensed data + Labor AI",
+    STARTER: "Shop library",
+    PROFESSIONAL: "Licensed MOTOR",
+    ENTERPRISE: "Licensed MOTOR",
   } satisfies Record<ShopPlan, string>,
-  billingIgnition: "Labor AI — AI-guided estimates & shop library",
-  billingMomentum: "Licensed flat-rate labor data + Labor AI",
-  featuresIgnition: "Labor AI on Core · licensed data + Labor AI on Pro+",
+  billingIgnition: "Shop library & estimate tooling",
+  billingMomentum: "Licensed MOTOR labor data",
+  featuresIgnition: "MOTOR +$50/mo on Core · included on Pro+",
   faqAnswer:
-    "Core includes Labor AI for AI-guided estimates and your shop library. Pro and Elite add licensed flat-rate labor data plus Labor AI in the estimate — a combination vendors often charge extra for on top of CRM.",
+    "MOTOR labor data is $50/mo extra on Core and included on Pro and Elite — licensed flat-rate guides in the estimate. Pro and Elite also include license plate & VIN decoding plus OEM specs and fluid capacities.",
 } as const;
 
-/** Live dashboard & daily insights — included on every plan tier. */
+/** Operations Daily Snapshot — included on every plan tier. */
 export const DASHBOARD_PLAN_COPY = {
-  planHighlight: "Live dashboard — Daily Outline & daily profitable reports",
-  billingItem: "Live dashboard — Daily Outline snapshot & daily profitable reports",
-  dailyOutlineLabel: "Daily Outline",
+  planHighlight: "Operations Daily Snapshot — today's & upcoming activity",
+  billingItem: "Operations Daily Snapshot — today's & upcoming activity",
+  dailyOutlineLabel: "Operations Daily Snapshot",
   dailyOutlineDescription:
-    "Your live shop-day snapshot — today's and tomorrow's timeline of ROs, payments, appointments, and activity.",
+    "Your shop-day snapshot — today's and upcoming ROs, appointments, and activity.",
   dailyProfitableReports: "Daily profitable reports",
-  featuresAllTiers: "Live dashboard · Daily Outline · daily profitable reports on every plan",
+  featuresAllTiers: "Operations Daily Snapshot on every plan",
   comparisonAllTiers: {
     STARTER: true,
     PROFESSIONAL: true,
     ENTERPRISE: true,
   } satisfies Record<ShopPlan, boolean>,
   faqAnswer:
-    "Every plan includes a live dashboard with KPIs and trends, Daily Outline (your shop-day snapshot for today and tomorrow), and daily profitable reports so owners see collected revenue, gross volume, and what moved the needle — without waiting for month-end.",
+    "Every plan includes Operations Daily Snapshot — a clear view of today's and upcoming shop activity so owners and advisors stay ahead of the day without digging through reports.",
 } as const;
 
 /** Digital vehicle inspections (DVIs) — included on every plan tier. */
@@ -116,28 +116,28 @@ export const DVI_PLAN_COPY = {
     "Every plan includes full digital vehicle inspections — multi-point inspection templates, red/yellow/green item ratings, photo markup on findings, and share links so customers see inspection results on their phone before they approve work.",
 } as const;
 
-/** In-depth training included on every tier — depth scales with plan. */
+/** Onboarding / training copy — Elite is white-glove; Core/Pro are self-serve with demo support. */
 export const PLAN_TRAINING: Record<
   ShopPlan,
   { headline: string; sessions: string; description: string }
 > = {
   STARTER: {
-    headline: "In-depth training included",
-    sessions: "2 live go-live sessions",
+    headline: "Self-serve with demo support",
+    sessions: "Product guides & early demo",
     description:
-      "Hands-on training on the job board, repair orders, DVIs, live dashboard, Daily Outline, and daily profitable reports for owners and lead advisors.",
+      "Get started on the job board, repair orders, DVIs, and Operations Daily Snapshot — book a demo if you want a guided walkthrough.",
   },
   PROFESSIONAL: {
-    headline: "In-depth team training included",
-    sessions: "Team training program",
+    headline: "Self-serve with product resources",
+    sessions: "Demo & onboarding resources",
     description:
-      "Everything in Core, plus role-based sessions for advisors, techs, and marketing — licensed labor data, booking, SMS, campaigns, and reviews.",
+      "Launch licensed MOTOR, PartsTech, Growth Engine, and Google review management with in-product guidance and early demo support.",
   },
   ENTERPRISE: {
-    headline: "White-glove training included",
+    headline: "White-glove onboarding included",
     sessions: "Dedicated onboarding specialist",
     description:
-      "Full-shop training with a dedicated specialist — AI tools, maintenance programs, ShopSite, Local SEO, and go-live support.",
+      "Dedicated specialist for AI tools, maintenance programs, ShopSite, Local SEO, and migration — go-live support included.",
   },
 };
 
@@ -169,15 +169,15 @@ export const PLATFORM_MODULES = [
     id: "labor",
     name: "Labor Book",
     description:
-      "Labor AI on every tier. MOTOR labor data is +$50/mo on Core and included on Pro and Elite, which also add ShopRally licensed flat-rate data.",
+      "MOTOR labor data is $50/mo extra on Core and included on Pro and Elite, with license plate & VIN decoding plus OEM specs and fluid capacities on Pro+.",
     icon: "wrench" as const,
-    pricingNote: "Labor AI all tiers · MOTOR +$50 on Core · included on Pro+",
+    pricingNote: "MOTOR +$50 on Core · included on Pro+",
   },
   {
     id: "insights",
-    name: "Live dashboard",
+    name: "Operations Daily Snapshot",
     description:
-      "Live KPI dashboard, Daily Outline shop-day snapshots, and daily profitable reports — included on every plan.",
+      "Operations Daily Snapshot of today’s and upcoming shop activity — included on every plan.",
     icon: "chart" as const,
     pricingNote: "All monthly tiers",
   },
@@ -191,7 +191,7 @@ export const PLATFORM_MODULES = [
   {
     id: "seo",
     name: "Local SEO",
-    description: "On-page SEO, JSON-LD, Search Console, local search, and SEO Autopilot runs every month.",
+    description: "On-page SEO, JSON-LD, Search Console, local search, and Growth Engine SEO runs every month.",
     icon: "search" as const,
     pricingNote: "$129/mo + launch setup · Elite included",
   },
@@ -238,7 +238,7 @@ export const WEB_PRESENCE_LAUNCH_SETUP = {
     includes: [
       "On-page SEO, meta tags & JSON-LD structured data",
       "Google Search Console & sitemap setup",
-      "Google Business Profile guidance & Autopilot baseline",
+      "Google Business Profile guidance & Growth Engine SEO baseline",
     ],
   },
   bundle: {
@@ -278,7 +278,7 @@ export const WEB_PRESENCE_SERVICES: WebPresenceService[] = [
     priceLabel: "$129/mo",
     setupCents: WEB_PRESENCE_LAUNCH_SETUP.seo.setupCents,
     description:
-      "On-page SEO, structured data (JSON-LD), Search Console monitoring, Google Business guidance, and SEO Autopilot runs.",
+      "On-page SEO, structured data (JSON-LD), Search Console monitoring, Google Business guidance, and Growth Engine SEO runs.",
     savingsNote: "SEO agency retainers often start at $500+/mo.",
   },
   {
@@ -326,7 +326,7 @@ export const OVERDRIVE_AI_FEATURES = [
     description: "Draft on-brand replies, edit in one inbox, and publish to Google faster.",
   },
   {
-    title: "AI SEO Autopilot",
+    title: "Growth Engine SEO",
     description: "Automated audits, AI content suggestions, Search Console, and monthly reports.",
   },
   {
@@ -524,11 +524,11 @@ export const PLANS: Record<ShopPlan, PlanDefinition> = {
     id: "STARTER",
     name: "Core",
     subtitle: "Essentials",
-    tagline: "Core shop CRM — job board, DVIs, dashboard & training included.",
+    tagline: "Core shop CRM — job board, DVIs, estimates & Operations Daily Snapshot.",
     monthlyCents: 11900,
     annualMonthlyCents: 10900,
-    valueNote: "Core CRM · live dashboard on every plan · in-depth training included",
-    savingsNote: "Core CRM · live dashboard on every plan · in-depth training included",
+    valueNote: "Core CRM · DVIs · Operations Daily Snapshot · MOTOR available +$50/mo",
+    savingsNote: "Core CRM · DVIs · Operations Daily Snapshot · MOTOR available +$50/mo",
     pricingCard: {
       bestFor: "Single-bay shops going cloud-first",
       bullets: [
@@ -638,7 +638,7 @@ export function buildPriceComparisonRows(annual: boolean): PriceComparisonRow[] 
       crmLabel: `$${starter}/mo`,
       marketingLabel: "—",
       stackTotal: starter,
-      note: "Core premium CRM · live dashboard · Daily Outline · Labor AI · in-depth training",
+      note: "Core CRM suite · DVIs · Operations Daily Snapshot · MOTOR +$50/mo",
       repairPilot: true,
     },
     {
@@ -647,7 +647,7 @@ export function buildPriceComparisonRows(annual: boolean): PriceComparisonRow[] 
       crmLabel: "Bundled",
       marketingLabel: "Included",
       stackTotal: professional,
-      note: `CRM + Growth Engine + licensed labor data · premium all-in-one · team training included`,
+      note: "Everything in Core + licensed MOTOR, VIN/plate decode, Growth Engine & reviews",
       repairPilot: true,
     },
     {
@@ -656,7 +656,7 @@ export function buildPriceComparisonRows(annual: boolean): PriceComparisonRow[] 
       crmLabel: "Bundled",
       marketingLabel: "Premium included",
       stackTotal: premier,
-      note: "Maintenance, ShopSite, SEO, full AI suite & dedicated training specialist",
+      note: "Everything in Pro + AI, ShopSite, Local SEO, maintenance programs & white-glove onboarding",
       repairPilot: true,
     },
   ];
@@ -773,7 +773,7 @@ export const COMPARISON_ROWS: {
     },
   },
   {
-    label: "Local SEO + Autopilot",
+    label: "Local SEO · Growth Engine SEO",
     values: {
       STARTER: "$129/mo add-on",
       PROFESSIONAL: "$129/mo add-on",
@@ -839,16 +839,8 @@ export const COMPARISON_ROWS: {
     values: { STARTER: false, PROFESSIONAL: false, ENTERPRISE: true },
   },
   {
-    label: "Live dashboard",
+    label: "Operations Daily Snapshot",
     category: "Insights",
-    values: DASHBOARD_PLAN_COPY.comparisonAllTiers,
-  },
-  {
-    label: "Daily Outline (shop-day snapshot)",
-    values: DASHBOARD_PLAN_COPY.comparisonAllTiers,
-  },
-  {
-    label: "Daily profitable reports",
     values: DASHBOARD_PLAN_COPY.comparisonAllTiers,
   },
   {
@@ -969,7 +961,7 @@ export const INTEGRATION_PARTNERS = [
 export const PRICING_FAQ = [
   {
     q: "Which plan should I choose?",
-    a: "Core for a lean single-bay shop getting off paper — Labor AI included; MOTOR labor data is +$50/mo (included on Pro). Pro when you want MOTOR, licensed labor data, license plate & VIN decoding, OEM specs & fluids, booking, SMS, and campaigns. Elite when you want AI receptionist, ShopSite, Local SEO, and maintenance programs in one bill.",
+    a: "Core for a lean single-bay shop getting off paper — ShopRally CRM suite, DVIs, emails, job board, and Operations Daily Snapshot; MOTOR labor data is $50/mo extra. Pro when you want licensed MOTOR included, plate & VIN decoding, OEM specs & fluids, PartsTech, SMS, booking, Growth Engine, and Google review management. Elite when you want AI receptionist, ShopSite, Local SEO, and maintenance programs in one bill.",
   },
   {
     q: "How does ShopSite and SEO pricing work?",
@@ -992,16 +984,16 @@ export const PRICING_FAQ = [
     a: DVI_PLAN_COPY.faqAnswer,
   },
   {
-    q: "What's included in the live dashboard?",
+    q: "What's included in Operations Daily Snapshot?",
     a: DASHBOARD_PLAN_COPY.faqAnswer,
   },
   {
-    q: "What's included in Labor AI vs licensed labor data?",
+    q: "What's included for labor data?",
     a: LABOR_PLAN_COPY.faqAnswer,
   },
   {
     q: "What are MOTOR labor guides?",
-    a: "MOTOR labor data is licensed flat-rate guides and procedures in the estimate. On Core it’s +$50/mo; on Pro and Elite it’s included, along with ShopRally licensed labor data and Labor AI.",
+    a: "MOTOR labor data is licensed flat-rate guides and procedures in the estimate. On Core it’s $50/mo extra; on Pro and Elite it’s included.",
   },
   {
     q: "Do you integrate with PartsTech and QuickBooks?",
@@ -1017,7 +1009,7 @@ export const PRICING_FAQ = [
   },
   {
     q: "Is training included?",
-    a: "Yes — every plan includes in-depth training. Core includes two live go-live sessions. Pro adds a team training program for advisors, techs, and marketing. Elite includes a dedicated onboarding specialist and white-glove training across AI, maintenance programs, ShopSite, and Local SEO.",
+    a: "Elite includes a dedicated onboarding specialist and migration. Core and Pro are self-serve with product training resources — book a demo if you want a guided go-live.",
   },
   {
     q: "Can I switch from another shop system?",

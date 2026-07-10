@@ -30,10 +30,12 @@ export function MarketingHeader() {
 
   return (
     <header className="sticky top-0 z-40 border-b border-brand-navy/10 bg-white/90 backdrop-blur-md">
-      <div className="mx-auto flex max-w-7xl items-center justify-between gap-4 px-4 py-3.5 sm:px-6">
-        <ShopRallyLogo />
+      <div className="mx-auto grid max-w-7xl grid-cols-[1fr_auto] items-center gap-4 px-4 py-3.5 sm:px-6 md:grid-cols-[1fr_auto_1fr]">
+        <div className="flex items-center justify-start">
+          <ShopRallyLogo />
+        </div>
 
-        <nav className="hidden items-center gap-1 md:flex">
+        <nav className="hidden items-center justify-center gap-1 md:flex">
           {NAV.map((item) => (
             <Link
               key={item.href}
@@ -50,7 +52,7 @@ export function MarketingHeader() {
           ))}
         </nav>
 
-        <div className="hidden items-center gap-2 md:flex">
+        <div className="hidden items-center justify-end gap-2 md:flex">
           <Button variant="ghost" size="sm" className="text-brand-navy" asChild>
             <Link href={MARKETING_LAUNCH.secondaryHref}>{MARKETING_LAUNCH.secondaryCta}</Link>
           </Button>
@@ -66,7 +68,7 @@ export function MarketingHeader() {
 
         <button
           type="button"
-          className="rounded-lg p-2 text-brand-navy md:hidden"
+          className="justify-self-end rounded-lg p-2 text-brand-navy md:hidden"
           onClick={() => setOpen((v) => !v)}
           aria-label={open ? "Close menu" : "Open menu"}
         >

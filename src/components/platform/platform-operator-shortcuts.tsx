@@ -58,7 +58,7 @@ const shortcuts = [
     icon: Scale,
   },
   {
-    title: "SEO Autopilot",
+    title: "Growth Engine SEO",
     description: "Platform SEO tooling and health",
     href: `${MASTER_CRM_HOME}/seo-automation`,
     icon: Radar,

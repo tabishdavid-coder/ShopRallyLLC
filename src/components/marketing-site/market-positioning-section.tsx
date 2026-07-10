@@ -37,7 +37,7 @@ export function MarketPositioningSection({ compact = false }: { compact?: boolea
       return {
         ...tier,
         priceLabel: `From $${momentumPrice}/mo`,
-        subPrice: `${PLANS.ENTERPRISE.name} $${overdrivePrice}/mo — full stack + training`,
+        subPrice: `${PLANS.ENTERPRISE.name} $${overdrivePrice}/mo — AI, ShopSite & Local SEO`,
       };
     }
     return tier;

@@ -45,7 +45,7 @@ export const SEO_AUTOPILOT_TABS: {
     id: "sites",
     label: "Sites",
     href: `${SEO_AUTOPILOT_BASE}/sites`,
-    description: "Manage websites, Search Console, and autopilot settings.",
+    description: "Manage websites, Search Console, and Growth Engine SEO settings.",
   },
   {
     id: "reports",

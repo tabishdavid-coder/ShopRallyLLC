@@ -138,7 +138,7 @@ export const PLATFORM_NAV_GROUPS: NavGroup[] = [
     label: "Compliance",
     items: [
       { title: "Legal & Compliance", href: "/platform/legal", icon: Scale },
-      { title: "SEO Autopilot", href: "/platform/seo-automation", icon: Radar },
+      { title: "Growth Engine SEO", href: "/platform/seo-automation", icon: Radar },
     ],
   },
   {

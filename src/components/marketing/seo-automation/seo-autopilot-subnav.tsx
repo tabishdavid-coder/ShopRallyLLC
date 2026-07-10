@@ -10,7 +10,7 @@ export function SeoAutopilotSubnav() {
   const pathname = usePathname();
 
   return (
-    <nav className={subnavBarClass()} aria-label="SEO Autopilot sections">
+    <nav className={subnavBarClass()} aria-label="Growth Engine SEO sections">
       {SEO_AUTOPILOT_TABS.map((tab) => {
         const active =
           tab.id === "overview"

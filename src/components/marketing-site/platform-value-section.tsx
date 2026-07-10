@@ -18,28 +18,28 @@ const VALUE_PILLARS = [
   },
   {
     icon: BookOpen,
-    title: "Labor estimates",
+    title: "Labor & vehicle data",
     description:
-      "Labor AI on Core. Pro and Elite add licensed industry flat-rate data plus Labor AI in the estimate.",
+      "Licensed MOTOR on Pro and Elite (optional +$50/mo on Core), plus plate & VIN decode, OEM specs, and fluid capacities on Pro+.",
     tiers: LABOR_PLAN_COPY.featuresIgnition,
   },
   {
     icon: BarChart3,
-    title: "Live dashboard",
+    title: "Operations Daily Snapshot",
     description:
-      "Daily Outline shop-day snapshots plus daily profitable reports — see collected revenue, gross volume, and what moved today.",
+      "See today's and upcoming shop activity at a glance — ROs, appointments, and the work ahead.",
     tiers: DASHBOARD_PLAN_COPY.featuresAllTiers,
   },
   {
     icon: Zap,
     title: "Get paid",
-    description: "Estimates, text-to-approve links, invoicing, and Stripe Connect payouts.",
-    tiers: `${PLANS.PROFESSIONAL.name} & up`,
+    description: "Digital estimates & invoices via email, approval links, and Stripe Connect on Pro+.",
+    tiers: `${PLANS.STARTER.name} email · ${PLANS.PROFESSIONAL.name}+ payments`,
   },
   {
     icon: MessageSquare,
     title: "Grow locally",
-    description: "Online booking, SMS campaigns, Google review sync, and advisor inbox.",
+    description: "Two-way SMS, online booking, Growth Engine automations & win-back, and Google review management.",
     tiers: `${PLANS.PROFESSIONAL.name}`,
   },
   {
@@ -56,15 +56,15 @@ const VALUE_PILLARS = [
   },
   {
     icon: GraduationCap,
-    title: "In-depth training",
+    title: "White-glove onboarding",
     description:
-      "Live go-live sessions on Core, team training on Pro, and a dedicated onboarding specialist on Elite — not an extra fee.",
-    tiers: "All tiers",
+      "Dedicated onboarding specialist and migration included on Elite — Core and Pro are self-serve with demo support.",
+    tiers: PLANS.ENTERPRISE.name,
   },
   {
     icon: Bot,
     title: "AI when you need it",
-    description: "After-hours receptionist, review replies, campaign drafting, and SEO content.",
+    description: "After-hours receptionist, review reply drafting, campaign drafting, and SEO content.",
     tiers: PLANS.ENTERPRISE.name,
   },
 ] as const;

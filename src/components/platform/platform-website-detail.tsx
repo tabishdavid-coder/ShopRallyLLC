@@ -227,9 +227,9 @@ export function PlatformWebsiteDetailView({ site }: { site: PlatformWebsiteDetai
             <p>
               Shop owners edit content under{" "}
               <strong className="text-foreground">Marketing → Website &amp; SEO</strong> after launch.
-              SEO Autopilot is managed under{" "}
+              Growth Engine SEO is managed under{" "}
               <Link href={`${MASTER_CRM_HOME}/seo-automation`} className="text-brand-navy hover:underline">
-                SEO Autopilot
+                Growth Engine SEO
               </Link>
               .
             </p>

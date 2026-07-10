@@ -31,21 +31,20 @@ const MODULES = [
   { id: "website", label: "ShopSite", icon: Globe },
   { id: "parts", label: "PartsTech", icon: Package },
   { id: "ai", label: "AI Reception", icon: Bot },
-  { id: "reports", label: "Daily Outline", icon: BarChart3 },
+  { id: "reports", label: "Daily Snapshot", icon: BarChart3 },
   { id: "subs", label: "Subscriptions", icon: Repeat },
 ] as const;
 
 const FEATURE_CHIPS = [
-  "Live dashboard",
-  "Daily Outline",
-  "Daily profitable reports",
-  "DVIs & MPI",
-  "VIN decode",
-  "Markup matrices",
+  "Operations Daily Snapshot",
+  "Digital vehicle inspections",
+  "Licensed MOTOR on Pro+",
+  "Plate & VIN decode",
+  "OEM specs & fluids",
   "Approval links",
   "Two-way SMS",
-  "Automations",
-  "Google Reviews",
+  "Growth Engine",
+  "Google review management",
   "Online booking",
   "Inventory",
   "Canned jobs",
@@ -61,7 +60,7 @@ export function HeroPlatformPreview({ className }: { className?: string }) {
           <div className="size-2.5 rounded-full bg-brand-light" />
           <div className="size-2.5 rounded-full bg-white/40" />
           <span className="ml-2 text-xs font-medium text-white/90">
-            ShopRally · CRM, live dashboard, inspections, growth, payments &amp; AI
+            ShopRally · CRM, inspections, Growth Engine, payments &amp; AI
           </span>
         </div>
 
@@ -120,8 +119,8 @@ export function HeroPlatformPreview({ className }: { className?: string }) {
             <div className="mt-2 flex items-center gap-2 rounded-lg border border-emerald-200/80 bg-emerald-50/80 px-3 py-2">
               <BarChart3 className="size-3.5 shrink-0 text-emerald-700" />
               <div>
-                <p className="text-xs font-semibold text-brand-navy">Daily Outline</p>
-                <p className="text-[10px] text-slate-500">$4,280 collected · 6 ROs · 3 appts today</p>
+                <p className="text-xs font-semibold text-brand-navy">Operations Daily Snapshot</p>
+                <p className="text-[10px] text-slate-500">6 ROs · 3 appts · next up today</p>
               </div>
             </div>
           </div>
@@ -262,8 +261,8 @@ export function HeroPlatformPreview({ className }: { className?: string }) {
         {/* Bottom strip */}
         <div className="flex flex-wrap items-center justify-between gap-2 border-t border-brand-navy/10 bg-brand-navy px-4 py-2.5 text-[11px] text-white/90">
           <span className="font-medium">
-            CRM · live dashboard · Daily Outline · job board · DVIs · estimates · PartsTech · SMS · booking ·
-            payments · ShopSite · SEO · AI · subscriptions
+            CRM · Operations Daily Snapshot · job board · DVIs · estimates · MOTOR · PartsTech · SMS · booking ·
+            Growth Engine · payments · ShopSite · SEO · AI
           </span>
           <span className="rounded-full bg-brand-light px-2.5 py-0.5 text-[10px] font-bold text-brand-navy">
             Premium all-in-one

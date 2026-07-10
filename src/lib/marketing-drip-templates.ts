@@ -1,6 +1,11 @@
 /** Pre-launch email drip copy — paste into Resend or your ESP until automated. */
 
-import { PLANS, repairPilotAllInMonthly, repairPilotOverdriveMonthly } from "@/lib/plans";
+import {
+  PLANS,
+  repairPilotAllInMonthly,
+  repairPilotOverdriveMonthly,
+  repairPilotStarterMonthly,
+} from "@/lib/plans";
 
 export type MarketingDripEmail = {
   id: string;
@@ -39,11 +44,11 @@ We'll email you when onboarding slots open. Want to skip the line? Reply to this
 
 Quick snapshot of why shops are switching to ShopRally:
 
-• Job board + estimates + live dashboard in one CRM
-• DVIs with MPI, photo markup & customer share on every plan
-• ${PLANS.STARTER.name}: Labor AI · ${PLANS.PROFESSIONAL.name} ($${repairPilotAllInMonthly(true)}/mo annual): licensed labor data + Growth Engine
-• ${PLANS.ENTERPRISE.name} ($${repairPilotOverdriveMonthly(true)}/mo annual): full stack — AI, web, SEO, licensed labor
-• In-depth training on every tier — live sessions on ${PLANS.STARTER.name}, team program on ${PLANS.PROFESSIONAL.name}
+• Job board + estimates + Operations Daily Snapshot in one CRM
+• Digital vehicle inspections on every plan
+• ${PLANS.STARTER.name} ($${repairPilotStarterMonthly(true)}/mo annual): CRM suite · MOTOR +$50/mo
+• ${PLANS.PROFESSIONAL.name} ($${repairPilotAllInMonthly(true)}/mo annual): licensed MOTOR + Growth Engine + reviews
+• ${PLANS.ENTERPRISE.name} ($${repairPilotOverdriveMonthly(true)}/mo annual): AI, ShopSite, Local SEO, maintenance programs
 • Optional ShopSite ($99/mo) + Local SEO ($129/mo) — included on ${PLANS.ENTERPRISE.name}
 
 Founding spots are limited. Compare plans: https://getshoprally.com/pricing

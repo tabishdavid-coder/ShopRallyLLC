@@ -76,7 +76,7 @@ export function SeoAutopilotPlanPanel({
           </div>
           {!admin.hasFeature ? (
             <Button asChild className="bg-brand-navy hover:bg-brand-navy/90">
-              <Link href="/billing">Upgrade for SEO Autopilot</Link>
+              <Link href="/billing">Upgrade for Growth Engine SEO</Link>
             </Button>
           ) : (
             <Button asChild variant="outline">
@@ -131,7 +131,7 @@ export function SeoAutopilotPlanPanel({
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-base">
             <Sparkles className="size-4 text-brand-navy" />
-            What you get with SEO Autopilot
+            What you get with Growth Engine SEO
           </CardTitle>
         </CardHeader>
         <CardContent>

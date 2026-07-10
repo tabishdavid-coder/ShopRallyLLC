@@ -12,7 +12,7 @@ function formatReportBody(input: {
   recentRuns: Awaited<ReturnType<typeof getSeoAutomationAdmin>>["recentRuns"];
 }): string {
   const lines: string[] = [
-    `SEO Autopilot monthly report — ${input.shopName}`,
+    `Growth Engine SEO monthly report — ${input.shopName}`,
     "",
     "Sites under management:",
   ];
@@ -34,9 +34,9 @@ function formatReportBody(input: {
 
   lines.push(
     "",
-    "Manage settings: Growth Engine → SEO Autopilot in ShopRally.",
+    "Manage settings: Growth Engine → Growth Engine SEO in ShopRally.",
     "",
-    "— ShopRally SEO Autopilot",
+    "— ShopRally Growth Engine SEO",
   );
 
   return lines.join("\n");

@@ -33,7 +33,7 @@ export const PLATFORM_REVIEW_BATCHES: PlatformReviewBatch[] = [
       { id: "PLAT-01", label: "Shops + Connect column", href: "/platform/shops" },
       { id: "PLAT-02", label: "Billing overview", href: "/platform/billing" },
       { id: "PLAT-03", label: "Add shop intake", href: "/platform/shops/new" },
-      { id: "PLAT-04", label: "SEO Autopilot", href: "/platform/seo-automation" },
+      { id: "PLAT-04", label: "Growth Engine SEO", href: "/platform/seo-automation" },
       { id: "PLAT-05", label: "Customer websites", href: "/platform/websites" },
       { id: "PLAT-06", label: "Platform home", href: "/platform" },
     ],

@@ -9,6 +9,7 @@ import {
   resolvePlanFeatures,
   type PlanFeature,
 } from "@/lib/plans";
+import { BILLING_PLAN_FEATURES } from "@/lib/billing-shared";
 import { nextPlanTier } from "@/lib/subscription";
 import type { BillingStatus, ShopPlan } from "@/generated/prisma";
 
@@ -16,18 +17,18 @@ const FEATURE_LABELS: { key: PlanFeature; label: string }[] = [
   { key: "cannedJobs", label: "Canned jobs" },
   { key: "markupMatrices", label: "Markup matrices" },
   { key: "partsTech", label: "PartsTech catalog" },
-  { key: "laborGuide", label: "Labor Book" },
+  { key: "laborGuide", label: "Licensed MOTOR labor" },
   { key: "customerEmail", label: "Customer email" },
   { key: "customerSms", label: "Two-way SMS" },
-  { key: "digitalInspections", label: "Digital inspections" },
+  { key: "digitalInspections", label: "Digital vehicle inspections" },
   { key: "appointments", label: "Appointments" },
-  { key: "reports", label: "Shop reports" },
+  { key: "reports", label: "Operations Daily Snapshot" },
   { key: "integrations", label: "Integrations" },
   { key: "shopSite", label: "ShopSite (hosted website)" },
-  { key: "websiteSeo", label: "Local SEO + Autopilot" },
+  { key: "websiteSeo", label: "Local SEO · Growth Engine SEO" },
   { key: "aiReviewReplies", label: "AI Google Review drafts" },
   { key: "aiCampaignDrafting", label: "AI campaign drafting" },
-  { key: "aiSeoContent", label: "AI SEO content (Autopilot)" },
+  { key: "aiSeoContent", label: "Growth Engine SEO content" },
   { key: "aiCustomerInsights", label: "AI customer insights" },
   { key: "aiReceptionist", label: "AI receptionist (SMS + voice after-hours)" },
   { key: "advancedReports", label: "Advanced reporting" },
@@ -109,7 +110,19 @@ export function SubscriptionPanel({
       </div>
 
       <div className="rounded-lg border bg-card p-5 shadow-sm">
-        <h3 className="font-semibold">Included features</h3>
+        <h3 className="font-semibold">What&apos;s included</h3>
+        {BILLING_PLAN_FEATURES[plan].intro ? (
+          <p className="mt-2 text-sm font-medium text-brand-navy">{BILLING_PLAN_FEATURES[plan].intro}</p>
+        ) : null}
+        <ul className="mt-3 grid gap-2 sm:grid-cols-2">
+          {BILLING_PLAN_FEATURES[plan].items.map((item) => (
+            <li key={item} className="flex items-center gap-2 text-sm text-foreground">
+              <span className="size-1.5 rounded-full bg-brand-navy" />
+              {item}
+            </li>
+          ))}
+        </ul>
+        <h4 className="mt-6 text-sm font-semibold text-muted-foreground">Feature gates</h4>
         <ul className="mt-3 grid gap-2 sm:grid-cols-2">
           {FEATURE_LABELS.map(({ key, label }) => (
             <li
@@ -150,7 +163,7 @@ export function SubscriptionPanel({
             </p>
           </div>
           <Button variant="outline" size="sm" asChild>
-            <Link href="/marketing/seo-automation">Open Autopilot</Link>
+            <Link href="/marketing/seo-automation">Open Growth Engine SEO</Link>
           </Button>
         </div>
       </div>

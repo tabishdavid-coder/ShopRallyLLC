@@ -54,18 +54,19 @@ export function PricingPageContent({ foundingSpotsClaimed = 0 }: { foundingSpots
         <div className="mx-auto max-w-4xl px-4 py-14 text-center sm:px-6 sm:py-16">
           <div className="mb-4 inline-flex items-center gap-1.5 rounded-full border border-brand-red/30 bg-brand-red/5 px-3 py-1 text-xs font-semibold text-brand-red">
             <Sparkles className="size-3.5" />
-            {preLaunch ? foundingMessaging.primary : "Premium all-in-one · training on every tier"}
+            {preLaunch ? foundingMessaging.primary : "Premium all-in-one · Growth Engine on Pro"}
           </div>
           <h1 className="text-3xl font-bold tracking-tight text-brand-navy sm:text-4xl lg:text-5xl">
             Premium shop software.
-            <span className="mt-2 block bg-gradient-to-r from-brand-navy to-brand-light bg-clip-text text-transparent">
+            <span className="mt-2 block pb-1 leading-[1.15] bg-gradient-to-r from-brand-navy to-brand-light bg-clip-text text-transparent">
               Not legacy. Not piecemeal.
             </span>
           </h1>
           <p className="mt-4 text-base leading-relaxed text-slate-600 sm:text-lg">
-            {PLANS.STARTER.name} is premium core CRM with DVIs, live dashboard, Daily Outline, Labor AI, and live training. {PLANS.PROFESSIONAL.name} adds
-            licensed labor data, Growth Engine, and team training. {PLANS.ENTERPRISE.name} adds AI, ShopSite, Local
-            SEO, and white-glove onboarding.
+            {PLANS.STARTER.name} is the ShopRally CRM suite — ROs, job board, DVIs, email estimates, and Operations
+            Daily Snapshot (MOTOR +$50/mo). {PLANS.PROFESSIONAL.name} adds licensed MOTOR, plate & VIN decode, OEM
+            data, PartsTech, SMS, booking, Growth Engine, and Google review management. {PLANS.ENTERPRISE.name} adds
+            AI, ShopSite, Local SEO, and white-glove onboarding.
           </p>
 
           <div className="mx-auto mt-10 grid max-w-5xl gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -89,7 +90,7 @@ export function PricingPageContent({ foundingSpotsClaimed = 0 }: { foundingSpots
                 </span>
               </p>
               <p className="mt-2 text-2xl font-bold tabular-nums text-brand-navy">${momentumPrice}/mo</p>
-              <p className="mt-1 text-[11px] text-slate-600">Licensed labor + Growth Engine + team training</p>
+              <p className="mt-1 text-[11px] text-slate-600">Licensed MOTOR + Growth Engine + reviews</p>
             </div>
             <div className="rounded-xl border-2 border-brand-red/25 bg-brand-red/5 p-4 text-left">
               <p className="text-xs font-semibold uppercase tracking-wide text-brand-red">
@@ -108,10 +109,10 @@ export function PricingPageContent({ foundingSpotsClaimed = 0 }: { foundingSpots
 
           <ul className="mt-6 flex flex-wrap justify-center gap-x-5 gap-y-2 text-xs text-slate-600 sm:text-sm">
             {[
-              "In-depth training on every plan",
               "No CRM setup fees",
               "Cancel anytime",
               "Founding rates on annual",
+              "MOTOR included on Pro & Elite",
             ].map((t) => (
               <li key={t} className="flex items-center gap-1.5">
                 <Check className="size-3.5 text-brand-navy" />

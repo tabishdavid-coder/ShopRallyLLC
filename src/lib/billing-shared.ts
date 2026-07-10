@@ -1,5 +1,5 @@
 import type { BillingStatus, ShopPlan } from "@/generated/prisma";
-import { DASHBOARD_PLAN_COPY, DVI_PLAN_COPY, LABOR_PLAN_COPY, PLAN_ORDER, type PlanFeatureSet } from "@/lib/plans";
+import { PLAN_ORDER, type PlanFeatureSet } from "@/lib/plans";
 
 /** Platform subscription invoice line (shop pays RepairPilot — not customer RO invoices). */
 export type BillingInvoiceLine = {
@@ -77,9 +77,8 @@ export const BILLING_PLAN_FEATURES: Record<
       "Digital estimates & invoices via email",
       "Job board",
       "Canned jobs",
-      DASHBOARD_PLAN_COPY.billingItem,
-      DVI_PLAN_COPY.billingItem,
-      "Appointments & one-way customer notifications",
+      "Digital vehicle inspections",
+      "Operations Daily Snapshot",
       "MOTOR labor data — $50/mo extra",
     ],
   },
@@ -90,24 +89,21 @@ export const BILLING_PLAN_FEATURES: Record<
       "License plate & VIN decoding",
       "OEM service specs",
       "OEM fluid capacities",
-      "Markup matrices",
-      "Parts management, inventory catalog & PartsTech",
+      "Parts, inventory & PartsTech",
       "Two-way SMS",
       "Online booking",
       "Growth Engine — automations & win-back campaigns",
       "Google review management",
-      "Stripe Connect payments & integrations",
     ],
   },
   ENTERPRISE: {
     intro: "Everything in Pro, plus:",
     items: [
-      "AI Google Review responses — draft & publish from one inbox",
-      "AI receptionist, SEO Autopilot & AI campaign drafting",
-      "Maintenance subscription programs & member portal",
+      "AI receptionist + review reply drafting",
       "ShopSite & Local SEO included ($228/mo value)",
-      "Dedicated onboarding specialist & white-glove training",
-      "Premium migration, advanced reporting & priority support",
+      "Maintenance subscription programs",
+      "AI SEO content & campaign drafting",
+      "Dedicated onboarding specialist · migration included",
     ],
   },
 };

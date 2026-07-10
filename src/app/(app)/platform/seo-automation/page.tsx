@@ -7,14 +7,14 @@ import { Button } from "@/components/ui/button";
 import { MASTER_CRM_HOME } from "@/lib/platform-routing";
 import { listPlatformSeoProperties } from "@/server/seo-automation";
 
-export const metadata = { title: "SEO Autopilot — Platform" };
+export const metadata = { title: "Growth Engine SEO — Platform" };
 
 export default async function PlatformSeoAutomationPage() {
   const admin = await listPlatformSeoProperties();
   return (
     <div className="space-y-6" data-planned-change="PLAT-04">
       <PlatformPageIntro
-        title="SEO Autopilot"
+        title="Growth Engine SEO"
         description={
           <>
             Automated SEO tooling across shops — verification, scores, and tenant pause controls.

@@ -36,7 +36,7 @@ export function SeoAutopilotReportsPanel() {
             Monthly report history
           </CardTitle>
           <CardDescription>
-            Snapshots saved each time we email your SEO Autopilot report (1st of the month when
+            Snapshots saved each time we email your Growth Engine SEO report (1st of the month when
             enabled).
             {admin.settings.lastReportSentAt ? (
               <> Last sent {formatWhen(admin.settings.lastReportSentAt)}.</>

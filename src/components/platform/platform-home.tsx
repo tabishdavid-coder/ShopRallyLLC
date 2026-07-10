@@ -284,7 +284,7 @@ export function PlatformHome({ data }: { data: PlatformDashboard }) {
           </Link>
         </div>
         <p className="mt-1 text-xs text-muted-foreground">
-          ShopSite builds you operate — separate from SEO Autopilot tooling.
+          ShopSite builds you operate — separate from Growth Engine SEO tooling.
         </p>
         <dl className="mt-4 grid grid-cols-2 gap-4 text-sm sm:grid-cols-4">
           <div className="rounded-lg border bg-muted/30 p-3">

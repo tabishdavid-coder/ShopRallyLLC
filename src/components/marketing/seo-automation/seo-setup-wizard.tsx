@@ -69,7 +69,7 @@ export function SeoSetupWizard() {
         <CardTitle className="text-base">Launch checklist</CardTitle>
         <CardDescription>
           {allDone
-            ? "Your SEO Autopilot setup is complete — we will keep optimizing on schedule."
+            ? "Your Growth Engine SEO setup is complete — we will keep optimizing on schedule."
             : `${doneCount} of ${steps.length} complete — finish setup to get the most from Autopilot.`}
         </CardDescription>
       </CardHeader>
