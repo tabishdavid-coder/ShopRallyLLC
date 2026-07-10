@@ -2,7 +2,7 @@
 
 import { cn } from "@/lib/utils";
 
-/** Lab job card chrome — Tekmetric-clean shell, lighter than default lab border-2. */
+/** Lab job card chrome — square-corner Palette C shell (soft azure edge, light shadow). */
 export function EstimateLabJobCardShell({
   children,
   className,
@@ -13,7 +13,7 @@ export function EstimateLabJobCardShell({
   return (
     <div
       className={cn(
-        "overflow-hidden rounded-lg border-2 border-slate-300 bg-white shadow-md ring-1 ring-slate-300/30",
+        "overflow-hidden rounded-none border border-[#B9C8DC] bg-white shadow-sm",
         className,
       )}
     >

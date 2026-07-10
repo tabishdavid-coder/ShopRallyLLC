@@ -1,10 +1,19 @@
 "use client";
 
 import Link from "next/link";
-import { ArrowUpDown, FolderPlus, Settings2, Users, ChevronsDownUp } from "lucide-react";
+import { ArrowUpDown, Check, FolderPlus, Settings2, Users, ChevronsDownUp } from "lucide-react";
 import type { EstimateJobsLayout } from "@/generated/prisma";
 import { ESTIMATE_JOBS_LAYOUT_LABELS } from "@/lib/estimate-jobs-layout";
 import { cn } from "@/lib/utils";
+
+function formatApprovedAt(d: Date | string): string {
+  return new Date(d).toLocaleString("en-US", {
+    month: "short",
+    day: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
+  });
+}
 
 export function EstimateJobsHeader({
   collapsed,
@@ -13,6 +22,7 @@ export function EstimateJobsHeader({
   jobsReorderable = false,
   settingsHref,
   jobsLayout,
+  approvedAt,
 }: {
   collapsed: boolean;
   onToggleCollapse: () => void;
@@ -21,14 +31,26 @@ export function EstimateJobsHeader({
   jobsReorderable?: boolean;
   settingsHref?: string;
   jobsLayout?: EstimateJobsLayout;
+  /** RO-level approval timestamp — shows a green Approved badge with timing when set. */
+  approvedAt?: Date | string | null;
 }) {
   return (
-    <div className="flex items-center justify-between gap-4 border-b border-slate-300/80 pb-2">
+    <div className="flex items-center justify-between gap-4 border-b border-[#DDE5EF] pb-2">
       <div className="flex min-w-0 items-center gap-2">
         <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Jobs</span>
         {jobsLayout ? (
           <span className="truncate rounded border border-border/80 bg-white px-1.5 py-0.5 text-[10px] font-medium text-muted-foreground">
             {ESTIMATE_JOBS_LAYOUT_LABELS[jobsLayout]}
+          </span>
+        ) : null}
+        {approvedAt ? (
+          <span
+            className="inline-flex shrink-0 items-center gap-1 rounded-none border border-[#B7E2CB] bg-[#E4F5EC] px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[#137347]"
+            role="status"
+            title={`Approved ${formatApprovedAt(approvedAt)}`}
+          >
+            <Check className="size-3" aria-hidden />
+            Approved · {formatApprovedAt(approvedAt)}
           </span>
         ) : null}
       </div>

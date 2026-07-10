@@ -55,11 +55,14 @@ export function EditVehicleDialog({
   customerId,
   open,
   onOpenChange,
+  onSaved,
 }: {
   vehicle: EditableVehicle;
   customerId: string;
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  /** Called after a successful save (e.g. to refresh local chip labels). */
+  onSaved?: () => void;
 }) {
   const router = useRouter();
   const [vin, setVin] = useState(vehicle.vin ?? "");
@@ -169,6 +172,7 @@ export function EditVehicleDialog({
       });
       if (res.ok) {
         onOpenChange(false);
+        onSaved?.();
         router.refresh();
       } else {
         setSaveError(res.error);

@@ -113,8 +113,8 @@ export function EstimateLabCannedSearch({
   }
 
   return (
-    <div ref={rootRef} className="relative min-w-[12rem] flex-1 sm:max-w-xs">
-      <Search className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+    <div ref={rootRef} className="relative min-w-[12rem] flex-1 sm:max-w-sm">
+      <Search className="pointer-events-none absolute left-2.5 top-1/2 size-4 -translate-y-1/2 text-[#5B7295]" />
       <Input
         value={query}
         onChange={(e) => {
@@ -126,7 +126,7 @@ export function EstimateLabCannedSearch({
         }}
         onKeyDown={onInputKeyDown}
         placeholder="Search jobs & templates"
-        className="h-8 bg-white pl-8 text-sm"
+        className="h-9 rounded-none border-[#DDE5EF] bg-white pl-8 text-sm shadow-none placeholder:text-[#5B7295] focus-visible:border-[#1E7FE0] focus-visible:ring-2 focus-visible:ring-[#1E7FE0]/25"
         aria-label="Search jobs & templates"
         aria-expanded={showDropdown}
         aria-controls="estimate-lab-canned-search-list"
@@ -135,7 +135,7 @@ export function EstimateLabCannedSearch({
       />
 
       {showDropdown ? (
-        <div className="absolute top-full z-50 mt-1 w-full overflow-hidden rounded-md border border-brand-navy/20 bg-white shadow-lg">
+        <div className="absolute top-full z-50 mt-1 w-full overflow-hidden rounded-none border border-[#DDE5EF] bg-white shadow-lg">
           {results.length === 0 ? (
             <p className="px-3 py-2.5 text-xs text-muted-foreground">
               No matches — press Enter to open Browse

@@ -54,6 +54,7 @@ export function EstimateJobLauncher({
   odometerNotWorking,
   triggerLabel = "Add to estimate",
   triggerClassName,
+  triggerIcon,
 }: {
   roId: string;
   cannedJobs: CannedJobSummary[];
@@ -69,6 +70,8 @@ export function EstimateJobLauncher({
   odometerNotWorking?: boolean;
   triggerLabel?: string;
   triggerClassName?: string;
+  /** Custom trigger icon (defaults to wrench); loading spinner still takes over while pending. */
+  triggerIcon?: ReactNode;
 }) {
   const router = useRouter();
   const { toast } = useEstimateActionToast();
@@ -178,7 +181,11 @@ export function EstimateJobLauncher({
         onClick={() => setLauncherOpen(true)}
         disabled={pending}
       >
-        {pending ? <Loader2 className="size-4 animate-spin" /> : <Wrench className="size-4" />}
+        {pending ? (
+          <Loader2 className="size-4 animate-spin" />
+        ) : (
+          triggerIcon ?? <Wrench className="size-4" />
+        )}
         {triggerLabel}
       </Button>
 

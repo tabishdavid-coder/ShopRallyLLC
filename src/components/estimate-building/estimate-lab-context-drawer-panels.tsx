@@ -21,11 +21,10 @@ import {
 } from "lucide-react";
 
 import { CustomerConsentCheckboxes } from "@/components/customers/customer-consent-checkboxes";
+import { DrawerCustomerInsightsCard } from "@/components/customers/drawer-customer-insights";
 import {
   CustomerTagPicker,
-  CustomerFormCollapsible,
   PersonBusinessToggle,
-  customerFieldInputClass,
   validateCustomerForm,
   type CustomerFormType,
   type EditableCustomerRecord,
@@ -43,7 +42,6 @@ import {
 import { NewAppointmentDialog } from "@/components/appointments/new-appointment-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
 import {
   Select,
@@ -80,12 +78,88 @@ import { fmtDate } from "@/lib/datetime";
 import { fetchVehicleSpecsBundle } from "@/server/actions/vehicle-specs";
 import { formatPhoneInput } from "@/lib/phone";
 import { RO_STATUS_PILL } from "@/lib/ro-status";
+import { getCustomerTagNames } from "@/server/actions/customer-settings";
 import { updateCustomer } from "@/server/actions/customers";
 import { updateVehicle } from "@/server/actions/vehicles";
 import type { ROStatus } from "@/generated/prisma";
 
 const DRAWER_FIELD =
-  "h-8 rounded-sm border-border/80 bg-white text-sm shadow-none focus-visible:border-brand-navy/40 focus-visible:ring-brand-navy/20";
+  "h-9 rounded-md border-[#DDE5EF] bg-white text-sm shadow-none focus-visible:border-[#1E7FE0] focus-visible:ring-[#1E7FE0]/20";
+
+const DRAWER_BTN_PRIMARY =
+  "h-9 rounded-md bg-[#E86A10] px-4 text-sm font-semibold text-white hover:bg-[#E86A10]/90";
+
+const DRAWER_BTN_OUTLINE =
+  "h-9 rounded-md border-[#DDE5EF] bg-white px-4 text-sm font-medium text-[#0B1F3B] hover:bg-[#F0F3F8]";
+
+const DRAWER_BTN_AZURE =
+  "h-9 rounded-md border-[#1E7FE0] bg-white px-4 text-sm font-semibold text-[#1E7FE0] hover:bg-[#f2f8fe]";
+
+/** White card shell used across all drawer tabs. */
+function DrawerContentCard({
+  title,
+  children,
+  className,
+  headerAction,
+}: {
+  title?: string;
+  children: React.ReactNode;
+  className?: string;
+  headerAction?: React.ReactNode;
+}) {
+  return (
+    <section className={cn("rounded-lg border border-[#DDE5EF] bg-white", className)}>
+      {title ? (
+        <div className="flex items-center justify-between gap-3 border-b border-[#DDE5EF]/60 px-4 py-3">
+          <h3 className="text-sm font-semibold text-[#0B1F3B]">{title}</h3>
+          {headerAction}
+        </div>
+      ) : null}
+      <div className={cn(title ? "p-4" : "p-4")}>{children}</div>
+    </section>
+  );
+}
+
+function DrawerSubheading({ children }: { children: React.ReactNode }) {
+  return (
+    <p className="mb-2 text-sm font-semibold text-[#0B1F3B]">{children}</p>
+  );
+}
+
+function DrawerEmptyState({
+  icon: Icon,
+  title,
+  description,
+  actionLabel,
+  onAction,
+}: {
+  icon: React.ComponentType<{ className?: string }>;
+  title: string;
+  description: string;
+  actionLabel?: string;
+  onAction?: () => void;
+}) {
+  return (
+    <DrawerContentCard>
+      <div className="flex flex-col items-center py-8 text-center">
+        <span className="mb-3 flex size-10 items-center justify-center rounded-full bg-[#F0F3F8]">
+          <Icon className="size-5 text-[#8CA2C0]" />
+        </span>
+        <p className="text-sm font-medium text-[#0B1F3B]">{title}</p>
+        <p className="mt-1 max-w-xs text-xs leading-relaxed text-[#5B7295]">{description}</p>
+        {actionLabel && onAction ? (
+          <button
+            type="button"
+            onClick={onAction}
+            className="mt-3 text-sm font-medium text-[#1E7FE0] hover:underline"
+          >
+            {actionLabel}
+          </button>
+        ) : null}
+      </div>
+    </DrawerContentCard>
+  );
+}
 
 function fmtApptWhen(iso: string) {
   return new Date(iso).toLocaleString("en-US", {
@@ -139,6 +213,8 @@ function customerPayload(
 
 export function DrawerProfileTab({
   customer,
+  customerId,
+  drawerOpen,
   canEdit,
   onSaved,
 }: {
@@ -147,6 +223,8 @@ export function DrawerProfileTab({
     marketingEmailConsent?: boolean;
     leadSource?: string | null;
   };
+  customerId: string;
+  drawerOpen: boolean;
   canEdit: boolean;
   onSaved: () => void;
 }) {
@@ -156,6 +234,7 @@ export function DrawerProfileTab({
   const [lastName, setLastName] = useState(customer.lastName ?? "");
   const [company, setCompany] = useState(customer.company ?? "");
   const [phone, setPhone] = useState(customer.phone ? formatPhoneInput(customer.phone) : "");
+  const [phoneType, setPhoneType] = useState("Mobile");
   const [email, setEmail] = useState(customer.email ?? "");
   const [address, setAddress] = useState(customer.address ?? "");
   const [city, setCity] = useState(customer.city ?? "");
@@ -163,19 +242,20 @@ export function DrawerProfileTab({
   const [zip, setZip] = useState(customer.zip ?? "");
   const [notes, setNotes] = useState(customer.notes ?? "");
   const [tags, setTags] = useState<string[]>(customer.tags ?? []);
+  const [availableTags, setAvailableTags] = useState<string[]>([]);
   const [transactionalSms, setTransactionalSms] = useState(customer.transactionalSmsConsent ?? false);
   const [marketingSms, setMarketingSms] = useState(customer.marketingOptIn ?? false);
   const [marketingEmail, setMarketingEmail] = useState(customer.marketingEmailConsent ?? false);
-  const [taxExempt, setTaxExempt] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pending, start] = useTransition();
 
-  useEffect(() => {
+  function resetForm() {
     setType(customer.company?.trim() ? "business" : "person");
     setFirstName(customer.firstName ?? "");
     setLastName(customer.lastName ?? "");
     setCompany(customer.company ?? "");
     setPhone(customer.phone ? formatPhoneInput(customer.phone) : "");
+    setPhoneType("Mobile");
     setEmail(customer.email ?? "");
     setAddress(customer.address ?? "");
     setCity(customer.city ?? "");
@@ -183,7 +263,26 @@ export function DrawerProfileTab({
     setZip(customer.zip ?? "");
     setNotes(customer.notes ?? "");
     setTags(customer.tags ?? []);
+    setTransactionalSms(customer.transactionalSmsConsent ?? false);
+    setMarketingSms(customer.marketingOptIn ?? false);
+    setMarketingEmail(customer.marketingEmailConsent ?? false);
+    setError(null);
+  }
+
+  useEffect(() => {
+    resetForm();
   }, [customer]);
+
+  useEffect(() => {
+    if (!drawerOpen) return;
+    let cancelled = false;
+    void getCustomerTagNames().then((names) => {
+      if (!cancelled) setAvailableTags(names);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [drawerOpen]);
 
   function save() {
     if (!canEdit) return;
@@ -218,125 +317,168 @@ export function DrawerProfileTab({
   }
 
   return (
-    <div className="space-y-2.5 pb-1">
-      <div className="flex flex-wrap items-end gap-2">
-        <PersonBusinessToggle type={type} onChange={setType} compact />
-        <CrmFormField label="Customer type" compact className="min-w-[8.5rem] flex-1">
-          <Select defaultValue="regular">
-            <SelectTrigger className={DRAWER_FIELD}>
-              <SelectValue placeholder="Regular" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="regular">Regular</SelectItem>
-              <SelectItem value="fleet">Fleet</SelectItem>
-              <SelectItem value="wholesale">Wholesale</SelectItem>
-            </SelectContent>
-          </Select>
-        </CrmFormField>
-      </div>
+    <div className="space-y-4 pb-4">
+      <DrawerCustomerInsightsCard customerId={customerId} drawerOpen={drawerOpen} />
 
-      <div className="grid grid-cols-2 gap-x-3 gap-y-2">
-        {type === "business" ? (
-          <CrmFormField label="Business name" compact className="col-span-2">
-            <Input value={company} onChange={(e) => setCompany(e.target.value)} disabled={!canEdit || pending} className={DRAWER_FIELD} />
-          </CrmFormField>
-        ) : (
-          <>
-            <CrmFormField label="First name" compact>
-              <Input value={firstName} onChange={(e) => setFirstName(e.target.value)} disabled={!canEdit || pending} className={DRAWER_FIELD} />
+      <DrawerContentCard title="Customer Information">
+        <div className="space-y-4">
+          <div className="flex flex-wrap items-end justify-between gap-3">
+            <PersonBusinessToggle type={type} onChange={setType} compact className="rounded-full border-[#DDE5EF] p-0.5" />
+            <CrmFormField label="Customer type" compact className="min-w-[8.5rem]">
+              <Select defaultValue="regular">
+                <SelectTrigger className={DRAWER_FIELD}>
+                  <SelectValue placeholder="Regular" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="regular">Regular</SelectItem>
+                  <SelectItem value="fleet">Fleet</SelectItem>
+                  <SelectItem value="wholesale">Wholesale</SelectItem>
+                </SelectContent>
+              </Select>
             </CrmFormField>
-            <CrmFormField label="Last name" compact>
-              <Input value={lastName} onChange={(e) => setLastName(e.target.value)} disabled={!canEdit || pending} className={DRAWER_FIELD} />
+          </div>
+
+          <div className="grid grid-cols-2 gap-x-4 gap-y-3">
+            {type === "business" ? (
+              <CrmFormField label="Business name" compact className="col-span-2">
+                <Input value={company} onChange={(e) => setCompany(e.target.value)} disabled={!canEdit || pending} className={DRAWER_FIELD} />
+              </CrmFormField>
+            ) : (
+              <>
+                <CrmFormField label="First name" compact>
+                  <Input value={firstName} onChange={(e) => setFirstName(e.target.value)} disabled={!canEdit || pending} className={DRAWER_FIELD} />
+                </CrmFormField>
+                <CrmFormField label="Last name" compact>
+                  <Input value={lastName} onChange={(e) => setLastName(e.target.value)} disabled={!canEdit || pending} className={DRAWER_FIELD} />
+                </CrmFormField>
+              </>
+            )}
+            <CrmFormField label="Phone" compact>
+              <Input
+                value={phone}
+                onChange={(e) => setPhone(formatPhoneInput(e.target.value))}
+                inputMode="tel"
+                placeholder="(555) 555-5555"
+                disabled={!canEdit || pending}
+                className={DRAWER_FIELD}
+              />
             </CrmFormField>
-          </>
-        )}
-        <CrmFormField label="Phone" compact>
-          <Input
-            value={phone}
-            onChange={(e) => setPhone(formatPhoneInput(e.target.value))}
-            inputMode="tel"
-            disabled={!canEdit || pending}
-            className={DRAWER_FIELD}
-          />
-        </CrmFormField>
-        <CrmFormField label="Email" compact>
-          <Input value={email} onChange={(e) => setEmail(e.target.value)} disabled={!canEdit || pending} className={DRAWER_FIELD} />
-        </CrmFormField>
-      </div>
+            <CrmFormField label="Type" compact>
+              <Select value={phoneType} onValueChange={setPhoneType} disabled={!canEdit || pending}>
+                <SelectTrigger className={DRAWER_FIELD}>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="Mobile">Mobile</SelectItem>
+                  <SelectItem value="Home">Home</SelectItem>
+                  <SelectItem value="Work">Work</SelectItem>
+                </SelectContent>
+              </Select>
+            </CrmFormField>
+            <CrmFormField label="Email" compact className="col-span-2">
+              <Input
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="name@email.com"
+                disabled={!canEdit || pending}
+                className={DRAWER_FIELD}
+              />
+            </CrmFormField>
+          </div>
 
-      <div className="rounded-md border border-border/70 bg-muted/[0.12] px-2.5 py-2">
-        <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-[0.1em] text-muted-foreground">
-          Primary address
-        </p>
-        <div className="grid grid-cols-4 gap-2">
-          <CrmFormField label="Address" compact className="col-span-4">
-            <Input value={address} onChange={(e) => setAddress(e.target.value)} disabled={!canEdit || pending} className={DRAWER_FIELD} />
-          </CrmFormField>
-          <CrmFormField label="City" compact className="col-span-2">
-            <Input value={city} onChange={(e) => setCity(e.target.value)} disabled={!canEdit || pending} className={DRAWER_FIELD} />
-          </CrmFormField>
-          <CrmFormField label="State" compact>
-            <Input value={state} onChange={(e) => setState(e.target.value)} disabled={!canEdit || pending} className={DRAWER_FIELD} />
-          </CrmFormField>
-          <CrmFormField label="Zip" compact>
-            <Input value={zip} onChange={(e) => setZip(e.target.value)} disabled={!canEdit || pending} className={DRAWER_FIELD} />
-          </CrmFormField>
+          <div>
+            <DrawerSubheading>Primary Address</DrawerSubheading>
+            <div className="grid grid-cols-6 gap-3">
+              <CrmFormField label="Address" compact className="col-span-6">
+                <Input value={address} onChange={(e) => setAddress(e.target.value)} disabled={!canEdit || pending} className={DRAWER_FIELD} />
+              </CrmFormField>
+              <CrmFormField label="City" compact className="col-span-3">
+                <Input value={city} onChange={(e) => setCity(e.target.value)} disabled={!canEdit || pending} className={DRAWER_FIELD} />
+              </CrmFormField>
+              <CrmFormField label="State" compact className="col-span-1">
+                <Select value={state || undefined} onValueChange={setState} disabled={!canEdit || pending}>
+                  <SelectTrigger className={DRAWER_FIELD}>
+                    <SelectValue placeholder="—" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {US_STATE_CODES.map((s) => (
+                      <SelectItem key={s} value={s}>
+                        {s}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </CrmFormField>
+              <CrmFormField label="Zip" compact className="col-span-2">
+                <Input value={zip} onChange={(e) => setZip(e.target.value)} disabled={!canEdit || pending} className={DRAWER_FIELD} />
+              </CrmFormField>
+            </div>
+          </div>
+
+          <div>
+            <DrawerSubheading>Communication</DrawerSubheading>
+            <CustomerConsentCheckboxes
+              compact
+              transactionalSmsConsent={transactionalSms}
+              marketingOptIn={marketingSms}
+              marketingEmailConsent={marketingEmail}
+              onTransactionalChange={setTransactionalSms}
+              onMarketingSmsChange={setMarketingSms}
+              onMarketingEmailChange={setMarketingEmail}
+            />
+          </div>
+
+          <div className="grid grid-cols-2 gap-4">
+            <CrmFormField label="Internal notes" compact>
+              <Textarea
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                disabled={!canEdit || pending}
+                rows={3}
+                className={cn(DRAWER_FIELD, "min-h-[5rem] resize-none py-2")}
+              />
+            </CrmFormField>
+            <div>
+              <p className="mb-1.5 text-xs font-medium text-[#0B1F3B]">Tags</p>
+              <CustomerTagPicker
+                compact
+                availableTags={
+                  availableTags.length > 0
+                    ? availableTags
+                    : Array.from(new Set([...(customer.tags ?? []), ...tags]))
+                }
+                selected={tags}
+                onToggle={(t) => setTags((prev) => (prev.includes(t) ? prev.filter((x) => x !== t) : [...prev, t]))}
+              />
+              {canEdit ? (
+                <button
+                  type="button"
+                  className="mt-2 inline-flex items-center gap-1 rounded-md border border-dashed border-[#E86A10] px-3 py-1.5 text-xs font-medium text-[#E86A10] hover:bg-[#E86A10]/5"
+                  disabled
+                  title="Tag management coming soon"
+                >
+                  <Plus className="size-3.5" />
+                  Add tag
+                </button>
+              ) : null}
+            </div>
+          </div>
+
+          {canEdit ? (
+            <div className="flex items-center justify-end gap-3 border-t border-[#DDE5EF]/60 pt-4">
+              {error ? <p className="mr-auto text-xs text-brand-red">{error}</p> : null}
+              <Button type="button" variant="outline" className={DRAWER_BTN_OUTLINE} disabled={pending} onClick={resetForm}>
+                Cancel
+              </Button>
+              <Button type="button" className={DRAWER_BTN_PRIMARY} disabled={pending} onClick={save}>
+                {pending ? <Loader2 className="size-4 animate-spin" /> : "Save"}
+              </Button>
+            </div>
+          ) : (
+            error ? <p className="text-xs text-brand-red">{error}</p> : null
+          )}
         </div>
-      </div>
-
-      <CustomerFormCollapsible title="Communication preference" compact defaultOpen={false}>
-        <CustomerConsentCheckboxes
-          compact
-          transactionalSmsConsent={transactionalSms}
-          marketingOptIn={marketingSms}
-          marketingEmailConsent={marketingEmail}
-          onTransactionalChange={setTransactionalSms}
-          onMarketingSmsChange={setMarketingSms}
-          onMarketingEmailChange={setMarketingEmail}
-        />
-        <label className="flex items-center gap-2 text-xs text-foreground">
-          <Checkbox checked={taxExempt} onCheckedChange={(v) => setTaxExempt(v === true)} disabled={!canEdit} className="size-3.5" />
-          Tax exempt
-          <span className="text-[11px] text-muted-foreground">(coming soon)</span>
-        </label>
-      </CustomerFormCollapsible>
-
-      <div className="grid grid-cols-2 gap-x-3 gap-y-2">
-        <CrmFormField label="Internal notes" compact>
-          <Textarea
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            disabled={!canEdit || pending}
-            rows={2}
-            className={cn(DRAWER_FIELD, "min-h-[3.25rem] resize-none py-1.5")}
-          />
-        </CrmFormField>
-        <div>
-          <p className="mb-1 text-xs font-medium text-foreground">Tags</p>
-          <CustomerTagPicker
-            compact
-            availableTags={[]}
-            selected={tags}
-            onToggle={(t) => setTags((prev) => (prev.includes(t) ? prev.filter((x) => x !== t) : [...prev, t]))}
-          />
-        </div>
-      </div>
-
-      {error ? <p className="text-xs text-brand-red">{error}</p> : null}
-
-      {canEdit ? (
-        <div className="flex justify-end border-t border-border/60 pt-2">
-          <Button
-            type="button"
-            size="sm"
-            className="h-8 min-w-[6.5rem] bg-brand-navy hover:bg-brand-navy/90"
-            disabled={pending}
-            onClick={save}
-          >
-            {pending ? <Loader2 className="size-4 animate-spin" /> : "Save"}
-          </Button>
-        </div>
-      ) : null}
+      </DrawerContentCard>
     </div>
   );
 }
@@ -582,11 +724,11 @@ function VehicleAccordionCard({
   const displayError = saveError ?? lookupError;
 
   return (
-    <div className="overflow-hidden rounded-lg border border-border/80 bg-white shadow-sm">
+    <div className="overflow-hidden rounded-lg border border-[#DDE5EF] bg-white">
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="flex w-full items-center gap-2 border-b border-border/60 bg-muted/[0.12] px-3 py-2.5 text-left"
+        className="flex w-full items-center gap-2 border-b border-[#DDE5EF]/60 bg-[#F7F9FC] px-4 py-3 text-left"
       >
         {open ? <ChevronDown className="size-4 shrink-0 text-muted-foreground" /> : <ChevronRight className="size-4 shrink-0 text-muted-foreground" />}
         <Car className="size-4 shrink-0 text-brand-navy/60" />
@@ -773,7 +915,7 @@ function VehicleAccordionCard({
 
           {canEdit ? (
             <div className="flex justify-end pt-1">
-              <Button type="button" className="bg-brand-navy hover:bg-brand-navy/90" disabled={busy} onClick={save}>
+              <Button type="button" className={DRAWER_BTN_PRIMARY} disabled={busy} onClick={save}>
                 {pending ? <Loader2 className="size-4 animate-spin" /> : "Update"}
               </Button>
             </div>
@@ -818,7 +960,7 @@ export function DrawerVehiclesTab({
           customerName={customerName}
           onCreated={() => onSaved()}
           trigger={
-            <Button type="button" variant="outline" className="h-9 w-full justify-center gap-1.5 border-brand-navy/20 text-brand-navy hover:bg-brand-navy/[0.04]">
+            <Button type="button" className={cn(DRAWER_BTN_AZURE, "w-full justify-center gap-1.5")}>
               <Plus className="size-4" />
               Vehicle
             </Button>
@@ -827,7 +969,11 @@ export function DrawerVehiclesTab({
       ) : null}
 
       {vehicles.length === 0 ? (
-        <p className="py-8 text-center text-sm text-muted-foreground">No vehicles on file yet.</p>
+        <DrawerEmptyState
+          icon={Car}
+          title="No vehicles on file"
+          description="Add a vehicle to link repair orders and service history."
+        />
       ) : (
         vehicles.map((v) => (
           <VehicleAccordionCard
@@ -856,13 +1002,11 @@ export function DrawerVehiclesTab({
 
 export function DrawerDeferredTab() {
   return (
-    <div className="flex flex-col items-center justify-center py-16 text-center">
-      <Tag className="mb-3 size-10 text-muted-foreground/35" />
-      <p className="text-sm font-medium text-foreground">No deferred work</p>
-      <p className="mt-1 max-w-xs text-xs text-muted-foreground">
-        Declined or deferred services from inspections will appear here for follow-up.
-      </p>
-    </div>
+    <DrawerEmptyState
+      icon={Tag}
+      title="No deferred work"
+      description="Declined or deferred services from inspections will appear here for follow-up."
+    />
   );
 }
 
@@ -888,8 +1032,8 @@ export function DrawerRepairOrdersTab({
       <Link
         href={`/repair-orders/${ro.id}/estimate`}
         className={cn(
-          "block rounded-lg border border-border/80 bg-white p-3 shadow-sm transition-colors hover:border-brand-navy/25 hover:bg-brand-navy/[0.02]",
-          currentRoId && ro.id === currentRoId && "ring-1 ring-brand-navy/20",
+          "block rounded-lg border border-[#DDE5EF] bg-white p-3 transition-colors hover:border-[#1E7FE0]/40 hover:bg-[#f2f8fe]/30",
+          currentRoId && ro.id === currentRoId && "ring-1 ring-[#E86A10]/30",
         )}
       >
         <div className="flex flex-wrap items-start justify-between gap-2">
@@ -922,42 +1066,38 @@ export function DrawerRepairOrdersTab({
   }
 
   return (
-    <div className="space-y-5 pb-4">
-      <div className="grid grid-cols-2 gap-2">
-        <Button type="button" variant="outline" className="h-10 justify-center gap-2 border-border/80" asChild>
+    <div className="space-y-4 pb-4">
+      <div className="grid grid-cols-2 gap-3">
+        <Button type="button" className={DRAWER_BTN_PRIMARY} asChild>
           <Link href={`/repair-orders/new?customerId=${customerId}`}>
-            <Receipt className="size-4 text-brand-navy/70" />
+            <Plus className="size-4" />
             Estimate
           </Link>
         </Button>
-        <Button type="button" variant="outline" className="h-10 justify-center gap-2 border-border/80" disabled title="Coming soon">
-          <Calendar className="size-4 text-brand-navy/70" />
+        <Button type="button" className={DRAWER_BTN_AZURE} disabled title="Coming soon">
+          <Plus className="size-4" />
           Appointment
         </Button>
       </div>
 
-      <section>
-        <h3 className="mb-2 text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">Active</h3>
+      <DrawerContentCard title="Active Repair Orders">
         <div className="space-y-2">
           {active.length === 0 ? (
-            <p className="rounded-md border border-dashed border-border/80 py-8 text-center text-sm text-muted-foreground">
-              No open repair orders.
-            </p>
+            <p className="py-6 text-center text-sm text-[#5B7295]">No open repair orders.</p>
           ) : (
             active.map((ro) => <RoRow key={ro.id} ro={ro} />)
           )}
         </div>
-      </section>
+      </DrawerContentCard>
 
       {archived.length > 0 ? (
-        <section>
-          <h3 className="mb-2 text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">Completed</h3>
+        <DrawerContentCard title="Completed">
           <div className="space-y-2">
             {archived.slice(0, 8).map((ro) => (
               <RoRow key={ro.id} ro={ro} />
             ))}
           </div>
-        </section>
+        </DrawerContentCard>
       ) : null}
     </div>
   );
@@ -1009,21 +1149,18 @@ export function DrawerCustomerPaymentHistoryTab({ customerId }: { customerId: st
   }
 
   return (
-    <div className="space-y-3 pb-4">
-      <div>
-        <h3 className="text-sm font-semibold text-brand-navy">Payment history</h3>
-        <p className="mt-0.5 text-xs text-muted-foreground">
+    <div className="space-y-4 pb-4">
+      <DrawerContentCard title="Payment History">
+        <p className="mb-3 text-xs text-[#5B7295]">
           All recorded payments across repair orders for this customer.
         </p>
-      </div>
-      <section className="overflow-hidden rounded-lg border border-border bg-card shadow-sm">
         <PaymentTransactionsPanel
           embedded
           payments={payments}
           failedPayments={failedPayments}
           customerWide
         />
-      </section>
+      </DrawerContentCard>
     </div>
   );
 }
@@ -1139,15 +1276,14 @@ export function DrawerCarePlanTab({
 
   if (!canAccess) {
     return (
-      <div className="rounded-lg border border-brand-light/40 bg-brand-light/10 px-4 py-6 text-sm text-on-brand-wash">
-        <p className="font-medium text-brand-navy">{AP_TERMS.maintenancePrograms}</p>
-        <p className="mt-1 text-muted-foreground">
+      <DrawerContentCard title={AP_TERMS.maintenancePrograms}>
+        <p className="text-sm text-[#5B7295]">
           Upgrade to Enterprise to enroll customers in care plans from the drawer.
         </p>
-        <Button asChild variant="outline" size="sm" className="mt-3 border-brand-navy text-brand-navy">
+        <Button asChild variant="outline" size="sm" className={cn(DRAWER_BTN_AZURE, "mt-3")}>
           <Link href="/settings/subscription">View plans</Link>
         </Button>
-      </div>
+      </DrawerContentCard>
     );
   }
 
@@ -1155,67 +1291,65 @@ export function DrawerCarePlanTab({
 
   return (
     <div className="space-y-4 pb-4">
-      <div className="flex flex-wrap items-start justify-between gap-3">
-        <div>
-          <h3 className="flex items-center gap-1.5 text-sm font-semibold text-brand-navy">
-            <Shield className="size-4 text-brand-navy/80" aria-hidden />
-            {AP_TERMS.maintenancePrograms}
-          </h3>
-          <p className="mt-0.5 text-xs text-muted-foreground">
-            Memberships and enrollment for {customerName}.
-          </p>
-        </div>
-        <div className="flex flex-wrap items-center gap-2">
-          {plansUrl && shopName ? (
-            <SharePlansLinkButton
-              plansUrl={plansUrl}
-              shopName={shopName}
-              customer={{
-                id: customerId,
-                firstName: customerName.split(" ")[0] ?? customerName,
-                phone: customerPhone,
-                email: customerEmail,
-              }}
-            />
-          ) : null}
-          <Button asChild size="sm" variant="default" className="gap-1 bg-brand-navy hover:bg-brand-navy/90">
-            <Link href={membersHref}>
-              <Plus className="size-3.5" />
-              Enroll
-            </Link>
-          </Button>
-        </div>
-      </div>
-
-      {plans.length === 0 ? (
-        <div className="rounded-lg border border-dashed border-border/80 bg-white/60 px-4 py-10 text-center">
-          <Shield className="mx-auto mb-2 size-9 text-muted-foreground/30" />
-          <p className="text-sm font-medium text-foreground">Not enrolled in a care plan</p>
-          <p className="mt-1 text-xs text-muted-foreground">
-            Enroll at the counter or send {customerName.split(" ")[0] ?? "them"} the public signup link.
-          </p>
-          <Button asChild variant="outline" size="sm" className="mt-4 border-brand-navy/25 text-brand-navy">
-            <Link href={membersHref}>Open {AP_TERMS.maintenanceSubscribers}</Link>
-          </Button>
-        </div>
-      ) : (
-        <>
-          <ul className="space-y-3">
-            {plans.map((plan) => (
-              <CarePlanMembershipCard key={plan.id} plan={plan} />
-            ))}
-          </ul>
-          <div className="flex justify-end border-t border-border/60 pt-3">
-            <Link
-              href={membersHref}
-              className="inline-flex items-center gap-1 text-xs font-medium text-brand-navy hover:underline"
-            >
-              View all in {AP_TERMS.maintenanceSubscribers}
-              <ExternalLink className="size-3" />
-            </Link>
+      <DrawerContentCard
+        title={AP_TERMS.maintenancePrograms}
+        headerAction={
+          <div className="flex flex-wrap items-center gap-2">
+            {plansUrl && shopName ? (
+              <SharePlansLinkButton
+                plansUrl={plansUrl}
+                shopName={shopName}
+                customer={{
+                  id: customerId,
+                  firstName: customerName.split(" ")[0] ?? customerName,
+                  phone: customerPhone,
+                  email: customerEmail,
+                }}
+              />
+            ) : null}
+            <Button asChild size="sm" className={DRAWER_BTN_PRIMARY}>
+              <Link href={membersHref}>
+                <Plus className="size-3.5" />
+                Enroll
+              </Link>
+            </Button>
           </div>
-        </>
-      )}
+        }
+      >
+        <p className="mb-4 text-xs text-[#5B7295]">
+          Memberships and enrollment for {customerName}.
+        </p>
+
+        {plans.length === 0 ? (
+          <div className="flex flex-col items-center py-8 text-center">
+            <Shield className="mb-2 size-9 text-[#8CA2C0]/60" />
+            <p className="text-sm font-medium text-[#0B1F3B]">Not enrolled in a care plan</p>
+            <p className="mt-1 text-xs text-[#5B7295]">
+              Enroll at the counter or send {customerName.split(" ")[0] ?? "them"} the public signup link.
+            </p>
+            <Button asChild variant="outline" size="sm" className={cn(DRAWER_BTN_AZURE, "mt-4")}>
+              <Link href={membersHref}>Open {AP_TERMS.maintenanceSubscribers}</Link>
+            </Button>
+          </div>
+        ) : (
+          <>
+            <ul className="space-y-3">
+              {plans.map((plan) => (
+                <CarePlanMembershipCard key={plan.id} plan={plan} />
+              ))}
+            </ul>
+            <div className="mt-4 flex justify-end border-t border-[#DDE5EF]/60 pt-3">
+              <Link
+                href={membersHref}
+                className="inline-flex items-center gap-1 text-xs font-medium text-[#1E7FE0] hover:underline"
+              >
+                View all in {AP_TERMS.maintenanceSubscribers}
+                <ExternalLink className="size-3" />
+              </Link>
+            </div>
+          </>
+        )}
+      </DrawerContentCard>
     </div>
   );
 }
@@ -1225,11 +1359,11 @@ export function DrawerFinancesTab({ availableCreditCents }: { availableCreditCen
 
   return (
     <div className="space-y-4 pb-4">
-      <div className="grid grid-cols-2 gap-2">
+      <div className="grid grid-cols-2 gap-3">
         <Button
           type="button"
           variant={sub === "credit" ? "default" : "outline"}
-          className={cn("h-10 gap-2", sub === "credit" && "bg-brand-navy hover:bg-brand-navy/90")}
+          className={cn("h-10 gap-2", sub === "credit" ? DRAWER_BTN_PRIMARY : DRAWER_BTN_AZURE)}
           onClick={() => setSub("credit")}
         >
           <Receipt className="size-4" />
@@ -1238,7 +1372,7 @@ export function DrawerFinancesTab({ availableCreditCents }: { availableCreditCen
         <Button
           type="button"
           variant={sub === "ar" ? "default" : "outline"}
-          className={cn("h-10 gap-2", sub === "ar" && "bg-brand-navy hover:bg-brand-navy/90")}
+          className={cn("h-10 gap-2", sub === "ar" ? DRAWER_BTN_PRIMARY : DRAWER_BTN_AZURE)}
           onClick={() => setSub("ar")}
         >
           <History className="size-4" />
@@ -1247,17 +1381,19 @@ export function DrawerFinancesTab({ availableCreditCents }: { availableCreditCen
       </div>
 
       {sub === "credit" ? (
-        <>
-          <div className="flex justify-end">
-            <Button type="button" variant="outline" size="sm" className="gap-1" disabled title="Coming soon">
+        <DrawerContentCard
+          title="Store Credit"
+          headerAction={
+            <Button type="button" variant="outline" size="sm" className={DRAWER_BTN_AZURE} disabled title="Coming soon">
               <Plus className="size-3.5" />
               Credit memo
             </Button>
-          </div>
-          <div className="overflow-hidden rounded-lg border border-border/80">
+          }
+        >
+          <div className="overflow-hidden rounded-md border border-[#DDE5EF]">
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-border/80 bg-muted/30 text-left text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+                <tr className="border-b border-[#DDE5EF] bg-[#F7F9FC] text-left text-xs font-semibold text-[#5B7295]">
                   <th className="px-3 py-2">Memo #</th>
                   <th className="px-3 py-2">Status</th>
                   <th className="px-3 py-2 text-right">Amount</th>
@@ -1265,7 +1401,7 @@ export function DrawerFinancesTab({ availableCreditCents }: { availableCreditCen
                 </tr>
               </thead>
               <tbody>
-                <tr className="border-t border-border/60 bg-brand-navy/[0.03] font-medium">
+                <tr className="border-t border-[#DDE5EF]/60 bg-[#f2f8fe]/40 font-medium text-[#0B1F3B]">
                   <td className="px-3 py-3" colSpan={3}>
                     Total available credit
                   </td>
@@ -1274,12 +1410,13 @@ export function DrawerFinancesTab({ availableCreditCents }: { availableCreditCen
               </tbody>
             </table>
           </div>
-        </>
+        </DrawerContentCard>
       ) : (
-        <div className="rounded-lg border border-dashed border-border/80 py-12 text-center">
-          <p className="text-sm font-medium text-foreground">Accounts receivable</p>
-          <p className="mt-1 text-xs text-muted-foreground">Open invoices and charge-account balances will appear here.</p>
-        </div>
+        <DrawerEmptyState
+          icon={History}
+          title="Accounts receivable"
+          description="Open invoices and charge-account balances will appear here."
+        />
       )}
     </div>
   );
@@ -1307,36 +1444,45 @@ export function DrawerActionRail({
   onAppointmentCreated?: () => void;
 }) {
   const [apptOpen, setApptOpen] = useState(false);
-  const actionClass =
-    "flex w-full items-center justify-center gap-1.5 rounded-md border border-brand-light/50 bg-brand-light/15 px-3 py-2.5 text-sm font-semibold text-brand-navy transition-colors hover:border-brand-navy/25 hover:bg-brand-light/25";
-  const disabledActionClass = cn(actionClass, "cursor-not-allowed opacity-50 hover:border-brand-light/50 hover:bg-brand-light/15");
+  const estimateClass = cn(
+    "flex w-full items-center justify-center gap-1.5 rounded-md px-3 py-2.5 text-sm font-semibold text-white transition-colors",
+    "bg-[#E86A10] hover:bg-[#E86A10]/90",
+  );
+  const outlineActionClass =
+    "flex w-full items-center justify-center gap-1.5 rounded-md border border-[#1E7FE0] bg-white px-3 py-2.5 text-sm font-semibold text-[#1E7FE0] transition-colors hover:bg-[#f2f8fe] [&_svg]:text-[#1E7FE0]";
+  const disabledActionClass = cn(
+    outlineActionClass,
+    "cursor-not-allowed opacity-50 hover:bg-white",
+  );
 
   return (
-    <aside className="hidden w-[12.75rem] shrink-0 flex-col border-l border-border/80 bg-muted/[0.08] md:flex">
-      <div className="space-y-2 border-b border-border/60 p-3">
-        <Link href={`/repair-orders/new?customerId=${customerId}`} className={actionClass}>
-          <Plus className="size-4" />
-          Estimate
-        </Link>
-        <button type="button" className={actionClass} onClick={() => setApptOpen(true)}>
-          <Plus className="size-4" />
-          Appointment
-        </button>
-        <TooltipProvider>
-          <Tooltip>
-            <TooltipTrigger asChild>
-              <span className="inline-flex w-full">
-                <button type="button" className={disabledActionClass} disabled aria-disabled="true">
-                  <Plus className="size-4" />
-                  Credit memo
-                </button>
-              </span>
-            </TooltipTrigger>
-            <TooltipContent side="left">
-              Credit memos are not available yet. View store credit under Finances.
-            </TooltipContent>
-          </Tooltip>
-        </TooltipProvider>
+    <aside className="hidden w-[13rem] shrink-0 flex-col border-l border-[#DDE5EF] bg-[#F7F9FC] md:flex">
+      <div className="border-b border-[#DDE5EF] p-4">
+        <div className="space-y-2">
+          <Link href={`/repair-orders/new?customerId=${customerId}`} className={estimateClass}>
+            <Plus className="size-4" />
+            Estimate
+          </Link>
+          <button type="button" className={outlineActionClass} onClick={() => setApptOpen(true)}>
+            <Plus className="size-4" />
+            Appointment
+          </button>
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <span className="inline-flex w-full">
+                  <button type="button" className={disabledActionClass} disabled aria-disabled="true">
+                    <Plus className="size-4" />
+                    Credit Memo
+                  </button>
+                </span>
+              </TooltipTrigger>
+              <TooltipContent side="left">
+                Credit memos are not available yet. View store credit under Finances.
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
+        </div>
       </div>
 
       <NewAppointmentDialog
@@ -1354,30 +1500,38 @@ export function DrawerActionRail({
         }}
       />
 
-      <div className="min-h-0 flex-1 overflow-y-auto p-3">
-        <h3 className="mb-3 text-[11px] font-semibold uppercase tracking-[0.12em] text-muted-foreground">
-          Appointments
-        </h3>
-        {appointments.length === 0 ? (
-          <div className="rounded-md border border-dashed border-border/70 bg-white/60 px-3 py-8 text-center">
-            <Calendar className="mx-auto mb-2 size-8 text-muted-foreground/30" />
-            <p className="text-xs leading-relaxed text-muted-foreground">
-              No upcoming appointments for this customer.
-            </p>
-          </div>
-        ) : (
-          <ul className="space-y-2">
-            {appointments.map((a) => (
-              <li key={a.id} className="rounded-md border border-border/70 bg-white px-2.5 py-2">
-                <p className="truncate text-xs font-semibold text-foreground">{a.title}</p>
-                <p className="mt-0.5 text-[11px] text-muted-foreground">{fmtApptWhen(a.startAt)}</p>
-                {a.vehicleLabel ? (
-                  <p className="mt-0.5 truncate text-[10px] uppercase text-muted-foreground/80">{a.vehicleLabel}</p>
-                ) : null}
-              </li>
-            ))}
-          </ul>
-        )}
+      <div className="min-h-0 flex-1 overflow-y-auto p-4">
+        <DrawerContentCard>
+          {appointments.length === 0 ? (
+            <div className="flex flex-col items-center py-4 text-center">
+              <span className="mb-2 flex size-9 items-center justify-center rounded-full bg-[#F0F3F8]">
+                <Calendar className="size-4 text-[#8CA2C0]" />
+              </span>
+              <p className="text-xs leading-relaxed text-[#5B7295]">
+                No upcoming appointments for this customer.
+              </p>
+              <button
+                type="button"
+                onClick={() => setApptOpen(true)}
+                className="mt-2 text-sm font-medium text-[#1E7FE0] hover:underline"
+              >
+                Schedule Appointment
+              </button>
+            </div>
+          ) : (
+            <ul className="space-y-2">
+              {appointments.map((a) => (
+                <li key={a.id} className="rounded-md border border-[#DDE5EF] bg-[#F7F9FC] px-2.5 py-2">
+                  <p className="truncate text-xs font-semibold text-[#0B1F3B]">{a.title}</p>
+                  <p className="mt-0.5 text-[11px] text-[#5B7295]">{fmtApptWhen(a.startAt)}</p>
+                  {a.vehicleLabel ? (
+                    <p className="mt-0.5 truncate text-[10px] text-[#8CA2C0]">{a.vehicleLabel}</p>
+                  ) : null}
+                </li>
+              ))}
+            </ul>
+          )}
+        </DrawerContentCard>
       </div>
     </aside>
   );
@@ -1388,7 +1542,7 @@ export const DRAWER_TABS: { id: ContextDrawerTab; label: string }[] = [
   { id: "vehicles", label: "Vehicles" },
   { id: "carePlan", label: "Care Plan" },
   { id: "deferred", label: "Deferred" },
-  { id: "orders", label: "Repair orders" },
+  { id: "orders", label: "Repair Orders" },
   { id: "payment", label: "Payment" },
   { id: "finances", label: "Finances" },
 ];

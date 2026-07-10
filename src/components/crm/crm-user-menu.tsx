@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { LogOut, Settings, User } from "lucide-react";
+import { ChevronDown, LogOut, Settings, User } from "lucide-react";
 import { UserButton } from "@clerk/nextjs";
 
 import { isClerkConfigured } from "@/lib/clerk-auth-client";
@@ -15,13 +15,16 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { cn } from "@/lib/utils";
 
 export function CrmUserMenu({
   displayName = "Staff",
   initials = "ST",
+  showChevron = false,
 }: {
   displayName?: string;
   initials?: string;
+  showChevron?: boolean;
 }) {
   if (isClerkConfigured()) {
     return (
@@ -36,12 +39,23 @@ export function CrmUserMenu({
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="icon" className="size-8 rounded-full text-white hover:bg-white/10">
+        <Button
+          variant="ghost"
+          size={showChevron ? "sm" : "icon"}
+          className={cn(
+            showChevron
+              ? "h-9 gap-1.5 rounded-full px-1.5 text-foreground hover:bg-muted"
+              : "size-8 rounded-full text-white hover:bg-white/10",
+          )}
+        >
           <Avatar className="size-8">
-            <AvatarFallback className="bg-brand-light text-xs font-semibold text-brand-navy">
+            <AvatarFallback className="bg-[#00A9FF] text-xs font-semibold text-white">
               {initials}
             </AvatarFallback>
           </Avatar>
+          {showChevron ? (
+            <ChevronDown className="size-3.5 shrink-0 text-muted-foreground" aria-hidden />
+          ) : null}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-52">

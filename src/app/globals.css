@@ -1790,6 +1790,11 @@
     box-shadow: 0 1px 2px rgba(11, 31, 59, 0.05);
   }
 
+  /* Estimate right rail — Palette C square chrome (matches job board) */
+  .estimate-lab-right-rail :is(button, input, textarea, [data-slot="button"], [data-slot="badge"]) {
+    border-radius: 0 !important;
+  }
+
   /* SMS threads — outbound uses navy tint (orange primary is CTAs only; poor contrast on long text) */
   .msg-bubble-outbound {
     @apply max-w-[80%] rounded-lg border border-brand-navy/15 border-l-[3px] border-l-brand-light bg-brand-navy/[0.06] px-3 py-1.5 text-sm text-brand-navy;

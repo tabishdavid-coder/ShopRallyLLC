@@ -70,6 +70,8 @@ export function AutopilotShell({
           <div className="flex min-h-0 flex-1 overflow-hidden">
             {persistentSidebar ? (
               <ApSidebar
+                shops={shops}
+                activeShopId={activeShopId}
                 unreadSmsCount={unreadSmsCount}
                 allowedNavHrefs={allowedNavHrefs}
               />
@@ -92,8 +94,6 @@ export function AutopilotShell({
                 isPlatformAdmin={isPlatformAdmin}
                 userDisplayName={userDisplayName}
                 userInitials={userInitials}
-                allowedSectionIds={allowedSectionIds}
-                showSectionNav={persistentSidebar}
               />
 
               {banner ? (

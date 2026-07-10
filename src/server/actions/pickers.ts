@@ -7,6 +7,8 @@ import {
   sortCustomerSearchResults,
 } from "@/lib/customer-search";
 import type { CustomerPick, VehiclePick } from "@/lib/picker-types";
+import type { EditableCustomerRecord } from "@/components/customers/customer-form-shared";
+import type { EditableVehicle } from "@/components/repair-order/edit-vehicle-dialog";
 import { gates } from "@/server/permission-gates";
 
 const SEARCH_POOL = 40;
@@ -162,4 +164,71 @@ export async function getCustomerVehicles(
       },
     },
   }).then((c) => c?.vehicles ?? []);
+}
+
+/** Full customer record for the intake-form Edit Customer dialog. */
+export async function getEditableCustomer(
+  customerId: string,
+): Promise<
+  | (EditableCustomerRecord & {
+      transactionalSmsConsent: boolean;
+      marketingEmailConsent: boolean;
+    })
+  | null
+> {
+  const shopId = await getShopId();
+  const denied = await gates.customersView(shopId);
+  if (denied) return null;
+
+  return prisma.customer.findFirst({
+    where: { id: customerId, shopId },
+    select: {
+      id: true,
+      firstName: true,
+      lastName: true,
+      company: true,
+      phone: true,
+      email: true,
+      address: true,
+      city: true,
+      state: true,
+      zip: true,
+      marketingOptIn: true,
+      transactionalSmsConsent: true,
+      marketingEmailConsent: true,
+      notes: true,
+      tags: true,
+    },
+  });
+}
+
+/** Full vehicle record for the intake-form Edit Vehicle dialog. */
+export async function getEditableVehicle(
+  vehicleId: string,
+): Promise<EditableVehicle | null> {
+  const shopId = await getShopId();
+  const denied = await gates.customersView(shopId);
+  if (denied) return null;
+
+  return prisma.vehicle.findFirst({
+    where: { id: vehicleId, shopId },
+    select: {
+      id: true,
+      vin: true,
+      plate: true,
+      plateState: true,
+      unitNumber: true,
+      notes: true,
+      year: true,
+      make: true,
+      model: true,
+      trim: true,
+      engine: true,
+      transmission: true,
+      drivetrain: true,
+      bodyClass: true,
+      tireSizeFront: true,
+      tireSizeRear: true,
+    },
+  });
 }

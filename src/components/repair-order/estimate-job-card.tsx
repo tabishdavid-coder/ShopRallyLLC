@@ -180,6 +180,12 @@ const REMOVE_CELL_INNER = "flex h-8 items-center justify-center";
 const FOOTER_ACTION_BUTTON =
   "h-8 gap-1.5 px-3 text-xs font-semibold uppercase tracking-wide text-brand-navy hover:border-brand-navy/25 hover:bg-brand-light/10 hover:text-brand-navy";
 
+/* Palette C job-card chrome (visual only): ink #0B1F3B, azure #1E7FE0, orange
+ * #E86A10, red #C93838, slate #5B7295, faint #8CA2C0, line #DDE5EF, washes
+ * #E7F1FD / #F3F8FE. Square corners, clean white card. */
+const ORANGE_CHECKBOX =
+  "border-[#E86A10]/70 data-[state=checked]:border-[#E86A10] data-[state=checked]:bg-[#E86A10] data-[state=checked]:text-white data-[state=indeterminate]:border-[#E86A10] data-[state=indeterminate]:bg-[#E86A10] data-[state=indeterminate]:text-white";
+
 function MatrixStatusPill({
   label,
   tooltip,
@@ -245,13 +251,18 @@ function TotalBox({
   checkbox?: ReactNode;
 }) {
   return (
-    <div className="flex min-w-[7.5rem] flex-col justify-center px-4 py-2 text-center">
-      <div className="flex items-center justify-center gap-1 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
+    <div
+      className={cn(
+        "flex min-w-[7.5rem] flex-col justify-center px-4 py-2 text-center",
+        bold && "bg-white",
+      )}
+    >
+      <div className="flex items-center justify-center gap-1 text-[10px] font-semibold uppercase tracking-wide text-[#5B7295]">
         {icon}
         {checkbox}
         {label}
       </div>
-      <div className={`mt-0.5 tabular-nums ${bold ? "text-base font-bold text-foreground" : "text-sm font-semibold text-foreground"}`}>
+      <div className={`mt-0.5 tabular-nums ${bold ? "text-base font-bold text-[#0B1F3B]" : "text-sm font-semibold text-[#0B1F3B]"}`}>
         {value}
       </div>
     </div>
@@ -437,13 +448,13 @@ export function EstimateJobCard({
     );
   }
 
-  /** Tekmetric tables — stronger dividers so each job card reads clearly on slate canvas. */
-  const jobEdge = isLab ? "border-slate-300" : "border-slate-400/75";
-  const jobDivider = isLab ? "border-border/70" : "border-slate-300";
-  const jobRowDivider = isLab ? "border-border/80" : "border-slate-200";
+  /** Palette C lines — solid slate-blue card edge, crisper section dividers, soft row rules. */
+  const jobEdge = "border-[#B9C8DC]";
+  const jobDivider = "border-[#CBD8E7]";
+  const jobRowDivider = "border-[#DDE5EF]";
   const tableHeadClass = isLab
     ? LAB_TABLE_HEAD
-    : "border-b border-slate-300 bg-muted/50 text-[11px] font-semibold uppercase tracking-wide text-subtle-foreground";
+    : "border-b border-[#DDE5EF] bg-[#F3F8FE] text-[11px] font-semibold uppercase tracking-wide text-[#5B7295]";
   const cellPad = isLab ? LAB_CELL : "px-3 py-2";
   const cellPadSm = isLab ? LAB_CELL : "px-3 py-1.5";
   const inputH = isLab ? LAB_INPUT : "h-8";
@@ -878,7 +889,7 @@ export function EstimateJobCard({
       }
     : {
         className: cn(
-          "overflow-hidden rounded-lg border-2 bg-white shadow-md ring-1 ring-slate-300/35",
+          "overflow-hidden rounded-none border bg-white shadow-sm",
           customerApproved
             ? "border-emerald-500 ring-1 ring-emerald-500/30"
             : jobEdge,
@@ -891,7 +902,7 @@ export function EstimateJobCard({
       <div
         className={cn(
           "flex items-center gap-1.5 border-b px-2 py-1.5",
-          customerApproved ? "border-emerald-200 bg-emerald-50/80" : cn(jobDivider, "bg-muted/30"),
+          customerApproved ? "border-emerald-200 bg-emerald-50/80" : cn(jobDivider, "bg-[#E7F1FD]"),
           isLab && "py-1.5",
         )}
       >
@@ -909,8 +920,9 @@ export function EstimateJobCard({
               }}
               disabled={!onToggleJob || quickPending}
               aria-label="Include job in estimate"
+              className={ORANGE_CHECKBOX}
             />
-            <span className="min-w-0 flex-1 truncate font-semibold text-foreground">{job.name}</span>
+            <span className="min-w-0 flex-1 truncate font-bold text-[#0B1F3B]">{job.name}</span>
             {variant === "lab" ? (
               customerApproved ? (
                 renderApprovedBadge()
@@ -1005,7 +1017,7 @@ export function EstimateJobCard({
               }}
               disabled={!onToggleJob || quickPending}
               aria-label="Include job in estimate"
-              className="size-3.5"
+              className={cn("size-3.5", ORANGE_CHECKBOX)}
             />
             <Input
               value={name}
@@ -1188,7 +1200,7 @@ export function EstimateJobCard({
                       />
                     ) : (
                       <div className={l.authorized === false ? "text-foreground/45 line-through" : undefined}>
-                        <span className="text-brand-navy">{l.description}</span>
+                        <span className="text-[#0B1F3B]">{l.description}</span>
                       </div>
                     )}
                   </td>
@@ -1567,23 +1579,23 @@ export function EstimateJobCard({
                       ) : (
                         <div className={p.authorized === false ? "text-foreground/45 line-through" : undefined}>
                           <span>
-                            {p.description}
-                            {p.brand ? <span className="text-muted-foreground"> {p.brand}</span> : null}
+                            <span className="text-[#0B1F3B]">{p.description}</span>
+                            {p.brand ? <span className="text-[#5B7295]"> {p.brand}</span> : null}
                             <span
                               className={`ml-2 rounded px-1.5 py-0.5 text-[10px] font-semibold uppercase ${
                                 p.source === "PARTSTECH"
-                                  ? "bg-brand-light/20 text-brand-navy"
-                                  : "bg-red-100 text-red-700"
+                                  ? "bg-[#1E7FE0]/10 text-[#1E7FE0]"
+                                  : "bg-[#C93838]/10 text-[#C93838]"
                               }`}
                             >
                               {p.source === "PARTSTECH" ? "Quoted" : "Needed"}
                             </span>
                           </span>
                           {p.partNumber ? (
-                            <div className="text-xs text-muted-foreground">{p.partNumber}</div>
+                            <div className="text-xs text-[#8CA2C0]">{p.partNumber}</div>
                           ) : null}
                           {p.details ? (
-                            <div className="text-xs text-muted-foreground">{p.details}</div>
+                            <div className="text-xs text-[#8CA2C0]">{p.details}</div>
                           ) : null}
                         </div>
                       )}
@@ -1774,7 +1786,7 @@ export function EstimateJobCard({
               </tbody>
             </table>
           ) : (
-            <div className="w-full border-t border-border bg-muted/10 px-4 py-3 text-left text-sm text-muted-foreground">
+            <div className="w-full border-t border-[#DDE5EF] bg-[#F3F8FE]/60 px-4 py-3 text-left text-sm text-[#5B7295]">
               No parts on this job.
             </div>
           )}
@@ -1833,7 +1845,7 @@ export function EstimateJobCard({
 
           {/* GP + totals footer — view mode; lab keeps totals visible while editing */}
           {!editing || isLab ? (
-          <div className={cn("flex items-stretch border-t", jobDivider, isLab ? "bg-slate-50/80" : "bg-slate-100/90")}>
+          <div className={cn("flex items-stretch border-t", jobDivider, "bg-[#F3F8FE]")}>
             <div className={cn("flex min-w-0 flex-1 flex-wrap items-center gap-x-2 gap-y-1", isLab ? "px-2 py-1.5 text-[11px]" : "gap-x-3 gap-y-1.5 px-3 py-2 text-xs")}>
               {isLab && (jobMatrixOn || (editing && canApplyJobMatrix && canEdit)) ? (
                 jobMatrixOn ? (
@@ -1861,23 +1873,23 @@ export function EstimateJobCard({
                   </button>
                 )
               ) : null}
-              <span><span className="text-muted-foreground">GP$ </span><b className="text-foreground">{formatCents(t.gp)}</b></span>
-              <span><span className="text-muted-foreground">GP% </span><b className="text-foreground">{t.gpPct.toFixed(2)}%</b></span>
+              <span><span className="text-[#5B7295]">GP$ </span><b className="text-[#0B1F3B]">{formatCents(t.gp)}</b></span>
+              <span><span className="text-[#5B7295]">GP% </span><b className="text-[#0B1F3B]">{t.gpPct.toFixed(2)}%</b></span>
               <span>
-                <span className="text-muted-foreground">GP/Hr </span>
-                <b className={gpGoalCents != null && t.gpHr < gpGoalCents ? "text-rose-600" : "text-foreground"}>
+                <span className="text-[#5B7295]">GP/Hr </span>
+                <b className={gpGoalCents != null && t.gpHr < gpGoalCents ? "text-rose-600" : "text-[#0B1F3B]"}>
                   {formatCents(Math.round(t.gpHr))}
                 </b>
                 {gpGoalCents != null ? (
-                  <span className="ml-1 text-muted-foreground/70">/ {formatCents(gpGoalCents)}</span>
+                  <span className="ml-1 text-[#8CA2C0]">/ {formatCents(gpGoalCents)}</span>
                 ) : null}
               </span>
             </div>
-            <div className={cn("ml-auto flex shrink-0 items-stretch divide-x border-l bg-white", jobDivider, isLab ? "divide-border" : "divide-slate-300")}>
+            <div className={cn("ml-auto flex shrink-0 items-stretch divide-x border-l", jobDivider, "divide-[#CBD8E7]")}>
               <TotalBox
                 label="Subtotal"
                 value={formatCents(t.subtotal)}
-                icon={<Lock className="size-3 text-muted-foreground/50" aria-hidden />}
+                icon={<Lock className="size-3 text-[#8CA2C0]" aria-hidden />}
               />
               <TotalBox
                 label="Labor Tax est."
@@ -1888,7 +1900,7 @@ export function EstimateJobCard({
                     disabled={!canEdit || quickPending}
                     onCheckedChange={(v) => toggleTax({ laborTaxable: v === true })}
                     aria-label="Labor taxable"
-                    className="size-3.5"
+                    className={cn("size-3.5", ORANGE_CHECKBOX)}
                   />
                 }
               />
@@ -1901,7 +1913,7 @@ export function EstimateJobCard({
                     disabled={!canEdit || quickPending}
                     onCheckedChange={(v) => toggleTax({ partsTaxable: v === true })}
                     aria-label="Parts taxable"
-                    className="size-3.5"
+                    className={cn("size-3.5", ORANGE_CHECKBOX)}
                   />
                 }
               />

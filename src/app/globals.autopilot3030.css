@@ -120,11 +120,16 @@ html[data-ap-shell="3030"] .ap-sidebar {
   display: none;
   flex-direction: column;
   flex-shrink: 0;
-  width: var(--ap-nav-width);
+  width: 15.5rem;
   height: 100%;
   background: var(--ap-chrome);
   color: var(--ap-chrome-foreground);
   border-right: 1px solid var(--ap-chrome-border);
+  transition: width var(--ap-motion-base);
+}
+
+html[data-ap-shell="3030"] .ap-sidebar.ap-sidebar--collapsed {
+  width: 4.25rem;
 }
 
 @media (min-width: 768px) {
@@ -164,19 +169,19 @@ html[data-ap-shell="3030"] .ap-sidebar-link:hover {
 }
 
 html[data-ap-shell="3030"] .ap-sidebar-link--active {
-  background: color-mix(in oklab, var(--ap-accent) 20%, transparent);
+  background: color-mix(in oklab, var(--ap-accent) 28%, transparent);
   color: white;
   font-weight: 600;
-  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--ap-accent) 40%, transparent);
+  box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--ap-accent) 45%, transparent);
 }
 
 html[data-ap-shell="3030"] .ap-sidebar-section-label {
   padding: 0.5rem 0.5rem 0.25rem;
-  font-size: 0.75rem;
+  font-size: 0.6875rem;
   font-weight: 700;
-  letter-spacing: 0.1em;
+  letter-spacing: 0.12em;
   text-transform: uppercase;
-  color: var(--ap-accent);
+  color: color-mix(in oklab, var(--ap-chrome-foreground) 45%, transparent);
 }
 
 html[data-ap-shell="3030"] .ap-chrome-zone {

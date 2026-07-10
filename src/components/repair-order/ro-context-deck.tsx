@@ -32,7 +32,10 @@ import type { VehicleSpecsView } from "@/lib/vehicle-specs-view";
 import { RoVehicleSpecsPanel } from "@/components/repair-order/ro-vehicle-specs-panel";
 import type { RepairOrderDetail } from "@/server/repair-order";
 import type { RoSidebarOptions } from "@/server/ro-sidebar-options";
-import { EditCustomerDialog } from "@/components/repair-order/edit-customer-dialog";
+import {
+  CustomerContextDrawer,
+  type ContextDrawerTab,
+} from "@/components/customers/customer-context-drawer";
 import { EditVehicleDialog } from "@/components/repair-order/edit-vehicle-dialog";
 import {
   DateTimeFieldDialog,
@@ -193,13 +196,12 @@ type DialogKey =
   | "roNotes"
   | "mileageIn"
   | "mileageOut"
-  | "customer"
   | "vehicle";
 
 export function RoContextDeck({
   ro,
   options,
-  customerTags = [],
+  customerTags: _customerTags = [],
   vehicleSpecs,
 }: {
   ro: RepairOrderDetail;
@@ -214,7 +216,13 @@ export function RoContextDeck({
   const [dialog, setDialog] = useState<DialogKey | null>(null);
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [messagesOpen, setMessagesOpen] = useState(false);
+  const [customerDrawerOpen, setCustomerDrawerOpen] = useState(false);
+  const [customerDrawerTab, setCustomerDrawerTab] = useState<ContextDrawerTab>("profile");
   const open = (key: DialogKey) => () => setDialog(key);
+  const openCustomerProfile = () => {
+    setCustomerDrawerTab("profile");
+    setCustomerDrawerOpen(true);
+  };
   const close = () => setDialog(null);
 
   const address = [c.address, [c.city, c.state].filter(Boolean).join(", "), c.zip]
@@ -602,19 +610,19 @@ export function RoContextDeck({
                 <DetailRow
                   label="Email"
                   value={
-                    <EditableValue value={c.email} emptyLabel="Add" onEdit={open("customer")} />
+                    <EditableValue value={c.email} emptyLabel="Add" onEdit={openCustomerProfile} />
                   }
                 />
                 <DetailRow
                   label="Address"
                   value={
-                    <EditableValue value={address || null} emptyLabel="Add" onEdit={open("customer")} />
+                    <EditableValue value={address || null} emptyLabel="Add" onEdit={openCustomerProfile} />
                   }
                 />
                 <DetailRow
                   label="Customer Notes"
                   value={
-                    <EditableValue value={c.notes} emptyLabel="Add" onEdit={open("customer")} />
+                    <EditableValue value={c.notes} emptyLabel="Add" onEdit={openCustomerProfile} />
                   }
                 />
               </CollapsibleContent>
@@ -725,11 +733,46 @@ export function RoContextDeck({
         mileageOut={ro.mileageOut}
         onSave={async (val) => saveMileage({ mileageOut: val })}
       />
-      <EditCustomerDialog
-        customer={c}
-        open={dialog === "customer"}
-        onOpenChange={(o) => (o ? setDialog("customer") : close())}
-        availableTags={customerTags}
+      <CustomerContextDrawer
+        open={customerDrawerOpen}
+        onOpenChange={setCustomerDrawerOpen}
+        tab={customerDrawerTab}
+        onTabChange={setCustomerDrawerTab}
+        customer={{
+          id: c.id,
+          firstName: c.firstName,
+          lastName: c.lastName,
+          company: c.company,
+          phone: c.phone,
+          email: c.email,
+          address: c.address,
+          city: c.city,
+          state: c.state,
+          zip: c.zip,
+          marketingOptIn: c.marketingOptIn,
+          notes: c.notes,
+          tags: c.tags ?? [],
+        }}
+        customerId={c.id}
+        vehicle={
+          v
+            ? {
+                id: v.id,
+                year: v.year,
+                make: v.make,
+                model: v.model,
+                plate: v.plate,
+                plateState: v.plateState,
+              }
+            : null
+        }
+        roId={ro.id}
+        roNumber={ro.number}
+        canEdit
+        initialData={null}
+        appointmentEmployees={options.serviceWriters.map((w) => ({ id: w.id, name: w.name }))}
+        defaultAppointmentDurationMins={60}
+        source="estimate"
       />
       {v ? (
         <EditVehicleDialog

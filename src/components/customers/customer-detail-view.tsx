@@ -30,8 +30,11 @@ import { RO_STATUS_PILL } from "@/lib/ro-status";
 import { defaultRoOpenHref } from "@/lib/ro-workspace";
 import type { CustomerDetail, CustomerDetailVehicle, CustomerPaymentSummary } from "@/server/customer-detail";
 import type { ROStatus } from "@/generated/prisma";
+import {
+  CustomerContextDrawer,
+  type ContextDrawerTab,
+} from "@/components/customers/customer-context-drawer";
 import { EditVehicleDialog } from "@/components/repair-order/edit-vehicle-dialog";
-import { EditCustomerDialog } from "@/components/repair-order/edit-customer-dialog";
 import { AddVehicleDialog } from "@/components/vehicles/add-vehicle-dialog";
 import { SharePlansLinkButton } from "@/components/maintenance/share-plans-link-button";
 import {
@@ -50,7 +53,7 @@ export function CustomerDetailView({
   plansUrl,
   shopName,
   defaultTechnicianName = "",
-  availableTags = [],
+  availableTags: _availableTags = [],
   canExportCustomer = false,
   canDeleteCustomer = false,
 }: {
@@ -60,13 +63,15 @@ export function CustomerDetailView({
   plansUrl?: string | null;
   shopName?: string;
   defaultTechnicianName?: string;
+  /** @deprecated Tags load inside the customer context drawer Profile tab. */
   availableTags?: string[];
   canExportCustomer?: boolean;
   canDeleteCustomer?: boolean;
 }) {
   const [tab, setTab] = useState<Tab>("overview");
   const [editVehicle, setEditVehicle] = useState<CustomerDetailVehicle | null>(null);
-  const [editCustomerOpen, setEditCustomerOpen] = useState(false);
+  const [customerDrawerOpen, setCustomerDrawerOpen] = useState(false);
+  const [customerDrawerTab, setCustomerDrawerTab] = useState<ContextDrawerTab>("profile");
   const [emailOpen, setEmailOpen] = useState(false);
   const router = useRouter();
   const { openIntake, config } = useRoIntakeOptional();
@@ -121,7 +126,10 @@ export function CustomerDetailView({
             variant="outline"
             className="gap-1.5"
             disabled={isRemoved}
-            onClick={() => setEditCustomerOpen(true)}
+            onClick={() => {
+              setCustomerDrawerTab("profile");
+              setCustomerDrawerOpen(true);
+            }}
           >
             <Pencil className="size-3.5" />
             Edit
@@ -464,11 +472,32 @@ export function CustomerDetailView({
         </div>
       </div>
 
-      <EditCustomerDialog
-        customer={customer}
-        open={editCustomerOpen}
-        onOpenChange={setEditCustomerOpen}
-        availableTags={availableTags}
+      <CustomerContextDrawer
+        open={customerDrawerOpen}
+        onOpenChange={setCustomerDrawerOpen}
+        tab={customerDrawerTab}
+        onTabChange={setCustomerDrawerTab}
+        customer={{
+          id: customer.id,
+          firstName: customer.firstName,
+          lastName: customer.lastName,
+          company: customer.company,
+          phone: customer.phone,
+          email: customer.email,
+          address: customer.address,
+          city: customer.city,
+          state: customer.state,
+          zip: customer.zip,
+          marketingOptIn: customer.marketingOptIn,
+          notes: customer.notes,
+          tags: customer.tags ?? [],
+        }}
+        customerId={customer.id}
+        canEdit={!isRemoved}
+        initialData={null}
+        appointmentEmployees={[]}
+        defaultAppointmentDurationMins={60}
+        source="customers"
       />
 
       {editVehicle ? (

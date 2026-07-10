@@ -18,7 +18,6 @@ import { parseApprovalSignature } from "@/lib/approval-signature";
 import { isEstimateEditable } from "@/lib/estimate-editable";
 import { EstimateActionToastProvider } from "@/components/repair-order/estimate-action-toast";
 import { EstimateLabDisplayProvider } from "@/components/estimate-building/estimate-lab-display-context";
-import { EstimateLabLiveTotalsBar } from "@/components/estimate-building/estimate-lab-live-totals-bar";
 import { EstimateLabToolbar } from "@/components/estimate-building/estimate-lab-toolbar";
 import { EstimateJobLauncher } from "@/components/estimate-building/estimate-job-launcher";
 import { EstimateLabJobsList } from "@/components/estimate-building/estimate-lab-jobs-list";
@@ -112,6 +111,7 @@ function buildQuickReference(ro: RepairOrderDetail): EstimateLabQuickReferenceDa
     partsNeeded,
     partsQuoted,
     partsOrdered,
+    technicianId: ro.technicianId,
     technicianName: ro.technicianName,
     unassignedJobs,
     vin: ro.vehicle?.vin ?? null,
@@ -295,6 +295,7 @@ export async function EstimateBuildingLabPanel({
     estimateTotalCents: ro.totalCents,
     quickReference: buildQuickReference(ro),
     vehicleSpecs: vehicleSpecsBundle,
+    technicians: sidebarOptions.technicians,
     // Design-mode-only payment status override — production always shows real invoice data.
     allowPaymentPreview: variant === "lab",
   };
@@ -437,17 +438,11 @@ export async function EstimateBuildingLabPanel({
                       feeTemplates={allFeeTemplates.map(({ autoApply: _, ...t }) => t)}
                       discountTemplates={discountTemplates}
                       approvedVia={ro.approvedVia}
+                      approvedAt={ro.authorizedAt}
                       approvalSignature={approvalSignature}
                       cannedJobCategories={cannedJobCategories}
                       embedded
                       jobsLayout={jobsLayout}
-                      cannedJobs={cannedJobs}
-                      vehicleId={ro.vehicleId}
-                      customerName={customerName}
-                      vehicleLabel={vehicleLabel}
-                      specLine={specLine}
-                      mileageIn={ro.mileageIn}
-                      odometerNotWorking={ro.odometerNotWorking}
                     />
                     <div className={cn(ESTIMATE_JOBS_CONTENT, "pb-4")}>
                       <EstimateRoAdjustments
@@ -491,20 +486,6 @@ export async function EstimateBuildingLabPanel({
                   </div>
                 )}
               </div>
-              {hasJobs ? (
-                <div className="shrink-0">
-                  <EstimateLabLiveTotalsBar
-                    roId={ro.id}
-                    roNumber={ro.number}
-                    customerName={customerName}
-                    phone={ro.customer.phone}
-                    approvable={approvable}
-                    gpGoalCents={gpGoalCents}
-                    estimateTotalCents={ro.totalCents}
-                    deposit={deposit}
-                  />
-                </div>
-              ) : null}
             </div>
           ),
           inspections: (

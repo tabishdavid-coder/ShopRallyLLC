@@ -9,10 +9,11 @@ import { gates } from "@/server/permission-gates";
 
 export type CustomerSettingsResult = { ok: true } | { ok: false; error: string };
 
-/** Tag options for the Add-Customer picker + list filter. */
+/** Tag options for the Add-Customer picker + list filter + drawer Profile. */
 export async function getCustomerTagNames(): Promise<string[]> {
   const shopId = await getShopId();
-  const denied = await gates.employeesManage(shopId);
+  // Read path: anyone who can view customers can pick from the shop tag list.
+  const denied = await gates.customersView(shopId);
   if (denied) return [];
 
   const rows = await prisma.customerTag.findMany({

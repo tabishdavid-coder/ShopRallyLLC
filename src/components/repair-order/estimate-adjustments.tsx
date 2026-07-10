@@ -7,6 +7,7 @@ import { Plus, Pencil, Trash2, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { formatCents } from "@/lib/format";
+import { cn } from "@/lib/utils";
 import {
   addFee,
   updateFee,
@@ -88,7 +89,7 @@ export function EstimateAdjustments({
 }) {
   if (layout === "estimate-ro") {
     return (
-      <div className="space-y-3 border-t border-slate-200/80 bg-white px-3 py-3">
+      <div className="space-y-3 border-t border-[#DDE5EF] bg-white px-3 py-3">
         <Section
           kind="fee"
           title="Fees"
@@ -164,6 +165,8 @@ function Section({
   const [draft, setDraft] = useState<Draft>(emptyDraft);
   const [error, setError] = useState<string | null>(null);
   const isFee = kind === "fee";
+  /** Palette C job-card chrome for the estimate RO fees block (visual only). */
+  const roCard = layout === "estimate-ro";
 
   const total = items.reduce((s, a) => s + calc(a, laborCents, partsCents), 0);
 
@@ -260,18 +263,41 @@ function Section({
   }
 
   return (
-    <div className={layout === "estimate-ro" ? "rounded-lg border border-slate-200 bg-white" : "rounded-lg border bg-card"}>
-      <div className="flex items-center justify-between border-b px-3 py-2">
-        <span className="text-sm font-semibold uppercase tracking-wide">{title}</span>
+    <div
+      className={
+        roCard
+          ? "overflow-hidden rounded-none border border-[#B9C8DC] bg-white shadow-sm"
+          : "rounded-lg border bg-card"
+      }
+    >
+      <div
+        className={cn(
+          "flex items-center justify-between border-b px-3 py-2",
+          roCard && "border-[#CBD8E7] bg-[#E7F1FD]",
+        )}
+      >
+        <span
+          className={cn(
+            "text-sm font-semibold uppercase tracking-wide",
+            roCard && "font-bold text-[#0B1F3B]",
+          )}
+        >
+          {title}
+        </span>
         <div className="flex items-center gap-3">
-          {layout === "estimate-ro" && isFee && jobCount != null && jobCount > 0 ? (
-            <span className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+          {roCard && isFee && jobCount != null && jobCount > 0 ? (
+            <span className="text-[11px] font-semibold uppercase tracking-wide text-[#5B7295]">
               Applied to: {jobCount} / {jobCount}
             </span>
           ) : null}
-          <span className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">
-            {isFee && layout === "estimate-ro" ? "RO fees total " : isFee ? "Total " : ""}
-            <span className="text-sm tabular-nums text-foreground">
+          <span
+            className={cn(
+              "text-xs font-semibold uppercase tracking-wide",
+              roCard ? "text-[#5B7295]" : "text-muted-foreground",
+            )}
+          >
+            {isFee && roCard ? "RO fees total " : isFee ? "Total " : ""}
+            <span className={cn("text-sm tabular-nums", roCard ? "font-bold text-[#0B1F3B]" : "text-foreground")}>
               {isFee ? "" : total > 0 ? "-" : ""}
               {formatCents(total)}
             </span>
@@ -282,7 +308,13 @@ function Section({
       {items.length > 0 ? (
         <table className="w-full text-sm">
           <thead>
-            <tr className="border-b text-xs text-muted-foreground">
+            <tr
+              className={cn(
+                "border-b text-xs text-muted-foreground",
+                roCard &&
+                  "border-[#DDE5EF] bg-[#F3F8FE] text-[11px] font-semibold uppercase tracking-wide text-[#5B7295]",
+              )}
+            >
               {layout === "job-card" ? (
                 <>
                   <th className="px-3 py-1.5 text-left font-medium">Method</th>
@@ -312,7 +344,7 @@ function Section({
           </thead>
           <tbody>
             {items.map((a) => (
-              <tr key={a.id} className="border-b last:border-0">
+              <tr key={a.id} className={cn("border-b last:border-0", roCard && "border-[#DDE5EF]")}>
                 {layout === "job-card" ? (
                   <>
                     <td className="px-3 py-1.5">
@@ -331,15 +363,15 @@ function Section({
                   </>
                 ) : layout === "estimate-ro" ? (
                   <>
-                    <td className="px-3 py-1.5 font-medium">{a.name}</td>
-                    <td className="px-3 py-1.5 text-muted-foreground">
+                    <td className="px-3 py-1.5 font-medium text-[#0B1F3B]">{a.name}</td>
+                    <td className="px-3 py-1.5 text-[#5B7295]">
                       {a.method === "PERCENT" ? "Percentage" : "Fixed"}
                     </td>
-                    <td className="px-3 py-1.5 text-muted-foreground">{BASE_LABEL[a.base]}</td>
-                    <td className="px-3 py-1.5 text-right tabular-nums text-muted-foreground">
+                    <td className="px-3 py-1.5 text-[#5B7295]">{BASE_LABEL[a.base]}</td>
+                    <td className="px-3 py-1.5 text-right tabular-nums text-[#5B7295]">
                       {a.method === "PERCENT" ? `${a.amount / 100}%` : formatCents(a.amount)}
                     </td>
-                    <td className="px-3 py-1.5 text-right tabular-nums font-medium">
+                    <td className="px-3 py-1.5 text-right tabular-nums font-medium text-[#0B1F3B]">
                       {formatCents(calc(a, laborCents, partsCents))}
                     </td>
                     <td className="px-2 py-1.5">
@@ -391,13 +423,15 @@ function Section({
           </tbody>
         </table>
       ) : (
-        <p className="px-3 py-3 text-sm text-muted-foreground">No {isFee ? "fees" : "discounts"} added</p>
+        <p className={cn("px-3 py-3 text-sm", roCard ? "text-[#5B7295]" : "text-muted-foreground")}>
+          No {isFee ? "fees" : "discounts"} added
+        </p>
       )}
 
       {error ? <p className="px-3 pt-2 text-sm text-destructive">{error}</p> : null}
 
       {adding || editingId ? (
-        <div className="space-y-2 border-t bg-muted/30 p-3">
+        <div className={cn("space-y-2 border-t p-3", roCard ? "border-[#CBD8E7] bg-[#F3F8FE]" : "bg-muted/30")}>
           <div className="flex flex-wrap items-center gap-2">
             <Input
               value={draft.name}
@@ -452,7 +486,7 @@ function Section({
           </div>
         </div>
       ) : (
-        <div className="border-t p-2 space-y-2">
+        <div className={cn("border-t p-2 space-y-2", roCard && "border-[#CBD8E7] bg-[#F3F8FE]")}>
           {isFee && availableFeeTemplates.length > 0 ? (
             <div className="flex flex-wrap gap-1.5 px-1">
               {availableFeeTemplates.map((t) => (
@@ -478,7 +512,17 @@ function Section({
               ))}
             </div>
           ) : null}
-          <Button variant="ghost" size="sm" onClick={beginAdd} className="gap-1.5 text-primary uppercase tracking-wide">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={beginAdd}
+            className={cn(
+              "gap-1.5 uppercase tracking-wide",
+              roCard
+                ? "font-semibold text-[#E86A10] hover:bg-[#E86A10]/10 hover:text-[#E86A10]"
+                : "text-primary",
+            )}
+          >
             <Plus className="size-4" /> Add {isFee ? "Fee" : "Discount"}
           </Button>
         </div>

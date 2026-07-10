@@ -4,17 +4,20 @@ import { useEffect, useState } from "react";
 import { CalendarClock, Car, ClipboardList, Wrench } from "lucide-react";
 
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
+import { fmtDateTime, toDate } from "@/lib/datetime";
 import { cn } from "@/lib/utils";
 
+/** Dates may be `Date` on the server or ISO strings after RSC → client serialization. */
 export type EstimateLabQuickReferenceData = {
-  createdAt: Date;
-  promiseTime: Date | null;
-  approvalSentAt: Date | null;
-  estimateViewedAt: Date | null;
-  authorizedAt: Date | null;
+  createdAt: Date | string;
+  promiseTime: Date | string | null;
+  approvalSentAt: Date | string | null;
+  estimateViewedAt: Date | string | null;
+  authorizedAt: Date | string | null;
   partsNeeded: number;
   partsQuoted: number;
   partsOrdered: number;
+  technicianId: string | null;
   technicianName: string | null;
   unassignedJobs: number;
   vin: string | null;
@@ -22,17 +25,19 @@ export type EstimateLabQuickReferenceData = {
   plateState: string | null;
 };
 
-function fmtDate(d: Date) {
-  return d.toLocaleString("en-US", {
-    month: "short",
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-  });
+const QR_DT_OPTS: Intl.DateTimeFormatOptions = {
+  month: "short",
+  day: "numeric",
+  hour: "numeric",
+  minute: "2-digit",
+};
+
+function fmtDate(d: Date | string) {
+  return fmtDateTime(d, QR_DT_OPTS);
 }
 
-function fmtRelativeDays(from: Date) {
-  const days = Math.floor((Date.now() - from.getTime()) / 86_400_000);
+function fmtRelativeDays(from: Date | string) {
+  const days = Math.floor((Date.now() - toDate(from).getTime()) / 86_400_000);
   if (days === 0) return "Today";
   if (days === 1) return "1 day ago";
   return `${days} days ago`;

@@ -5,7 +5,7 @@ import { Car, Check, ChevronDown, Copy, Pencil, UserRound, Wrench } from "lucide
 
 import { VinDisplay } from "@/components/vin-display";
 import type { EditableCustomerRecord } from "@/components/customers/customer-form-shared";
-import { EditCustomerDialog } from "@/components/repair-order/edit-customer-dialog";
+import { useEstimateLabContextDrawerOptional } from "@/components/estimate-building/estimate-lab-context-drawer-provider";
 import {
   EditVehicleDialog,
   type EditableVehicle,
@@ -226,13 +226,15 @@ export function EstimateLabCustomerRoSection({
   vehicle: EditableVehicle | null;
   canEdit: boolean;
 }) {
-  const [customerOpen, setCustomerOpen] = useState(false);
   const [vehicleOpen, setVehicleOpen] = useState(false);
+  const drawerCtx = useEstimateLabContextDrawerOptional();
 
   const plateLabel =
     plate && plateState ? `${plate} - ${plateState}` : plate ?? plateState ?? null;
 
-  const openCustomer = canEdit ? () => setCustomerOpen(true) : undefined;
+  const openCustomer = canEdit
+    ? () => drawerCtx?.openDrawer("profile")
+    : undefined;
   const openVehicle = canEdit && vehicle ? () => setVehicleOpen(true) : undefined;
 
   const customerType = customer.company?.trim() ? "Business" : "Person";
@@ -301,11 +303,6 @@ export function EstimateLabCustomerRoSection({
         </ContextSection>
       </div>
 
-      <EditCustomerDialog
-        customer={customer}
-        open={customerOpen}
-        onOpenChange={setCustomerOpen}
-      />
       {vehicle ? (
         <EditVehicleDialog
           vehicle={vehicle}

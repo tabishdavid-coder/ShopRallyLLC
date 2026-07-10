@@ -2,7 +2,7 @@
 
 import { ChevronsUpDown, Check, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
+import { useState, useTransition, type ReactNode } from "react";
 import { useClerk } from "@clerk/nextjs";
 
 import { Button } from "@/components/ui/button";
@@ -24,10 +24,12 @@ export function ShopSwitcherCompact({
   shops,
   activeShopId,
   triggerClassName,
+  leadingIcon,
 }: {
   shops: Shop[];
   activeShopId: string;
   triggerClassName?: string;
+  leadingIcon?: ReactNode;
 }) {
   if (isClerkConfigured()) {
     return (
@@ -35,6 +37,7 @@ export function ShopSwitcherCompact({
         shops={shops}
         activeShopId={activeShopId}
         triggerClassName={triggerClassName}
+        leadingIcon={leadingIcon}
       />
     );
   }
@@ -44,6 +47,7 @@ export function ShopSwitcherCompact({
       shops={shops}
       activeShopId={activeShopId}
       triggerClassName={triggerClassName}
+      leadingIcon={leadingIcon}
     />
   );
 }
@@ -52,10 +56,12 @@ function ShopSwitcherCompactWithClerk({
   shops,
   activeShopId,
   triggerClassName,
+  leadingIcon,
 }: {
   shops: Shop[];
   activeShopId: string;
   triggerClassName?: string;
+  leadingIcon?: ReactNode;
 }) {
   const clerk = useClerk();
   return (
@@ -63,6 +69,7 @@ function ShopSwitcherCompactWithClerk({
       shops={shops}
       activeShopId={activeShopId}
       triggerClassName={triggerClassName}
+      leadingIcon={leadingIcon}
       clerk={clerk}
     />
   );
@@ -72,11 +79,13 @@ function ShopSwitcherCompactInner({
   shops,
   activeShopId,
   triggerClassName,
+  leadingIcon,
   clerk,
 }: {
   shops: Shop[];
   activeShopId: string;
   triggerClassName?: string;
+  leadingIcon?: ReactNode;
   clerk?: ReturnType<typeof useClerk>;
 }) {
   const router = useRouter();
@@ -109,7 +118,7 @@ function ShopSwitcherCompactInner({
           size="sm"
           className={cn("hidden h-9 max-w-[220px] gap-1 truncate sm:flex", triggerClassName)}
         >
-          {pending ? <Loader2 className="size-3.5 shrink-0 animate-spin" /> : null}
+          {pending ? <Loader2 className="size-3.5 shrink-0 animate-spin" /> : leadingIcon}
           <span className="truncate">{active.name}</span>
           <ChevronsUpDown className="ml-auto size-3.5 shrink-0 opacity-50" />
         </Button>

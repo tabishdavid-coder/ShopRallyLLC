@@ -37,7 +37,10 @@ import { AuthorizeEstimateDialog } from "@/components/repair-order/authorize-est
 import type { ROStatus } from "@/generated/prisma";
 
 const RAIL_PERFORMANCE_TRIGGER_CLASS =
-  "group h-auto min-h-10 gap-2 rounded-md border border-brand-navy/35 bg-white px-2.5 py-1.5 text-brand-navy shadow-sm transition-colors hover:border-brand-navy/45 hover:bg-brand-navy/5 active:bg-slate-50 focus-visible:ring-2 focus-visible:ring-brand-light/55 focus-visible:ring-offset-1 disabled:opacity-50 [&_svg]:text-brand-navy";
+  "group h-auto min-h-10 gap-2 rounded-none border border-brand-navy/35 bg-white px-2.5 py-1.5 text-brand-navy shadow-sm transition-colors hover:border-brand-navy/45 hover:bg-brand-navy/5 active:bg-slate-50 focus-visible:ring-2 focus-visible:ring-brand-light/55 focus-visible:ring-offset-1 disabled:opacity-50 [&_svg]:text-brand-navy";
+
+const RAIL_CHIP_TRIGGER_CLASS =
+  "group h-auto min-h-0 gap-1 rounded-none border border-[var(--jb-line,#dde5ef)] bg-[var(--jb-surface,#f0f3f8)] px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-[0.04em] text-[var(--jb-ink,#0b1f3b)] shadow-none hover:border-[var(--jb-hover-line,#b9c8dc)] hover:bg-white focus-visible:ring-2 focus-visible:ring-[var(--jb-azure,#1e7fe0)]/40 focus-visible:ring-offset-1 disabled:opacity-50";
 
 function currentColumn(status: ROStatus): BoardColumn {
   return COLUMN_OF[status];
@@ -60,7 +63,8 @@ export function RoWorkflowDropdown({
   phone: string | null;
   canArchive?: boolean;
   className?: string;
-  triggerVariant?: "default" | "rail";
+  /** `railChip` = compact STATUS card header chip (Palette C). */
+  triggerVariant?: "default" | "rail" | "railChip";
 }) {
   const router = useRouter();
   const { toast } = useEstimateActionToast();
@@ -90,6 +94,7 @@ export function RoWorkflowDropdown({
     roStatus === "COMPLETED" || roStatus === "INVOICED";
 
   const isRailTrigger = triggerVariant === "rail";
+  const isRailChip = triggerVariant === "railChip";
 
   return (
     <>
@@ -101,29 +106,36 @@ export function RoWorkflowDropdown({
           size="sm"
           disabled={pending}
           className={cn(
-            isRailTrigger
-              ? RAIL_PERFORMANCE_TRIGGER_CLASS
-              : "h-8 gap-1 border-brand-navy/25 px-2 text-[11px] font-semibold text-brand-navy",
+            isRailChip
+              ? RAIL_CHIP_TRIGGER_CLASS
+              : isRailTrigger
+                ? RAIL_PERFORMANCE_TRIGGER_CLASS
+                : "h-8 gap-1 border-brand-navy/25 px-2 text-[11px] font-semibold text-brand-navy",
             className,
           )}
           aria-label={`Workflow — ${phase}`}
         >
-          {isRailTrigger ? (
+          {isRailChip ? (
+            <>
+              <span className="max-w-[9rem] truncate">{phase}</span>
+              <ChevronDown className="size-3 shrink-0 opacity-60" aria-hidden />
+            </>
+          ) : isRailTrigger ? (
             <>
               <span className="flex min-w-0 items-center gap-2 text-left">
-                <span className="flex size-7 shrink-0 items-center justify-center rounded-md border border-brand-navy/20 bg-slate-50 text-brand-navy shadow-sm transition-colors group-hover:border-brand-navy/30 group-hover:bg-white">
+                <span className="flex size-7 shrink-0 items-center justify-center rounded-none border border-brand-navy/20 bg-slate-50 text-brand-navy shadow-sm transition-colors group-hover:border-brand-navy/30 group-hover:bg-white">
                   <GitBranch className="size-3.5" aria-hidden />
                 </span>
                 <span className="flex min-w-0 items-center gap-1.5">
                   <span className="text-[10px] font-semibold uppercase leading-none tracking-[0.12em] text-brand-navy/75">
                     Workflow
                   </span>
-                  <span className="max-w-full truncate rounded-full border border-brand-navy/15 bg-slate-50 px-2 py-0.5 text-[11px] font-semibold leading-none text-brand-navy shadow-[inset_0_1px_0_rgb(255_255_255_/_0.75)]">
+                  <span className="max-w-full truncate rounded-none border border-brand-navy/15 bg-slate-50 px-2 py-0.5 text-[11px] font-semibold leading-none text-brand-navy shadow-[inset_0_1px_0_rgb(255_255_255_/_0.75)]">
                     {phase}
                   </span>
                 </span>
               </span>
-              <span className="ml-auto flex size-6 shrink-0 items-center justify-center rounded-md border border-brand-navy/15 bg-slate-50 text-brand-navy transition-colors group-hover:border-brand-navy/25 group-hover:bg-white">
+              <span className="ml-auto flex size-6 shrink-0 items-center justify-center rounded-none border border-brand-navy/15 bg-slate-50 text-brand-navy transition-colors group-hover:border-brand-navy/25 group-hover:bg-white">
                 <ChevronDown className="size-3.5 opacity-70" aria-hidden />
               </span>
             </>

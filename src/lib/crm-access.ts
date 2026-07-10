@@ -14,6 +14,7 @@ export function hasAnyPermission(
 /** Minimum permission keys to show a dashboard sidebar / header item. Empty = always. */
 export const CRM_NAV_HREF_PERMISSIONS: Record<string, readonly string[]> = {
   "/dashboard": [],
+  "/dashboard/snapshot": [],
   "/job-board": ["job_board.view", "job_board.view_all"],
   "/workflow": ["job_board.view", "job_board.view_all"],
   "/tech-board": ["job_board.view", "job_board.view_all"],
@@ -34,6 +35,7 @@ export const CRM_NAV_HREF_PERMISSIONS: Record<string, readonly string[]> = {
   "/employees": ["employees.manage"],
   "/settings": ["employees.manage"],
   "/settings/subscription": ["finance.account", "employees.manage"],
+  "/marketing": [],
   "/marketing/payment-account": ["finance.account", "employees.manage"],
   "/billing": ["finance.account", "employees.manage"],
   "/support": [],

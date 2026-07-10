@@ -164,6 +164,119 @@ export const AP_OPERATIONS_NAV_ITEMS: ApNavLink[] = [
   },
 ];
 
+/**
+ * Persistent Menu sidebar groups (screenshot IA).
+ * Labels match the redesign; hrefs keep existing routes.
+ */
+export const AP_SIDEBAR_NAV_GROUPS: ApNavGroup[] = [
+  {
+    id: "workspace",
+    label: "Workspace",
+    items: [
+      {
+        title: "Dashboard",
+        href: "/dashboard/snapshot",
+        icon: LayoutDashboard,
+        description: "Daily shop snapshot & KPI overview",
+      },
+      {
+        title: "Customers",
+        href: "/customers",
+        icon: Users,
+        description: "Search, tags & contact info",
+      },
+      {
+        title: AP_TERMS.jobBoard,
+        href: "/job-board",
+        icon: Columns3,
+        description: "Estimates, work in progress & completed ROs",
+      },
+      {
+        title: "Schedule",
+        href: "/appointments",
+        icon: CalendarDays,
+        description: "Calendar & booking",
+      },
+      {
+        title: AP_TERMS.techBoard,
+        href: "/tech-board",
+        icon: Gauge,
+        description: "Assign work by technician",
+      },
+    ],
+  },
+  {
+    id: "shop",
+    label: "Shop",
+    items: [
+      {
+        title: "Tires",
+        href: "/tires",
+        icon: Disc3,
+        description: "Quotes, orders & tire inventory",
+      },
+      {
+        title: AP_TERMS.quickLabor,
+        href: "/quick-labor",
+        icon: Timer,
+        description: "Labor times by VIN or plate",
+      },
+      {
+        title: "Catalog",
+        href: "/inventory",
+        icon: Package,
+        description: "Inventory, templates & labor library",
+      },
+      {
+        title: "Messages",
+        href: "/messages",
+        icon: MessageSquare,
+        description: "Customer SMS threads",
+      },
+    ],
+  },
+  {
+    id: "business",
+    label: "Business",
+    items: [
+      {
+        title: "Growth",
+        href: "/marketing",
+        icon: TrendingUp,
+        description: "Acquire, retain & get found locally",
+      },
+      {
+        title: "Reports",
+        href: "/reports",
+        icon: BarChart3,
+        description: "Shop performance reports",
+      },
+      {
+        title: "Payments",
+        href: "/payments",
+        icon: CreditCard,
+        description: "Transactions & Stripe Connect",
+      },
+    ],
+  },
+  {
+    id: "system",
+    label: "System",
+    items: [
+      {
+        title: "Admin",
+        href: "/settings",
+        icon: Settings,
+        description: AP_TERMS.shopSettings,
+      },
+    ],
+  },
+];
+
+export const AP_SIDEBAR_NAV_ITEMS_FLAT: ApNavLink[] = AP_SIDEBAR_NAV_GROUPS.flatMap(
+  (g) => g.items,
+);
+
 /** Payments module subnav */
 export const AP_PAYMENTS_NAV_ITEMS: ApNavLink[] = [
   { title: "Activity", href: "/payments", icon: CreditCard },
@@ -404,6 +517,19 @@ const OPERATIONS_PATH_PREFIXES = [
 
 const EXACT_MATCH_HREFS = new Set(["/dashboard", "/workflow", "/marketing"]);
 
+/** Flat list used for sidebar active matching (includes Catalog → inventory + catalog prefixes). */
+export function apSidebarNavItemIsActive(pathname: string, item: ApNavLink): boolean {
+  if (item.href === "/settings") {
+    return (
+      pathname.startsWith("/settings") ||
+      pathname === "/employees" ||
+      pathname.startsWith("/employees/") ||
+      pathname.startsWith("/support")
+    );
+  }
+  return apNavItemIsActive(pathname, item, AP_SIDEBAR_NAV_ITEMS_FLAT);
+}
+
 export function apSectionForPath(pathname: string): ApNavSection {
   if (pathname.startsWith("/settings") || pathname === "/employees" || pathname.startsWith("/support")) {
     return AP_NAV_SECTIONS.find((s) => s.id === "admin")!;
@@ -465,6 +591,12 @@ export function apNavItemIsActive(
     if (href === "/dashboard") {
       return resolved === "/dashboard" || resolved.startsWith("/dashboard/");
     }
+    // Sidebar "Catalog" lands on inventory but covers the full catalog module.
+    if (href === "/inventory") {
+      return CATALOG_PATH_PREFIXES.some(
+        (p) => resolved === p || resolved.startsWith(`${p}/`),
+      );
+    }
     if (EXACT_MATCH_HREFS.has(href)) return resolved === href;
     if (href === "/settings") return resolved === "/settings";
     if (href === "/payments") return resolved === "/payments";
@@ -503,7 +635,9 @@ export function apShowOperationsPanel(pathname: string): boolean {
 export function apModuleSubnavKind(
   pathname: string,
 ): "none" | "dashboard" | "growth" | "settings" | "markups" | "payments" | "seo" | "catalog" | "customers" | "admin" {
-  if (pathname === "/dashboard" || pathname.startsWith("/dashboard/")) return "dashboard";
+  // Snapshot is the primary Dashboard — no Snapshot/Overview chip strip (matches redesign).
+  if (pathname === "/dashboard" || pathname.startsWith("/dashboard/snapshot")) return "none";
+  if (pathname.startsWith("/dashboard/")) return "dashboard";
   if (pathname.startsWith("/settings")) return "settings";
   if (pathname.startsWith("/marketing/seo-automation")) return "seo";
   if (pathname.startsWith("/marketing")) return "growth";

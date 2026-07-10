@@ -36,6 +36,11 @@ export function useEstimateLabParts() {
   return ctx;
 }
 
+/** Safe for surfaces that may render outside the parts provider (e.g. empty estimate). */
+export function useEstimateLabPartsOptional() {
+  return useContext(EstimateLabPartsContext);
+}
+
 export function EstimateLabPartsProvider({
   children,
   roId,

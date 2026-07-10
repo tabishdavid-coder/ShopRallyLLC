@@ -32,6 +32,7 @@ export function EstimateJobsList({
   feeTemplates = [],
   discountTemplates = [],
   approvedVia,
+  approvedAt = null,
   approvalSignature = null,
   cannedJobCategories = [],
   embedded = false,
@@ -53,6 +54,8 @@ export function EstimateJobsList({
   feeTemplates?: AdjustTemplate[];
   discountTemplates?: AdjustTemplate[];
   approvedVia?: string | null;
+  /** RO-level approval timestamp (`authorizedAt`) — shows green Approved badge in the JOBS row. */
+  approvedAt?: Date | string | null;
   approvalSignature?: ApprovalSignatureInfo | null;
   cannedJobCategories?: string[];
   embedded?: boolean;
@@ -79,7 +82,7 @@ export function EstimateJobsList({
       className={cn(
         embedded
           ? "space-y-3 px-3 pb-3 pt-2.5 sm:px-4"
-          : "space-y-2 rounded-lg bg-slate-100/90 p-3 ring-1 ring-slate-200/80",
+          : "space-y-2 rounded-none bg-white p-3 ring-1 ring-[#CBD8E7]",
       )}
     >
       <EstimateJobsHeader
@@ -89,6 +92,7 @@ export function EstimateJobsList({
         jobsReorderable={variant === "lab" && canEdit}
         settingsHref="/settings/ro-settings?section=estimate-workspace"
         jobsLayout={jobsLayout}
+        approvedAt={approvedVia ? approvedAt : null}
       />
       {variant === "lab" && canEdit ? (
         <EstimateLabJobsDndList

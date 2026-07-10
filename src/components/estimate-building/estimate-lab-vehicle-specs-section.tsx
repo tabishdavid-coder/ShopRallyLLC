@@ -15,6 +15,7 @@ export function EstimateLabVehicleSpecsSection({
     <RoVehicleSpecsPanel
       specs={data.specs}
       embedded
+      variant="rail"
     />
   );
 }

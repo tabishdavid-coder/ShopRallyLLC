@@ -156,6 +156,7 @@ export async function EstimateBuilderPanel({ roId }: { roId: string }) {
                 fees={ro.fees}
                 discounts={ro.discounts}
                 approvedVia={ro.approvedVia}
+                approvedAt={ro.authorizedAt}
                 approvalSignature={approvalSignature}
                 cannedJobCategories={cannedJobCategories}
                 embedded

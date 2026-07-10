@@ -1,92 +1,153 @@
 "use client";
 
 import Link from "next/link";
-import { Suspense, useCallback, useMemo, useRef, useState } from "react";
+import { useCallback, useMemo, useRef, useState } from "react";
 import type { LucideIcon } from "lucide-react";
 import {
   Calendar,
+  CalendarPlus,
+  ChevronDown,
+  ChevronRight,
+  CircleDollarSign,
   ClipboardList,
-  DollarSign,
+  Clock,
+  FileText,
   MessageSquare,
+  Plus,
   Receipt,
+  Settings2,
+  UserPlus,
   Wrench,
 } from "lucide-react";
+import { Cell, Pie, PieChart, ResponsiveContainer, Line, LineChart } from "recharts";
 
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { SnapshotDayToggle } from "@/components/dashboard/snapshot-day-toggle";
 import {
-  SNAPSHOT_EVENT_LABELS,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { useRoIntakeOptional } from "@/components/repair-order/ro-intake-context";
+import {
   SNAPSHOT_FILTER_HREFS,
   SNAPSHOT_FILTER_KINDS,
   SNAPSHOT_FILTER_LABELS,
   snapshotTimelineTitle,
   type DailySnapshotData,
-  type DailySnapshotEventKind,
   type SnapshotSummaryFilter,
 } from "@/lib/daily-snapshot";
+import type { DashboardHomeWidgets } from "@/lib/dashboard-home";
 import { formatCents } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
-const KIND_STYLE: Record<
-  DailySnapshotEventKind,
-  { badge: string; icon: LucideIcon }
+const KPI_META: Record<
+  SnapshotSummaryFilter,
+  { icon: LucideIcon; tint: string; spark: string }
 > = {
-  ro_opened: { badge: "bg-brand-light/40 text-brand-navy", icon: Receipt },
-  ro_completed: { badge: "bg-emerald-100 text-emerald-700", icon: Wrench },
-  activity: { badge: "bg-brand-navy/10 text-brand-navy", icon: ClipboardList },
-  payment: { badge: "bg-emerald-100 text-emerald-700", icon: DollarSign },
-  appointment: { badge: "bg-amber-100 text-amber-700", icon: Calendar },
-  message_in: { badge: "bg-sky-100 text-sky-700", icon: MessageSquare },
-  message_out: { badge: "bg-violet-100 text-violet-700", icon: MessageSquare },
+  collected: {
+    icon: CircleDollarSign,
+    tint: "bg-blue-50 text-blue-600",
+    spark: "#3B82F6",
+  },
+  ros_opened: {
+    icon: FileText,
+    tint: "bg-emerald-50 text-emerald-600",
+    spark: "#22C55E",
+  },
+  ros_completed: {
+    icon: Wrench,
+    tint: "bg-violet-50 text-violet-600",
+    spark: "#8B5CF6",
+  },
+  appointments: {
+    icon: Calendar,
+    tint: "bg-orange-50 text-orange-600",
+    spark: "#F4581C",
+  },
+  messages: {
+    icon: MessageSquare,
+    tint: "bg-sky-50 text-sky-500",
+    spark: "#38BDF8",
+  },
+  activity: {
+    icon: ClipboardList,
+    tint: "bg-amber-50 text-amber-600",
+    spark: "#EAB308",
+  },
 };
 
-function SummaryTile({
+function sparkPoints(seed: number, value: number): { v: number }[] {
+  const base = Math.max(value, 1);
+  return Array.from({ length: 8 }, (_, i) => ({
+    v: Math.max(0.2, base * (0.45 + ((seed + i * 17) % 7) / 12 + (i / 14))),
+  }));
+}
+
+function KpiCard({
   label,
   value,
   hint,
-  icon: Icon,
+  filter,
   active,
   onClick,
   moduleHref,
+  numericValue,
 }: {
   label: string;
   value: string;
-  hint?: string;
-  icon: LucideIcon;
+  hint: string;
+  filter: SnapshotSummaryFilter;
   active?: boolean;
   onClick: () => void;
   moduleHref?: string;
+  numericValue: number;
 }) {
+  const meta = KPI_META[filter];
+  const Icon = meta.icon;
+  const spark = sparkPoints(filter.length, numericValue);
+
   const inner = (
     <>
-      <span
-        className={cn(
-          "flex size-8 shrink-0 items-center justify-center rounded-md",
-          active ? "bg-brand-navy text-white" : "bg-brand-light/35 text-brand-navy",
-        )}
-      >
-        <Icon className="size-4" />
-      </span>
-      <div className="min-w-0 flex-1 text-left">
-        <p className="truncate text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
-          {label}
-        </p>
-        <p className="truncate text-lg font-bold leading-tight text-brand-navy">{value}</p>
-        {hint ? (
-          <p className="truncate text-xs leading-snug text-muted-foreground">{hint}</p>
-        ) : null}
+      <div className="flex items-start justify-between gap-2">
+        <span
+          className={cn(
+            "flex size-8 shrink-0 items-center justify-center rounded-md",
+            meta.tint,
+          )}
+        >
+          <Icon className="size-4" aria-hidden />
+        </span>
+      </div>
+      <p className="mt-2 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">
+        {label}
+      </p>
+      <p className="mt-0.5 text-2xl font-bold tracking-tight text-foreground tabular-nums">
+        {value}
+      </p>
+      <p className="text-xs text-muted-foreground">{hint}</p>
+      <div className="mt-2 h-8 w-full">
+        <ResponsiveContainer width="100%" height="100%">
+          <LineChart data={spark}>
+            <Line
+              type="monotone"
+              dataKey="v"
+              stroke={meta.spark}
+              strokeWidth={1.75}
+              dot={false}
+              isAnimationActive={false}
+            />
+          </LineChart>
+        </ResponsiveContainer>
       </div>
     </>
   );
 
   const className = cn(
-    "flex w-full items-center gap-2.5 rounded-lg border px-3 py-2 shadow-sm transition-all",
-    "hover:border-brand-navy/35 hover:shadow-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-navy/40",
-    active
-      ? "border-brand-navy/50 bg-brand-navy/5 ring-2 ring-brand-navy/20"
-      : "border-border/70 bg-card",
+    "rounded-lg border bg-card p-3 text-left shadow-none transition-all [--card-spacing:0]",
+    "hover:border-brand-navy/30 hover:shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-navy/30",
+    active ? "border-brand-light ring-2 ring-brand-light/30" : "border-border/80",
   );
 
   if (moduleHref) {
@@ -100,7 +161,6 @@ function SummaryTile({
           onClick();
         }}
         aria-pressed={active}
-        title={`Filter timeline by ${label.toLowerCase()}. Ctrl+click to open ${label} module.`}
       >
         {inner}
       </Link>
@@ -114,70 +174,98 @@ function SummaryTile({
   );
 }
 
-function SnapshotEventRow({ event }: { event: DailySnapshotData["events"][number] }) {
-  const { badge, icon: Icon } = KIND_STYLE[event.kind];
+function TimelineEntry({ event }: { event: DailySnapshotData["events"][number] }) {
   const time = new Date(event.occurredAt).toLocaleTimeString("en-US", {
     hour: "numeric",
     minute: "2-digit",
   });
 
-  const body = (
-    <div className="flex min-w-0 flex-1 flex-col gap-1 sm:flex-row sm:items-start sm:justify-between sm:gap-3">
-      <div className="min-w-0 flex-1">
-        <div className="flex flex-wrap items-center gap-2">
-          <Badge
-            variant="secondary"
-            className={cn("h-5 border-0 px-1.5 text-[10px] font-semibold uppercase", badge)}
-          >
-            {SNAPSHOT_EVENT_LABELS[event.kind]}
-          </Badge>
-          <time className="text-[11px] text-muted-foreground">{time}</time>
-        </div>
-        <p className="mt-1 text-sm font-semibold text-brand-navy">{event.title}</p>
-        {event.detail ? (
-          <p className="mt-0.5 text-xs leading-snug text-muted-foreground">{event.detail}</p>
-        ) : null}
-      </div>
-      {event.amountCents != null ? (
-        <p className="shrink-0 text-sm font-semibold tabular-nums text-emerald-700">
-          {formatCents(event.amountCents)}
-        </p>
-      ) : null}
-    </div>
-  );
-
-  if (event.repairOrderId) {
-    return (
-      <li className="rounded-lg border border-border bg-card px-3 py-2.5 shadow-sm transition-colors hover:border-brand-navy/30">
-        <Link
-          href={`/repair-orders/${event.repairOrderId}/estimate`}
-          className="flex gap-3 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-brand-navy/40"
-        >
-          <span className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-md bg-muted/60 text-brand-navy">
-            <Icon className="size-4" aria-hidden />
-          </span>
-          {body}
-        </Link>
-      </li>
-    );
-  }
-
   return (
-    <li className="flex gap-3 rounded-lg border border-border bg-card px-3 py-2.5 shadow-sm">
-      <span className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-md bg-muted/60 text-brand-navy">
-        <Icon className="size-4" aria-hidden />
-      </span>
-      {body}
+    <li className="relative flex gap-3 pb-5 last:pb-0">
+      <div className="flex flex-col items-center">
+        <span className="mt-1.5 size-2.5 shrink-0 rounded-full bg-[#00A9FF] ring-4 ring-[#00A9FF]/15" />
+        <span className="mt-1 w-px flex-1 bg-border" />
+      </div>
+      <div className="min-w-0 flex-1 pt-0">
+        <div className="flex flex-wrap items-start justify-between gap-2">
+          <div className="min-w-0">
+            <p className="text-sm font-semibold text-foreground">{event.title}</p>
+            <p className="mt-0.5 text-xs text-muted-foreground">
+              {time}
+              {event.detail ? ` · ${event.detail}` : ""}
+            </p>
+          </div>
+          {event.repairOrderId && event.roNumber != null ? (
+            <Button
+              asChild
+              size="sm"
+              variant="outline"
+              className="h-7 shrink-0 gap-1 border-sky-200 bg-sky-50 px-2 text-xs font-semibold text-sky-700 hover:bg-sky-100"
+            >
+              <Link href={`/repair-orders/${event.repairOrderId}/estimate`}>
+                RO #{event.roNumber}
+                <ChevronRight className="size-3.5" />
+              </Link>
+            </Button>
+          ) : null}
+        </div>
+      </div>
     </li>
   );
 }
 
-export function DailySnapshotView({ data }: { data: DailySnapshotData }) {
+const QUICK_ACTIONS: {
+  title: string;
+  description: string;
+  href: string;
+  icon: LucideIcon;
+  tint: string;
+  intake?: boolean;
+}[] = [
+  {
+    title: "New Estimate",
+    description: "Start a quote for a customer",
+    href: "/repair-orders/new",
+    icon: FileText,
+    tint: "bg-orange-50 text-orange-600",
+    intake: true,
+  },
+  {
+    title: "New Appointment",
+    description: "Book a drop-off or visit",
+    href: "/appointments",
+    icon: CalendarPlus,
+    tint: "bg-blue-50 text-blue-600",
+  },
+  {
+    title: "New Customer",
+    description: "Add a person or business",
+    href: "/customers?add=1",
+    icon: UserPlus,
+    tint: "bg-emerald-50 text-emerald-600",
+  },
+  {
+    title: "Credit Memo",
+    description: "Issue store credit (coming soon)",
+    href: "/payments",
+    icon: Receipt,
+    tint: "bg-violet-50 text-violet-600",
+  },
+];
+
+export function DailySnapshotView({
+  data,
+  widgets,
+}: {
+  data: DailySnapshotData;
+  widgets: DashboardHomeWidgets;
+}) {
   const { summary, events, dayLabel, view } = data;
   const timelineTitle = snapshotTimelineTitle(view);
   const dayWord = view === "tomorrow" ? "tomorrow" : "today";
   const timelineRef = useRef<HTMLDivElement>(null);
   const [activeFilter, setActiveFilter] = useState<SnapshotSummaryFilter | null>(null);
+  const { openIntake, config } = useRoIntakeOptional();
 
   const toggleFilter = useCallback((filter: SnapshotSummaryFilter) => {
     setActiveFilter((prev) => (prev === filter ? null : filter));
@@ -197,74 +285,110 @@ export function DailySnapshotView({ data }: { data: DailySnapshotData }) {
     label: string;
     value: string;
     hint: string;
-    icon: LucideIcon;
+    numericValue: number;
   }[] = [
     {
       filter: "collected",
       label: "Collected",
       value: formatCents(summary.collectedCents),
       hint: `${summary.paymentCount} payment${summary.paymentCount === 1 ? "" : "s"}`,
-      icon: DollarSign,
+      numericValue: summary.collectedCents,
     },
     {
       filter: "ros_opened",
-      label: "ROs opened",
+      label: "ROs Opened",
       value: String(summary.rosOpened),
       hint: "New tickets today",
-      icon: Receipt,
+      numericValue: summary.rosOpened,
     },
     {
       filter: "ros_completed",
-      label: "ROs completed",
+      label: "ROs Completed",
       value: String(summary.rosCompleted),
       hint: "Posted today",
-      icon: Wrench,
+      numericValue: summary.rosCompleted,
     },
     {
       filter: "appointments",
       label: "Appointments",
       value: String(summary.appointments),
       hint: "Scheduled today",
-      icon: Calendar,
+      numericValue: summary.appointments,
     },
     {
       filter: "messages",
       label: "Messages",
       value: String(summary.messages),
       hint: "SMS in + out",
-      icon: MessageSquare,
+      numericValue: summary.messages,
     },
     {
       filter: "activity",
       label: "Activity",
       value: String(summary.activityNotes),
       hint: "Notes & calls",
-      icon: ClipboardList,
+      numericValue: summary.activityNotes,
     },
   ];
 
+  const estimateTotal = widgets.estimateStatus.reduce((s, x) => s + x.count, 0);
+  const maxService = Math.max(...widgets.topServices.map((s) => s.amountCents), 1);
+
   return (
-    <div className="flex min-h-0 flex-col gap-3 overflow-auto pb-1">
-      <div className="flex shrink-0 flex-wrap items-end justify-between gap-2">
+    <div className="flex min-h-0 flex-col gap-4 overflow-auto pb-2">
+      {/* Header */}
+      <div className="flex shrink-0 flex-wrap items-end justify-between gap-3">
         <div>
-          <h2 className="text-base font-bold tracking-tight text-brand-navy">Daily snapshot</h2>
-          <p className="text-xs text-muted-foreground">
-            {dayLabel} · live shop activity · click a metric to filter the timeline
-          </p>
+          <h1 className="text-2xl font-bold tracking-tight text-foreground">Dashboard</h1>
+          <p className="mt-0.5 text-sm text-muted-foreground">{dayLabel}</p>
         </div>
-        <Suspense fallback={<div className="h-8 w-[140px] animate-pulse rounded-lg bg-muted" />}>
-          <SnapshotDayToggle />
-        </Suspense>
+        <div className="flex flex-wrap items-center gap-2">
+          <Button type="button" variant="outline" size="sm" className="h-9 gap-1.5" disabled title="Coming soon">
+            <Settings2 className="size-3.5" />
+            Customize
+          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                size="sm"
+                className="h-9 gap-1.5 bg-brand-navy text-white hover:bg-brand-navy/90"
+              >
+                <Plus className="size-3.5" />
+                New Repair Order
+                <ChevronDown className="size-3.5 opacity-80" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="w-52">
+              {config ? (
+                <DropdownMenuItem onClick={() => openIntake()}>
+                  New repair order
+                </DropdownMenuItem>
+              ) : (
+                <DropdownMenuItem asChild>
+                  <Link href="/repair-orders/new">New repair order</Link>
+                </DropdownMenuItem>
+              )}
+              <DropdownMenuItem asChild>
+                <Link href="/repair-orders/new">New estimate</Link>
+              </DropdownMenuItem>
+              <DropdownMenuItem asChild>
+                <Link href="/appointments">New appointment</Link>
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 xl:grid-cols-6">
+      {/* KPI row */}
+      <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 xl:grid-cols-6">
         {tiles.map((tile) => (
-          <SummaryTile
+          <KpiCard
             key={tile.filter}
             label={tile.label}
             value={tile.value}
             hint={tile.hint}
-            icon={tile.icon}
+            filter={tile.filter}
+            numericValue={tile.numericValue}
             active={activeFilter === tile.filter}
             onClick={() => toggleFilter(tile.filter)}
             moduleHref={SNAPSHOT_FILTER_HREFS[tile.filter]}
@@ -272,68 +396,240 @@ export function DailySnapshotView({ data }: { data: DailySnapshotData }) {
         ))}
       </div>
 
-      <Card
-        ref={timelineRef}
-        id="snapshot-timeline"
-        className="min-h-0 flex-1 scroll-mt-3 border-border/80 shadow-sm"
-      >
-        <CardHeader className="px-4 py-3 pb-2">
-          <div className="flex flex-wrap items-start justify-between gap-2">
+      {/* Timeline + Quick actions */}
+      <div className="grid gap-3 lg:grid-cols-3">
+        <div ref={timelineRef} id="snapshot-timeline" className="scroll-mt-3 lg:col-span-2">
+        <Card className="rounded-lg border-border/80 shadow-none">
+          <CardHeader className="flex flex-row items-start justify-between gap-2 space-y-0 px-4 py-3">
             <div>
-              <CardTitle className="text-sm font-semibold text-brand-navy">
+              <CardTitle className="text-base font-semibold text-foreground">
                 {timelineTitle}
               </CardTitle>
-              <p className="text-xs text-muted-foreground">
+              <p className="mt-0.5 text-xs text-muted-foreground">
                 {activeFilter
                   ? `Showing ${SNAPSHOT_FILTER_LABELS[activeFilter].toLowerCase()} only`
-                  : "Payments, RO movement, appointments, SMS, and logged activity — newest first."}
+                  : "Payments, RO movement, appointments, SMS, and logged activity."}
               </p>
             </div>
-            {activeFilter ? (
-              <Button
-                type="button"
-                size="sm"
-                variant="outline"
-                className="h-7 px-2 text-xs"
-                onClick={() => setActiveFilter(null)}
-              >
-                Show all
-              </Button>
-            ) : null}
-          </div>
-        </CardHeader>
-        <CardContent className="px-4 pb-4 pt-0">
-          {filteredEvents.length === 0 ? (
-            <div className="rounded-lg border border-dashed border-border bg-muted/20 px-4 py-12 text-center">
-              <p className="text-sm text-muted-foreground">
-                {activeFilter
-                  ? `No ${SNAPSHOT_FILTER_LABELS[activeFilter].toLowerCase()} recorded ${dayWord}.`
-                  : `No activity recorded yet ${dayWord}.`}
-              </p>
-              {activeFilter ? (
-                <Button
-                  type="button"
-                  variant="link"
-                  className="mt-2 h-auto p-0 text-xs"
-                  onClick={() => setActiveFilter(null)}
-                >
-                  Show all activity
-                </Button>
-              ) : (
-                <p className="mt-1 text-xs text-muted-foreground">
-                  Open ROs, take payments, or log calls — they&apos;ll show up here as the day goes on.
+            <Button asChild size="sm" variant="outline" className="h-8 shrink-0 text-xs">
+              <Link href="/dashboard/overview">View all activity</Link>
+            </Button>
+          </CardHeader>
+          <CardContent className="px-4 pb-4 pt-0">
+            {filteredEvents.length === 0 ? (
+              <div className="rounded-lg border border-dashed border-border bg-muted/20 px-4 py-10 text-center">
+                <p className="text-sm text-muted-foreground">
+                  {activeFilter
+                    ? `No ${SNAPSHOT_FILTER_LABELS[activeFilter].toLowerCase()} recorded ${dayWord}.`
+                    : `No activity recorded yet ${dayWord}.`}
                 </p>
-              )}
+                {activeFilter ? (
+                  <Button
+                    type="button"
+                    variant="link"
+                    className="mt-2 h-auto p-0 text-xs"
+                    onClick={() => setActiveFilter(null)}
+                  >
+                    Show all activity
+                  </Button>
+                ) : null}
+              </div>
+            ) : (
+              <ul className="mt-1">
+                {filteredEvents.slice(0, 12).map((event) => (
+                  <TimelineEntry key={event.id} event={event} />
+                ))}
+              </ul>
+            )}
+          </CardContent>
+        </Card>
+        </div>
+
+        <Card className="rounded-lg border-border/80 shadow-none">
+          <CardHeader className="px-4 py-3 pb-2">
+            <CardTitle className="text-base font-semibold text-foreground">Quick actions</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-1 px-2 pb-3">
+            {QUICK_ACTIONS.map((action) => {
+              const Icon = action.icon;
+              const row = (
+                <>
+                  <span
+                    className={cn(
+                      "flex size-9 shrink-0 items-center justify-center rounded-md",
+                      action.tint,
+                    )}
+                  >
+                    <Icon className="size-4" aria-hidden />
+                  </span>
+                  <span className="min-w-0 flex-1">
+                    <span className="block text-sm font-semibold text-foreground">
+                      {action.title}
+                    </span>
+                    <span className="block text-xs text-muted-foreground">
+                      {action.description}
+                    </span>
+                  </span>
+                  <ChevronRight className="size-4 shrink-0 text-muted-foreground" />
+                </>
+              );
+
+              if (action.intake && config) {
+                return (
+                  <button
+                    key={action.title}
+                    type="button"
+                    onClick={() => openIntake()}
+                    className="flex w-full items-center gap-3 rounded-lg px-2 py-2.5 text-left transition-colors hover:bg-muted/60"
+                  >
+                    {row}
+                  </button>
+                );
+              }
+
+              return (
+                <Link
+                  key={action.title}
+                  href={action.href}
+                  className="flex items-center gap-3 rounded-lg px-2 py-2.5 transition-colors hover:bg-muted/60"
+                >
+                  {row}
+                </Link>
+              );
+            })}
+            <Link
+              href="/repair-orders/new"
+              className="mt-1 inline-flex items-center gap-1 px-2 py-1.5 text-sm font-medium text-sky-600 hover:text-sky-700"
+            >
+              View all actions
+              <ChevronRight className="size-3.5" />
+            </Link>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Bottom row */}
+      <div className="grid gap-3 md:grid-cols-3">
+        <Card className="rounded-lg border-border/80 shadow-none">
+          <CardContent className="flex h-full flex-col gap-3 p-4">
+            <div className="flex items-start gap-3">
+              <span className="flex size-10 shrink-0 items-center justify-center rounded-md bg-red-50 text-red-600">
+                <Clock className="size-5" aria-hidden />
+              </span>
+              <div>
+                <p className="text-3xl font-bold tabular-nums text-foreground">
+                  {widgets.overdueFollowUps}
+                </p>
+                <p className="text-sm text-muted-foreground">customers need a follow up</p>
+              </div>
             </div>
-          ) : (
-            <ul className="space-y-2">
-              {filteredEvents.map((event) => (
-                <SnapshotEventRow key={event.id} event={event} />
-              ))}
-            </ul>
-          )}
-        </CardContent>
-      </Card>
+            <p className="text-xs font-semibold uppercase tracking-wide text-red-600/90">
+              Overdue follow ups
+            </p>
+            <Button asChild size="sm" variant="outline" className="mt-auto h-8 w-fit text-xs">
+              <Link href="/customers">View list</Link>
+            </Button>
+          </CardContent>
+        </Card>
+
+        <Card className="rounded-lg border-border/80 shadow-none">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 px-4 py-3 pb-1">
+            <CardTitle className="text-sm font-semibold">Open estimates by status</CardTitle>
+          </CardHeader>
+          <CardContent className="px-4 pb-4">
+            <div className="flex items-center gap-4">
+              <div className="relative size-28 shrink-0">
+                {estimateTotal > 0 ? (
+                  <ResponsiveContainer width="100%" height="100%">
+                    <PieChart>
+                      <Pie
+                        data={widgets.estimateStatus.filter((s) => s.count > 0)}
+                        dataKey="count"
+                        nameKey="label"
+                        innerRadius="58%"
+                        outerRadius="88%"
+                        paddingAngle={2}
+                        strokeWidth={0}
+                      >
+                        {widgets.estimateStatus
+                          .filter((s) => s.count > 0)
+                          .map((entry) => (
+                            <Cell key={entry.key} fill={entry.color} />
+                          ))}
+                      </Pie>
+                    </PieChart>
+                  </ResponsiveContainer>
+                ) : (
+                  <div className="flex size-full items-center justify-center rounded-full border-8 border-muted" />
+                )}
+              </div>
+              <ul className="min-w-0 flex-1 space-y-2 text-sm">
+                {widgets.estimateStatus.map((s) => (
+                  <li key={s.key} className="flex items-center justify-between gap-2">
+                    <span className="flex items-center gap-2">
+                      <span
+                        className="size-2.5 rounded-full"
+                        style={{ backgroundColor: s.color }}
+                      />
+                      <span className="text-muted-foreground">{s.label}</span>
+                    </span>
+                    <span className="font-semibold tabular-nums">{s.count}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
+            <Button asChild size="sm" variant="outline" className="mt-3 h-8 text-xs">
+              <Link href="/job-board">View estimates</Link>
+            </Button>
+          </CardContent>
+        </Card>
+
+        <Card className="rounded-lg border-border/80 shadow-none">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 px-4 py-3 pb-1">
+            <CardTitle className="text-sm font-semibold">Top performing services</CardTitle>
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              className="h-7 gap-1 px-2 text-[11px]"
+              disabled
+            >
+              This month
+              <ChevronDown className="size-3" />
+            </Button>
+          </CardHeader>
+          <CardContent className="space-y-3 px-4 pb-4">
+            {widgets.topServices.length === 0 ? (
+              <p className="py-6 text-center text-xs text-muted-foreground">
+                No completed service revenue this month yet.
+              </p>
+            ) : (
+              widgets.topServices.map((svc) => (
+                <div key={svc.name} className="space-y-1">
+                  <div className="flex items-center justify-between gap-2 text-sm">
+                    <span className="truncate font-medium">
+                      <span className="mr-1.5 text-muted-foreground">{svc.rank}.</span>
+                      {svc.name}
+                    </span>
+                    <span className="shrink-0 font-semibold tabular-nums">
+                      {formatCents(svc.amountCents)}
+                    </span>
+                  </div>
+                  <div className="h-2 overflow-hidden rounded-full bg-muted">
+                    <div
+                      className="h-full rounded-full bg-[#3B82F6]"
+                      style={{ width: `${Math.max(8, (svc.amountCents / maxService) * 100)}%` }}
+                    />
+                  </div>
+                </div>
+              ))
+            )}
+            <Button asChild size="sm" variant="outline" className="h-8 text-xs">
+              <Link href="/reports">View report</Link>
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }

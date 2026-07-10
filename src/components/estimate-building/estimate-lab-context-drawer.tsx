@@ -10,12 +10,11 @@ import { useRouter } from "next/navigation";
 
 import { Dialog as SheetPrimitive } from "radix-ui";
 
-import { ExternalLink, Loader2, MessageSquare, UserRound, X } from "lucide-react";
+import { ExternalLink, Loader2, MessageSquare, Pencil, X } from "lucide-react";
 
 
 
 import type { EditableCustomerRecord } from "@/components/customers/customer-form-shared";
-import { DrawerCustomerInsightsStrip } from "@/components/customers/drawer-customer-insights";
 
 import {
 
@@ -52,7 +51,7 @@ import type { EstimateLabVehicleSpecsBundle } from "@/lib/estimate-lab-vehicle-s
 
 import type { PaymentFinanceData } from "@/components/repair-order/payment-finance-panel";
 
-import { customerDisplayName, formatCents } from "@/lib/format";
+import { customerDisplayName, customerInitials, formatCents } from "@/lib/format";
 
 import { cn } from "@/lib/utils";
 
@@ -71,76 +70,30 @@ export type CustomerDrawerSource = "estimate" | "customers";
 
 
 
-function HeaderToggle({
-
-  label,
-
-  checked,
-
+function ActiveStatusBadge({
+  active,
   onChange,
-
-  disabled,
-
 }: {
-
-  label: string;
-
-  checked: boolean;
-
+  active: boolean;
   onChange: (next: boolean) => void;
-
-  disabled?: boolean;
-
 }) {
-
   return (
-
-    <label className="flex cursor-pointer items-center gap-2 text-xs text-muted-foreground">
-
-      <button
-
-        type="button"
-
-        role="switch"
-
-        aria-checked={checked}
-
-        disabled={disabled}
-
-        onClick={() => onChange(!checked)}
-
+    <button
+      type="button"
+      onClick={() => onChange(!active)}
+      className="inline-flex items-center gap-1.5 rounded-full border border-[#DDE5EF] bg-white px-2.5 py-1 text-xs font-medium text-[#0B1F3B] transition-colors hover:bg-[#F7F9FC]"
+      aria-pressed={active}
+    >
+      <span
         className={cn(
-
-          "relative h-5 w-9 shrink-0 rounded-full shadow-inner transition-colors",
-
-          checked ? "bg-brand-navy shadow-sm" : "bg-muted-foreground/30",
-
-          disabled && "opacity-50",
-
+          "size-2 rounded-full",
+          active ? "bg-emerald-500" : "bg-[#8CA2C0]",
         )}
-
-      >
-
-        <span
-
-          className={cn(
-
-            "absolute top-0.5 size-4 rounded-full bg-white shadow transition-transform",
-
-            checked ? "left-[18px]" : "left-0.5",
-
-          )}
-
-        />
-
-      </button>
-
-      {label}
-
-    </label>
-
+        aria-hidden
+      />
+      {active ? "Active" : "Inactive"}
+    </button>
   );
-
 }
 
 
@@ -396,7 +349,7 @@ export function EstimateLabContextDrawer({
 
             "fixed inset-y-0 right-0 z-50 flex h-full w-full flex-col gap-0 overflow-hidden bg-background p-0 shadow-2xl outline-none",
 
-            "border-l border-brand-navy/10 sm:max-w-[min(58rem,calc(100vw-0.5rem))]",
+            "border-l-[1.5px] border-[#DDE5EF] sm:max-w-[min(58rem,calc(100vw-0.5rem))]",
 
             "duration-300 ease-out data-open:animate-in data-closed:animate-out",
 
@@ -406,147 +359,88 @@ export function EstimateLabContextDrawer({
 
         >
 
-          {/* Header — white bar like reference, ShopRally accents */}
-
-          <header className="shrink-0 border-b border-border/80 bg-white px-4 py-3">
-
-            <div className="flex flex-wrap items-start justify-between gap-3 pr-10">
-
-              <div className="flex min-w-0 items-start gap-2">
-
-                <span className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-full bg-brand-navy/8 text-brand-navy">
-
-                  <UserRound className="size-4" />
-
+          {/* Header — avatar, name, credit, active badge, messages */}
+          <header className="shrink-0 border-b border-[#DDE5EF] bg-white px-4 py-3 pr-12">
+            <div className="flex flex-wrap items-start justify-between gap-3">
+              <div className="flex min-w-0 items-start gap-3">
+                <span className="flex size-10 shrink-0 items-center justify-center rounded-full bg-[#1E7FE0] text-sm font-semibold text-white">
+                  {customerInitials(activeCustomerRecord)}
                 </span>
-
                 <div className="min-w-0">
-
-                  <div className="flex flex-wrap items-center gap-2">
-
-                    <h2 className="truncate text-base font-semibold text-brand-navy">{title}</h2>
-
-                    {hasRoContext && !isCustomersSource ? (
-
-                      <Link
-
-                        href={`/customers?customer=${customerId}`}
-
-                        className="inline-flex shrink-0 text-brand-navy/50 hover:text-brand-navy"
-
-                        aria-label="Open customer in CRM"
-
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <h2 className="truncate text-base font-semibold text-[#0B1F3B]">{title}</h2>
+                    {canEdit ? (
+                      <button
+                        type="button"
+                        onClick={() => onTabChange("profile")}
+                        className="inline-flex shrink-0 rounded p-0.5 text-[#8CA2C0] hover:bg-[#F0F3F8] hover:text-[#0B1F3B]"
+                        aria-label="Edit customer profile"
+                        title="Edit profile"
                       >
-
-                        <ExternalLink className="size-3.5" />
-
-                      </Link>
-
+                        <Pencil className="size-3.5" />
+                      </button>
                     ) : null}
-
-                    <span className="text-sm text-brand-navy/70">
-
-                      (Available credit:{" "}
-
-                      <span className="font-semibold tabular-nums text-brand-navy">{formatCents(creditCents)}</span>)
-
-                    </span>
-
+                    {hasRoContext && !isCustomersSource ? (
+                      <Link
+                        href={`/customers?customer=${customerId}`}
+                        className="inline-flex shrink-0 text-[#8CA2C0] hover:text-[#0B1F3B]"
+                        aria-label="Open customer in CRM"
+                      >
+                        <ExternalLink className="size-3.5" />
+                      </Link>
+                    ) : null}
                   </div>
-
-                  <p className="mt-0.5 text-xs text-muted-foreground">{subtitle}</p>
-
+                  <p className="mt-0.5 text-xs text-[#5B7295]">{subtitle}</p>
                 </div>
-
               </div>
 
-
-
-              <div className="flex flex-wrap items-center gap-4">
-
-                <HeaderToggle label="Active" checked={activeCustomer} onChange={setActiveCustomer} />
-
+              <div className="flex flex-wrap items-center gap-4 sm:gap-6">
+                <p className="text-sm text-[#0B1F3B]">
+                  Available credit:{" "}
+                  <span className="font-semibold tabular-nums">{formatCents(creditCents)}</span>
+                </p>
+                <ActiveStatusBadge active={activeCustomer} onChange={setActiveCustomer} />
+                <button
+                  type="button"
+                  className="inline-flex shrink-0 items-center gap-1.5 text-sm font-medium text-[#5B7295] transition-colors hover:text-[#0B1F3B] disabled:opacity-60"
+                  disabled
+                  title="Messaging coming soon"
+                >
+                  <MessageSquare className="size-4 text-[#8CA2C0]" />
+                  Messages
+                </button>
               </div>
-
             </div>
-
           </header>
 
 
 
-          {/* Tab bar — elevated strip with active tab depth */}
-
-          <div className="flex shrink-0 items-end gap-1 border-b border-brand-navy/12 bg-gradient-to-b from-slate-50 to-white px-2 pt-1.5 shadow-[inset_0_-1px_0_rgba(30,58,86,0.06),0_1px_3px_rgba(30,58,86,0.06)]">
-
+          {/* Tab bar — orange active underline */}
+          <div className="flex shrink-0 items-end border-b border-[#DDE5EF] bg-white px-2">
             <div
-
               role="tablist"
-
               aria-label="Customer record"
-
               className="flex min-w-0 flex-1 items-end overflow-x-auto scrollbar-none"
-
             >
-
               {DRAWER_TABS.map((t) => (
-
                 <button
-
                   key={t.id}
-
                   type="button"
-
                   role="tab"
-
                   aria-selected={tab === t.id}
-
                   onClick={() => onTabChange(t.id)}
-
                   className={cn(
-
-                    "relative shrink-0 rounded-t-lg px-3.5 py-2.5 text-sm font-medium transition-all duration-150",
-
+                    "relative shrink-0 px-4 py-3 text-sm transition-colors duration-150",
                     tab === t.id
-
-                      ? "z-[1] bg-white font-semibold text-brand-navy shadow-[0_-1px_4px_rgba(30,58,86,0.08),0_1px_0_0_white] after:absolute after:inset-x-2 after:bottom-0 after:h-[3px] after:rounded-full after:bg-brand-orange"
-
-                      : "text-muted-foreground hover:bg-brand-light/20 hover:text-brand-navy",
-
+                      ? "font-semibold text-[#0B1F3B] after:absolute after:inset-x-2 after:bottom-0 after:h-[2px] after:rounded-full after:bg-[#E86A10]"
+                      : "font-medium text-[#5B7295] hover:text-[#0B1F3B]",
                   )}
-
                 >
-
                   {t.label}
-
                 </button>
-
               ))}
-
             </div>
-
-            <button
-
-              type="button"
-
-              className="mb-0.5 mr-0.5 inline-flex shrink-0 items-center gap-1.5 rounded-lg border border-transparent px-3 py-2 text-sm font-medium text-brand-navy/70 transition-colors hover:border-brand-navy/10 hover:bg-brand-light/20 hover:text-brand-navy disabled:opacity-60"
-
-              disabled
-
-              title="Messaging coming soon"
-
-            >
-
-              <MessageSquare className="size-4 text-brand-navy/50" />
-
-              Messages
-
-            </button>
-
           </div>
-
-
-
-          <DrawerCustomerInsightsStrip customerId={customerId} drawerOpen={open} />
 
 
 
@@ -554,7 +448,7 @@ export function EstimateLabContextDrawer({
 
           <div className="flex min-h-0 flex-1">
 
-            <div className="min-w-0 flex-1 overflow-y-auto px-4 py-4 sm:px-5">
+            <div className="min-w-0 flex-1 overflow-y-auto bg-[#F7F9FC] px-4 py-4 sm:px-5">
 
               {loading && !data ? (
 
@@ -601,27 +495,18 @@ export function EstimateLabContextDrawer({
                 <>
 
                   {tab === "profile" ? (
-
                     <DrawerProfileTab
-
                       customer={{
-
                         ...activeCustomerRecord,
-
                         transactionalSmsConsent: data.detail.transactionalSmsConsent,
-
                         marketingEmailConsent: data.detail.marketingEmailConsent,
-
                         leadSource: data.detail.leadSource,
-
                       }}
-
+                      customerId={customerId}
+                      drawerOpen={open}
                       canEdit={canEdit}
-
                       onSaved={() => reload(true)}
-
                     />
-
                   ) : null}
 
                   {tab === "vehicles" ? (
@@ -735,14 +620,10 @@ export function EstimateLabContextDrawer({
 
 
 
-          <SheetPrimitive.Close className="absolute top-3.5 right-3 rounded-md p-1.5 text-muted-foreground hover:bg-muted/80 hover:text-foreground">
-
+          <SheetPrimitive.Close className="absolute top-3.5 right-3 rounded-md p-1.5 text-[#5B7295] hover:bg-[#F0F3F8] hover:text-[#0B1F3B]">
             <X className="size-4" />
-
             <span className="sr-only">Close</span>
-
           </SheetPrimitive.Close>
-
         </SheetPrimitive.Content>
 
       </SheetPortal>

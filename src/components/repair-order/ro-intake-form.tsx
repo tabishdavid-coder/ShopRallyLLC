@@ -12,6 +12,7 @@ import {
   ClipboardList,
   Trash2,
   Gauge,
+  Pencil,
   Percent,
   Users,
   Settings,
@@ -49,14 +50,29 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { AddCustomerDialog } from "@/components/customers/add-customer-dialog";
+import {
+  CustomerContextDrawer,
+  type ContextDrawerTab,
+} from "@/components/customers/customer-context-drawer";
 import { CustomerSearchResults } from "@/components/customers/customer-search-results";
+import type { EditableCustomerRecord } from "@/components/customers/customer-form-shared";
+import {
+  EditVehicleDialog,
+  type EditableVehicle,
+} from "@/components/repair-order/edit-vehicle-dialog";
 import { AddVehicleDialog } from "@/components/vehicles/add-vehicle-dialog";
 import {
   resolveVehicleFromPlate,
   resolveVehicleFromVin,
   type VehicleLookupFields,
 } from "@/components/vehicles/use-plate-vin-lookup";
-import { searchCustomers, getCustomerVehicles, getCustomerPick } from "@/server/actions/pickers";
+import {
+  searchCustomers,
+  getCustomerVehicles,
+  getCustomerPick,
+  getEditableCustomer,
+  getEditableVehicle,
+} from "@/server/actions/pickers";
 import type { CustomerPick, VehiclePick } from "@/lib/picker-types";
 import { parseYmmSearch, type ParsedYmm } from "@/lib/parse-ymm-search";
 import { createRepairOrder } from "@/server/actions/repair-orders";
@@ -299,6 +315,13 @@ export function RoIntakeForm({
   const [savingRate, startSaveRate] = useTransition();
   const [customer, setCustomer] = useState<{ id: string; name: string } | null>(null);
   const [addCustomerOpen, setAddCustomerOpen] = useState(false);
+  const [editCustomerRecord, setEditCustomerRecord] = useState<EditableCustomerRecord | null>(null);
+  const [customerDrawerOpen, setCustomerDrawerOpen] = useState(false);
+  const [customerDrawerTab, setCustomerDrawerTab] = useState<ContextDrawerTab>("profile");
+  const [loadingEditCustomer, startLoadEditCustomer] = useTransition();
+  const [editVehicleRecord, setEditVehicleRecord] = useState<EditableVehicle | null>(null);
+  const [editVehicleOpen, setEditVehicleOpen] = useState(false);
+  const [loadingEditVehicle, startLoadEditVehicle] = useTransition();
   const [addVehicleOpen, setAddVehicleOpen] = useState(false);
   const [addVehiclePrefill, setAddVehiclePrefill] = useState("");
   const [addVehicleFields, setAddVehicleFields] = useState<
@@ -530,6 +553,44 @@ export function RoIntakeForm({
     setVehicles([]);
     setVehicleId(null);
     clearVehicleLookups();
+  }
+
+  function openEditCustomer() {
+    if (!customer) return;
+    startLoadEditCustomer(async () => {
+      const record = await getEditableCustomer(customer.id);
+      if (!record) return;
+      setEditCustomerRecord(record);
+      setCustomerDrawerTab("profile");
+      setCustomerDrawerOpen(true);
+    });
+  }
+
+  /** After the customer drawer Profile saves: refresh the chip label. */
+  function onCustomerEdited() {
+    if (!customer) return;
+    void getCustomerPick(customer.id).then((pick) => {
+      if (pick) setCustomer({ id: pick.id, name: customerDisplayName(pick) });
+    });
+    void getEditableCustomer(customer.id).then((record) => {
+      if (record) setEditCustomerRecord(record);
+    });
+  }
+
+  function openEditVehicle() {
+    if (!selectedVehicle) return;
+    startLoadEditVehicle(async () => {
+      const record = await getEditableVehicle(selectedVehicle.id);
+      if (!record) return;
+      setEditVehicleRecord(record);
+      setEditVehicleOpen(true);
+    });
+  }
+
+  /** After the Edit Vehicle dialog saves: reload the garage, keeping the selection. */
+  function onVehicleEdited() {
+    if (!customer) return;
+    loadVehicles(customer.id, vehicleId ?? undefined);
   }
 
   useEffect(() => {
@@ -941,11 +1002,26 @@ export function RoIntakeForm({
                 subtitle="Search by name, phone, email, plate, or VIN"
               >
                 {customer ? (
-                  <div className="flex items-center justify-between rounded-none border border-brand-light/40 bg-brand-light/10 px-3 py-2.5 text-sm">
-                    <span className="font-medium text-brand-navy">{customer.name}</span>
-                    <button type="button" onClick={clearCustomer} aria-label="Clear customer">
-                      <X className="size-4 text-muted-foreground hover:text-foreground" />
-                    </button>
+                  <div className="flex items-center justify-between gap-2 rounded-none border border-brand-light/40 bg-brand-light/10 px-3 py-2.5 text-sm">
+                    <span className="min-w-0 truncate font-medium text-brand-navy">{customer.name}</span>
+                    <div className="flex shrink-0 items-center gap-2.5">
+                      <button
+                        type="button"
+                        onClick={openEditCustomer}
+                        disabled={loadingEditCustomer}
+                        aria-label="Edit customer"
+                        title="Edit customer"
+                      >
+                        {loadingEditCustomer ? (
+                          <Loader2 className="size-4 animate-spin text-muted-foreground" />
+                        ) : (
+                          <Pencil className="size-4 text-muted-foreground hover:text-foreground" />
+                        )}
+                      </button>
+                      <button type="button" onClick={clearCustomer} aria-label="Clear customer" title="Clear customer">
+                        <X className="size-4 text-muted-foreground hover:text-foreground" />
+                      </button>
+                    </div>
                   </div>
                 ) : (
                   <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
@@ -1037,9 +1113,24 @@ export function RoIntakeForm({
                           {selectedVehicle.vin ? ` · VIN …${selectedVehicle.vin.slice(-8)}` : ""}
                         </p>
                       </div>
-                      <button type="button" onClick={clearVehicle} aria-label="Clear vehicle">
-                        <X className="size-4 text-muted-foreground hover:text-foreground" />
-                      </button>
+                      <div className="flex shrink-0 items-center gap-2.5">
+                        <button
+                          type="button"
+                          onClick={openEditVehicle}
+                          disabled={loadingEditVehicle}
+                          aria-label="Edit vehicle"
+                          title="Edit vehicle"
+                        >
+                          {loadingEditVehicle ? (
+                            <Loader2 className="size-4 animate-spin text-muted-foreground" />
+                          ) : (
+                            <Pencil className="size-4 text-muted-foreground hover:text-foreground" />
+                          )}
+                        </button>
+                        <button type="button" onClick={clearVehicle} aria-label="Clear vehicle" title="Clear vehicle">
+                          <X className="size-4 text-muted-foreground hover:text-foreground" />
+                        </button>
+                      </div>
                     </div>
                   ) : (
                     <div
@@ -1387,6 +1478,39 @@ export function RoIntakeForm({
           </div>
         </footer>
       </div>
+      {editCustomerRecord ? (
+        <CustomerContextDrawer
+          open={customerDrawerOpen}
+          onOpenChange={(o) => {
+            setCustomerDrawerOpen(o);
+            if (!o) {
+              onCustomerEdited();
+              setEditCustomerRecord(null);
+            }
+          }}
+          tab={customerDrawerTab}
+          onTabChange={setCustomerDrawerTab}
+          customer={editCustomerRecord}
+          customerId={editCustomerRecord.id}
+          canEdit
+          initialData={null}
+          appointmentEmployees={[]}
+          defaultAppointmentDurationMins={60}
+          source="customers"
+        />
+      ) : null}
+      {editVehicleRecord && customer ? (
+        <EditVehicleDialog
+          vehicle={editVehicleRecord}
+          customerId={customer.id}
+          open={editVehicleOpen}
+          onOpenChange={(o) => {
+            setEditVehicleOpen(o);
+            if (!o) setEditVehicleRecord(null);
+          }}
+          onSaved={onVehicleEdited}
+        />
+      ) : null}
       <Dialog open={addRateOpen} onOpenChange={setAddRateOpen}>
         <DialogContent>
           <DialogHeader>
