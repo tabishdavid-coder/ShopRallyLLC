@@ -1,113 +1,131 @@
-# Scenario: Core-only to 200 shops (no MOTOR)
+# Scenario: Core → 200 shops + AI Instant Quote (no MOTOR)
 
 **Date:** 2026-07-11  
 **Status:** Planning model (runnable)  
 **Runner:** `node scripts/core-to-200-scenario.mjs`  
-**Canonical prices:** `src/lib/plans.ts` (`STARTER` / Core)  
-**Release alignment:** `docs/PHASED-ROLLOUT.md` — **P0 Core CRM**
+**Canonical Core prices:** `src/lib/plans.ts` (`STARTER`)  
+**Release alignment:** `docs/PHASED-ROLLOUT.md` — **P0 Core CRM** + Core-safe AI quote (not Elite `aiSuite`)
 
 ---
 
 ## Thesis
 
-Ship **Core first** to **200 paying shops** with **no licensed MOTOR data**.
+Ship **Core** to **200 paying shops** with **no licensed MOTOR**, and lead with **AI Instant Quote** — a natural-language input that turns customer/advisor questions into ballpark estimates.
 
-| Layer | Choice | Why |
-|-------|--------|-----|
-| **Plan** | Core only (`STARTER`) | $119/mo · $109 annual — lowest friction vs Tekmetric/AutoLeap |
-| **Labor** | Shop labor library + reference taxonomy + AI gap-fill | `LABOR_CATALOG_MODE=reference` — **no MOTOR DaaS commercial license** |
-| **Release flags** | `motorLabor`, `sms`, `growthEngine`, `partsTech`, `shopSite`, `websiteSeo`, `aiSuite` **dark** in prod | Deploy ≠ release; Core has no release flag |
-| **Payments** | Email estimates / invoices; Stripe Connect deferred | Matches Core entitlement (no Stripe Connect on Core) |
-| **MOTOR unlock** | After ~100–150 Core shops **and** signed DaaS contract | Avoids per-shop / platform COGS before product-market fit |
+**Example input (part of the model):**
 
-This is the **cheapest legal path** to a real multi-tenant CRM book: no MOTOR redistribution risk, no SMS Twilio burn, no Growth Engine support load until Core retention is proven.
+> how much is front brake pads and rotors on 2014 honda accord exl v6
 
----
+**System parses → returns:**
 
-## What Core shops get (and do not)
+| Step | Output |
+|------|--------|
+| Vehicle | 2014 Honda Accord EX-L V6 |
+| Job | Front brake pads + rotors (R&R) |
+| Labor | Hours from **shop library** or **AI-labeled** estimate (not MOTOR EWT) |
+| Parts | Placeholder / catalog hints |
+| $ | Ballpark at shop labor rate + parts matrix |
 
-**Included (P0):** Job board, ROs/estimates, customers/vehicles, DVIs, email share/approve, canned jobs, Operations Daily Snapshot, unlimited users/ROs, **100 VIN & plate decodes/mo** ($10 per extra 100), **shop labor library**.
-
-**Not included (gate to Pro+):** Licensed MOTOR, unlimited VIN/plate, PartsTech punchout, Stripe Connect, two-way SMS, Growth Engine, online booking, Google Reviews, ShopSite/SEO (except paid add-ons), AI suite.
-
-Labor UX without MOTOR: browse **reference** System → Group → SubGroup tree; hours from shop library + **AI estimates labeled as non-MOTOR**. See `docs/design/taxonomy-scaffold-ai-gap-fill.md`.
+This is the Core-path answer to “we don’t have MOTOR yet” — advisors still quote fast; hours are clearly **non-licensed**.
 
 ---
 
-## Scenario assumptions (default run)
+## Product packaging (Core path)
 
-| Input | Default | Notes |
+| Layer | Default | Notes |
 |-------|---------|--------|
-| Start | 0 paying shops | “From now” = founding go-live |
-| Target | 200 Core shops | One location = one shop |
-| List price | $119 / $109 annual | From `PLANS.STARTER` |
-| Annual mix | 55% | Blended Core ARPU ≈ **$113.50** |
-| Soft churn | 2.5%/mo on **monthly** cohort only | Annual treated as prepaid year |
-| Web add-on attach | 12% @ ~$120 blended | ShopSite $99 / SEO $129 / bundle $199 |
-| Effective ARPU | ≈ **$127.90** | Core + add-on contribution |
-| MOTOR COGS | **$0** | Entire ramp |
-| Horizon | ~18–24 months | Ramp curve in script |
+| **Included on Core** | **40 NL quotes / mo** | Enough for light advisor use |
+| **AI Instant Quote add-on** | **$39/mo** | Higher allowance (~500 quotes); sales wedge |
+| **Overage** | **$15 / 100** | Heavy free-tier users |
+| **LLM COGS** | ~**$0.04 / quote** (illustrative) | Stays tiny vs MRR |
+| **MOTOR** | **OFF** | Unlock Pro + `motorLabor` later |
 
-OpEx at 200 (~$22.5k/mo infra+support+sales) is **illustrative**, not a full P&L.
+Do **not** market these hours as MOTOR/Mitchell flat-rate.
 
 ---
 
-## Path (default ramp)
+## Assumptions (default run)
 
-Run output is authoritative; order of magnitude:
-
-| Milestone | ~Month | Approx MRR (effective ARPU) |
-|-----------|--------|------------------------------|
-| 10 shops | early | ~$1.3k |
-| 25 shops | mid single-digits | ~$3.2k |
-| 50 shops | ~M7–9 | ~$6.4k |
-| 100 shops | ~M12–14 | ~$12.8k |
-| 150 shops | ~M15–17 | ~$19.2k |
-| **200 shops** | **~M18–22** | **~$25.6k MRR · ~$307k ARR** |
-
-Sales motion: founding shops → referral/partner → outbound to single-bay / independent shops that want cloud CRM **without** paying for MOTOR or marketing add-ons.
+| Input | Default |
+|-------|---------|
+| Start / target | 0 → **200** Core shops |
+| Core price | $119 / $109 annual · **55%** annual → Core ARPU **$113.50** |
+| AI Quote attach | **48%** @ $39 |
+| Web attach | **12%** @ ~$120 blended |
+| Churn | 2.5%/mo on monthly cohort |
+| VIN overage | ~8% of shops × $10 pack |
+| Horizon | **~20 months** to 200 |
 
 ---
 
-## Operating rules while on this path
+## Revenue breakout @ 200 shops
 
-1. **Never** serve sandbox MOTOR hours in production customer UI.
-2. Keep `MOTOR_ENABLED=false` / `motorLabor` release OFF until commercial DaaS is signed.
-3. Sell Core honestly: “shop labor library + AI estimates” — do **not** claim licensed flat-rate guides.
-4. Meter VIN/plate on Core (100/mo); do not silently give unlimited.
-5. Platform console onboards shops on **Core** plan; Pro assignment only when MOTOR + Pro modules are ready.
-6. Expand-only migrations; one shared prod version (`docs/MIGRATION-EXPAND-CONTRACT.md`).
+*From `node scripts/core-to-200-scenario.mjs` — re-run for authoritative $.*
 
----
+| Line | MRR | Share |
+|------|------|-------|
+| **Core subscription** | **$22,700** | 76.4% |
+| **AI Instant Quote add-on** | **$3,744** | 12.6% |
+| **AI quote overage** | $225 | 0.8% |
+| **Web presence** | $2,880 | 9.7% |
+| **VIN overage** | $160 | 0.5% |
+| **Total** | **$29,709 MRR · $356,504 ARR** | 100% |
 
-## When to break out of Core-only
+**COGS @ 200:** MOTOR **$0** · AI LLM ~**$961**/mo · contribution after lean OpEx ~**$4.7k**/mo.
 
-Unlock **Pro + `motorLabor`** when **all** are true:
-
-1. MOTOR DaaS **commercial** license signed (not sandbox).
-2. ≥ ~100 Core shops **or** clear paid demand for licensed hours (lost deals / upgrade waitlist).
-3. Support capacity for labor-data tickets.
-4. Release flag ramp: pilot Pro shops → GA (`docs/PHASED-ROLLOUT.md` P1→P2).
-
-Until then, every dollar of Core MRR has **$0 MOTOR COGS**.
+Vs Core-only without AI add-on (~$25.6k MRR): AI Quote line adds **~$4.0k MRR** plus the inbound demo wedge.
 
 ---
 
-## How to re-run
+## Sales breakout
+
+### A) Channel mix (gross logos over the ramp)
+
+| Channel | Role | Approx share of adds |
+|---------|------|----------------------|
+| **Founding / referral** | Early trust | High early → low later |
+| **Outbound (AE/SDR)** | Independent shops, Clever-class price | Steady ~30–35% |
+| **Inbound (AI Quote demo)** | “Type a job + YMM → ballpark” landing / sales demo | Grows to **~40%** by scale |
+| **Partner / reseller** | Accountants, bay builders, multi-shop ops | ~10–20% |
+
+AI Instant Quote is the **inbound wedge**: same demo line every time — paste the Honda brakes sentence, show ballpark in &lt;10s.
+
+### B) Product mix @ 200 shops
+
+| Bundle | ~Shops | ~MRR |
+|--------|--------|------|
+| Core only | ~90 | Core ARPU |
+| **Core + AI Quote** | ~85 | Core + $39 |
+| Core + Web | ~15 | Core + ~$120 |
+| **Core + AI + Web** | ~10 | Core + $39 + ~$120 |
+
+Most revenue still Core subscription; AI is the **attach / conversion** lever, not the whole P&L.
+
+---
+
+## Operating rules
+
+1. NL quotes never return sandbox MOTOR hours in prod.
+2. UI labels AI / shop-library hours distinctly from future `motor_ewt`.
+3. Meter free tier (40/mo); sell $39 add-on in onboarding and when advisors hit the cap.
+4. Keep Elite `aiSuite` (receptionist, review AI, etc.) separate — Instant Quote is **Core-safe**.
+5. Pro unlock still requires signed MOTOR DaaS before licensed hours.
+
+---
+
+## How to run
 
 ```bash
 node scripts/core-to-200-scenario.mjs
-node scripts/core-to-200-scenario.mjs --annual-share=0.7 --addon-attach=0.2
+node scripts/core-to-200-scenario.mjs --ai-attach=0.55 --web-attach=0.15
 node scripts/core-to-200-scenario.mjs --json
 ```
-
-Flags: `--monthly-price`, `--annual-price`, `--annual-share`, `--monthly-churn`, `--addon-attach`, `--addon-arpu`, `--start`, `--target`, `--json`.
 
 ---
 
 ## Related
 
-- `docs/GROWTH-POSITIONING.md` — public plan cards  
-- `docs/PHASED-ROLLOUT.md` — P0 vs MOTOR release  
-- `docs/design/taxonomy-scaffold-ai-gap-fill.md` — labor without license  
-- `src/lib/plans.ts` — Core cents & bullets  
+- `docs/GROWTH-POSITIONING.md`  
+- `docs/PHASED-ROLLOUT.md`  
+- `docs/design/taxonomy-scaffold-ai-gap-fill.md`  
+- `src/lib/plans.ts` — Core cents; Elite AI suite is separate  
