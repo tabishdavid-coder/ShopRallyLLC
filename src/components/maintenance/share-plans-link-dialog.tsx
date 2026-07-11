@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { SMS_ENABLED } from "@/lib/features";
+import { useSmsUiEnabled } from "@/lib/shop-capabilities";
 import {
   getPlansShareSendStatus,
   sharePlansSignupLink,
@@ -83,6 +83,7 @@ export function SharePlansLinkDialog({
   shopName,
   customer,
 }: Props) {
+  const smsEnabled = useSmsUiEnabled();
   const [method, setMethod] = useState<SharePlansMethod>("EMAIL");
   const [to, setTo] = useState("");
   const [message, setMessage] = useState("");
@@ -103,7 +104,7 @@ export function SharePlansLinkDialog({
     getPlansShareSendStatus()
       .then(setSendStatus)
       .catch(() =>
-        setSendStatus({ emailLive: false, smsEnabled: SMS_ENABLED, smsConfigured: false, smsLive: false }),
+        setSendStatus({ emailLive: false, smsEnabled, smsConfigured: false, smsLive: false }),
       );
   }, [open, plansUrl, shopName, customer]);
 
@@ -175,9 +176,9 @@ export function SharePlansLinkDialog({
     });
   }
 
-  const methods: SharePlansMethod[] = SMS_ENABLED ? ["EMAIL", "SMS"] : ["EMAIL"];
+  const methods: SharePlansMethod[] = smsEnabled ? ["EMAIL", "SMS"] : ["EMAIL"];
   const showEmailWarning = sendStatus && !sendStatus.emailLive;
-  const showSmsWarning = sendStatus && SMS_ENABLED && !sendStatus.smsLive;
+  const showSmsWarning = sendStatus && smsEnabled && !sendStatus.smsLive;
   const recipient = to.trim() || (method === "EMAIL" ? customer?.email : customer?.phone) || "";
 
   return (

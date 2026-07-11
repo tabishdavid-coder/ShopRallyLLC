@@ -3,8 +3,15 @@ import "server-only";
 import { prisma } from "@/db/client";
 import type { BillingStatus, ShopPlan } from "@/generated/prisma";
 import type { BillingOverview as BillingOverviewClient } from "@/lib/billing-shared";
-import { PLANS, PLAN_ORDER, resolvePlanFeatures, type PlanDefinition } from "@/lib/plans";
+import {
+  PLANS,
+  PLAN_ORDER,
+  resolvePlanFeatures,
+  vinPlateDecodeOverageCents,
+  type PlanDefinition,
+} from "@/lib/plans";
 import { getShopSubscription } from "@/lib/subscription";
+import { countDecodeUsageThisMonth } from "@/server/services/decode-usage";
 
 export type {
   BillingInvoice,
@@ -106,18 +113,24 @@ async function loadUsage(shopId: string, plan: ShopPlan): Promise<BillingOvervie
 
   const shop = await prisma.shop.findUnique({
     where: { id: shopId },
-    select: { platformId: true },
+    select: { platformId: true, planFeatures: true },
   });
 
-  const [usersCount, repairOrdersThisMonth, locationsCount] = await Promise.all([
-    prisma.membership.count({ where: { shopId } }),
-    prisma.repairOrder.count({
-      where: { shopId, createdAt: { gte: start } },
-    }),
-    shop?.platformId
-      ? prisma.shop.count({ where: { platformId: shop.platformId } })
-      : Promise.resolve(1),
-  ]);
+  const resolved = resolvePlanFeatures({ plan, planFeatures: shop?.planFeatures });
+
+  const [usersCount, repairOrdersThisMonth, locationsCount, vinPlateDecodesThisMonth] =
+    await Promise.all([
+      prisma.membership.count({ where: { shopId } }),
+      prisma.repairOrder.count({
+        where: { shopId, createdAt: { gte: start } },
+      }),
+      shop?.platformId
+        ? prisma.shop.count({ where: { platformId: shop.platformId } })
+        : Promise.resolve(1),
+      countDecodeUsageThisMonth(shopId),
+    ]);
+
+  const vinPlateDecodesLimit = resolved.maxVinPlateDecodesPerMonth;
 
   return {
     usersCount,
@@ -127,6 +140,12 @@ async function loadUsage(shopId: string, plan: ShopPlan): Promise<BillingOvervie
     smsCreditsUsed: plan === "STARTER" ? 0 : Math.min(250, repairOrdersThisMonth * 3),
     smsCreditsLimit: plan === "STARTER" ? 0 : plan === "PROFESSIONAL" ? 500 : null,
     locationsCount: Math.max(1, locationsCount),
+    vinPlateDecodesThisMonth,
+    vinPlateDecodesLimit,
+    vinPlateOverageCentsEstimate: vinPlateDecodeOverageCents(
+      vinPlateDecodesThisMonth,
+      vinPlateDecodesLimit,
+    ),
   };
 }
 

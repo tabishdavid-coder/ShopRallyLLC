@@ -12,7 +12,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { SMS_ENABLED } from "@/lib/features";
+import { useSmsUiEnabled } from "@/lib/shop-capabilities";
 
 /**
  * Shows the generated customer approval link with Copy / Email actions.
@@ -33,6 +33,7 @@ export function ApprovalLinkDialog({
   phone: string | null;
   roNumber: number;
 }) {
+  const smsEnabled = useSmsUiEnabled();
   const [copied, setCopied] = useState(false);
 
   async function copy() {
@@ -73,13 +74,13 @@ export function ApprovalLinkDialog({
           </Button>
         </div>
 
-        <div className={SMS_ENABLED ? "grid grid-cols-2 gap-2" : "grid gap-2"}>
+        <div className={smsEnabled ? "grid grid-cols-2 gap-2" : "grid gap-2"}>
           <Button asChild variant="outline" className="gap-1.5">
             <a href={mailto}>
               <Mail className="size-4" /> Email
             </a>
           </Button>
-          {SMS_ENABLED ? (
+          {smsEnabled ? (
             <Button asChild variant="outline" className="gap-1.5">
               <a href={`sms:${phone ?? ""}?&body=${encodeURIComponent(message)}`}>
                 <MessageSquare className="size-4" /> Text

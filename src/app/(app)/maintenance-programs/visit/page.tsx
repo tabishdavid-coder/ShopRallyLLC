@@ -3,13 +3,13 @@ import Link from "next/link";
 import { ExpressVisitClient } from "@/components/maintenance/express-visit-client";
 import { getCurrentUser } from "@/lib/platform";
 import { getShopId } from "@/lib/shop";
-import { canUseFeature } from "@/lib/subscription";
+import { canUseReleasedFeature } from "@/lib/subscription";
 
 export const metadata = { title: "Service Visit — Maintenance Programs" };
 
 export default async function ServiceVisitPage() {
   const shopId = await getShopId();
-  const canAccess = await canUseFeature(shopId, "maintenance_programs");
+  const canAccess = await canUseReleasedFeature(shopId, "maintenance_programs");
   const user = await getCurrentUser();
   const techName = [user.firstName, user.lastName].filter(Boolean).join(" ");
 

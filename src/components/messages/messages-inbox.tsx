@@ -16,7 +16,7 @@ import {
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { SMS_ENABLED } from "@/lib/features";
+import { useSmsUiEnabled } from "@/lib/shop-capabilities";
 import { customerInitials } from "@/lib/format";
 import type { ConversationRow } from "@/server/messages-inbox";
 import type { MessageRow } from "@/lib/messaging-types";
@@ -66,6 +66,7 @@ export function MessagesInbox({
   initialCustomerId?: string | null;
   mockMode?: boolean;
 }) {
+  const smsEnabled = useSmsUiEnabled();
   const [conversations, setConversations] = useState(initial);
   const [selectedId, setSelectedId] = useState<string | null>(() => {
     if (initialCustomerId) return initialCustomerId;
@@ -151,10 +152,11 @@ export function MessagesInbox({
     });
   }
 
-  if (!SMS_ENABLED) {
+  if (!smsEnabled) {
     return (
       <p className="text-sm text-muted-foreground">
-        SMS is disabled. Set SMS_ENABLED to enable messaging.
+        Two-way SMS is not included on Core. Upgrade to Pro to message customers in-app, or share
+        estimates and invoices by email.
       </p>
     );
   }

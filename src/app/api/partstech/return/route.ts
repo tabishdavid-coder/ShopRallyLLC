@@ -1,6 +1,7 @@
 import type { NextRequest } from "next/server";
 
 import { prisma } from "@/db/client";
+import { releasedFeatureDenied } from "@/lib/subscription";
 import { getShopMatrices, shopPartRetail } from "@/server/pricing-matrix";
 import { getPartsTechForShop } from "@/server/services/partstech";
 
@@ -42,23 +43,28 @@ export async function GET(req: NextRequest) {
       if (!ro) {
         error = "Repair order not found.";
       } else {
-        const provider = await getPartsTechForShop(ro.shopId);
-        if (!provider.getQuote) {
-          error = "PartsTech quote fetch not configured.";
+        const featureDenied = await releasedFeatureDenied(ro.shopId, "parts");
+        if (featureDenied) {
+          error = featureDenied;
         } else {
-          const parts = await provider.getQuote(sessionId);
-          const { partTiers } = await getShopMatrices(ro.shopId);
-          partsPayload = parts.map((p) => ({
-            partstechId: p.partstechId,
-            brand: p.brand,
-            partNumber: p.partNumber,
-            description: p.description,
-            costCents: p.costCents,
-            retailCents: partTiers.length ? shopPartRetail(p.costCents, partTiers) : p.retailCents,
-            supplier: p.supplier,
-            quantity: 1,
-          }));
-          if (!partsPayload.length) error = "No parts in PartsTech quote.";
+          const provider = await getPartsTechForShop(ro.shopId);
+          if (!provider.getQuote) {
+            error = "PartsTech quote fetch not configured.";
+          } else {
+            const parts = await provider.getQuote(sessionId);
+            const { partTiers } = await getShopMatrices(ro.shopId);
+            partsPayload = parts.map((p) => ({
+              partstechId: p.partstechId,
+              brand: p.brand,
+              partNumber: p.partNumber,
+              description: p.description,
+              costCents: p.costCents,
+              retailCents: partTiers.length ? shopPartRetail(p.costCents, partTiers) : p.retailCents,
+              supplier: p.supplier,
+              quantity: 1,
+            }));
+            if (!partsPayload.length) error = "No parts in PartsTech quote.";
+          }
         }
       }
     }

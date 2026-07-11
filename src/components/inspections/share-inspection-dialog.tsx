@@ -10,7 +10,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { SMS_ENABLED } from "@/lib/features";
+import { useSmsUiEnabled } from "@/lib/shop-capabilities";
 import { formatPhoneInput } from "@/lib/phone";
 import {
   getInspectionShareLink,
@@ -38,6 +38,7 @@ export function ShareInspectionDialog({
   phones: { label: string; value: string }[];
   email: string | null;
 }) {
+  const smsEnabled = useSmsUiEnabled();
   const [method, setMethod] = useState<"SMS" | "EMAIL">("EMAIL");
   const [phoneChoice, setPhoneChoice] = useState<string>(phones[0]?.value ?? "other");
   const [otherPhone, setOtherPhone] = useState("");
@@ -155,7 +156,7 @@ export function ShareInspectionDialog({
               size="sm"
               variant={method === "SMS" ? "default" : "outline"}
               onClick={() => setMethod("SMS")}
-              disabled={!SMS_ENABLED}
+              disabled={!smsEnabled}
             >
               Text
             </Button>

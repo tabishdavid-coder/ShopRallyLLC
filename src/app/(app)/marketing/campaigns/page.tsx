@@ -7,7 +7,7 @@ import {
 } from "@/components/marketing/campaigns/campaigns-list";
 import { GROWTH_ENGINE, GROWTH_PRODUCTS, growthEnginePageTitle } from "@/lib/growth-engine-brand";
 import { getShopId } from "@/lib/shop";
-import { canUseFeature } from "@/lib/subscription";
+import { canUseReleasedFeature } from "@/lib/subscription";
 import { listCampaigns, getCampaignContext } from "@/server/campaigns";
 import type { CampaignStatus } from "@/generated/prisma";
 
@@ -38,7 +38,7 @@ export default async function MarketingCampaignsPage({
       : undefined;
 
   const [canCreate, campaigns, ctx] = await Promise.all([
-    canUseFeature(shopId, "marketing_campaigns"),
+    canUseReleasedFeature(shopId, "marketing_campaigns"),
     listCampaigns(shopId, status),
     getCampaignContext(shopId),
   ]);

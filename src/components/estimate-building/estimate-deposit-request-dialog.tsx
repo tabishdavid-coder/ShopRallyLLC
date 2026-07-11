@@ -32,7 +32,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { formatCents } from "@/lib/format";
-import { SMS_ENABLED } from "@/lib/features";
+import { useSmsUiEnabled } from "@/lib/shop-capabilities";
 import {
   createDepositRequest,
   recordManualDepositPayment,
@@ -62,6 +62,7 @@ export function EstimateDepositRequestDialog({
   estimateTotalCents: number;
   existingDeposit: DepositInfo | null;
 }) {
+  const smsEnabled = useSmsUiEnabled();
   const router = useRouter();
   const [pending, start] = useTransition();
   const [amount, setAmount] = useState("");
@@ -272,7 +273,7 @@ export function EstimateDepositRequestDialog({
                 {copied ? "Copied" : "Copy"}
               </Button>
             </div>
-            <div className={`mt-2 grid gap-2 ${SMS_ENABLED ? "grid-cols-2" : ""}`}>
+            <div className={`mt-2 grid gap-2 ${smsEnabled ? "grid-cols-2" : ""}`}>
               <Button
                 type="button"
                 variant="outline"
@@ -283,7 +284,7 @@ export function EstimateDepositRequestDialog({
               >
                 <Mail className="size-4" /> Email link
               </Button>
-              {SMS_ENABLED ? (
+              {smsEnabled ? (
                 <Button
                   type="button"
                   variant="outline"

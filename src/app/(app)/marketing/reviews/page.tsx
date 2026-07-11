@@ -8,7 +8,7 @@ import {
 } from "@/server/google-reviews";
 import { getIntegrationStatus } from "@/server/integrations";
 import { getShopId } from "@/lib/shop";
-import { canUseFeature } from "@/lib/subscription";
+import { canUseReleasedFeature } from "@/lib/subscription";
 import { getReviewReplyAiSettings } from "@/server/actions/google-reviews";
 
 export const metadata = {
@@ -54,7 +54,7 @@ export default async function GoogleReviewsPage({
     getGoogleReviewsInbox(filter),
     getGoogleReviewsIntegration(shopId),
     getIntegrationStatus("google-reviews"),
-    canUseFeature(shopId, "ai_review_replies"),
+    canUseReleasedFeature(shopId, "ai_review_replies"),
     getReviewReplyAiSettings(),
   ]);
 

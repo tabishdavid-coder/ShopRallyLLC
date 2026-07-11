@@ -1,6 +1,6 @@
 import "server-only";
 
-import { canUseFeature } from "@/lib/subscription";
+import { canUseReleasedFeature } from "@/lib/subscription";
 import { getGoogleGscIntegration } from "@/server/google-search-console";
 import { refreshShopGa4MetricsCache } from "@/server/seo-ga4-analytics";
 import { getSeoAutomationAdmin } from "@/server/seo-automation";
@@ -29,7 +29,7 @@ export async function refreshAllShopSeoMetricCaches(): Promise<{
 
   for (const { shopId } of integrations) {
     try {
-      const hasFeature = await canUseFeature(shopId, "website_seo");
+      const hasFeature = await canUseReleasedFeature(shopId, "website_seo");
       if (!hasFeature) {
         skipped += 1;
         continue;

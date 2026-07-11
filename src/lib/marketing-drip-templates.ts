@@ -46,7 +46,7 @@ Quick snapshot of why shops are switching to ShopRally:
 
 • Job board + estimates + Operations Daily Snapshot in one CRM
 • Digital vehicle inspections on every plan
-• ${PLANS.STARTER.name} ($${repairPilotStarterMonthly(true)}/mo annual): CRM suite · MOTOR +$50/mo
+• ${PLANS.STARTER.name} ($${repairPilotStarterMonthly(true)}/mo annual): CRM suite · shop labor library
 • ${PLANS.PROFESSIONAL.name} ($${repairPilotAllInMonthly(true)}/mo annual): licensed MOTOR + Growth Engine + reviews
 • ${PLANS.ENTERPRISE.name} ($${repairPilotOverdriveMonthly(true)}/mo annual): AI, ShopSite, Local SEO, maintenance programs
 • Optional ShopSite ($99/mo) + Local SEO ($129/mo) — included on ${PLANS.ENTERPRISE.name}

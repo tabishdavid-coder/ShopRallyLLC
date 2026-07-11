@@ -6,7 +6,7 @@ import type { Prisma } from "@/generated/prisma";
 
 import { prisma } from "@/db/client";
 import { getShopId } from "@/lib/shop";
-import { canUseFeature } from "@/lib/subscription";
+import { canUseReleasedFeature } from "@/lib/subscription";
 import { PLANS } from "@/lib/plans";
 import {
   ensureAccessToken,
@@ -236,7 +236,7 @@ export async function getReviewReplyAiSettings(): Promise<
       where: { id: shopId },
       select: { aiReviewReplyTone: true },
     }),
-    canUseFeature(shopId, "ai_review_replies"),
+    canUseReleasedFeature(shopId, "ai_review_replies"),
   ]);
   return {
     tone: parseReviewReplyTone(shop?.aiReviewReplyTone),
@@ -250,7 +250,7 @@ export async function updateReviewReplyTone(
   const shopId = await getShopId();
   const denied = await gates.employeesManage(shopId);
   if (denied) return denied;
-  if (!(await canUseFeature(shopId, "ai_review_replies"))) {
+  if (!(await canUseReleasedFeature(shopId, "ai_review_replies"))) {
     return {
       ok: false,
       error: `AI review reply settings require the ${PLANS.ENTERPRISE.name} plan.`,
@@ -280,7 +280,7 @@ export async function draftGoogleReviewReply(raw: unknown): Promise<GoogleReview
   const denied = await gates.customersMessage(shopId);
   if (denied) return denied;
 
-  if (!(await canUseFeature(shopId, "ai_review_replies"))) {
+  if (!(await canUseReleasedFeature(shopId, "ai_review_replies"))) {
     return {
       ok: false,
       error: `AI review replies are included on the ${PLANS.ENTERPRISE.name} plan. Upgrade in Billing to unlock.`,

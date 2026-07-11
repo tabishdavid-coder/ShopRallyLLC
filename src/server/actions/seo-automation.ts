@@ -7,7 +7,7 @@ import { GROWTH_ENGINE, GROWTH_PRODUCTS } from "@/lib/growth-engine-brand";
 import { PLANS } from "@/lib/plans";
 import { AddExternalSeoPropertySchema } from "@/lib/seo-automation";
 import { getShopId } from "@/lib/shop";
-import { canUseFeature } from "@/lib/subscription";
+import { canUseReleasedFeature } from "@/lib/subscription";
 import { publicSitePath, siteSlugFromShop } from "@/lib/website-seo";
 import { prisma } from "@/db/client";
 import type { SeoStripeCatalogId } from "@/lib/seo-stripe-products";
@@ -30,7 +30,7 @@ async function requireSeoFeature(): Promise<{ shopId: string } | { error: string
   const shopId = await getShopId();
   const denied = await gates.employeesManage(shopId);
   if (denied) return { error: denied.error };
-  const allowed = await canUseFeature(shopId, "website_seo");
+  const allowed = await canUseReleasedFeature(shopId, "website_seo");
   if (!allowed) {
     return {
       error: `${GROWTH_PRODUCTS.seoAutopilot.label} requires ${PLANS.ENTERPRISE.name} or a Local SEO subscription ($129/mo). Upgrade in Settings → Subscription.`,

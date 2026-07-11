@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { MaintenanceProgramsHub } from "@/components/marketing/maintenance-programs-hub";
 import { prisma } from "@/db/client";
 import { getShopId } from "@/lib/shop";
-import { canUseFeature } from "@/lib/subscription";
+import { canUseReleasedFeature } from "@/lib/subscription";
 import { getMarketingMaintenanceProgramsAdmin } from "@/server/actions/maintenance-programs";
 import { listCannedJobCategories, listCannedJobsForPicker } from "@/server/canned-jobs";
 import { listAllProgramServices } from "@/server/maintenance-program-services";
@@ -19,7 +19,7 @@ export const dynamic = "force-dynamic";
 export default async function MaintenanceProgramsPage() {
   const shopId = await getShopId();
   const [canEdit, data, services, cannedJobs, cannedJobCategories, shopRow] = await Promise.all([
-    canUseFeature(shopId, "maintenance_programs"),
+    canUseReleasedFeature(shopId, "maintenance_programs"),
     getMarketingMaintenanceProgramsAdmin(),
     listAllProgramServices(shopId),
     listCannedJobsForPicker(shopId),

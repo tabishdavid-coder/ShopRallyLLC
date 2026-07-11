@@ -55,7 +55,7 @@ import {
   smsPhoneHref,
   splitVinForDisplay,
 } from "@/lib/ro-context-display";
-import { SMS_ENABLED } from "@/lib/features";
+import { useSmsUiEnabled } from "@/lib/shop-capabilities";
 import { cn } from "@/lib/utils";
 import { ROStatus } from "@/generated/prisma";
 import { RoMessages } from "@/components/repair-order/ro-messages";
@@ -209,6 +209,7 @@ export function RoContextDeck({
   customerTags?: string[];
   vehicleSpecs: VehicleSpecsView;
 }) {
+  const smsEnabled = useSmsUiEnabled();
   const v = ro.vehicle;
   const c = ro.customer;
   const save = useRoSidebarSave(ro.id);
@@ -307,7 +308,7 @@ export function RoContextDeck({
               onKeyDown={(e) => e.stopPropagation()}
             >
               {c.phone ? (
-                SMS_ENABLED ? (
+                smsEnabled ? (
                   <ContextQuickAction label="Text customer" onClick={() => setMessagesOpen(true)}>
                     <MessageSquare className="size-3" />
                   </ContextQuickAction>

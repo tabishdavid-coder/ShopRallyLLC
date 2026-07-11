@@ -8,7 +8,7 @@ import { getAppUrl } from "@/lib/app-url";
 import { DEFAULT_SMS_OPT_OUT_FOOTER, deriveShopSmsSetupStatus, type ShopSmsSetupStatus } from "@/lib/sms-constants";
 import { getShopId } from "@/lib/shop";
 import { normalizePhoneE164 } from "@/lib/phone";
-import { canUseFeature } from "@/lib/subscription";
+import { canUseReleasedFeature } from "@/lib/subscription";
 import { PLANS } from "@/lib/plans";
 import { AgreementType } from "@/generated/prisma";
 import { shopHasCurrentAgreement } from "@/server/legal";
@@ -104,7 +104,7 @@ export async function getMessagingSettings(): Promise<MessagingSettings> {
       where: { type: AgreementType.SMS_ADDENDUM, isCurrent: true },
       select: { version: true },
     }),
-    canUseFeature(shopId, "ai_receptionist"),
+    canUseReleasedFeature(shopId, "ai_receptionist"),
     listShopVoiceCallLogs(25),
   ]);
 
@@ -207,7 +207,7 @@ export async function updateMessagingSettings(
   });
 
   if (parsed.data.aiSmsAgentEnabled === true) {
-    const allowed = await canUseFeature(shopId, "ai_receptionist");
+    const allowed = await canUseReleasedFeature(shopId, "ai_receptionist");
     if (!allowed) {
       return {
         ok: false,
@@ -217,7 +217,7 @@ export async function updateMessagingSettings(
   }
 
   if (parsed.data.aiVoiceAgentEnabled === true) {
-    const allowed = await canUseFeature(shopId, "ai_receptionist");
+    const allowed = await canUseReleasedFeature(shopId, "ai_receptionist");
     if (!allowed) {
       return {
         ok: false,

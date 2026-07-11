@@ -14,14 +14,41 @@ import {
   type UpdateVehicleResult,
 } from "@/lib/vehicle-schemas";
 import { vinService, isValidVin, type DecodedVin } from "@/server/services/vin";
-import { lookupPlateService, type PlateResult } from "@/server/services/plate-lookup";
+import { lookupPlateService } from "@/server/services/plate-lookup";
+import {
+  decodeOverageNotice,
+  getDecodeUsageSummary,
+  recordDecodeUsage,
+} from "@/server/services/decode-usage";
 import { gates } from "@/server/permission-gates";
 
 type DecodeVinResult =
-  | { ok: true; decoded: DecodedVin }
+  | { ok: true; decoded: DecodedVin; usageNotice?: string }
   | { ok: false; error: string };
 
-/** Decode a VIN (Auto.dev primary, NHTSA fallback). */
+type MeteredPlateResult =
+  | { ok: true; decoded: DecodedVin; vin: string | null; usageNotice?: string }
+  | { ok: false; error: string };
+
+async function afterSuccessfulDecode(
+  shopId: string,
+  kind: "VIN" | "PLATE",
+): Promise<string | undefined> {
+  await recordDecodeUsage(shopId, kind);
+  const shop = await prisma.shop.findUnique({
+    where: { id: shopId },
+    select: { plan: true, planFeatures: true },
+  });
+  if (!shop) return undefined;
+  const summary = await getDecodeUsageSummary({
+    shopId,
+    plan: shop.plan,
+    planFeatures: shop.planFeatures,
+  });
+  return decodeOverageNotice(summary) ?? undefined;
+}
+
+/** Decode a VIN (Auto.dev primary, NHTSA fallback). Counts toward Core shared meter on success. */
 export async function decodeVin(vin: string): Promise<DecodeVinResult> {
   const v = vin.trim().toUpperCase();
   if (!isValidVin(v)) {
@@ -32,19 +59,25 @@ export async function decodeVin(vin: string): Promise<DecodeVinResult> {
     if (!decoded || (!decoded.make && !decoded.model && !decoded.year)) {
       return { ok: false, error: "Couldn't decode that VIN. Check it and try again." };
     }
-    return { ok: true, decoded };
+    const shopId = await getShopId();
+    const usageNotice = await afterSuccessfulDecode(shopId, "VIN");
+    return { ok: true, decoded, usageNotice };
   } catch {
     return { ok: false, error: "VIN service is unavailable right now." };
   }
 }
 
-/** Look up a US license plate → vehicle (mock in dev, Auto.dev when configured). */
-export async function lookupPlate(state: string, plate: string): Promise<PlateResult> {
-  return lookupPlateService(plate, state);
+/** Look up a US license plate → vehicle (mock in dev, Auto.dev when configured). Counts on success. */
+export async function lookupPlate(state: string, plate: string): Promise<MeteredPlateResult> {
+  const result = await lookupPlateService(plate, state);
+  if (!result.ok) return result;
+  const shopId = await getShopId();
+  const usageNotice = await afterSuccessfulDecode(shopId, "PLATE");
+  return { ...result, usageNotice };
 }
 
 /** @deprecated Use lookupPlate — kept for existing callers. */
-export async function decodePlate(state: string, plate: string): Promise<PlateResult> {
+export async function decodePlate(state: string, plate: string): Promise<MeteredPlateResult> {
   return lookupPlate(state, plate);
 }
 

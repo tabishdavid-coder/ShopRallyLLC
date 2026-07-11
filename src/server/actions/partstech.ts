@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "@/db/client";
 import { publicUrl } from "@/lib/app-url";
 import { getShopId } from "@/lib/shop";
+import { releasedFeatureDenied } from "@/lib/subscription";
 import { recomputeRoTotals } from "@/server/estimate";
 import { getShopMatrices, shopPartRetail } from "@/server/pricing-matrix";
 import { syncPurchaseOrdersFromParts } from "@/server/purchase-orders";
@@ -16,6 +17,10 @@ export type PunchoutResult =
   | { ok: true; mode: "live"; redirectUrl: string }
   | { ok: false; error: string };
 
+async function requirePartsTech(shopId: string): Promise<string | null> {
+  return releasedFeatureDenied(shopId, "parts");
+}
+
 /**
  * Start a PartsTech punchout: creates a session pre-loaded with the vehicle and
  * returns the catalog redirect URL to embed. Falls back to mode "mock" (the
@@ -25,6 +30,8 @@ export async function startPunchout(roId: string, jobId?: string | null): Promis
   const shopId = await getShopId();
   const denied = await gates.estimateEdit(shopId);
   if (denied) return { ok: false, error: denied.error };
+  const featureDenied = await requirePartsTech(shopId);
+  if (featureDenied) return { ok: false, error: featureDenied };
 
   const ro = await prisma.repairOrder.findFirst({
     where: { id: roId, shopId },
@@ -61,6 +68,8 @@ export async function fetchPartsTechSessionQuote(
   const shopId = await getShopId();
   const denied = await gates.estimateEdit(shopId);
   if (denied) return { ok: false, error: denied.error };
+  const featureDenied = await requirePartsTech(shopId);
+  if (featureDenied) return { ok: false, error: featureDenied };
 
   const ro = await prisma.repairOrder.findFirst({ where: { id: roId, shopId }, select: { id: true } });
   if (!ro) return { ok: false, error: "Repair order not found." };
@@ -87,6 +96,8 @@ export async function searchPartsTech(roId: string, query: string): Promise<Sear
   const shopId = await getShopId();
   const denied = await gates.estimateView(shopId);
   if (denied) return { ok: false, error: denied.error };
+  const featureDenied = await requirePartsTech(shopId);
+  if (featureDenied) return { ok: false, error: featureDenied };
 
   const ro = await prisma.repairOrder.findFirst({
     where: { id: roId, shopId },
@@ -141,6 +152,8 @@ export async function importPartsToJob(
     const denied = await gates.estimateEdit(shopId);
     if (denied) return { ok: false, error: denied.error };
   }
+  const featureDenied = await requirePartsTech(shopId);
+  if (featureDenied) return { ok: false, error: featureDenied };
 
   const ro = await prisma.repairOrder.findFirst({ where: { id: d.roId, shopId }, select: { id: true } });
   if (!ro) return { ok: false, error: "Repair order not found." };
@@ -237,6 +250,8 @@ export async function importMappedParts(raw: MapInput): Promise<ImportResult> {
   const shopId = await getShopId();
   const denied = await gates.estimateEdit(shopId);
   if (denied) return { ok: false, error: denied.error };
+  const featureDenied = await requirePartsTech(shopId);
+  if (featureDenied) return { ok: false, error: featureDenied };
 
   const ro = await prisma.repairOrder.findFirst({ where: { id: roId, shopId }, select: { id: true } });
   if (!ro) return { ok: false, error: "Repair order not found." };

@@ -15,6 +15,7 @@ import { appUrl } from "@/lib/app-url";
 import { getShopId } from "@/lib/shop";
 import { getCurrentUser } from "@/lib/platform";
 import { rateLimitAction } from "@/lib/rate-limit";
+import { releasedFeatureDenied } from "@/lib/subscription";
 import { requirePermission } from "@/server/permissions";
 import { recordShopAuditEventSafe } from "@/server/shop-audit";
 import { mintDepositShareToken } from "@/server/deposit-request";
@@ -123,6 +124,19 @@ export async function sendDepositRequestLink(
   }
 
   const shopId = await getShopId();
+  if (channel === "sms") {
+    const planDenied = await releasedFeatureDenied(shopId, "sms");
+    if (planDenied) {
+      return {
+        ok: false,
+        error:
+          planDenied === "This feature is not included in your plan."
+            ? "Two-way SMS is not included on Core. Send the deposit link by email, or upgrade to Pro."
+            : planDenied,
+      };
+    }
+  }
+
   const perm = await requirePermission(shopId, "payments.collect");
   if (!perm.ok) return { ok: false, error: perm.error };
 

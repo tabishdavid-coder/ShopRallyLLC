@@ -1,4 +1,5 @@
 import type { ShopPlan } from "@/generated/prisma";
+import { stripReleaseFromPlanFeatures } from "@/lib/release-flags";
 
 /**
  * Public pricing strategy (2026 Q3): premium positioning between legacy desktop CRM
@@ -37,7 +38,39 @@ export type PlanLimits = {
   maxUsers: number | null;
   /** null = unlimited */
   maxRepairOrdersPerMonth: number | null;
+  /**
+   * Shared calendar-month meter for successful VIN decode + plate lookup.
+   * null = unlimited (Pro / Elite). Core includes 100; overage billed in packs.
+   */
+  maxVinPlateDecodesPerMonth: number | null;
 };
+
+/** Core overage: $10 per additional 100 successful VIN/plate decodes (manual / Stripe Billing later). */
+export const VIN_PLATE_DECODE_OVERAGE = {
+  packSize: 100,
+  packCents: 1000,
+} as const;
+
+/** Estimate overage cents for a Core shop given usage this calendar month. */
+export function vinPlateDecodeOverageCents(
+  usedThisMonth: number,
+  limit: number | null,
+): number {
+  if (limit === null || usedThisMonth <= limit) return 0;
+  const over = usedThisMonth - limit;
+  return Math.ceil(over / VIN_PLATE_DECODE_OVERAGE.packSize) * VIN_PLATE_DECODE_OVERAGE.packCents;
+}
+
+/** Human-readable overage note for Settings → Subscription. */
+export function vinPlateDecodeOverageLabel(
+  usedThisMonth: number,
+  limit: number | null,
+): string | null {
+  const cents = vinPlateDecodeOverageCents(usedThisMonth, limit);
+  if (cents <= 0) return null;
+  const packs = cents / VIN_PLATE_DECODE_OVERAGE.packCents;
+  return `$${cents / 100} estimated overage (${packs} × $10 / 100) — billed manually until Stripe Billing`;
+}
 
 export type PlanFeatureSet = PlanLimits & Record<PlanFeature, boolean>;
 
@@ -69,7 +102,7 @@ export type PlanDefinition = {
   features: PlanFeatureSet;
 };
 
-/** Labor tiers — Core = shop CRM; MOTOR +$50/mo on Core; Pro+ includes licensed MOTOR. */
+/** Labor tiers — Core = shop library; Pro+ includes licensed MOTOR. */
 export const LABOR_PLAN_COPY = {
   ignitionHighlight: "Shop library & estimate tooling",
   momentumHighlight: "Licensed MOTOR labor data",
@@ -80,9 +113,24 @@ export const LABOR_PLAN_COPY = {
   } satisfies Record<ShopPlan, string>,
   billingIgnition: "Shop library & estimate tooling",
   billingMomentum: "Licensed MOTOR labor data",
-  featuresIgnition: "MOTOR +$50/mo on Core · included on Pro+",
+  featuresIgnition: "Licensed MOTOR on Pro+",
   faqAnswer:
-    "MOTOR labor data is $50/mo extra on Core and included on Pro and Elite — licensed flat-rate guides in the estimate. Pro and Elite also include license plate & VIN decoding plus OEM specs and fluid capacities.",
+    "Licensed MOTOR labor data is included on Pro and Elite — flat-rate guides and procedures in the estimate. Core uses the shop labor library. Core includes 100 VIN & plate decodes per month ($10 per additional 100); Pro and Elite are unlimited, plus OEM specs and fluid capacities.",
+} as const;
+
+/** Shared VIN + plate decode meter — Core allowance + overage packs. */
+export const VIN_PLATE_DECODE_PLAN_COPY = {
+  coreIncluded: 100,
+  overagePackLabel: "$10 / additional 100",
+  comparisonByPlan: {
+    STARTER: "100 / mo · then $10 / 100",
+    PROFESSIONAL: "Unlimited",
+    ENTERPRISE: "Unlimited",
+  } satisfies Record<ShopPlan, string>,
+  billingCore: "100 VIN & plate decodes / mo · $10 per extra 100",
+  billingProPlus: "Unlimited VIN & plate decoding",
+  faqAnswer:
+    "Core includes 100 successful VIN or plate decodes per calendar month (shared meter). Additional packs are $10 per 100 — usage is metered and shown in Settings → Subscription; overage is billed manually until Stripe Billing. Pro and Elite include unlimited decoding.",
 } as const;
 
 /** Operations Daily Snapshot — included on every plan tier. */
@@ -170,9 +218,9 @@ export const PLATFORM_MODULES = [
     id: "labor",
     name: "Labor Book",
     description:
-      "MOTOR labor data is $50/mo extra on Core and included on Pro and Elite, with license plate & VIN decoding plus OEM specs and fluid capacities on Pro+.",
+      "Licensed MOTOR labor data is included on Pro and Elite. Core uses the shop labor library. Core includes 100 VIN & plate decodes / mo ($10 per extra 100); Pro and Elite are unlimited, with OEM specs and fluid capacities on Pro+.",
     icon: "wrench" as const,
-    pricingNote: "MOTOR +$50 on Core · included on Pro+",
+    pricingNote: "Licensed MOTOR on Pro+",
   },
   {
     id: "insights",
@@ -386,14 +434,6 @@ export type PlanAddOn = {
 /** Optional monthly add-ons — stack on any tier where noted. */
 export const PLAN_ADDONS: PlanAddOn[] = [
   {
-    id: "motor-labor",
-    name: "MOTOR labor data",
-    priceLabel: "$50/mo",
-    description:
-      "Licensed MOTOR flat-rate guides and procedures in the estimate. Included on Pro and Elite.",
-    tiers: "starter+",
-  },
-  {
     id: "ai-receptionist",
     name: "AI receptionist",
     priceLabel: "$59/mo",
@@ -438,6 +478,7 @@ export const PLAN_ADDONS: PlanAddOn[] = [
 const starterFeatures: PlanFeatureSet = {
   maxUsers: null,
   maxRepairOrdersPerMonth: null,
+  maxVinPlateDecodesPerMonth: VIN_PLATE_DECODE_PLAN_COPY.coreIncluded,
   cannedJobs: true,
   partsTech: false,
   laborGuide: true,
@@ -467,6 +508,7 @@ const starterFeatures: PlanFeatureSet = {
 const professionalFeatures: PlanFeatureSet = {
   maxUsers: null,
   maxRepairOrdersPerMonth: null,
+  maxVinPlateDecodesPerMonth: null,
   cannedJobs: true,
   partsTech: true,
   laborGuide: true,
@@ -496,6 +538,7 @@ const professionalFeatures: PlanFeatureSet = {
 const EliteFeatures: PlanFeatureSet = {
   maxUsers: null,
   maxRepairOrdersPerMonth: null,
+  maxVinPlateDecodesPerMonth: null,
   cannedJobs: true,
   partsTech: true,
   laborGuide: true,
@@ -531,8 +574,8 @@ export const PLANS: Record<ShopPlan, PlanDefinition> = {
     tagline: "Core shop CRM — job board, DVIs, estimates & Operations Daily Snapshot.",
     monthlyCents: 11900,
     annualMonthlyCents: 10900,
-    valueNote: "Core CRM · DVIs · Operations Daily Snapshot · MOTOR available +$50/mo",
-    savingsNote: "Core CRM · DVIs · Operations Daily Snapshot · MOTOR available +$50/mo",
+    valueNote: "Core CRM · DVIs · Operations Daily Snapshot",
+    savingsNote: "Core CRM · DVIs · Operations Daily Snapshot",
     pricingCard: {
       bestFor: "Single-bay shops going cloud-first",
       bullets: [
@@ -544,7 +587,8 @@ export const PLANS: Record<ShopPlan, PlanDefinition> = {
         "Canned jobs",
         "Digital vehicle inspections",
         "Operations Daily Snapshot",
-        "MOTOR labor data — $50/mo extra",
+        "100 VIN & plate decodes / mo · $10 per extra 100",
+        "Email estimates & invoices (SMS on Pro+)",
       ],
     },
     features: starterFeatures,
@@ -564,10 +608,11 @@ export const PLANS: Record<ShopPlan, PlanDefinition> = {
       includesPrevious: "STARTER",
       bullets: [
         "Licensed MOTOR labor data",
-        "License plate & VIN decoding",
+        "Unlimited VIN & plate decoding",
         "OEM service specs",
         "OEM fluid capacities",
         "Parts, inventory & PartsTech",
+        "Stripe Connect payments",
         "Two-way SMS",
         "Online booking",
         "Growth Engine — automations & win-back campaigns",
@@ -642,7 +687,7 @@ export function buildPriceComparisonRows(annual: boolean): PriceComparisonRow[] 
       crmLabel: `$${starter}/mo`,
       marketingLabel: "—",
       stackTotal: starter,
-      note: "Core CRM suite · DVIs · Operations Daily Snapshot · MOTOR +$50/mo",
+      note: "Core CRM · DVIs · Daily Snapshot · 100 VIN/plate decodes · shop labor library · no Stripe Connect",
       repairPilot: true,
     },
     {
@@ -651,7 +696,7 @@ export function buildPriceComparisonRows(annual: boolean): PriceComparisonRow[] 
       crmLabel: "Bundled",
       marketingLabel: "Included",
       stackTotal: professional,
-      note: "Everything in Core + licensed MOTOR, VIN/plate decode, Growth Engine & reviews",
+      note: "Everything in Core + licensed MOTOR, unlimited VIN/plate, Stripe Connect, Growth Engine & reviews",
       repairPilot: true,
     },
     {
@@ -723,7 +768,7 @@ export const COMPARISON_ROWS: {
   },
   {
     label: "License plate & VIN decoding",
-    values: { STARTER: false, PROFESSIONAL: true, ENTERPRISE: true },
+    values: VIN_PLATE_DECODE_PLAN_COPY.comparisonByPlan,
   },
   {
     label: "OEM service specs",
@@ -739,7 +784,7 @@ export const COMPARISON_ROWS: {
   },
   {
     label: "MOTOR labor data",
-    values: { STARTER: "$50/mo extra", PROFESSIONAL: true, ENTERPRISE: true },
+    values: { STARTER: false, PROFESSIONAL: true, ENTERPRISE: true },
   },
   {
     label: "Stripe Connect payments",
@@ -902,13 +947,11 @@ export type ShopPlanContext = {
   planFeatures?: unknown;
 };
 
-/** Merge plan defaults with optional per-shop JSON overrides. */
+/** Merge plan defaults with optional per-shop JSON overrides (ignores `_release`). */
 export function resolvePlanFeatures(shop: ShopPlanContext): PlanFeatureSet {
   const base = PLANS[shop.plan].features;
-  const overrides = shop.planFeatures;
-  if (!overrides || typeof overrides !== "object" || Array.isArray(overrides)) {
-    return base;
-  }
+  const overrides = stripReleaseFromPlanFeatures(shop.planFeatures);
+  if (!overrides) return base;
   return { ...base, ...(overrides as Partial<PlanFeatureSet>) };
 }
 
@@ -965,7 +1008,7 @@ export const INTEGRATION_PARTNERS = [
 export const PRICING_FAQ = [
   {
     q: "Which plan should I choose?",
-    a: "Core for a lean single-bay shop getting off paper — ShopRally CRM suite, DVIs, emails, job board, and Operations Daily Snapshot; MOTOR labor data is $50/mo extra. Pro when you want licensed MOTOR included, plate & VIN decoding, OEM specs & fluids, PartsTech, SMS, booking, Growth Engine, and Google review management. Elite when you want AI receptionist, ShopSite, Local SEO, and maintenance programs in one bill.",
+    a: "Core for a lean single-bay shop getting off paper — ShopRally CRM suite, DVIs, emails, job board, Operations Daily Snapshot, shop labor library, and 100 VIN & plate decodes per month ($10 per additional 100). Core does not include Stripe Connect or licensed MOTOR. Pro when you want licensed MOTOR included, unlimited VIN/plate decoding, OEM specs & fluids, PartsTech, Stripe Connect, SMS, booking, Growth Engine, and Google review management. Elite when you want AI receptionist, ShopSite, Local SEO, and maintenance programs in one bill.",
   },
   {
     q: "How does ShopSite and SEO pricing work?",
@@ -996,12 +1039,16 @@ export const PRICING_FAQ = [
     a: LABOR_PLAN_COPY.faqAnswer,
   },
   {
+    q: "How do VIN and plate decode limits work?",
+    a: VIN_PLATE_DECODE_PLAN_COPY.faqAnswer,
+  },
+  {
     q: "What are MOTOR labor guides?",
-    a: "MOTOR labor data is licensed flat-rate guides and procedures in the estimate. On Core it’s $50/mo extra; on Pro and Elite it’s included.",
+    a: "MOTOR labor data is licensed flat-rate guides and procedures in the estimate. It is included on Pro and Elite. Core uses the shop labor library.",
   },
   {
     q: "Do you integrate with PartsTech and QuickBooks?",
-    a: "PartsTech and Stripe Connect are on Pro and Elite. QuickBooks integration is on our roadmap — contact us for timeline.",
+    a: "PartsTech and Stripe Connect are on Pro and Elite (not Core). QuickBooks integration is on our roadmap — contact us for timeline.",
   },
   {
     q: "How does additional locations work?",

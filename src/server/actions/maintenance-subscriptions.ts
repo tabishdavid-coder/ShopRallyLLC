@@ -8,7 +8,7 @@ import { resolvePlanPricing } from "@/lib/maintenance-programs";
 import { phoneDigitsKey, formatPhoneInput } from "@/lib/phone";
 import { getCurrentUser } from "@/lib/platform";
 import { getShopId } from "@/lib/shop";
-import { canUseFeature } from "@/lib/subscription";
+import { canUseReleasedFeature } from "@/lib/subscription";
 import { getShopByPlansSlug } from "@/server/maintenance-programs";
 import {
   completeServiceVisit,
@@ -302,7 +302,7 @@ export async function enrollSubscriberInShop(
   const shopId = await getShopId();
   const blocked = await requireStaffAccess(shopId);
   if (blocked) return blocked;
-  const allowed = await canUseFeature(shopId, "maintenance_programs");
+  const allowed = await canUseReleasedFeature(shopId, "maintenance_programs");
   if (!allowed) return { ok: false, error: "Upgrade to Professional to enroll subscribers." };
 
   const plan = await prisma.maintenancePlan.findFirst({
@@ -733,7 +733,7 @@ export async function cancelPlanSubscription(subscriptionId: string): Promise<Ma
   const shopId = await getShopId();
   const blocked = await requireStaffAccess(shopId);
   if (blocked) return blocked;
-  const allowed = await canUseFeature(shopId, "maintenance_programs");
+  const allowed = await canUseReleasedFeature(shopId, "maintenance_programs");
   if (!allowed) return { ok: false, error: "Upgrade to Professional to manage subscribers." };
 
   const sub = await prisma.planSubscription.findFirst({

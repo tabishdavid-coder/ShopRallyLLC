@@ -2,6 +2,7 @@ import "server-only";
 
 import { SMS_ENABLED } from "@/lib/features";
 import { formatMinutesLabel, parseTimeToMinutes } from "@/lib/appointments";
+import { canUseReleasedFeature } from "@/lib/subscription";
 import { emailConfigured, getEmail } from "@/server/services/email";
 import { sendShopEmail } from "@/server/services/shop-email";
 import { recordOutboundMessage } from "@/server/services/messaging";
@@ -165,13 +166,15 @@ export async function sendBookingNotifications(
 
   if (SMS_ENABLED && ctx.customerPhone.trim()) {
     try {
-      const provider = getSms();
-      const body = buildCustomerSmsBody(ctx);
-      const res = await provider.send(ctx.customerPhone, body);
-      await logOutbound(ctx.shopId, ctx.customerId, body, res.status, {
-        twilioSid: res.sid,
-      });
-      result.customerSms = true;
+      if (await canUseReleasedFeature(ctx.shopId, "sms")) {
+        const provider = getSms();
+        const body = buildCustomerSmsBody(ctx);
+        const res = await provider.send(ctx.customerPhone, body);
+        await logOutbound(ctx.shopId, ctx.customerId, body, res.status, {
+          twilioSid: res.sid,
+        });
+        result.customerSms = true;
+      }
     } catch (e) {
       console.error("[booking-notifications] customer SMS failed:", e);
     }

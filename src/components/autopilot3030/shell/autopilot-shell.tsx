@@ -15,6 +15,10 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { KeyedChildren } from "@/lib/keyed-children";
 import type { RoIntakeConfig } from "@/lib/ro-intake-types";
 import type { Shop } from "@/lib/shop";
+import {
+  ShopCapabilitiesProvider,
+  type ShopCapabilities,
+} from "@/lib/shop-capabilities";
 import type { AppNotification } from "@/server/notifications";
 import { cn } from "@/lib/utils";
 
@@ -33,6 +37,7 @@ type AutopilotShellProps = {
   allowedNavHrefs?: string[];
   allowedSectionIds?: string[];
   intakeConfig?: RoIntakeConfig | null;
+  capabilities?: ShopCapabilities;
   children: React.ReactNode;
 };
 
@@ -54,6 +59,7 @@ export function AutopilotShell({
   allowedNavHrefs,
   allowedSectionIds,
   intakeConfig = null,
+  capabilities = { sms: false, stripePayments: false },
   children,
 }: AutopilotShellProps) {
   const fullBleed = pathname === "/workflow";
@@ -64,6 +70,7 @@ export function AutopilotShell({
   const ticketFocus = !persistentSidebar && roDetailFocus;
 
   return (
+    <ShopCapabilitiesProvider value={capabilities}>
     <RoIntakeProvider config={intakeConfig}>
       <TooltipProvider delayDuration={0}>
         <div className="ap-shell flex h-svh flex-col overflow-hidden">
@@ -135,5 +142,6 @@ export function AutopilotShell({
         </div>
       </TooltipProvider>
     </RoIntakeProvider>
+    </ShopCapabilitiesProvider>
   );
 }

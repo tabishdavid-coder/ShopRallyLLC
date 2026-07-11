@@ -4,7 +4,7 @@ import { SubscriptionDetailView } from "@/components/maintenance/subscription-de
 import { appUrl } from "@/lib/app-url";
 import { getCurrentUser } from "@/lib/platform";
 import { getShopId } from "@/lib/shop";
-import { canUseFeature } from "@/lib/subscription";
+import { canUseReleasedFeature } from "@/lib/subscription";
 import { getSubscriptionDetail } from "@/server/maintenance-subscriptions";
 import { getSubscriptionServiceProfile } from "@/server/maintenance-service-visits";
 import { prisma } from "@/db/client";
@@ -19,7 +19,7 @@ export default async function SubscriberDetailPage({
 }) {
   const { id } = await params;
   const shopId = await getShopId();
-  const canAccess = await canUseFeature(shopId, "maintenance_programs");
+  const canAccess = await canUseReleasedFeature(shopId, "maintenance_programs");
   if (!canAccess) notFound();
 
   const user = await getCurrentUser();

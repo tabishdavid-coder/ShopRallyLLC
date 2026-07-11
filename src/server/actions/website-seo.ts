@@ -13,7 +13,7 @@ import {
   WebsiteServicesSchema,
 } from "@/lib/website-seo";
 import { getShopId } from "@/lib/shop";
-import { canUseFeature } from "@/lib/subscription";
+import { canUseReleasedFeature } from "@/lib/subscription";
 import { getCurrentUser } from "@/lib/platform";
 import { ensureWebsiteConfig } from "@/server/website-seo";
 import { submitShopSitemapToGsc } from "@/server/actions/google-search-console";
@@ -26,8 +26,8 @@ async function requireWebsiteFeature(): Promise<{ shopId: string } | { error: st
   const denied = await gates.employeesManage(shopId);
   if (denied) return { error: denied.error };
   const [hasShopSite, hasSeo] = await Promise.all([
-    canUseFeature(shopId, "shop_site"),
-    canUseFeature(shopId, "website_seo"),
+    canUseReleasedFeature(shopId, "shop_site"),
+    canUseReleasedFeature(shopId, "website_seo"),
   ]);
   if (!hasShopSite && !hasSeo) {
     return {

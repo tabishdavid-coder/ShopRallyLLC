@@ -17,6 +17,7 @@ import {
   isStripeEnabled,
   isStripePlatformFallbackAllowed,
 } from "@/lib/stripe";
+import { canUseFeature } from "@/lib/subscription";
 
 export type { ShopStripeStatus, ConnectPrerequisites, ShopConnectProfile };
 
@@ -233,8 +234,9 @@ export async function getShopStripeStatus(shopId: string): Promise<ShopStripeSta
   return buildShopStripeStatus(shop);
 }
 
-/** Whether online invoice pay is available for this shop. */
+/** Whether online invoice pay is available for this shop (plan + Connect readiness). */
 export async function isShopOnlinePaymentsEnabled(shopId: string): Promise<boolean> {
+  if (!(await canUseFeature(shopId, "stripePayments"))) return false;
   const status = await getShopStripeStatus(shopId);
   return status.canAcceptPayments;
 }
@@ -244,6 +246,13 @@ export async function getCheckoutStripeContext(shopId: string): Promise<
   | { canCheckout: true; stripeAccount?: string; usingConnect: boolean }
   | { canCheckout: false; error: string }
 > {
+  if (!(await canUseFeature(shopId, "stripePayments"))) {
+    return {
+      canCheckout: false,
+      error:
+        "Stripe Connect payments are not included on Core. Upgrade to Pro or Elite, or record a manual payment.",
+    };
+  }
   const status = await getShopStripeStatus(shopId);
   if (!status.canAcceptPayments) {
     return {
@@ -416,6 +425,14 @@ async function ensureExpressAccount(shopId: string): Promise<
 
 /** Create (or refresh) Stripe Account Link for Express onboarding. */
 export async function createConnectAccountLink(shopId: string): Promise<ConnectAccountLinkResult> {
+  if (!(await canUseFeature(shopId, "stripePayments"))) {
+    return {
+      ok: false,
+      error:
+        "Stripe Connect is not included on Core. Upgrade to Pro or Elite to accept online payments.",
+    };
+  }
+
   if (!isStripeEnabled()) {
     return {
       ok: false,

@@ -7,7 +7,7 @@ import { parseBookingSettings } from "@/lib/booking-settings";
 import { normalizePhoneE164 } from "@/lib/phone";
 import { isShopOpenNow } from "@/lib/shop-hours";
 import { leadReadyToBook, type SmsAgentLeadDraft } from "@/lib/sms-agent-ai";
-import { canUseFeature } from "@/lib/subscription";
+import { canUseReleasedFeature } from "@/lib/subscription";
 import { isAiConfigured } from "@/server/services/ai/client";
 import { suggestSmsAgentReply } from "@/server/services/ai/sms-agent";
 import {
@@ -74,7 +74,7 @@ export async function shouldRunSmsAfterHoursAgent(shopId: string): Promise<boole
     return true;
   }
 
-  const allowed = await canUseFeature(shopId, "ai_receptionist");
+  const allowed = await canUseReleasedFeature(shopId, "ai_receptionist");
   if (!allowed || !isAiConfigured()) return false;
 
   const shop = await prisma.shop.findUnique({

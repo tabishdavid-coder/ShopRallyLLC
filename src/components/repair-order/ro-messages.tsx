@@ -6,7 +6,7 @@ import { MessageSquare, Send, Link2, Loader2, X, Minus } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { SMS_ENABLED } from "@/lib/features";
+import { useSmsUiEnabled } from "@/lib/shop-capabilities";
 import type { MessageRow, SendResult } from "@/lib/messaging-types";
 import { getMessages, sendText, sendEstimateLink } from "@/server/actions/messaging";
 import { cn } from "@/lib/utils";
@@ -31,7 +31,8 @@ export function RoMessages(props: {
   onOpenChange?: (open: boolean) => void;
   hideTrigger?: boolean;
 }) {
-  if (!SMS_ENABLED) return null;
+  const smsEnabled = useSmsUiEnabled();
+  if (!smsEnabled) return null;
   return <RoMessagesPanel {...props} />;
 }
 

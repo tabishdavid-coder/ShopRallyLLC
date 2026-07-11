@@ -1,0 +1,27 @@
+---
+description: Phased rollout — deploy ≠ release; protect live shops
+globs:
+alwaysApply: true
+---
+
+# Phased rollout (ShopRally)
+
+Full rules: `docs/PHASED-ROLLOUT.md` and `docs/MIGRATION-EXPAND-CONTRACT.md`.
+
+## Hard rules
+
+1. **Deploy ≠ release** — Phase 2+ modules ship behind `planFeatures._release` (default OFF in production). Use `canUseReleasedFeature` / `releasedFeatureDenied` / `isReleased` on server paths — UI hide is not enough.
+2. **Never change Core write paths** (estimate pricing, RO status, payments) without a flag + dual-path; default = current behavior.
+3. **Migrations are expand-only on live** — additive nullable columns/tables first; no drop/rename until flag at 100% + soak. Never `prisma db push` in prod.
+4. **Fail-safe** — missing flag store → feature OFF in production (`releaseFlagsDefaultOpen()`).
+5. **One shared prod version** — no live fork, no per-shop app versions.
+
+## Modules
+
+`growthEngine` | `sms` | `motorLabor` | `partsTech` | `shopSite` | `websiteSeo` | `aiSuite`
+
+Platform toggle: `/platform/shops/[id]` → Release flags.
+
+## Kill switches
+
+`SMS_ENABLED`, `MOTOR_ENABLED`, `RELEASE_KILL_*` — see PHASED-ROLLOUT.md.

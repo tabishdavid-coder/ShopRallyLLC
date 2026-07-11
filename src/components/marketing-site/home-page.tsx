@@ -31,7 +31,7 @@ const PILLARS = [
     icon: Wrench,
     title: "Run your shop",
     description:
-      "Repair orders, job board, canned jobs, and DVIs — licensed MOTOR on Pro+, optional +$50/mo on Core.",
+      "Repair orders, job board, canned jobs, and DVIs — licensed MOTOR on Pro+.",
     accent: "border-brand-navy/20 bg-brand-navy/5",
     iconBg: "bg-brand-navy text-white",
   },
@@ -225,8 +225,9 @@ export function HomePageContent({ foundingSpotsClaimed = 0 }: { foundingSpotsCla
                   DASHBOARD_PLAN_COPY.featuresAllTiers,
                   DVI_PLAN_COPY.featuresAllTiers,
                   LABOR_PLAN_COPY.featuresIgnition,
-                  "Job board, canned jobs & email estimates on Core",
-                  "PartsTech, inventory & plate/VIN decode on Pro+",
+                  "Job board, canned jobs & email estimates on Core (no SMS)",
+                  "100 VIN/plate decodes on Core · unlimited + PartsTech on Pro+",
+                  "Stripe Connect & two-way SMS on Pro+",
                   "Growth Engine automations & win-back on Pro+",
                 ].map((item) => (
                   <li key={item} className="flex items-start gap-2 text-sm text-slate-700">
@@ -278,7 +279,8 @@ export function HomePageContent({ foundingSpotsClaimed = 0 }: { foundingSpotsCla
               "Online booking",
               "Growth Engine — automations & win-back",
               "Google review management",
-              "License plate & VIN decoding",
+              "Unlimited VIN & plate decoding",
+              "Stripe Connect payments",
             ].map((item) => (
               <li
                 key={item}

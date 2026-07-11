@@ -23,7 +23,7 @@ import {
   smsPhoneHref,
   splitVinForDisplay,
 } from "@/lib/ro-context-display";
-import { SMS_ENABLED } from "@/lib/features";
+import { useSmsUiEnabled } from "@/lib/shop-capabilities";
 import { cn } from "@/lib/utils";
 
 function QuickAction({
@@ -128,6 +128,7 @@ export function EstimateLabContextStack({
   drawerData: EstimateContextDrawerData | null;
   vehicleSpecs: EstimateLabVehicleSpecsBundle | null;
 }) {
+  const smsEnabled = useSmsUiEnabled();
   const ctx = useEstimateLabContextDrawerOptional();
 
   const isBusiness = Boolean(customer.company?.trim());
@@ -222,7 +223,7 @@ export function EstimateLabContextStack({
             onClick={(e) => e.stopPropagation()}
             onKeyDown={(e) => e.stopPropagation()}
           >
-            {SMS_ENABLED && ctx ? (
+            {smsEnabled && ctx ? (
               <QuickAction label="Text customer" onClick={() => ctx.openMessages()}>
                 <MessageSquare className="size-3.5" />
               </QuickAction>

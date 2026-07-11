@@ -11,7 +11,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { SMS_ENABLED } from "@/lib/features";
+import { useSmsUiEnabled } from "@/lib/shop-capabilities";
 import { formatPhoneInput } from "@/lib/phone";
 import { getShopEmailSendStatus } from "@/server/actions/email-settings";
 import { getEstimateLink, shareEstimate, type ShareMethod } from "@/server/actions/share";
@@ -52,6 +52,7 @@ export function ShareEstimateDialog({
   const [done, setDone] = useState<"live" | "mock" | "fallback" | null>(null);
   const [emailLive, setEmailLive] = useState<boolean | null>(null);
   const [pending, start] = useTransition();
+  const smsEnabled = useSmsUiEnabled();
 
   // Fetch (and lazily mint) the approval link when the dialog opens.
   useEffect(() => {
@@ -121,7 +122,7 @@ export function ShareEstimateDialog({
     });
   }
 
-  const shareMethods: ShareMethod[] = SMS_ENABLED ? ["EMAIL", "SMS"] : ["EMAIL"];
+  const shareMethods: ShareMethod[] = smsEnabled ? ["EMAIL", "SMS"] : ["EMAIL"];
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -165,7 +166,7 @@ export function ShareEstimateDialog({
           ) : null}
 
           {/* Recipient */}
-          {method === "SMS" && SMS_ENABLED ? (
+          {method === "SMS" && smsEnabled ? (
             <fieldset>
               <legend className="mb-1.5 text-sm text-muted-foreground">Select phone number:</legend>
               <div className="space-y-1.5">

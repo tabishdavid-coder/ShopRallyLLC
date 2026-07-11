@@ -7,7 +7,7 @@ import { prisma } from "@/db/client";
 import { applyAutomationMergeFields } from "@/lib/automations";
 import { getShopId } from "@/lib/shop";
 import { PLANS } from "@/lib/plans";
-import { canUseFeature } from "@/lib/subscription";
+import { canUseReleasedFeature } from "@/lib/subscription";
 import {
   getAutomation,
   isAutomationNameUnique,
@@ -43,7 +43,7 @@ const UpdateAutomationInput = z.object({
 async function requireAutomationsAccess(shopId: string): Promise<ActionResult | null> {
   const denied = await gates.customersMessage(shopId);
   if (denied) return denied;
-  const allowed = await canUseFeature(shopId, "marketing_campaigns");
+  const allowed = await canUseReleasedFeature(shopId, "marketing_campaigns");
   if (!allowed) {
     return {
       ok: false,

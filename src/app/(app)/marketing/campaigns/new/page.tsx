@@ -4,15 +4,15 @@ import { Suspense } from "react";
 import { CampaignWizardFromUrl } from "@/components/marketing/campaigns/campaign-wizard";
 import { GROWTH_ENGINE, growthEnginePageTitle } from "@/lib/growth-engine-brand";
 import { getShopId } from "@/lib/shop";
-import { canUseFeature } from "@/lib/subscription";
+import { canUseReleasedFeature } from "@/lib/subscription";
 
 export const metadata = { title: growthEnginePageTitle("New Outreach") };
 
 export default async function NewCampaignPage() {
   const shopId = await getShopId();
   const [canCreate, aiCampaignDrafting] = await Promise.all([
-    canUseFeature(shopId, "marketing_campaigns"),
-    canUseFeature(shopId, "ai_campaign_drafting"),
+    canUseReleasedFeature(shopId, "marketing_campaigns"),
+    canUseReleasedFeature(shopId, "ai_campaign_drafting"),
   ]);
 
   if (!canCreate) {

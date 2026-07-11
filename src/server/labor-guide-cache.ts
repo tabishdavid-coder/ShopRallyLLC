@@ -32,6 +32,7 @@ import {
   ymmVehicleKeysForPromote,
   type LaborVehicle,
 } from "@/lib/labor-vehicle-key";
+import { motorEnabledForShop } from "@/server/labor-entitlement";
 import {
   resolveLaborSuggestionWithFallback,
   reauditCachedSuggestion,
@@ -313,9 +314,12 @@ export async function lookupLaborSuggestion(
   const queryKey = normalize(request);
   const lookupKeys = vehicleKeysForLookup(vehicle);
 
-  // Skip MOTOR BaseVehicleID resolution unless licensed or sandbox overlay is opted in.
-  const mayUseMotor =
+  // Skip MOTOR BaseVehicleID resolution unless licensed/sandbox AND shop is entitled+released.
+  let mayUseMotor =
     isLicensedMotorCatalog() || allowSandboxMotorDbCache();
+  if (mayUseMotor && options.shopId) {
+    mayUseMotor = await motorEnabledForShop(options.shopId);
+  }
   const baseVehicleId = mayUseMotor
     ? (options.baseVehicleId ?? (await resolveMotorBaseVehicleId(vehicle)) ?? undefined)
     : (options.baseVehicleId ?? undefined);

@@ -13,7 +13,13 @@ import {
   type PlatformShopFormState,
 } from "@/lib/platform-shop-form";
 import { provisionPlatformShop } from "@/server/platform/provision-shop";
-import { ShopStatus, ShopPlan, BillingStatus, ShopProvisionMethod } from "@/generated/prisma";
+import { ShopStatus, ShopPlan, BillingStatus, ShopProvisionMethod, type Prisma } from "@/generated/prisma";
+import {
+  mergeReleaseFlagsIntoPlanFeatures,
+  RELEASE_MODULES,
+  type ReleaseFlagMap,
+  type ReleaseModule,
+} from "@/lib/release-flags";
 
 const LegacyCreateShopInput = z.object({
   name: z.string().trim().min(1).max(120),
@@ -148,5 +154,56 @@ export async function updatePlatformShop(
   });
 
   revalidatePath("/platform/shops");
+  revalidatePath(`/platform/shops/${d.id}`);
+  return { ok: true };
+}
+
+const ReleaseFlagsPatch = z.record(z.string(), z.boolean());
+
+/** Platform admin: flip per-shop release flags (deploy ≠ release). */
+export async function updateShopReleaseFlags(
+  shopId: string,
+  patch: ReleaseFlagMap,
+): Promise<ActionResult> {
+  try {
+    await requirePlatformAdmin();
+  } catch {
+    return { ok: false, error: "Platform admin access required." };
+  }
+
+  if (!shopId.trim()) return { ok: false, error: "Shop is required." };
+
+  const parsed = ReleaseFlagsPatch.safeParse(patch);
+  if (!parsed.success) return { ok: false, error: "Invalid release flags." };
+
+  const cleaned: ReleaseFlagMap = {};
+  for (const [key, value] of Object.entries(parsed.data)) {
+    if (!(RELEASE_MODULES as readonly string[]).includes(key)) continue;
+    if (typeof value !== "boolean") continue;
+    cleaned[key as ReleaseModule] = value;
+  }
+  if (Object.keys(cleaned).length === 0) {
+    return { ok: false, error: "No valid release flags to update." };
+  }
+
+  const shop = await prisma.shop.findUnique({
+    where: { id: shopId },
+    select: { planFeatures: true },
+  });
+  if (!shop) return { ok: false, error: "Shop not found." };
+
+  await prisma.shop.update({
+    where: { id: shopId },
+    data: {
+      planFeatures: mergeReleaseFlagsIntoPlanFeatures(
+        shop.planFeatures,
+        cleaned,
+      ) as Prisma.InputJsonValue,
+    },
+  });
+
+  revalidatePath("/platform/shops");
+  revalidatePath(`/platform/shops/${shopId}`);
+  revalidatePath("/", "layout");
   return { ok: true };
 }

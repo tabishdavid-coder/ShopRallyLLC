@@ -11,6 +11,11 @@ import {
   type PlanFeature,
   type PlanFeatureSet,
 } from "@/lib/plans";
+import {
+  isModuleReleased,
+  type ReleaseModule,
+  RELEASE_MODULE_LABELS,
+} from "@/lib/release-flags";
 
 /** Default trial length for new shop signups. */
 export const TRIAL_DAYS = 14;
@@ -22,6 +27,8 @@ export type SubscriptionFeature =
   | "inspections"
   | "parts"
   | "payments"
+  /** Stripe Connect / online RO payment capture — same entitlement as `payments` (integrations). */
+  | "stripePayments"
   | "sms"
   | "laborGuide"
   | "motorLabor"
@@ -44,7 +51,9 @@ const FEATURE_MAP: Record<SubscriptionFeature, PlanFeature | null> = {
   booking: "appointments",
   inspections: "digitalInspections",
   parts: "partsTech",
+  /** Customer Stripe Connect / Checkout — Pro+ only (maps to plan `integrations`). */
   payments: "integrations",
+  stripePayments: "integrations",
   sms: "customerSms",
   laborGuide: "laborGuide",
   motorLabor: "motorLabor",
@@ -61,6 +70,23 @@ const FEATURE_MAP: Record<SubscriptionFeature, PlanFeature | null> = {
   ai_seo_content: "aiSeoContent",
   ai_customer_insights: "aiCustomerInsights",
   ai_receptionist: "aiReceptionist",
+};
+
+/** Map subscription features that require a phased release flag. */
+const FEATURE_RELEASE_MODULE: Partial<Record<SubscriptionFeature, ReleaseModule>> = {
+  booking: "growthEngine",
+  parts: "partsTech",
+  sms: "sms",
+  motorLabor: "motorLabor",
+  shop_site: "shopSite",
+  website_seo: "websiteSeo",
+  marketing_campaigns: "growthEngine",
+  maintenance_programs: "growthEngine",
+  ai_review_replies: "aiSuite",
+  ai_campaign_drafting: "aiSuite",
+  ai_seo_content: "aiSuite",
+  ai_customer_insights: "aiSuite",
+  ai_receptionist: "aiSuite",
 };
 
 export type ShopSubscription = {
@@ -134,6 +160,54 @@ export async function canUseFeature(
   if (mapped === null) return true;
 
   return shopHasFeature(sub, mapped);
+}
+
+/** Per-shop release check (no plan entitlement). See docs/PHASED-ROLLOUT.md. */
+export async function isReleased(shopId: string, module: ReleaseModule): Promise<boolean> {
+  const shop = await prisma.shop.findUnique({
+    where: { id: shopId },
+    select: { planFeatures: true },
+  });
+  if (!shop) return false;
+  return isModuleReleased(shop.planFeatures, module);
+}
+
+/**
+ * Plan entitlement AND phased release flag.
+ * Use for Growth Engine, SMS, MOTOR, PartsTech, ShopSite/SEO, AI.
+ */
+export async function canUseReleasedFeature(
+  shopId: string,
+  feature: SubscriptionFeature,
+): Promise<boolean> {
+  const entitled = await canUseFeature(shopId, feature);
+  if (!entitled) return false;
+  const module = FEATURE_RELEASE_MODULE[feature];
+  if (!module) return true;
+  return isReleased(shopId, module);
+}
+
+export function releaseDeniedMessage(module: ReleaseModule): string {
+  const label = RELEASE_MODULE_LABELS[module];
+  return `${label} is not released for this shop yet. Ask a platform admin to enable it under Release flags.`;
+}
+
+/**
+ * Server-action gate: plan entitlement + release flag.
+ * Returns an error string when blocked; null when allowed.
+ */
+export async function releasedFeatureDenied(
+  shopId: string,
+  feature: SubscriptionFeature,
+): Promise<string | null> {
+  if (!(await canUseFeature(shopId, feature))) {
+    return "This feature is not included in your plan.";
+  }
+  const module = FEATURE_RELEASE_MODULE[feature];
+  if (module && !(await isReleased(shopId, module))) {
+    return releaseDeniedMessage(module);
+  }
+  return null;
 }
 
 /** Compute monthly recurring revenue stub from active shops (cents). */

@@ -11,7 +11,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { SMS_ENABLED } from "@/lib/features";
+import { useSmsUiEnabled } from "@/lib/shop-capabilities";
 import { SharePlansLinkDialog, type PlansShareCustomer } from "@/components/maintenance/share-plans-link-dialog";
 import { cn } from "@/lib/utils";
 
@@ -32,6 +32,7 @@ export function SharePlansLinkButton({
   size = "sm",
   className,
 }: Props) {
+  const smsEnabled = useSmsUiEnabled();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [copied, setCopied] = useState(false);
 
@@ -78,7 +79,7 @@ export function SharePlansLinkButton({
             <Mail className="size-4" />
             Email {customer ? "customer" : "link"}
           </DropdownMenuItem>
-          {SMS_ENABLED ? (
+          {smsEnabled ? (
             <DropdownMenuItem onClick={smsLink}>
               <MessageSquare className="size-4" />
               Text {customer ? "customer" : "link"}

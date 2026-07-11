@@ -10,7 +10,7 @@ import {
   type ProgramServiceInput,
 } from "@/lib/maintenance-programs";
 import { getShopId } from "@/lib/shop";
-import { canUseFeature } from "@/lib/subscription";
+import { canUseReleasedFeature } from "@/lib/subscription";
 import { PLANS } from "@/lib/plans";
 import {
   buildProgramServiceFromCannedJob,
@@ -32,7 +32,7 @@ const FromCannedJobSchema = z.object({
 async function requireFeature(shopId: string): Promise<ServiceActionResult | null> {
   const denied = await gates.employeesManage(shopId);
   if (denied) return denied;
-  const allowed = await canUseFeature(shopId, "maintenance_programs");
+  const allowed = await canUseReleasedFeature(shopId, "maintenance_programs");
   if (!allowed) {
     return { ok: false, error: `Maintenance programs require ${PLANS.ENTERPRISE.name}.` };
   }

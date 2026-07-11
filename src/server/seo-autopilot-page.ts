@@ -11,7 +11,7 @@ import type { SeoStripeCatalogId } from "@/lib/seo-stripe-products";
 import { resolveSeoStripePriceId } from "@/lib/seo-stripe-products";
 import { PLANS, WEB_PRESENCE_SERVICES, billingStatusLabel, webPresenceSetupFootnote } from "@/lib/plans";
 import { getShopId } from "@/lib/shop";
-import { canUseFeature, getShopSubscription } from "@/lib/subscription";
+import { canUseReleasedFeature, getShopSubscription } from "@/lib/subscription";
 import { getGoogleGscIntegration } from "@/server/google-search-console";
 import type { SeoGa4AnalyticsView } from "@/lib/seo-ga4-analytics";
 import { getSeoCrmOutcomes } from "@/server/seo-crm-outcomes";
@@ -307,9 +307,9 @@ export type SeoAutopilotPageData = {
 export const loadSeoAutopilotPageData = cache(async (): Promise<SeoAutopilotPageData> => {
   const shopId = await getShopId();
   const [hasShopSite, hasWebsiteSeo, hasAiSeoContent] = await Promise.all([
-    canUseFeature(shopId, "shop_site"),
-    canUseFeature(shopId, "website_seo"),
-    canUseFeature(shopId, "ai_seo_content"),
+    canUseReleasedFeature(shopId, "shop_site"),
+    canUseReleasedFeature(shopId, "website_seo"),
+    canUseReleasedFeature(shopId, "ai_seo_content"),
   ]);
   const admin = await getSeoAutomationAdmin(shopId, hasWebsiteSeo, hasAiSeoContent);
   const [analytics, website, plan, crmOutcomes, reports] = await Promise.all([

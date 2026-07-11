@@ -329,13 +329,20 @@ function UsageMeters({
   usage: BillingOverview["usage"];
   plan: ShopPlan;
 }) {
+  const decodeOverage =
+    usage.vinPlateOverageCentsEstimate > 0
+      ? `$${(usage.vinPlateOverageCentsEstimate / 100).toFixed(0)} estimated overage ($10 / 100) — billed manually until Stripe Billing`
+      : plan === "STARTER"
+        ? "Included allowance · $10 per additional 100 after 100"
+        : null;
+
   return (
     <div className="rounded-lg border bg-card p-5 shadow-sm">
       <div className="flex items-center justify-between gap-2">
         <h3 className="font-semibold">Usage this period</h3>
         <span className="text-xs text-muted-foreground">{PLANS[plan].name} limits</span>
       </div>
-      <dl className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <dl className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
         <UsageMeter
           label="Users"
           used={usage.usersCount}
@@ -345,6 +352,12 @@ function UsageMeters({
           label="Repair orders (month)"
           used={usage.repairOrdersThisMonth}
           limit={usage.repairOrdersLimit}
+        />
+        <UsageMeter
+          label="VIN & plate decodes"
+          used={usage.vinPlateDecodesThisMonth}
+          limit={usage.vinPlateDecodesLimit}
+          footnote={decodeOverage}
         />
         <UsageMeter
           label="SMS credits"
@@ -363,14 +376,17 @@ function UsageMeter({
   used,
   limit,
   hidden,
+  footnote,
 }: {
   label: string;
   used: number;
   limit: number | null;
   hidden?: boolean;
+  footnote?: string | null;
 }) {
   if (hidden) return null;
   const pct = limit ? Math.min(100, Math.round((used / limit) * 100)) : null;
+  const overLimit = limit !== null && used > limit;
 
   return (
     <div>
@@ -378,17 +394,27 @@ function UsageMeter({
       <dd className="mt-1 font-semibold tabular-nums">
         {used}
         {limit !== null ? ` / ${limit}` : " (unlimited)"}
+        {overLimit ? (
+          <span className="ml-1 text-xs font-medium text-amber-700">overage</span>
+        ) : null}
       </dd>
       {pct !== null ? (
         <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-muted">
           <div
             className={cn(
               "h-full rounded-full",
-              pct >= 90 ? "bg-brand-red" : pct >= 70 ? "bg-amber-500" : "bg-brand-navy",
+              overLimit || pct >= 90
+                ? "bg-brand-red"
+                : pct >= 70
+                  ? "bg-amber-500"
+                  : "bg-brand-navy",
             )}
-            style={{ width: `${pct}%` }}
+            style={{ width: `${Math.min(100, pct)}%` }}
           />
         </div>
+      ) : null}
+      {footnote ? (
+        <p className="mt-1.5 text-[11px] leading-snug text-muted-foreground">{footnote}</p>
       ) : null}
     </div>
   );

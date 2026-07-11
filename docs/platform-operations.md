@@ -34,6 +34,8 @@ RepairPilot is **true multi-tenant SaaS**: one Vercel deployment, one Neon Postg
 | FAQ + AI | `FaqArticle` seed + RAG-lite Anthropic assist | Scaffold live |
 
 See also [`docs/cloud-architecture.md`](./cloud-architecture.md) for deployment topology.
+See [`docs/PHASED-ROLLOUT.md`](./PHASED-ROLLOUT.md) for deploy ≠ release, release flags, and founding go-live checklist.
+See [`docs/MIGRATION-EXPAND-CONTRACT.md`](./MIGRATION-EXPAND-CONTRACT.md) for safe Prisma changes on live Neon.
 
 ---
 

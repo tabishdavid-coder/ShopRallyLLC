@@ -10,6 +10,7 @@ import { deriveInspectionStatus } from "@/lib/inspection";
 import { getInspectionTemplate } from "@/lib/inspection-template";
 import { getShopId } from "@/lib/shop";
 import { SMS_ENABLED } from "@/lib/features";
+import { releasedFeatureDenied } from "@/lib/subscription";
 import { InspectionItemStatus, InspectionStatus } from "@/generated/prisma";
 import { recordOutboundMessage } from "@/server/services/messaging";
 import { getSms } from "@/server/services/sms";
@@ -238,6 +239,19 @@ export async function shareInspection(input: {
   }
 
   const shopId = await getShopId();
+  if (input.method === "SMS") {
+    const planDenied = await releasedFeatureDenied(shopId, "sms");
+    if (planDenied) {
+      return {
+        ok: false,
+        error:
+          planDenied === "This feature is not included in your plan."
+            ? "Two-way SMS is not included on Core. Share via email, or upgrade to Pro."
+            : planDenied,
+      };
+    }
+  }
+
   const denied = await gates.inspectionsManage(shopId);
   if (denied) return denied;
 

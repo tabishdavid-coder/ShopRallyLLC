@@ -3,7 +3,7 @@ import Link from "next/link";
 import { SubscribersListClient } from "@/components/maintenance/subscribers-list";
 import { Button } from "@/components/ui/button";
 import { getShopId } from "@/lib/shop";
-import { canUseFeature } from "@/lib/subscription";
+import { canUseReleasedFeature } from "@/lib/subscription";
 import { PLANS } from "@/lib/plans";
 import { getShopPlansShareContext } from "@/server/actions/maintenance-subscriptions";
 import { listMaintenancePlans, type MaintenancePlanRow } from "@/server/maintenance-programs";
@@ -19,7 +19,7 @@ export default async function MaintenanceSubscribersPage({
 }) {
   const shopId = await getShopId();
   const params = await searchParams;
-  const canAccess = await canUseFeature(shopId, "maintenance_programs");
+  const canAccess = await canUseReleasedFeature(shopId, "maintenance_programs");
   const [rows, shareCtx, allPlans] = await Promise.all([
     canAccess
       ? listSubscribers(shopId, { search: params.q, customerId: params.customerId })

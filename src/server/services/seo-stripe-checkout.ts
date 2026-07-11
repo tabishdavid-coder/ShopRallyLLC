@@ -7,6 +7,7 @@ import { SEO_STRIPE_CATALOG, resolveSeoStripePriceId } from "@/lib/seo-stripe-pr
 import { prisma } from "@/db/client";
 import { publicUrl } from "@/lib/app-url";
 import type { PlanFeatureSet } from "@/lib/plans";
+import { PLAN_FEATURES_RELEASE_KEY } from "@/lib/release-flags";
 import { getStripe, isStripeEnabled, STRIPE_CHECKOUT_BRANDING } from "@/lib/stripe";
 import { getShopId } from "@/lib/shop";
 
@@ -16,7 +17,19 @@ export type SeoCheckoutResult = { ok: true; url: string } | { ok: false; error: 
 
 function parsePlanFeatureOverrides(raw: unknown): Partial<PlanFeatureSet> {
   if (!raw || typeof raw !== "object" || Array.isArray(raw)) return {};
-  return raw as Partial<PlanFeatureSet>;
+  const out: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(raw as Record<string, unknown>)) {
+    if (key === PLAN_FEATURES_RELEASE_KEY) continue;
+    if (typeof value === "boolean") out[key] = value;
+  }
+  return out as Partial<PlanFeatureSet>;
+}
+
+function preserveReleaseBlock(raw: unknown): Record<string, unknown> | undefined {
+  if (!raw || typeof raw !== "object" || Array.isArray(raw)) return undefined;
+  const release = (raw as Record<string, unknown>)[PLAN_FEATURES_RELEASE_KEY];
+  if (!release || typeof release !== "object" || Array.isArray(release)) return undefined;
+  return { [PLAN_FEATURES_RELEASE_KEY]: release };
 }
 
 function parseFulfillmentIds(raw: unknown): string[] {
@@ -114,6 +127,7 @@ async function grantSeoCatalogPurchase(
   if (!shop) return;
 
   const overrides = parsePlanFeatureOverrides(shop.planFeatures);
+  const releaseBlock = preserveReleaseBlock(shop.planFeatures);
   const featurePatch: Partial<PlanFeatureSet> = {};
 
   if (catalogId === "shopsite-monthly" || catalogId === "web-seo-bundle-monthly") {
@@ -129,6 +143,7 @@ async function grantSeoCatalogPurchase(
       planFeatures: {
         ...overrides,
         ...featurePatch,
+        ...releaseBlock,
       },
     },
   });

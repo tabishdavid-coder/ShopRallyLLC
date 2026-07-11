@@ -2,7 +2,7 @@
 
 import { getShopId } from "@/lib/shop";
 import type { EstimateContextDrawerCarePlan } from "@/lib/estimate-context-drawer-types";
-import { canUseFeature } from "@/lib/subscription";
+import { canUseReleasedFeature } from "@/lib/subscription";
 import { requireAnyPermission } from "@/server/permissions";
 import { getShopPlansShareContext } from "@/server/actions/maintenance-subscriptions";
 import { listCustomerCarePlanRows } from "@/server/maintenance-subscriptions";
@@ -24,7 +24,7 @@ export async function fetchCustomerCarePlans(
     const perm = await requireAnyPermission(shopId, ["customers.view"]);
     if (!perm.ok) return perm;
 
-    const canAccess = await canUseFeature(shopId, "maintenance_programs");
+    const canAccess = await canUseReleasedFeature(shopId, "maintenance_programs");
     const [plans, shareCtx] = await Promise.all([
       canAccess ? listCustomerCarePlanRows(shopId, customerId) : Promise.resolve([]),
       canAccess ? getShopPlansShareContext() : Promise.resolve(null),

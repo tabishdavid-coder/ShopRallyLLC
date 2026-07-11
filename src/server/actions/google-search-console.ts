@@ -10,7 +10,7 @@ import { encodeGoogleGscOAuthState } from "@/lib/google-gsc-oauth";
 import { GROWTH_PRODUCTS } from "@/lib/growth-engine-brand";
 import { PLANS } from "@/lib/plans";
 import { getShopId } from "@/lib/shop";
-import { canUseFeature } from "@/lib/subscription";
+import { canUseReleasedFeature } from "@/lib/subscription";
 import { publicUrl } from "@/lib/app-url";
 import { publicSitePath, siteSlugFromShop } from "@/lib/website-seo";
 import {
@@ -45,7 +45,7 @@ async function requireSeoFeature(): Promise<{ shopId: string } | { error: string
   const shopId = await getShopId();
   const denied = await gates.employeesManage(shopId);
   if (denied) return { error: denied.error };
-  const allowed = await canUseFeature(shopId, "website_seo");
+  const allowed = await canUseReleasedFeature(shopId, "website_seo");
   if (!allowed) {
     return {
       error: `Search Console requires ${PLANS.ENTERPRISE.name} or a Local SEO subscription (${GROWTH_PRODUCTS.seoAutopilot.label}, $129/mo).`,

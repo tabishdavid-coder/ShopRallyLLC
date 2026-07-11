@@ -34,6 +34,12 @@ export type BillingUsage = {
   smsCreditsUsed: number;
   smsCreditsLimit: number | null;
   locationsCount: number;
+  /** Shared VIN + plate successful decodes this calendar month. */
+  vinPlateDecodesThisMonth: number;
+  /** null = unlimited (Pro / Elite). */
+  vinPlateDecodesLimit: number | null;
+  /** Estimated overage cents for Core ($10 / 100 after included). Not auto-charged yet. */
+  vinPlateOverageCentsEstimate: number;
 };
 
 export type BillingSubscriptionSnapshot = {
@@ -79,17 +85,20 @@ export const BILLING_PLAN_FEATURES: Record<
       "Canned jobs",
       "Digital vehicle inspections",
       "Operations Daily Snapshot",
-      "MOTOR labor data — $50/mo extra",
+      "100 VIN & plate decodes / mo · $10 per extra 100",
+      "Email estimates & invoices (SMS on Pro+)",
+      "Manual payments (cash / check / card) — no Stripe Connect",
     ],
   },
   PROFESSIONAL: {
     intro: "Everything in Core, plus:",
     items: [
       "Licensed MOTOR labor data",
-      "License plate & VIN decoding",
+      "Unlimited VIN & plate decoding",
       "OEM service specs",
       "OEM fluid capacities",
       "Parts, inventory & PartsTech",
+      "Stripe Connect payments",
       "Two-way SMS",
       "Online booking",
       "Growth Engine — automations & win-back campaigns",

@@ -2,6 +2,11 @@ import "server-only";
 
 import { prisma } from "@/db/client";
 import { PLANS, billingStatusLabel } from "@/lib/plans";
+import {
+  parseReleaseFlags,
+  releaseFlagsDefaultOpen,
+  type ReleaseFlagMap,
+} from "@/lib/release-flags";
 import { estimateShopMrrCents } from "@/lib/subscription";
 import { deriveShopSmsSetupStatus } from "@/lib/sms-constants";
 import type { PlatformShopRow } from "@/server/platform-shops";
@@ -15,6 +20,10 @@ export type PlatformShopDetail = PlatformShopRow & {
   clerkOrgId: string | null;
   membershipCount: number;
   openTicketCount: number;
+  /** Explicit `_release` map (may be empty). */
+  releaseFlags: ReleaseFlagMap;
+  /** Env/default: open in local/preview, closed in production. */
+  releaseFlagsDefaultOpen: boolean;
 };
 
 export async function getPlatformShopDetail(shopId: string): Promise<PlatformShopDetail | null> {
@@ -39,6 +48,7 @@ export async function getPlatformShopDetail(shopId: string): Promise<PlatformSho
       twilioPhoneNumber: true,
       smsEnabled: true,
       landlineNumber: true,
+      planFeatures: true,
       stripeCustomerId: true,
       stripeSubscriptionId: true,
       stripeConnectStatus: true,
@@ -96,5 +106,7 @@ export async function getPlatformShopDetail(shopId: string): Promise<PlatformSho
     clerkOrgId: shop.clerkOrgId,
     membershipCount: shop._count.memberships,
     openTicketCount,
+    releaseFlags: parseReleaseFlags(shop.planFeatures),
+    releaseFlagsDefaultOpen: releaseFlagsDefaultOpen(),
   };
 }

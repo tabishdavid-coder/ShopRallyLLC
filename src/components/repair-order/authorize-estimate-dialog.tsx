@@ -23,7 +23,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { SMS_ENABLED } from "@/lib/features";
+import { useSmsUiEnabled } from "@/lib/shop-capabilities";
 import { approveRepairOrder, createApprovalLink } from "@/server/actions/job-board";
 import { sendEstimateLink } from "@/server/actions/share";
 
@@ -49,6 +49,7 @@ export function AuthorizeEstimateDialog({
   /** Optimistic board update before refresh (job board). */
   onShopApproved?: () => void;
 }) {
+  const smsEnabled = useSmsUiEnabled();
   const router = useRouter();
   const [pending, start] = useTransition();
   const [url, setUrl] = useState<string | null>(null);
@@ -176,7 +177,7 @@ export function AuthorizeEstimateDialog({
                     {copied ? "Copied" : "Copy"}
                   </Button>
                 </div>
-                <div className={SMS_ENABLED ? "grid grid-cols-2 gap-2" : "grid gap-2"}>
+                <div className={smsEnabled ? "grid grid-cols-2 gap-2" : "grid gap-2"}>
                   <Button
                     type="button"
                     variant="outline"
@@ -187,7 +188,7 @@ export function AuthorizeEstimateDialog({
                   >
                     <Mail className="size-4" /> Email link
                   </Button>
-                  {SMS_ENABLED ? (
+                  {smsEnabled ? (
                     <Button
                       type="button"
                       variant="outline"

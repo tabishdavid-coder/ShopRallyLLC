@@ -9,7 +9,7 @@ import {
   type AudienceFilter,
 } from "@/lib/campaigns";
 import { getShopId } from "@/lib/shop";
-import { canUseFeature } from "@/lib/subscription";
+import { canUseReleasedFeature } from "@/lib/subscription";
 import { PLANS } from "@/lib/plans";
 import {
   getCampaignContext,
@@ -65,7 +65,7 @@ export type ActionResult<T = void> =
 async function requireCampaignsAccess(shopId: string): Promise<{ ok: false; error: string } | null> {
   const denied = await gates.customersMessage(shopId);
   if (denied) return denied;
-  const allowed = await canUseFeature(shopId, "marketing_campaigns");
+  const allowed = await canUseReleasedFeature(shopId, "marketing_campaigns");
   if (!allowed) {
     return {
       ok: false,
@@ -166,7 +166,7 @@ export async function draftCampaignMessage(
   const gate = await requireCampaignsAccess(shopId);
   if (gate) return gate;
 
-  if (!(await canUseFeature(shopId, "ai_campaign_drafting"))) {
+  if (!(await canUseReleasedFeature(shopId, "ai_campaign_drafting"))) {
     return {
       ok: false,
       error: `AI campaign drafting is included on the ${PLANS.ENTERPRISE.name} plan. Upgrade in Billing to unlock.`,

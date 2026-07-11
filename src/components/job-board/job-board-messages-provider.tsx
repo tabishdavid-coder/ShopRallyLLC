@@ -3,7 +3,7 @@
 import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from "react";
 
 import { RoMessages } from "@/components/repair-order/ro-messages";
-import { SMS_ENABLED } from "@/lib/features";
+import { useSmsUiEnabled } from "@/lib/shop-capabilities";
 import { smsPhoneHref } from "@/lib/ro-context-display";
 
 export type JobBoardMessagesTarget = {
@@ -25,12 +25,13 @@ export function useJobBoardMessagesOptional() {
 }
 
 export function JobBoardMessagesProvider({ children }: { children: ReactNode }) {
+  const smsEnabled = useSmsUiEnabled();
   const [open, setOpen] = useState(false);
   const [target, setTarget] = useState<JobBoardMessagesTarget | null>(null);
   const [dockKey, setDockKey] = useState(0);
 
   const openRoMessages = useCallback((next: JobBoardMessagesTarget) => {
-    if (!SMS_ENABLED) {
+    if (!smsEnabled) {
       if (next.customerPhone) {
         window.location.href = smsPhoneHref(next.customerPhone);
       }
@@ -40,14 +41,14 @@ export function JobBoardMessagesProvider({ children }: { children: ReactNode }) 
     setOpen(true);
     // Remount dock so a minimized chip expands on every Chat click.
     setDockKey((k) => k + 1);
-  }, []);
+  }, [smsEnabled]);
 
   const value = useMemo(() => ({ openRoMessages }), [openRoMessages]);
 
   return (
     <JobBoardMessagesContext.Provider value={value}>
       {children}
-      {target && SMS_ENABLED ? (
+      {target && smsEnabled ? (
         <RoMessages
           key={dockKey}
           customerId={target.customerId}

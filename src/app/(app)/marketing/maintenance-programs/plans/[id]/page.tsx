@@ -4,7 +4,7 @@ import { notFound } from "next/navigation";
 import { MaintenancePlanEditorShell } from "@/components/marketing/maintenance-plan-editor-shell";
 import { appUrl } from "@/lib/app-url";
 import { getShopId } from "@/lib/shop";
-import { canUseFeature } from "@/lib/subscription";
+import { canUseReleasedFeature } from "@/lib/subscription";
 import { listCannedJobsForPicker } from "@/server/canned-jobs";
 import {
   ensureProgramSettings,
@@ -23,7 +23,7 @@ export default async function EditMaintenancePlanPage({
   const { id } = await params;
   const shopId = await getShopId();
   const [canEdit, plan, settings, services, cannedJobs] = await Promise.all([
-    canUseFeature(shopId, "maintenance_programs"),
+    canUseReleasedFeature(shopId, "maintenance_programs"),
     getMaintenancePlan(shopId, id),
     ensureProgramSettings(shopId),
     listProgramServices(shopId),

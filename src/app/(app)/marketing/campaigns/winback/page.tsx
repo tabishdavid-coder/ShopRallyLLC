@@ -4,7 +4,7 @@ import { WinbackCampaignPage } from "@/components/marketing/campaigns/winback-ca
 import { GROWTH_ENGINE, growthEnginePageTitle } from "@/lib/growth-engine-brand";
 import { audienceForWinbackPreset, WINBACK_PRESETS } from "@/lib/campaigns";
 import { getShopId } from "@/lib/shop";
-import { canUseFeature } from "@/lib/subscription";
+import { canUseReleasedFeature } from "@/lib/subscription";
 import { getCampaignContext, previewAudienceCount } from "@/server/campaigns";
 
 export const metadata = { title: growthEnginePageTitle("Win Back Customers") };
@@ -12,7 +12,7 @@ export const dynamic = "force-dynamic";
 
 export default async function WinbackCampaignRoute() {
   const shopId = await getShopId();
-  const canCreate = await canUseFeature(shopId, "marketing_campaigns");
+  const canCreate = await canUseReleasedFeature(shopId, "marketing_campaigns");
 
   if (!canCreate) {
     return (

@@ -8,6 +8,7 @@ import { StripeConnectStatusPill } from "@/components/platform/stripe-connect-st
 import { Button } from "@/components/ui/button";
 import { PlatformShopCompliancePanel } from "@/components/platform/platform-shop-compliance-panel";
 import { PlatformClerkOrgPanel } from "@/components/platform/platform-clerk-org-panel";
+import { PlatformShopReleaseFlags } from "@/components/platform/platform-shop-release-flags";
 import type { OnboardingStep } from "@/server/platform/onboarding";
 import type { PlatformShopDetail } from "@/server/platform/shop-detail";
 
@@ -102,6 +103,12 @@ export function PlatformShopDetailView({
           legalEntityName={compliance.legalEntityName}
         />
       ) : null}
+
+      <PlatformShopReleaseFlags
+        shopId={shop.id}
+        releaseFlags={shop.releaseFlags}
+        releaseFlagsDefaultOpen={shop.releaseFlagsDefaultOpen}
+      />
 
       <div className="grid gap-6 lg:grid-cols-2">
         <section className="rounded-xl border bg-card p-5 shadow-sm">

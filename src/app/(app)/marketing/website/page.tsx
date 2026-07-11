@@ -1,7 +1,7 @@
 import { GROWTH_PRODUCTS, growthEnginePageTitle } from "@/lib/growth-engine-brand";
 import { WebsiteSeoServicePage } from "@/components/website-seo/website-seo-service";
 import { getShopId } from "@/lib/shop";
-import { canUseFeature } from "@/lib/subscription";
+import { canUseReleasedFeature } from "@/lib/subscription";
 import { getWebsiteAdmin } from "@/server/website-seo";
 
 export const metadata = {
@@ -11,9 +11,9 @@ export const metadata = {
 export default async function MarketingWebsitePage() {
   const shopId = await getShopId();
   const [hasShopSite, hasSeo, aiSeoAutopilot] = await Promise.all([
-    canUseFeature(shopId, "shop_site"),
-    canUseFeature(shopId, "website_seo"),
-    canUseFeature(shopId, "ai_seo_content"),
+    canUseReleasedFeature(shopId, "shop_site"),
+    canUseReleasedFeature(shopId, "website_seo"),
+    canUseReleasedFeature(shopId, "ai_seo_content"),
   ]);
   const admin = await getWebsiteAdmin(shopId, hasShopSite || hasSeo);
 

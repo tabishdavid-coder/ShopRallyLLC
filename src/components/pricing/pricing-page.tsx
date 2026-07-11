@@ -63,10 +63,11 @@ export function PricingPageContent({ foundingSpotsClaimed = 0 }: { foundingSpots
             </span>
           </h1>
           <p className="mt-4 text-base leading-relaxed text-slate-600 sm:text-lg">
-            {PLANS.STARTER.name} is the ShopRally CRM suite — ROs, job board, DVIs, email estimates, and Operations
-            Daily Snapshot (MOTOR +$50/mo). {PLANS.PROFESSIONAL.name} adds licensed MOTOR, plate & VIN decode, OEM
-            data, PartsTech, SMS, booking, Growth Engine, and Google review management. {PLANS.ENTERPRISE.name} adds
-            AI, ShopSite, Local SEO, and white-glove onboarding.
+            {PLANS.STARTER.name} is the ShopRally CRM suite — ROs, job board, DVIs, email estimates (no SMS), 100
+            VIN & plate decodes / mo ($10 per extra 100), and Operations Daily Snapshot (no Stripe
+            Connect). {PLANS.PROFESSIONAL.name} adds licensed MOTOR, unlimited VIN/plate, OEM data, PartsTech,
+            SMS, Stripe Connect, booking, Growth Engine, and Google review management.{" "}
+            {PLANS.ENTERPRISE.name} adds AI, ShopSite, Local SEO, and white-glove onboarding.
           </p>
 
           <div className="mx-auto mt-10 grid max-w-5xl gap-4 sm:grid-cols-2 lg:grid-cols-4">

@@ -19,6 +19,7 @@ import { recordShopAuditEventSafe } from "@/server/shop-audit";
 import { sendBookingNotifications } from "@/server/services/booking-notifications";
 import { isValidVin, vinService } from "@/server/services/vin";
 import { lookupPlateService } from "@/server/services/plate-lookup";
+import { recordDecodeUsage } from "@/server/services/decode-usage";
 
 const IntakeInput = z.object({
   shopSlug: z.string().trim().min(1).max(80),
@@ -190,6 +191,7 @@ export async function submitIntakeForm(raw: IntakeInput): Promise<IntakeResult> 
         if (!vehicleTrim && decoded.trim) vehicleTrim = decoded.trim;
         if (!vehicleEngine && decoded.engine) vehicleEngine = decoded.engine;
         decodedData = decoded.raw;
+        await recordDecodeUsage(shop.id, "VIN").catch(() => undefined);
       }
     } catch {
       // Non-fatal — proceed with whatever the customer entered.
@@ -206,6 +208,7 @@ export async function submitIntakeForm(raw: IntakeInput): Promise<IntakeResult> 
         if (!vehicleTrim && decoded.trim) vehicleTrim = decoded.trim;
         if (!vehicleEngine && decoded.engine) vehicleEngine = decoded.engine;
         decodedData = decoded.raw;
+        await recordDecodeUsage(shop.id, "PLATE").catch(() => undefined);
       }
     } catch {
       // Non-fatal — plate-only booking still allowed when configured.

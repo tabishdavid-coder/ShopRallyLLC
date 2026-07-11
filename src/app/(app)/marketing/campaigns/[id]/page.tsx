@@ -2,7 +2,7 @@ import { notFound } from "next/navigation";
 
 import { CampaignDetailClient } from "@/components/marketing/campaigns/campaign-detail-client";
 import { getShopId } from "@/lib/shop";
-import { canUseFeature } from "@/lib/subscription";
+import { canUseReleasedFeature } from "@/lib/subscription";
 import { getCampaign, getCampaignContext } from "@/server/campaigns";
 
 export const metadata = { title: "Campaign — Marketing" };
@@ -22,8 +22,8 @@ export default async function CampaignDetailPage({
   const [campaign, ctx, allowed, aiCampaignDrafting] = await Promise.all([
     getCampaign(shopId, id),
     getCampaignContext(shopId),
-    canUseFeature(shopId, "marketing_campaigns"),
-    canUseFeature(shopId, "ai_campaign_drafting"),
+    canUseReleasedFeature(shopId, "marketing_campaigns"),
+    canUseReleasedFeature(shopId, "ai_campaign_drafting"),
   ]);
 
   if (!campaign) notFound();

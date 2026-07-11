@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 
 import { getShopId } from "@/lib/shop";
+import { canUseFeature } from "@/lib/subscription";
 import { gates } from "@/server/permission-gates";
 import { AgreementType } from "@/generated/prisma";
 import { shopHasCurrentAgreement } from "@/server/legal";
@@ -27,6 +28,9 @@ export type SyncActionResult = { ok: true } | { ok: false; error: string };
 export type DisconnectNoticeResult =
   | { ok: true; message: string }
   | { ok: false; error: string };
+
+const CORE_STRIPE_DENIED =
+  "Stripe Connect is not included on Core. Upgrade to Pro or Elite to accept online customer payments.";
 
 function revalidateConnectPaths() {
   revalidatePath("/marketing/payment-account");
@@ -59,6 +63,10 @@ export async function startStripeConnectOnboarding(): Promise<ConnectActionResul
   const shopId = await getShopId();
   const denied = await gates.financeAccount(shopId);
   if (denied) return { ok: false, error: denied.error };
+
+  if (!(await canUseFeature(shopId, "stripePayments"))) {
+    return { ok: false, error: CORE_STRIPE_DENIED };
+  }
 
   const paymentAddendumAccepted = await shopHasCurrentAgreement(
     shopId,

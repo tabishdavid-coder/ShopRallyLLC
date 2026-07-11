@@ -91,8 +91,9 @@ export const MARKET_POSITIONING = {
       subPrice: "Pro flagship · licensed MOTOR + Growth Engine · Elite full stack",
       points: [
         "Core: ShopRally CRM suite, DVIs, email estimates, job board & Operations Daily Snapshot",
-        "MOTOR labor data +$50/mo on Core · included on Pro & Elite",
-        "Pro: plate & VIN decode, OEM specs & fluids, PartsTech, SMS, booking, Growth Engine",
+        "Core: 100 VIN & plate decodes / mo · $10 per extra 100 · email only (no SMS / no Stripe Connect)",
+        "Licensed MOTOR labor data included on Pro & Elite",
+        "Pro: unlimited VIN/plate, OEM specs & fluids, PartsTech, SMS, Stripe Connect, booking, Growth Engine",
         "Google review management on Pro · AI review replies on Elite",
         "Elite adds AI receptionist, ShopSite, Local SEO & maintenance programs",
         "One customer record from job board to invoice to campaign",
@@ -131,7 +132,7 @@ export const VS_BUDGET_COMPETITORS = [
   },
   {
     category: "Labor guide & flat-rate data",
-    shoprally: `${PLANS.STARTER.name}: MOTOR +$50/mo · ${PLANS.PROFESSIONAL.name}+: licensed MOTOR included`,
+    shoprally: `${PLANS.PROFESSIONAL.name}+: licensed MOTOR included`,
     garage360: "Genius $199/mo for labor guides · no Growth Engine",
     torque360: "Labor on higher tiers · no native marketing stack",
   },

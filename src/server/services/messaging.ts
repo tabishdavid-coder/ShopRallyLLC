@@ -8,7 +8,9 @@ import {
   deriveShopSmsSetupStatus,
   type ShopSmsSetupStatus,
 } from "@/lib/sms-constants";
+import { SMS_ENABLED } from "@/lib/features";
 import { digitsOf, normalizePhoneE164, phoneMatchKey } from "@/lib/phone";
+import { releasedFeatureDenied } from "@/lib/subscription";
 import { appendOptOutFooter, getSms } from "@/server/services/sms";
 import { ShopAuditEventType } from "@/generated/prisma";
 import { recordShopAuditEventSafe } from "@/server/shop-audit";
@@ -325,6 +327,11 @@ export async function sendShopSms(
   body: string,
   opts: SendSmsOptions = {},
 ): Promise<SendSmsResult> {
+  if (!SMS_ENABLED) throw new Error("Text messaging is disabled.");
+
+  const releaseDenied = await releasedFeatureDenied(shopId, "sms");
+  if (releaseDenied) throw new Error(releaseDenied);
+
   const trimmed = body.trim();
   if (!trimmed) throw new Error("Message is empty.");
 

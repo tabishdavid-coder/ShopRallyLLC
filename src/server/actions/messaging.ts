@@ -5,6 +5,7 @@ import { z } from "zod";
 
 import { SMS_ENABLED } from "@/lib/features";
 import { getShopId } from "@/lib/shop";
+import { releasedFeatureDenied } from "@/lib/subscription";
 import type { MessageRow, SendResult } from "@/lib/messaging-types";
 import {
   listMessages as listMessagesService,
@@ -51,6 +52,9 @@ export async function sendText(
   }
 
   const shopId = await getShopId();
+  const releaseDenied = await releasedFeatureDenied(shopId, "sms");
+  if (releaseDenied) return { ok: false, error: releaseDenied };
+
   const denied = await gates.customersMessage(shopId);
   if (denied) return denied;
 

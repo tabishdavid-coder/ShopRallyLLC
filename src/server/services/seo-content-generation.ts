@@ -11,7 +11,7 @@ import {
   defaultWebsiteServices,
   type WebsiteService,
 } from "@/lib/website-seo";
-import { canUseFeature } from "@/lib/subscription";
+import { canUseReleasedFeature } from "@/lib/subscription";
 import { ensureShopSeoSettings } from "@/server/seo-settings";
 import { ensureWebsiteConfig } from "@/server/website-seo";
 import { isAiConfigured } from "@/server/services/ai/client";
@@ -172,7 +172,7 @@ export async function runShopSeoContentGeneration(
   const canUseAi =
     settings.useAiContent &&
     isAiConfigured() &&
-    (await canUseFeature(shopId, "ai_seo_content"));
+    (await canUseReleasedFeature(shopId, "ai_seo_content"));
 
   if (canUseAi) {
     try {

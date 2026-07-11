@@ -17,7 +17,7 @@ import {
   type MaintenancePlanPricingInput,
 } from "@/lib/maintenance-programs";
 import { getShopId } from "@/lib/shop";
-import { canUseFeature } from "@/lib/subscription";
+import { canUseReleasedFeature } from "@/lib/subscription";
 import { PLANS } from "@/lib/plans";
 import {
   ensureProgramSettings,
@@ -31,7 +31,7 @@ export type MaintenanceActionResult = { ok: true; id?: string } | { ok: false; e
 async function requireMaintenanceFeature(shopId: string): Promise<MaintenanceActionResult | null> {
   const denied = await gates.employeesManage(shopId);
   if (denied) return denied;
-  const allowed = await canUseFeature(shopId, "maintenance_programs");
+  const allowed = await canUseReleasedFeature(shopId, "maintenance_programs");
   if (!allowed) {
     return { ok: false, error: `Maintenance programs require ${PLANS.ENTERPRISE.name}.` };
   }

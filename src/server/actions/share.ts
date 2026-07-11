@@ -7,6 +7,7 @@ import { ShopAuditEventType } from "@/generated/prisma";
 import { SMS_ENABLED } from "@/lib/features";
 import { normalizePhoneE164 } from "@/lib/phone";
 import { getShopId } from "@/lib/shop";
+import { releasedFeatureDenied } from "@/lib/subscription";
 import { requirePermission } from "@/server/permissions";
 import { getSms, appendOptOutFooter } from "@/server/services/sms";
 import { recordOutboundMessage } from "@/server/services/messaging";
@@ -84,6 +85,19 @@ async function dispatchOutbound(opts: {
 
   if (opts.channel === "sms" && !SMS_ENABLED) {
     return { ok: false, error: "Text messaging is disabled." };
+  }
+
+  if (opts.channel === "sms") {
+    const planDenied = await releasedFeatureDenied(opts.shopId, "sms");
+    if (planDenied) {
+      return {
+        ok: false,
+        error:
+          planDenied === "This feature is not included in your plan."
+            ? "Two-way SMS is not included on Core. Share via email, or upgrade to Pro."
+            : planDenied,
+      };
+    }
   }
 
   if (opts.channel === "sms") {

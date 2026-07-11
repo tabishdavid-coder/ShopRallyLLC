@@ -23,6 +23,12 @@ const CRM_PREFIXES = [
 
 const isPublicRoute = createRouteMatcher([
   "/",
+  "/pricing(.*)",
+  "/features(.*)",
+  "/launch(.*)",
+  "/demo(.*)",
+  "/signup(.*)",
+  "/login(.*)",
   "/sign-in(.*)",
   "/sign-up(.*)",
   "/approve(.*)",

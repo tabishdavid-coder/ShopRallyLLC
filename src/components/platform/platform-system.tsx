@@ -92,13 +92,17 @@ export function PlatformSystem() {
           <div className="flex-1">
             <h3 className="font-semibold text-brand-navy">Maintenance tools (coming soon)</h3>
             <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
-              Cache flush, seed re-run guards, per-shop feature overrides, and broadcast banners will
-              live here. Use Shops and Onboarding for tenant operations today.
+              Cache flush, seed re-run guards, and broadcast banners will live here. Per-shop{" "}
+              <strong className="font-medium text-foreground">release flags</strong> are on each
+              shop detail page (Platform → Shops → shop). See{" "}
+              <code className="text-xs">docs/PHASED-ROLLOUT.md</code>.
             </p>
             <div className="mt-4 flex flex-wrap gap-2">
-              <Button variant="outline" size="sm" disabled>
-                <Shield className="mr-1.5 size-3.5" />
-                Feature flags
+              <Button asChild variant="outline" size="sm">
+                <Link href={`${MASTER_CRM_HOME}/shops`}>
+                  <Shield className="mr-1.5 size-3.5" />
+                  Release flags (per shop)
+                </Link>
               </Button>
               <Button variant="outline" size="sm" disabled>
                 <Mail className="mr-1.5 size-3.5" />

@@ -16,6 +16,10 @@ import { RoIntakeProvider } from "@/components/repair-order/ro-intake-context";
 import { SupportWidget } from "@/components/support/support-widget";
 import type { RoIntakeConfig } from "@/lib/ro-intake-types";
 import type { Shop } from "@/lib/shop";
+import {
+  ShopCapabilitiesProvider,
+  type ShopCapabilities,
+} from "@/lib/shop-capabilities";
 import type { AppNotification } from "@/server/notifications";
 import { cn } from "@/lib/utils";
 
@@ -36,6 +40,7 @@ type CrmShellProps = {
   allowedNavHrefs?: string[];
   allowedSectionIds?: string[];
   intakeConfig?: RoIntakeConfig | null;
+  capabilities?: ShopCapabilities;
   children: React.ReactNode;
 };
 
@@ -56,6 +61,7 @@ export function CrmShell({
   allowedNavHrefs,
   allowedSectionIds,
   intakeConfig = null,
+  capabilities = { sms: false, stripePayments: false },
   children,
 }: CrmShellProps) {
   const fullBleed =
@@ -70,6 +76,7 @@ export function CrmShell({
   const newRoPage = pathname === "/repair-orders/new";
 
   return (
+    <ShopCapabilitiesProvider value={capabilities}>
     <RoIntakeProvider config={intakeConfig}>
     <TooltipProvider delayDuration={0}>
       <Suspense fallback={null}>
@@ -144,5 +151,6 @@ export function CrmShell({
       </Suspense>
     </TooltipProvider>
     </RoIntakeProvider>
+    </ShopCapabilitiesProvider>
   );
 }

@@ -718,6 +718,7 @@ model Shop {
   seoSettings                ShopSeoSettings?
   seoReportSnapshots         SeoReportSnapshot[]
   aiUsageLogs                AiUsageLog[]
+  decodeUsageLogs            DecodeUsageLog[]
   intakeToken                ShopIntakeToken?
   auditEvents                PlatformAuditEvent[]
   shopAuditEvents            ShopAuditEvent[]
@@ -2026,6 +2027,24 @@ model AiUsageLog {
   @@index([shopId, createdAt])
   @@index([feature, createdAt])
   @@index([createdAt])
+}
+
+/// Successful VIN decode or plate lookup — shared calendar-month meter (Core: 100 included).
+enum DecodeUsageKind {
+  VIN
+  PLATE
+}
+
+model DecodeUsageLog {
+  id        String          @id @default(cuid())
+  shopId    String
+  kind      DecodeUsageKind
+  createdAt DateTime        @default(now())
+
+  shop Shop @relation(fields: [shopId], references: [id], onDelete: Cascade)
+
+  @@index([shopId, createdAt])
+  @@index([shopId, kind, createdAt])
 }
 
 // Per-user read state for in-app notification bell items (derived from ROs, SMS, etc.).

@@ -1,9 +1,11 @@
 # Plan — Tier-gated MOTOR labor data (plan management + onboarding)
 
-**Date:** 2026-07-09
+**Date:** 2026-07-09 · **Updated:** 2026-07-10 (Core MOTOR add-on deferred — not offered)
 **Workspace:** ShopRally (`C:\Users\tabis\OneDrive\Documents\ClaudeCode\ShopRally`) · Dev :3031
 **Status:** PLANNING deliverable. No MOTOR licensing/billing implemented here. No deploy.
 **Related:** `agents/ShopRallyCRM/LABOR-ESTIMATE-ALGORITHM.md` (no-MOTOR path already shipped — T0 honesty + T1-lite shop history), `src/lib/plans.ts`, `src/lib/subscription.ts`, `src/lib/labor-catalog-mode.ts`, `src/server/labor-guide-cache.ts`
+
+> **Product note (2026-07-10):** Do **not** market or sell MOTOR as a Core add-on (+$50 or otherwise). `motorLabor` stays `false` on STARTER; licensed MOTOR is Pro/Elite only until a later monetization decision.
 
 ---
 

@@ -7,7 +7,7 @@ import {
   parseCustomerInsightsCache,
   type CustomerInsightsCache,
 } from "@/lib/customer-insights-ai";
-import { canUseFeature } from "@/lib/subscription";
+import { canUseReleasedFeature } from "@/lib/subscription";
 import { isAiConfigured } from "@/server/services/ai/client";
 import { suggestCustomerInsights } from "@/server/services/ai/customer-insights";
 
@@ -216,7 +216,7 @@ export async function loadCustomerInsights(
   customerId: string,
   options?: { forceRefresh?: boolean },
 ): Promise<CustomerInsightsView> {
-  const allowed = await canUseFeature(shopId, "ai_customer_insights");
+  const allowed = await canUseReleasedFeature(shopId, "ai_customer_insights");
   if (!allowed) return { kind: "upgrade" };
 
   if (!isAiConfigured()) {

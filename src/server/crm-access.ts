@@ -9,7 +9,7 @@ import {
   routeRuleForPath,
   type EffectivePermissions,
 } from "@/lib/crm-access";
-import { canUseFeature, type SubscriptionFeature } from "@/lib/subscription";
+import { canUseReleasedFeature, type SubscriptionFeature } from "@/lib/subscription";
 import { getEffectivePermissions } from "@/server/permissions";
 
 export type CrmAccessContext = {
@@ -40,7 +40,7 @@ async function growthFeaturesForPath(pathname: string): Promise<SubscriptionFeat
 
 export async function getCrmAccessContext(shopId: string): Promise<CrmAccessContext> {
   const effective = await getEffectivePermissions(shopId);
-  const growthPlanOk = await canUseFeature(shopId, "marketing_campaigns");
+  const growthPlanOk = await canUseReleasedFeature(shopId, "marketing_campaigns");
 
   if (effective === "all") {
     return { effective, growthPlanOk };
@@ -65,7 +65,7 @@ export async function checkCrmRouteAccess(
   if (growthRoute(pathname)) {
     const features = await growthFeaturesForPath(pathname);
     for (const feature of features) {
-      const ok = await canUseFeature(shopId, feature);
+      const ok = await canUseReleasedFeature(shopId, feature);
       if (!ok) return { allowed: false, reason: "plan" };
     }
     const rule = routeRuleForPath(pathname);

@@ -15,7 +15,7 @@ import {
   twimlResponse,
   twimlSay,
 } from "@/lib/twilio-voice-twiml";
-import { canUseFeature } from "@/lib/subscription";
+import { canUseReleasedFeature } from "@/lib/subscription";
 import { isAiConfigured } from "@/server/services/ai/client";
 import { suggestVoiceAgentReply } from "@/server/services/ai/voice-agent";
 import {
@@ -80,7 +80,7 @@ export async function shouldRunVoiceAfterHoursAgent(shopId: string): Promise<boo
     return true;
   }
 
-  const allowed = await canUseFeature(shopId, "ai_receptionist");
+  const allowed = await canUseReleasedFeature(shopId, "ai_receptionist");
   if (!allowed || !isAiConfigured()) return false;
 
   const shop = await prisma.shop.findUnique({

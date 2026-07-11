@@ -33,6 +33,7 @@ import {
   filterCatalogHits,
   isLaborCatalogServiceEnabled,
 } from "@/server/services/labor-guide-catalog";
+import { motorEnabledForShop } from "@/server/labor-entitlement";
 import { gates } from "@/server/permission-gates";
 import type {
   PrimaryLaborContext,
@@ -53,6 +54,12 @@ export type GenerateResult =
 export type SearchResult =
   | { ok: true; hits: LaborGuideHit[] }
   | { ok: false; error: string };
+
+/** MOTOR (or licensed catalog) only when platform + shop plan + release allow it. */
+async function shopMayUseMotorCatalog(shopId: string): Promise<boolean> {
+  if (!isLaborCatalogServiceEnabled()) return false;
+  return motorEnabledForShop(shopId);
+}
 
 /** Vehicle fields used for labor cache lookup (DB row or ephemeral quick lookup). */
 export type LaborGuideVehicle = {
@@ -234,7 +241,7 @@ export async function searchLaborGuideForVehicle(
     const canned = cannedBatches.flat();
 
     let catalogHits: LaborGuideHit[] = [];
-    if (isLaborCatalogServiceEnabled()) {
+    if (await shopMayUseMotorCatalog(shopId)) {
       const catalog = await fetchCatalogLaborGuide(v);
       if (catalog.ok) {
         catalogHits = filterCatalogHits(catalog.hits, { query: q });
@@ -281,7 +288,7 @@ export async function browseLaborGuideForVehicle(
     ]);
 
     let catalogHits: LaborGuideHit[] = [];
-    if (isLaborCatalogServiceEnabled()) {
+    if (await shopMayUseMotorCatalog(shopId)) {
       const catalog = await fetchCatalogLaborGuide(v);
       if (catalog.ok) {
         catalogHits = filterCatalogHits(catalog.hits, { subcategoryId });
