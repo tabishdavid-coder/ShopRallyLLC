@@ -129,8 +129,8 @@ function revenueAtShops(shops, cfg) {
   const overagePacks = extraQuotes / 100;
   const aiOverageMrr = overagePacks * AI_QUOTE_OVERAGE_PER_100;
 
-  // VIN overage stub — light on Core (most stay in 100)
-  const vinOverageMrr = shops * 0.08 * 10; // 8% of shops buy one $10 pack / mo
+  // VIN decode OFF on this Core path — no overage revenue
+  const vinOverageMrr = 0;
 
   const totalMrr =
     coreMrr + webMrr + aiAddonMrr + aiOverageMrr + vinOverageMrr;

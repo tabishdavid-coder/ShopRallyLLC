@@ -34,8 +34,10 @@ const AI_ATTACH = 0.48;
 const AI_PRICE = 39;
 const WEB_ATTACH = 0.12;
 const WEB_ARPU = 120;
-const VIN_OVERAGE_ARPU = 0.8; // ~$0.80/shop/mo blended
+const VIN_OVERAGE_ARPU = 0; // VIN/plate decode OFF for this Core path
 const AI_OVERAGE_ARPU = 1.1; // ~$1.10/shop/mo blended
+/** When false: no VIN/plate decode product or COGS (manual YMM entry / AI Quote parses YMM from text). */
+const VIN_DECODE_ENABLED = false;
 
 function coreArpuMo() {
   return (
@@ -43,7 +45,7 @@ function coreArpuMo() {
     (1 - ANNUAL_SHARE) * CORE_MONTHLY +
     AI_ATTACH * AI_PRICE +
     WEB_ATTACH * WEB_ARPU +
-    VIN_OVERAGE_ARPU +
+    (VIN_DECODE_ENABLED ? VIN_OVERAGE_ARPU : 0) +
     AI_OVERAGE_ARPU
   );
 }
@@ -52,9 +54,13 @@ function arrSales(shops) {
   return shops * coreArpuMo() * 12;
 }
 
-/** MOTOR = $0 on Core. Thin VIN/plate API only (NHTSA free + light paid plate). */
+/**
+ * Data licenses on this Core path:
+ * - MOTOR = $0
+ * - VIN/plate decode = OFF → $0 (advisors enter YMM manually; AI Quote parses YMM from NL text)
+ */
 function dataLicenses(shops) {
-  // ~$18/shop/yr early, volume down to ~$8/shop/yr — NOT MOTOR
+  if (!VIN_DECODE_ENABLED) return 0;
   const per = shops <= 100 ? 18 : shops <= 500 ? 12 : shops <= 1000 ? 9 : 7;
   return shops * per;
 }
@@ -186,7 +192,11 @@ function printTable(rows) {
   console.log(
     `ARPU ≈ $${arpu.toFixed(2)}/mo (Core $${CORE_MONTHLY}/$${CORE_ANNUAL} · AI ${AI_ATTACH * 100}%@$${AI_PRICE} · Web ${WEB_ATTACH * 100}%@$${WEB_ARPU})`,
   );
-  console.log("Data licenses = VIN/plate API only (MOTOR $0) · SMS $0 (Core gated)\n");
+  console.log(
+    VIN_DECODE_ENABLED
+      ? "Data licenses = VIN/plate API only (MOTOR $0) · SMS $0 (Core gated)\n"
+      : "Data licenses = $0 (no VIN decode · no MOTOR) · SMS $0 (Core gated)\n",
+  );
 
   const header = [
     "Shops",
@@ -228,10 +238,10 @@ function printTable(rows) {
   }
 
   console.log("\n── vs reference Pro-stack sheet ──");
-  console.log("  Lower ARR/shop (~$149 vs ~$229 ARPU)");
-  console.log("  Data licenses: ~$7–18/shop/yr vs MOTOR hundreds");
+  console.log("  Lower ARR/shop (~$148 vs ~$229 ARPU)");
+  console.log("  Data licenses: $0 (no VIN decode · no MOTOR)");
   console.log("  SMS: $0 vs ~$39/shop/yr");
-  console.log("  AI + email: higher (Instant Quote wedge)");
+  console.log("  AI + email: higher (Instant Quote wedge; YMM from NL text)");
   console.log("  Breakeven: see first non-negative Op. profit row\n");
 }
 
@@ -291,6 +301,7 @@ const payload = {
     webArpu: WEB_ARPU,
     motor: 0,
     sms: 0,
+    vinDecode: VIN_DECODE_ENABLED,
     stripePctOfArr: 0.03,
   },
   rows,
