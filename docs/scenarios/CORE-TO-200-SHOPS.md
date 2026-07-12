@@ -3,6 +3,7 @@
 **Date:** 2026-07-11  
 **Status:** Full planning model  
 **Interactive screen:** [`scale-plan-core-200.html`](./scale-plan-core-200.html) (also `/opt/cursor/artifacts/shoprally-scale-plan-core-200.html`)  
+**Annual P&L scale (Shops × cost lines):** [`CORE-PNL-SCALE.md`](./CORE-PNL-SCALE.md) · `node scripts/core-pnl-scale.mjs`  
 **Runner:** `node scripts/core-to-200-scenario.mjs`  
 **Prices:** `src/lib/plans.ts` · **Release:** `docs/PHASED-ROLLOUT.md` P0
 
