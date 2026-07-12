@@ -1,9 +1,16 @@
 # Dev 3031 — build state (ShopRallyCRM)
 
-Last updated: 2026-07-09 (MOTOR-first labor pivot — AI parked)
+Last updated: 2026-07-12 (Core plan fidelity session opened)
 
 > **Canonical dev:** **`ShopRally/`** folder only — `npm run dev` → :3031. See `docs/SHOPRALLY-DEV.md`.
 > Do **not** develop shop CRM in the sibling `karvio/` folder (legacy platform fork).
+
+## Active session — Core plan fidelity
+
+**Branch:** `cursor/core-plan-fidelity-5e7c`  
+**Track:** `agents/ShopRallyCRM/CORE-PLAN-FIDELITY.md` + `CORE-PLAN-FIDELITY-CHANGELOG.md`  
+**Spec:** `docs/CORE-PLAN-FIDELITY.md`  
+**Goal:** `STARTER` (Core) shops only see/operate Core entitlements; merge later.
 
 ## Done
 
