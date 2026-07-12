@@ -271,6 +271,2863 @@
   </table>
   </div>
 
+  
+  <h2>Vercel vs Bubble (monthly)</h2>
+  <p class="note">Left = current ShopRally on Vercel. Right = rebuild on Bubble. Shared: Stripe + AI COGS · no VIN/MOTOR/SMS.</p>
+  <div class="two">
+    <div style="background:#fff;border:1px solid var(--line);border-radius:8px;padding:16px;">
+      <div style="font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--navy);font-weight:700;">Vercel · as-built</div>
+      <div style="margin-top:10px;font-size:13px;line-height:1.5;color:#334155;">
+        One Next.js deploy (Master + Shop CRM).<br/>
+        Neon + Clerk + Resend separate.<br/>
+        <strong>1 shop:</strong> $40/mo<br/>
+        <strong>25 shops:</strong> $408/mo
+      </div>
+    </div>
+    <div style="background:#fff;border:1px solid var(--line);border-radius:8px;padding:16px;border-left:3px solid var(--red);">
+      <div style="font-size:12px;text-transform:uppercase;letter-spacing:.06em;color:var(--red);font-weight:700;">Bubble · rebuild</div>
+      <div style="margin-top:10px;font-size:13px;line-height:1.5;color:#334155;">
+        New Bubble app (lose current codebase).<br/>
+        Plan + Workload Units; DB/auth included.<br/>
+        <strong>1 shop:</strong> $39/mo<br/>
+        <strong>25 shops:</strong> $618/mo
+      </div>
+    </div>
+  </div>
+  <div style="overflow-x:auto;margin-top:16px;">
+  <table>
+    <thead><tr>
+      <th>Shops</th><th class="num">Sales</th>
+      <th>Vercel plan</th><th class="num">Vercel host</th><th class="num">Vercel total</th>
+      <th>Bubble plan</th><th class="num">Bubble host</th><th class="num">Bubble total</th>
+      <th class="num">Δ</th><th>Cheaper</th>
+    </tr></thead>
+    <tbody>
+<tr>
+  <td>1</td>
+  <td class="num"><h2>0. Annual P&amp;L scale (Core plan model)</h2>
+  <p class="note">Same columns as the Pro-stack reference sheet. ARPU ~$148.52/mo · MOTOR $0 · SMS $0 · AI Instant Quote in AI+email.</p>
+  <div style="overflow-x:auto">
+  <table>
+    <thead><tr>
+      <th>Shops</th><th>HC</th><th class="num">ARR (sales)</th><th class="num">Data licenses</th>
+      <th class="num">SMS</th><th class="num">Infra</th><th class="num">Stripe</th><th class="num">AI + email</th>
+      <th class="num">Payroll</th><th class="num">Marketing</th><th class="num">G&amp;A</th>
+      <th class="num">Total cost</th><th class="num">Op. profit</th><th class="num">Margin</th>
+    </tr></thead>
+    <tbody>
+<tr>
+<td>25</td><td>1</td>
+<td class="num">$45k</td>
+<td class="num">$450</td>
+<td class="num">$0</td>
+<td class="num">$3,350</td>
+<td class="num">$1,337</td>
+<td class="num">$1,892</td>
+<td class="num">$180k</td>
+<td class="num">$8,000</td>
+<td class="num">$18k</td>
+<td class="num">$213k</td>
+<td class="num">-$168k</td>
+<td class="num">-378%</td>
+</tr>
+<tr>
+<td>50</td><td>1.5</td>
+<td class="num">$89k</td>
+<td class="num">$900</td>
+<td class="num">$0</td>
+<td class="num">$3,900</td>
+<td class="num">$2,673</td>
+<td class="num">$3,784</td>
+<td class="num">$218k</td>
+<td class="num">$8,000</td>
+<td class="num">$19k</td>
+<td class="num">$256k</td>
+<td class="num">-$167k</td>
+<td class="num">-187%</td>
+</tr>
+<tr>
+<td>100</td><td>2.5</td>
+<td class="num">$178k</td>
+<td class="num">$1,800</td>
+<td class="num">$0</td>
+<td class="num">$5,000</td>
+<td class="num">$5,347</td>
+<td class="num">$7,568</td>
+<td class="num">$300k</td>
+<td class="num">$14k</td>
+<td class="num">$21k</td>
+<td class="num">$355k</td>
+<td class="num">-$177k</td>
+<td class="num">-99%</td>
+</tr>
+<tr>
+<td>200</td><td>4</td>
+<td class="num">$356k</td>
+<td class="num">$2,400</td>
+<td class="num">$0</td>
+<td class="num">$6,000</td>
+<td class="num">$11k</td>
+<td class="num">$15k</td>
+<td class="num">$480k</td>
+<td class="num">$23k</td>
+<td class="num">$26k</td>
+<td class="num">$563k</td>
+<td class="num">-$207k</td>
+<td class="num">-58%</td>
+</tr>
+<tr>
+<td>250</td><td>4.5</td>
+<td class="num">$446k</td>
+<td class="num">$3,000</td>
+<td class="num">$0</td>
+<td class="num">$6,800</td>
+<td class="num">$13k</td>
+<td class="num">$19k</td>
+<td class="num">$540k</td>
+<td class="num">$29k</td>
+<td class="num">$26k</td>
+<td class="num">$637k</td>
+<td class="num">-$191k</td>
+<td class="num">-43%</td>
+</tr>
+<tr>
+<td>500</td><td>7</td>
+<td class="num">$891k</td>
+<td class="num">$6,000</td>
+<td class="num">$0</td>
+<td class="num">$11k</td>
+<td class="num">$27k</td>
+<td class="num">$38k</td>
+<td class="num">$784k</td>
+<td class="num">$58k</td>
+<td class="num">$34k</td>
+<td class="num">$957k</td>
+<td class="num">-$66k</td>
+<td class="num">-7%</td>
+</tr>
+<tr>
+<td>750</td><td>10</td>
+<td class="num">$1.34M</td>
+<td class="num">$6,750</td>
+<td class="num">$0</td>
+<td class="num">$12k</td>
+<td class="num">$40k</td>
+<td class="num">$57k</td>
+<td class="num">$1.12M</td>
+<td class="num">$74k</td>
+<td class="num">$42k</td>
+<td class="num">$1.35M</td>
+<td class="num">-$14k</td>
+<td class="num">-1%</td>
+</tr>
+<tr>
+<td>1000</td><td>14</td>
+<td class="num">$1.78M</td>
+<td class="num">$9,000</td>
+<td class="num">$0</td>
+<td class="num">$15k</td>
+<td class="num">$53k</td>
+<td class="num">$76k</td>
+<td class="num">$1.61M</td>
+<td class="num">$98k</td>
+<td class="num">$52k</td>
+<td class="num">$1.91M</td>
+<td class="num">-$131k</td>
+<td class="num">-7%</td>
+</tr>
+<tr>
+<td>2000</td><td>24</td>
+<td class="num">$3.56M</td>
+<td class="num">$14k</td>
+<td class="num">$0</td>
+<td class="num">$23k</td>
+<td class="num">$107k</td>
+<td class="num">$151k</td>
+<td class="num">$2.76M</td>
+<td class="num">$178k</td>
+<td class="num">$72k</td>
+<td class="num">$3.31M</td>
+<td class="num">$259k</td>
+<td class="num">7%</td>
+</tr>
+    </tbody>
+  </table>
+  </div>
+
+  48</td>
+  <td>Pro ($20 seat)</td>
+  <td class="num">$30</td>
+  <td class="num"><strong>$40</strong></td>
+  <td>Starter (12k WU)</td>
+  <td class="num">$29</td>
+  <td class="num"><strong>$39</strong></td>
+  <td class="num">$-1</td>
+  <td>Bubble</td>
+</tr>
+<tr>
+  <td>25</td>
+  <td class="num">$3,693</td>
+  <td>Pro + usage</td>
+  <td class="num"><h2>0. Annual P&amp;L scale (Core plan model)</h2>
+  <p class="note">Same columns as the Pro-stack reference sheet. ARPU ~$148.52/mo · MOTOR $0 · SMS $0 · AI Instant Quote in AI+email.</p>
+  <div style="overflow-x:auto">
+  <table>
+    <thead><tr>
+      <th>Shops</th><th>HC</th><th class="num">ARR (sales)</th><th class="num">Data licenses</th>
+      <th class="num">SMS</th><th class="num">Infra</th><th class="num">Stripe</th><th class="num">AI + email</th>
+      <th class="num">Payroll</th><th class="num">Marketing</th><th class="num">G&amp;A</th>
+      <th class="num">Total cost</th><th class="num">Op. profit</th><th class="num">Margin</th>
+    </tr></thead>
+    <tbody>
+<tr>
+<td>25</td><td>1</td>
+<td class="num">$45k</td>
+<td class="num">$450</td>
+<td class="num">$0</td>
+<td class="num">$3,350</td>
+<td class="num">$1,337</td>
+<td class="num">$1,892</td>
+<td class="num">$180k</td>
+<td class="num">$8,000</td>
+<td class="num">$18k</td>
+<td class="num">$213k</td>
+<td class="num">-$168k</td>
+<td class="num">-378%</td>
+</tr>
+<tr>
+<td>50</td><td>1.5</td>
+<td class="num">$89k</td>
+<td class="num">$900</td>
+<td class="num">$0</td>
+<td class="num">$3,900</td>
+<td class="num">$2,673</td>
+<td class="num">$3,784</td>
+<td class="num">$218k</td>
+<td class="num">$8,000</td>
+<td class="num">$19k</td>
+<td class="num">$256k</td>
+<td class="num">-$167k</td>
+<td class="num">-187%</td>
+</tr>
+<tr>
+<td>100</td><td>2.5</td>
+<td class="num">$178k</td>
+<td class="num">$1,800</td>
+<td class="num">$0</td>
+<td class="num">$5,000</td>
+<td class="num">$5,347</td>
+<td class="num">$7,568</td>
+<td class="num">$300k</td>
+<td class="num">$14k</td>
+<td class="num">$21k</td>
+<td class="num">$355k</td>
+<td class="num">-$177k</td>
+<td class="num">-99%</td>
+</tr>
+<tr>
+<td>200</td><td>4</td>
+<td class="num">$356k</td>
+<td class="num">$2,400</td>
+<td class="num">$0</td>
+<td class="num">$6,000</td>
+<td class="num">$11k</td>
+<td class="num">$15k</td>
+<td class="num">$480k</td>
+<td class="num">$23k</td>
+<td class="num">$26k</td>
+<td class="num">$563k</td>
+<td class="num">-$207k</td>
+<td class="num">-58%</td>
+</tr>
+<tr>
+<td>250</td><td>4.5</td>
+<td class="num">$446k</td>
+<td class="num">$3,000</td>
+<td class="num">$0</td>
+<td class="num">$6,800</td>
+<td class="num">$13k</td>
+<td class="num">$19k</td>
+<td class="num">$540k</td>
+<td class="num">$29k</td>
+<td class="num">$26k</td>
+<td class="num">$637k</td>
+<td class="num">-$191k</td>
+<td class="num">-43%</td>
+</tr>
+<tr>
+<td>500</td><td>7</td>
+<td class="num">$891k</td>
+<td class="num">$6,000</td>
+<td class="num">$0</td>
+<td class="num">$11k</td>
+<td class="num">$27k</td>
+<td class="num">$38k</td>
+<td class="num">$784k</td>
+<td class="num">$58k</td>
+<td class="num">$34k</td>
+<td class="num">$957k</td>
+<td class="num">-$66k</td>
+<td class="num">-7%</td>
+</tr>
+<tr>
+<td>750</td><td>10</td>
+<td class="num">$1.34M</td>
+<td class="num">$6,750</td>
+<td class="num">$0</td>
+<td class="num">$12k</td>
+<td class="num">$40k</td>
+<td class="num">$57k</td>
+<td class="num">$1.12M</td>
+<td class="num">$74k</td>
+<td class="num">$42k</td>
+<td class="num">$1.35M</td>
+<td class="num">-$14k</td>
+<td class="num">-1%</td>
+</tr>
+<tr>
+<td>1000</td><td>14</td>
+<td class="num">$1.78M</td>
+<td class="num">$9,000</td>
+<td class="num">$0</td>
+<td class="num">$15k</td>
+<td class="num">$53k</td>
+<td class="num">$76k</td>
+<td class="num">$1.61M</td>
+<td class="num">$98k</td>
+<td class="num">$52k</td>
+<td class="num">$1.91M</td>
+<td class="num">-$131k</td>
+<td class="num">-7%</td>
+</tr>
+<tr>
+<td>2000</td><td>24</td>
+<td class="num">$3.56M</td>
+<td class="num">$14k</td>
+<td class="num">$0</td>
+<td class="num">$23k</td>
+<td class="num">$107k</td>
+<td class="num">$151k</td>
+<td class="num">$2.76M</td>
+<td class="num">$178k</td>
+<td class="num">$72k</td>
+<td class="num">$3.31M</td>
+<td class="num">$259k</td>
+<td class="num">7%</td>
+</tr>
+    </tbody>
+  </table>
+  </div>
+
+  39</td>
+  <td class="num"><strong>$408</strong></td>
+  <td>Team (300k WU)</td>
+  <td class="num">$349</td>
+  <td class="num"><strong>$618</strong></td>
+  <td class="num">+$210</td>
+  <td>Vercel</td>
+</tr>
+<tr>
+  <td>50</td>
+  <td class="num">$7,386</td>
+  <td>Pro + usage</td>
+  <td class="num"><h2>0. Annual P&amp;L scale (Core plan model)</h2>
+  <p class="note">Same columns as the Pro-stack reference sheet. ARPU ~$148.52/mo · MOTOR $0 · SMS $0 · AI Instant Quote in AI+email.</p>
+  <div style="overflow-x:auto">
+  <table>
+    <thead><tr>
+      <th>Shops</th><th>HC</th><th class="num">ARR (sales)</th><th class="num">Data licenses</th>
+      <th class="num">SMS</th><th class="num">Infra</th><th class="num">Stripe</th><th class="num">AI + email</th>
+      <th class="num">Payroll</th><th class="num">Marketing</th><th class="num">G&amp;A</th>
+      <th class="num">Total cost</th><th class="num">Op. profit</th><th class="num">Margin</th>
+    </tr></thead>
+    <tbody>
+<tr>
+<td>25</td><td>1</td>
+<td class="num">$45k</td>
+<td class="num">$450</td>
+<td class="num">$0</td>
+<td class="num">$3,350</td>
+<td class="num">$1,337</td>
+<td class="num">$1,892</td>
+<td class="num">$180k</td>
+<td class="num">$8,000</td>
+<td class="num">$18k</td>
+<td class="num">$213k</td>
+<td class="num">-$168k</td>
+<td class="num">-378%</td>
+</tr>
+<tr>
+<td>50</td><td>1.5</td>
+<td class="num">$89k</td>
+<td class="num">$900</td>
+<td class="num">$0</td>
+<td class="num">$3,900</td>
+<td class="num">$2,673</td>
+<td class="num">$3,784</td>
+<td class="num">$218k</td>
+<td class="num">$8,000</td>
+<td class="num">$19k</td>
+<td class="num">$256k</td>
+<td class="num">-$167k</td>
+<td class="num">-187%</td>
+</tr>
+<tr>
+<td>100</td><td>2.5</td>
+<td class="num">$178k</td>
+<td class="num">$1,800</td>
+<td class="num">$0</td>
+<td class="num">$5,000</td>
+<td class="num">$5,347</td>
+<td class="num">$7,568</td>
+<td class="num">$300k</td>
+<td class="num">$14k</td>
+<td class="num">$21k</td>
+<td class="num">$355k</td>
+<td class="num">-$177k</td>
+<td class="num">-99%</td>
+</tr>
+<tr>
+<td>200</td><td>4</td>
+<td class="num">$356k</td>
+<td class="num">$2,400</td>
+<td class="num">$0</td>
+<td class="num">$6,000</td>
+<td class="num">$11k</td>
+<td class="num">$15k</td>
+<td class="num">$480k</td>
+<td class="num">$23k</td>
+<td class="num">$26k</td>
+<td class="num">$563k</td>
+<td class="num">-$207k</td>
+<td class="num">-58%</td>
+</tr>
+<tr>
+<td>250</td><td>4.5</td>
+<td class="num">$446k</td>
+<td class="num">$3,000</td>
+<td class="num">$0</td>
+<td class="num">$6,800</td>
+<td class="num">$13k</td>
+<td class="num">$19k</td>
+<td class="num">$540k</td>
+<td class="num">$29k</td>
+<td class="num">$26k</td>
+<td class="num">$637k</td>
+<td class="num">-$191k</td>
+<td class="num">-43%</td>
+</tr>
+<tr>
+<td>500</td><td>7</td>
+<td class="num">$891k</td>
+<td class="num">$6,000</td>
+<td class="num">$0</td>
+<td class="num">$11k</td>
+<td class="num">$27k</td>
+<td class="num">$38k</td>
+<td class="num">$784k</td>
+<td class="num">$58k</td>
+<td class="num">$34k</td>
+<td class="num">$957k</td>
+<td class="num">-$66k</td>
+<td class="num">-7%</td>
+</tr>
+<tr>
+<td>750</td><td>10</td>
+<td class="num">$1.34M</td>
+<td class="num">$6,750</td>
+<td class="num">$0</td>
+<td class="num">$12k</td>
+<td class="num">$40k</td>
+<td class="num">$57k</td>
+<td class="num">$1.12M</td>
+<td class="num">$74k</td>
+<td class="num">$42k</td>
+<td class="num">$1.35M</td>
+<td class="num">-$14k</td>
+<td class="num">-1%</td>
+</tr>
+<tr>
+<td>1000</td><td>14</td>
+<td class="num">$1.78M</td>
+<td class="num">$9,000</td>
+<td class="num">$0</td>
+<td class="num">$15k</td>
+<td class="num">$53k</td>
+<td class="num">$76k</td>
+<td class="num">$1.61M</td>
+<td class="num">$98k</td>
+<td class="num">$52k</td>
+<td class="num">$1.91M</td>
+<td class="num">-$131k</td>
+<td class="num">-7%</td>
+</tr>
+<tr>
+<td>2000</td><td>24</td>
+<td class="num">$3.56M</td>
+<td class="num">$14k</td>
+<td class="num">$0</td>
+<td class="num">$23k</td>
+<td class="num">$107k</td>
+<td class="num">$151k</td>
+<td class="num">$2.76M</td>
+<td class="num">$178k</td>
+<td class="num">$72k</td>
+<td class="num">$3.31M</td>
+<td class="num">$259k</td>
+<td class="num">7%</td>
+</tr>
+    </tbody>
+  </table>
+  </div>
+
+  58</td>
+  <td class="num"><strong>$695</strong></td>
+  <td>Team (500k WU)</td>
+  <td class="num">$349</td>
+  <td class="num"><strong>$886</strong></td>
+  <td class="num">+<h2>0. Annual P&amp;L scale (Core plan model)</h2>
+  <p class="note">Same columns as the Pro-stack reference sheet. ARPU ~$148.52/mo · MOTOR $0 · SMS $0 · AI Instant Quote in AI+email.</p>
+  <div style="overflow-x:auto">
+  <table>
+    <thead><tr>
+      <th>Shops</th><th>HC</th><th class="num">ARR (sales)</th><th class="num">Data licenses</th>
+      <th class="num">SMS</th><th class="num">Infra</th><th class="num">Stripe</th><th class="num">AI + email</th>
+      <th class="num">Payroll</th><th class="num">Marketing</th><th class="num">G&amp;A</th>
+      <th class="num">Total cost</th><th class="num">Op. profit</th><th class="num">Margin</th>
+    </tr></thead>
+    <tbody>
+<tr>
+<td>25</td><td>1</td>
+<td class="num">$45k</td>
+<td class="num">$450</td>
+<td class="num">$0</td>
+<td class="num">$3,350</td>
+<td class="num">$1,337</td>
+<td class="num">$1,892</td>
+<td class="num">$180k</td>
+<td class="num">$8,000</td>
+<td class="num">$18k</td>
+<td class="num">$213k</td>
+<td class="num">-$168k</td>
+<td class="num">-378%</td>
+</tr>
+<tr>
+<td>50</td><td>1.5</td>
+<td class="num">$89k</td>
+<td class="num">$900</td>
+<td class="num">$0</td>
+<td class="num">$3,900</td>
+<td class="num">$2,673</td>
+<td class="num">$3,784</td>
+<td class="num">$218k</td>
+<td class="num">$8,000</td>
+<td class="num">$19k</td>
+<td class="num">$256k</td>
+<td class="num">-$167k</td>
+<td class="num">-187%</td>
+</tr>
+<tr>
+<td>100</td><td>2.5</td>
+<td class="num">$178k</td>
+<td class="num">$1,800</td>
+<td class="num">$0</td>
+<td class="num">$5,000</td>
+<td class="num">$5,347</td>
+<td class="num">$7,568</td>
+<td class="num">$300k</td>
+<td class="num">$14k</td>
+<td class="num">$21k</td>
+<td class="num">$355k</td>
+<td class="num">-$177k</td>
+<td class="num">-99%</td>
+</tr>
+<tr>
+<td>200</td><td>4</td>
+<td class="num">$356k</td>
+<td class="num">$2,400</td>
+<td class="num">$0</td>
+<td class="num">$6,000</td>
+<td class="num">$11k</td>
+<td class="num">$15k</td>
+<td class="num">$480k</td>
+<td class="num">$23k</td>
+<td class="num">$26k</td>
+<td class="num">$563k</td>
+<td class="num">-$207k</td>
+<td class="num">-58%</td>
+</tr>
+<tr>
+<td>250</td><td>4.5</td>
+<td class="num">$446k</td>
+<td class="num">$3,000</td>
+<td class="num">$0</td>
+<td class="num">$6,800</td>
+<td class="num">$13k</td>
+<td class="num">$19k</td>
+<td class="num">$540k</td>
+<td class="num">$29k</td>
+<td class="num">$26k</td>
+<td class="num">$637k</td>
+<td class="num">-$191k</td>
+<td class="num">-43%</td>
+</tr>
+<tr>
+<td>500</td><td>7</td>
+<td class="num">$891k</td>
+<td class="num">$6,000</td>
+<td class="num">$0</td>
+<td class="num">$11k</td>
+<td class="num">$27k</td>
+<td class="num">$38k</td>
+<td class="num">$784k</td>
+<td class="num">$58k</td>
+<td class="num">$34k</td>
+<td class="num">$957k</td>
+<td class="num">-$66k</td>
+<td class="num">-7%</td>
+</tr>
+<tr>
+<td>750</td><td>10</td>
+<td class="num">$1.34M</td>
+<td class="num">$6,750</td>
+<td class="num">$0</td>
+<td class="num">$12k</td>
+<td class="num">$40k</td>
+<td class="num">$57k</td>
+<td class="num">$1.12M</td>
+<td class="num">$74k</td>
+<td class="num">$42k</td>
+<td class="num">$1.35M</td>
+<td class="num">-$14k</td>
+<td class="num">-1%</td>
+</tr>
+<tr>
+<td>1000</td><td>14</td>
+<td class="num">$1.78M</td>
+<td class="num">$9,000</td>
+<td class="num">$0</td>
+<td class="num">$15k</td>
+<td class="num">$53k</td>
+<td class="num">$76k</td>
+<td class="num">$1.61M</td>
+<td class="num">$98k</td>
+<td class="num">$52k</td>
+<td class="num">$1.91M</td>
+<td class="num">-$131k</td>
+<td class="num">-7%</td>
+</tr>
+<tr>
+<td>2000</td><td>24</td>
+<td class="num">$3.56M</td>
+<td class="num">$14k</td>
+<td class="num">$0</td>
+<td class="num">$23k</td>
+<td class="num">$107k</td>
+<td class="num">$151k</td>
+<td class="num">$2.76M</td>
+<td class="num">$178k</td>
+<td class="num">$72k</td>
+<td class="num">$3.31M</td>
+<td class="num">$259k</td>
+<td class="num">7%</td>
+</tr>
+    </tbody>
+  </table>
+  </div>
+
+  91</td>
+  <td>Vercel</td>
+</tr>
+<tr>
+  <td>100</td>
+  <td class="num"><h2>0. Annual P&amp;L scale (Core plan model)</h2>
+  <p class="note">Same columns as the Pro-stack reference sheet. ARPU ~$148.52/mo · MOTOR $0 · SMS $0 · AI Instant Quote in AI+email.</p>
+  <div style="overflow-x:auto">
+  <table>
+    <thead><tr>
+      <th>Shops</th><th>HC</th><th class="num">ARR (sales)</th><th class="num">Data licenses</th>
+      <th class="num">SMS</th><th class="num">Infra</th><th class="num">Stripe</th><th class="num">AI + email</th>
+      <th class="num">Payroll</th><th class="num">Marketing</th><th class="num">G&amp;A</th>
+      <th class="num">Total cost</th><th class="num">Op. profit</th><th class="num">Margin</th>
+    </tr></thead>
+    <tbody>
+<tr>
+<td>25</td><td>1</td>
+<td class="num">$45k</td>
+<td class="num">$450</td>
+<td class="num">$0</td>
+<td class="num">$3,350</td>
+<td class="num">$1,337</td>
+<td class="num">$1,892</td>
+<td class="num">$180k</td>
+<td class="num">$8,000</td>
+<td class="num">$18k</td>
+<td class="num">$213k</td>
+<td class="num">-$168k</td>
+<td class="num">-378%</td>
+</tr>
+<tr>
+<td>50</td><td>1.5</td>
+<td class="num">$89k</td>
+<td class="num">$900</td>
+<td class="num">$0</td>
+<td class="num">$3,900</td>
+<td class="num">$2,673</td>
+<td class="num">$3,784</td>
+<td class="num">$218k</td>
+<td class="num">$8,000</td>
+<td class="num">$19k</td>
+<td class="num">$256k</td>
+<td class="num">-$167k</td>
+<td class="num">-187%</td>
+</tr>
+<tr>
+<td>100</td><td>2.5</td>
+<td class="num">$178k</td>
+<td class="num">$1,800</td>
+<td class="num">$0</td>
+<td class="num">$5,000</td>
+<td class="num">$5,347</td>
+<td class="num">$7,568</td>
+<td class="num">$300k</td>
+<td class="num">$14k</td>
+<td class="num">$21k</td>
+<td class="num">$355k</td>
+<td class="num">-$177k</td>
+<td class="num">-99%</td>
+</tr>
+<tr>
+<td>200</td><td>4</td>
+<td class="num">$356k</td>
+<td class="num">$2,400</td>
+<td class="num">$0</td>
+<td class="num">$6,000</td>
+<td class="num">$11k</td>
+<td class="num">$15k</td>
+<td class="num">$480k</td>
+<td class="num">$23k</td>
+<td class="num">$26k</td>
+<td class="num">$563k</td>
+<td class="num">-$207k</td>
+<td class="num">-58%</td>
+</tr>
+<tr>
+<td>250</td><td>4.5</td>
+<td class="num">$446k</td>
+<td class="num">$3,000</td>
+<td class="num">$0</td>
+<td class="num">$6,800</td>
+<td class="num">$13k</td>
+<td class="num">$19k</td>
+<td class="num">$540k</td>
+<td class="num">$29k</td>
+<td class="num">$26k</td>
+<td class="num">$637k</td>
+<td class="num">-$191k</td>
+<td class="num">-43%</td>
+</tr>
+<tr>
+<td>500</td><td>7</td>
+<td class="num">$891k</td>
+<td class="num">$6,000</td>
+<td class="num">$0</td>
+<td class="num">$11k</td>
+<td class="num">$27k</td>
+<td class="num">$38k</td>
+<td class="num">$784k</td>
+<td class="num">$58k</td>
+<td class="num">$34k</td>
+<td class="num">$957k</td>
+<td class="num">-$66k</td>
+<td class="num">-7%</td>
+</tr>
+<tr>
+<td>750</td><td>10</td>
+<td class="num">$1.34M</td>
+<td class="num">$6,750</td>
+<td class="num">$0</td>
+<td class="num">$12k</td>
+<td class="num">$40k</td>
+<td class="num">$57k</td>
+<td class="num">$1.12M</td>
+<td class="num">$74k</td>
+<td class="num">$42k</td>
+<td class="num">$1.35M</td>
+<td class="num">-$14k</td>
+<td class="num">-1%</td>
+</tr>
+<tr>
+<td>1000</td><td>14</td>
+<td class="num">$1.78M</td>
+<td class="num">$9,000</td>
+<td class="num">$0</td>
+<td class="num">$15k</td>
+<td class="num">$53k</td>
+<td class="num">$76k</td>
+<td class="num">$1.61M</td>
+<td class="num">$98k</td>
+<td class="num">$52k</td>
+<td class="num">$1.91M</td>
+<td class="num">-$131k</td>
+<td class="num">-7%</td>
+</tr>
+<tr>
+<td>2000</td><td>24</td>
+<td class="num">$3.56M</td>
+<td class="num">$14k</td>
+<td class="num">$0</td>
+<td class="num">$23k</td>
+<td class="num">$107k</td>
+<td class="num">$151k</td>
+<td class="num">$2.76M</td>
+<td class="num">$178k</td>
+<td class="num">$72k</td>
+<td class="num">$3.31M</td>
+<td class="num">$259k</td>
+<td class="num">7%</td>
+</tr>
+    </tbody>
+  </table>
+  </div>
+
+  4,772</td>
+  <td>Pro + usage</td>
+  <td class="num">$319</td>
+  <td class="num"><strong><h2>0. Annual P&amp;L scale (Core plan model)</h2>
+  <p class="note">Same columns as the Pro-stack reference sheet. ARPU ~$148.52/mo · MOTOR $0 · SMS $0 · AI Instant Quote in AI+email.</p>
+  <div style="overflow-x:auto">
+  <table>
+    <thead><tr>
+      <th>Shops</th><th>HC</th><th class="num">ARR (sales)</th><th class="num">Data licenses</th>
+      <th class="num">SMS</th><th class="num">Infra</th><th class="num">Stripe</th><th class="num">AI + email</th>
+      <th class="num">Payroll</th><th class="num">Marketing</th><th class="num">G&amp;A</th>
+      <th class="num">Total cost</th><th class="num">Op. profit</th><th class="num">Margin</th>
+    </tr></thead>
+    <tbody>
+<tr>
+<td>25</td><td>1</td>
+<td class="num">$45k</td>
+<td class="num">$450</td>
+<td class="num">$0</td>
+<td class="num">$3,350</td>
+<td class="num">$1,337</td>
+<td class="num">$1,892</td>
+<td class="num">$180k</td>
+<td class="num">$8,000</td>
+<td class="num">$18k</td>
+<td class="num">$213k</td>
+<td class="num">-$168k</td>
+<td class="num">-378%</td>
+</tr>
+<tr>
+<td>50</td><td>1.5</td>
+<td class="num">$89k</td>
+<td class="num">$900</td>
+<td class="num">$0</td>
+<td class="num">$3,900</td>
+<td class="num">$2,673</td>
+<td class="num">$3,784</td>
+<td class="num">$218k</td>
+<td class="num">$8,000</td>
+<td class="num">$19k</td>
+<td class="num">$256k</td>
+<td class="num">-$167k</td>
+<td class="num">-187%</td>
+</tr>
+<tr>
+<td>100</td><td>2.5</td>
+<td class="num">$178k</td>
+<td class="num">$1,800</td>
+<td class="num">$0</td>
+<td class="num">$5,000</td>
+<td class="num">$5,347</td>
+<td class="num">$7,568</td>
+<td class="num">$300k</td>
+<td class="num">$14k</td>
+<td class="num">$21k</td>
+<td class="num">$355k</td>
+<td class="num">-$177k</td>
+<td class="num">-99%</td>
+</tr>
+<tr>
+<td>200</td><td>4</td>
+<td class="num">$356k</td>
+<td class="num">$2,400</td>
+<td class="num">$0</td>
+<td class="num">$6,000</td>
+<td class="num">$11k</td>
+<td class="num">$15k</td>
+<td class="num">$480k</td>
+<td class="num">$23k</td>
+<td class="num">$26k</td>
+<td class="num">$563k</td>
+<td class="num">-$207k</td>
+<td class="num">-58%</td>
+</tr>
+<tr>
+<td>250</td><td>4.5</td>
+<td class="num">$446k</td>
+<td class="num">$3,000</td>
+<td class="num">$0</td>
+<td class="num">$6,800</td>
+<td class="num">$13k</td>
+<td class="num">$19k</td>
+<td class="num">$540k</td>
+<td class="num">$29k</td>
+<td class="num">$26k</td>
+<td class="num">$637k</td>
+<td class="num">-$191k</td>
+<td class="num">-43%</td>
+</tr>
+<tr>
+<td>500</td><td>7</td>
+<td class="num">$891k</td>
+<td class="num">$6,000</td>
+<td class="num">$0</td>
+<td class="num">$11k</td>
+<td class="num">$27k</td>
+<td class="num">$38k</td>
+<td class="num">$784k</td>
+<td class="num">$58k</td>
+<td class="num">$34k</td>
+<td class="num">$957k</td>
+<td class="num">-$66k</td>
+<td class="num">-7%</td>
+</tr>
+<tr>
+<td>750</td><td>10</td>
+<td class="num">$1.34M</td>
+<td class="num">$6,750</td>
+<td class="num">$0</td>
+<td class="num">$12k</td>
+<td class="num">$40k</td>
+<td class="num">$57k</td>
+<td class="num">$1.12M</td>
+<td class="num">$74k</td>
+<td class="num">$42k</td>
+<td class="num">$1.35M</td>
+<td class="num">-$14k</td>
+<td class="num">-1%</td>
+</tr>
+<tr>
+<td>1000</td><td>14</td>
+<td class="num">$1.78M</td>
+<td class="num">$9,000</td>
+<td class="num">$0</td>
+<td class="num">$15k</td>
+<td class="num">$53k</td>
+<td class="num">$76k</td>
+<td class="num">$1.61M</td>
+<td class="num">$98k</td>
+<td class="num">$52k</td>
+<td class="num">$1.91M</td>
+<td class="num">-$131k</td>
+<td class="num">-7%</td>
+</tr>
+<tr>
+<td>2000</td><td>24</td>
+<td class="num">$3.56M</td>
+<td class="num">$14k</td>
+<td class="num">$0</td>
+<td class="num">$23k</td>
+<td class="num">$107k</td>
+<td class="num">$151k</td>
+<td class="num">$2.76M</td>
+<td class="num">$178k</td>
+<td class="num">$72k</td>
+<td class="num">$3.31M</td>
+<td class="num">$259k</td>
+<td class="num">7%</td>
+</tr>
+    </tbody>
+  </table>
+  </div>
+
+  ,393</strong></td>
+  <td>Team + WU (1000k WU)</td>
+  <td class="num">$499</td>
+  <td class="num"><strong><h2>0. Annual P&amp;L scale (Core plan model)</h2>
+  <p class="note">Same columns as the Pro-stack reference sheet. ARPU ~$148.52/mo · MOTOR $0 · SMS $0 · AI Instant Quote in AI+email.</p>
+  <div style="overflow-x:auto">
+  <table>
+    <thead><tr>
+      <th>Shops</th><th>HC</th><th class="num">ARR (sales)</th><th class="num">Data licenses</th>
+      <th class="num">SMS</th><th class="num">Infra</th><th class="num">Stripe</th><th class="num">AI + email</th>
+      <th class="num">Payroll</th><th class="num">Marketing</th><th class="num">G&amp;A</th>
+      <th class="num">Total cost</th><th class="num">Op. profit</th><th class="num">Margin</th>
+    </tr></thead>
+    <tbody>
+<tr>
+<td>25</td><td>1</td>
+<td class="num">$45k</td>
+<td class="num">$450</td>
+<td class="num">$0</td>
+<td class="num">$3,350</td>
+<td class="num">$1,337</td>
+<td class="num">$1,892</td>
+<td class="num">$180k</td>
+<td class="num">$8,000</td>
+<td class="num">$18k</td>
+<td class="num">$213k</td>
+<td class="num">-$168k</td>
+<td class="num">-378%</td>
+</tr>
+<tr>
+<td>50</td><td>1.5</td>
+<td class="num">$89k</td>
+<td class="num">$900</td>
+<td class="num">$0</td>
+<td class="num">$3,900</td>
+<td class="num">$2,673</td>
+<td class="num">$3,784</td>
+<td class="num">$218k</td>
+<td class="num">$8,000</td>
+<td class="num">$19k</td>
+<td class="num">$256k</td>
+<td class="num">-$167k</td>
+<td class="num">-187%</td>
+</tr>
+<tr>
+<td>100</td><td>2.5</td>
+<td class="num">$178k</td>
+<td class="num">$1,800</td>
+<td class="num">$0</td>
+<td class="num">$5,000</td>
+<td class="num">$5,347</td>
+<td class="num">$7,568</td>
+<td class="num">$300k</td>
+<td class="num">$14k</td>
+<td class="num">$21k</td>
+<td class="num">$355k</td>
+<td class="num">-$177k</td>
+<td class="num">-99%</td>
+</tr>
+<tr>
+<td>200</td><td>4</td>
+<td class="num">$356k</td>
+<td class="num">$2,400</td>
+<td class="num">$0</td>
+<td class="num">$6,000</td>
+<td class="num">$11k</td>
+<td class="num">$15k</td>
+<td class="num">$480k</td>
+<td class="num">$23k</td>
+<td class="num">$26k</td>
+<td class="num">$563k</td>
+<td class="num">-$207k</td>
+<td class="num">-58%</td>
+</tr>
+<tr>
+<td>250</td><td>4.5</td>
+<td class="num">$446k</td>
+<td class="num">$3,000</td>
+<td class="num">$0</td>
+<td class="num">$6,800</td>
+<td class="num">$13k</td>
+<td class="num">$19k</td>
+<td class="num">$540k</td>
+<td class="num">$29k</td>
+<td class="num">$26k</td>
+<td class="num">$637k</td>
+<td class="num">-$191k</td>
+<td class="num">-43%</td>
+</tr>
+<tr>
+<td>500</td><td>7</td>
+<td class="num">$891k</td>
+<td class="num">$6,000</td>
+<td class="num">$0</td>
+<td class="num">$11k</td>
+<td class="num">$27k</td>
+<td class="num">$38k</td>
+<td class="num">$784k</td>
+<td class="num">$58k</td>
+<td class="num">$34k</td>
+<td class="num">$957k</td>
+<td class="num">-$66k</td>
+<td class="num">-7%</td>
+</tr>
+<tr>
+<td>750</td><td>10</td>
+<td class="num">$1.34M</td>
+<td class="num">$6,750</td>
+<td class="num">$0</td>
+<td class="num">$12k</td>
+<td class="num">$40k</td>
+<td class="num">$57k</td>
+<td class="num">$1.12M</td>
+<td class="num">$74k</td>
+<td class="num">$42k</td>
+<td class="num">$1.35M</td>
+<td class="num">-$14k</td>
+<td class="num">-1%</td>
+</tr>
+<tr>
+<td>1000</td><td>14</td>
+<td class="num">$1.78M</td>
+<td class="num">$9,000</td>
+<td class="num">$0</td>
+<td class="num">$15k</td>
+<td class="num">$53k</td>
+<td class="num">$76k</td>
+<td class="num">$1.61M</td>
+<td class="num">$98k</td>
+<td class="num">$52k</td>
+<td class="num">$1.91M</td>
+<td class="num">-$131k</td>
+<td class="num">-7%</td>
+</tr>
+<tr>
+<td>2000</td><td>24</td>
+<td class="num">$3.56M</td>
+<td class="num">$14k</td>
+<td class="num">$0</td>
+<td class="num">$23k</td>
+<td class="num">$107k</td>
+<td class="num">$151k</td>
+<td class="num">$2.76M</td>
+<td class="num">$178k</td>
+<td class="num">$72k</td>
+<td class="num">$3.31M</td>
+<td class="num">$259k</td>
+<td class="num">7%</td>
+</tr>
+    </tbody>
+  </table>
+  </div>
+
+  ,573</strong></td>
+  <td class="num">+<h2>0. Annual P&amp;L scale (Core plan model)</h2>
+  <p class="note">Same columns as the Pro-stack reference sheet. ARPU ~$148.52/mo · MOTOR $0 · SMS $0 · AI Instant Quote in AI+email.</p>
+  <div style="overflow-x:auto">
+  <table>
+    <thead><tr>
+      <th>Shops</th><th>HC</th><th class="num">ARR (sales)</th><th class="num">Data licenses</th>
+      <th class="num">SMS</th><th class="num">Infra</th><th class="num">Stripe</th><th class="num">AI + email</th>
+      <th class="num">Payroll</th><th class="num">Marketing</th><th class="num">G&amp;A</th>
+      <th class="num">Total cost</th><th class="num">Op. profit</th><th class="num">Margin</th>
+    </tr></thead>
+    <tbody>
+<tr>
+<td>25</td><td>1</td>
+<td class="num">$45k</td>
+<td class="num">$450</td>
+<td class="num">$0</td>
+<td class="num">$3,350</td>
+<td class="num">$1,337</td>
+<td class="num">$1,892</td>
+<td class="num">$180k</td>
+<td class="num">$8,000</td>
+<td class="num">$18k</td>
+<td class="num">$213k</td>
+<td class="num">-$168k</td>
+<td class="num">-378%</td>
+</tr>
+<tr>
+<td>50</td><td>1.5</td>
+<td class="num">$89k</td>
+<td class="num">$900</td>
+<td class="num">$0</td>
+<td class="num">$3,900</td>
+<td class="num">$2,673</td>
+<td class="num">$3,784</td>
+<td class="num">$218k</td>
+<td class="num">$8,000</td>
+<td class="num">$19k</td>
+<td class="num">$256k</td>
+<td class="num">-$167k</td>
+<td class="num">-187%</td>
+</tr>
+<tr>
+<td>100</td><td>2.5</td>
+<td class="num">$178k</td>
+<td class="num">$1,800</td>
+<td class="num">$0</td>
+<td class="num">$5,000</td>
+<td class="num">$5,347</td>
+<td class="num">$7,568</td>
+<td class="num">$300k</td>
+<td class="num">$14k</td>
+<td class="num">$21k</td>
+<td class="num">$355k</td>
+<td class="num">-$177k</td>
+<td class="num">-99%</td>
+</tr>
+<tr>
+<td>200</td><td>4</td>
+<td class="num">$356k</td>
+<td class="num">$2,400</td>
+<td class="num">$0</td>
+<td class="num">$6,000</td>
+<td class="num">$11k</td>
+<td class="num">$15k</td>
+<td class="num">$480k</td>
+<td class="num">$23k</td>
+<td class="num">$26k</td>
+<td class="num">$563k</td>
+<td class="num">-$207k</td>
+<td class="num">-58%</td>
+</tr>
+<tr>
+<td>250</td><td>4.5</td>
+<td class="num">$446k</td>
+<td class="num">$3,000</td>
+<td class="num">$0</td>
+<td class="num">$6,800</td>
+<td class="num">$13k</td>
+<td class="num">$19k</td>
+<td class="num">$540k</td>
+<td class="num">$29k</td>
+<td class="num">$26k</td>
+<td class="num">$637k</td>
+<td class="num">-$191k</td>
+<td class="num">-43%</td>
+</tr>
+<tr>
+<td>500</td><td>7</td>
+<td class="num">$891k</td>
+<td class="num">$6,000</td>
+<td class="num">$0</td>
+<td class="num">$11k</td>
+<td class="num">$27k</td>
+<td class="num">$38k</td>
+<td class="num">$784k</td>
+<td class="num">$58k</td>
+<td class="num">$34k</td>
+<td class="num">$957k</td>
+<td class="num">-$66k</td>
+<td class="num">-7%</td>
+</tr>
+<tr>
+<td>750</td><td>10</td>
+<td class="num">$1.34M</td>
+<td class="num">$6,750</td>
+<td class="num">$0</td>
+<td class="num">$12k</td>
+<td class="num">$40k</td>
+<td class="num">$57k</td>
+<td class="num">$1.12M</td>
+<td class="num">$74k</td>
+<td class="num">$42k</td>
+<td class="num">$1.35M</td>
+<td class="num">-$14k</td>
+<td class="num">-1%</td>
+</tr>
+<tr>
+<td>1000</td><td>14</td>
+<td class="num">$1.78M</td>
+<td class="num">$9,000</td>
+<td class="num">$0</td>
+<td class="num">$15k</td>
+<td class="num">$53k</td>
+<td class="num">$76k</td>
+<td class="num">$1.61M</td>
+<td class="num">$98k</td>
+<td class="num">$52k</td>
+<td class="num">$1.91M</td>
+<td class="num">-$131k</td>
+<td class="num">-7%</td>
+</tr>
+<tr>
+<td>2000</td><td>24</td>
+<td class="num">$3.56M</td>
+<td class="num">$14k</td>
+<td class="num">$0</td>
+<td class="num">$23k</td>
+<td class="num">$107k</td>
+<td class="num">$151k</td>
+<td class="num">$2.76M</td>
+<td class="num">$178k</td>
+<td class="num">$72k</td>
+<td class="num">$3.31M</td>
+<td class="num">$259k</td>
+<td class="num">7%</td>
+</tr>
+    </tbody>
+  </table>
+  </div>
+
+  80</td>
+  <td>Vercel</td>
+</tr>
+<tr>
+  <td>200</td>
+  <td class="num">$29,544</td>
+  <td>Pro + usage (busy)</td>
+  <td class="num">$438</td>
+  <td class="num"><strong>$2,585</strong></td>
+  <td>Team + WU (1600k WU)</td>
+  <td class="num">$597</td>
+  <td class="num"><strong>$2,744</strong></td>
+  <td class="num">+<h2>0. Annual P&amp;L scale (Core plan model)</h2>
+  <p class="note">Same columns as the Pro-stack reference sheet. ARPU ~$148.52/mo · MOTOR $0 · SMS $0 · AI Instant Quote in AI+email.</p>
+  <div style="overflow-x:auto">
+  <table>
+    <thead><tr>
+      <th>Shops</th><th>HC</th><th class="num">ARR (sales)</th><th class="num">Data licenses</th>
+      <th class="num">SMS</th><th class="num">Infra</th><th class="num">Stripe</th><th class="num">AI + email</th>
+      <th class="num">Payroll</th><th class="num">Marketing</th><th class="num">G&amp;A</th>
+      <th class="num">Total cost</th><th class="num">Op. profit</th><th class="num">Margin</th>
+    </tr></thead>
+    <tbody>
+<tr>
+<td>25</td><td>1</td>
+<td class="num">$45k</td>
+<td class="num">$450</td>
+<td class="num">$0</td>
+<td class="num">$3,350</td>
+<td class="num">$1,337</td>
+<td class="num">$1,892</td>
+<td class="num">$180k</td>
+<td class="num">$8,000</td>
+<td class="num">$18k</td>
+<td class="num">$213k</td>
+<td class="num">-$168k</td>
+<td class="num">-378%</td>
+</tr>
+<tr>
+<td>50</td><td>1.5</td>
+<td class="num">$89k</td>
+<td class="num">$900</td>
+<td class="num">$0</td>
+<td class="num">$3,900</td>
+<td class="num">$2,673</td>
+<td class="num">$3,784</td>
+<td class="num">$218k</td>
+<td class="num">$8,000</td>
+<td class="num">$19k</td>
+<td class="num">$256k</td>
+<td class="num">-$167k</td>
+<td class="num">-187%</td>
+</tr>
+<tr>
+<td>100</td><td>2.5</td>
+<td class="num">$178k</td>
+<td class="num">$1,800</td>
+<td class="num">$0</td>
+<td class="num">$5,000</td>
+<td class="num">$5,347</td>
+<td class="num">$7,568</td>
+<td class="num">$300k</td>
+<td class="num">$14k</td>
+<td class="num">$21k</td>
+<td class="num">$355k</td>
+<td class="num">-$177k</td>
+<td class="num">-99%</td>
+</tr>
+<tr>
+<td>200</td><td>4</td>
+<td class="num">$356k</td>
+<td class="num">$2,400</td>
+<td class="num">$0</td>
+<td class="num">$6,000</td>
+<td class="num">$11k</td>
+<td class="num">$15k</td>
+<td class="num">$480k</td>
+<td class="num">$23k</td>
+<td class="num">$26k</td>
+<td class="num">$563k</td>
+<td class="num">-$207k</td>
+<td class="num">-58%</td>
+</tr>
+<tr>
+<td>250</td><td>4.5</td>
+<td class="num">$446k</td>
+<td class="num">$3,000</td>
+<td class="num">$0</td>
+<td class="num">$6,800</td>
+<td class="num">$13k</td>
+<td class="num">$19k</td>
+<td class="num">$540k</td>
+<td class="num">$29k</td>
+<td class="num">$26k</td>
+<td class="num">$637k</td>
+<td class="num">-$191k</td>
+<td class="num">-43%</td>
+</tr>
+<tr>
+<td>500</td><td>7</td>
+<td class="num">$891k</td>
+<td class="num">$6,000</td>
+<td class="num">$0</td>
+<td class="num">$11k</td>
+<td class="num">$27k</td>
+<td class="num">$38k</td>
+<td class="num">$784k</td>
+<td class="num">$58k</td>
+<td class="num">$34k</td>
+<td class="num">$957k</td>
+<td class="num">-$66k</td>
+<td class="num">-7%</td>
+</tr>
+<tr>
+<td>750</td><td>10</td>
+<td class="num">$1.34M</td>
+<td class="num">$6,750</td>
+<td class="num">$0</td>
+<td class="num">$12k</td>
+<td class="num">$40k</td>
+<td class="num">$57k</td>
+<td class="num">$1.12M</td>
+<td class="num">$74k</td>
+<td class="num">$42k</td>
+<td class="num">$1.35M</td>
+<td class="num">-$14k</td>
+<td class="num">-1%</td>
+</tr>
+<tr>
+<td>1000</td><td>14</td>
+<td class="num">$1.78M</td>
+<td class="num">$9,000</td>
+<td class="num">$0</td>
+<td class="num">$15k</td>
+<td class="num">$53k</td>
+<td class="num">$76k</td>
+<td class="num">$1.61M</td>
+<td class="num">$98k</td>
+<td class="num">$52k</td>
+<td class="num">$1.91M</td>
+<td class="num">-$131k</td>
+<td class="num">-7%</td>
+</tr>
+<tr>
+<td>2000</td><td>24</td>
+<td class="num">$3.56M</td>
+<td class="num">$14k</td>
+<td class="num">$0</td>
+<td class="num">$23k</td>
+<td class="num">$107k</td>
+<td class="num">$151k</td>
+<td class="num">$2.76M</td>
+<td class="num">$178k</td>
+<td class="num">$72k</td>
+<td class="num">$3.31M</td>
+<td class="num">$259k</td>
+<td class="num">7%</td>
+</tr>
+    </tbody>
+  </table>
+  </div>
+
+  59</td>
+  <td>Vercel</td>
+</tr>
+<tr>
+  <td>250</td>
+  <td class="num">$36,930</td>
+  <td>Pro + usage (busy)</td>
+  <td class="num">$476</td>
+  <td class="num"><strong>$3,161</strong></td>
+  <td>Team + WU (2000k WU)</td>
+  <td class="num">$687</td>
+  <td class="num"><strong>$3,372</strong></td>
+  <td class="num">+$211</td>
+  <td>Vercel</td>
+</tr>
+<tr>
+  <td>500</td>
+  <td class="num">$73,860</td>
+  <td>Pro + usage (busy)</td>
+  <td class="num">$845</td>
+  <td class="num"><strong>$6,214</strong></td>
+  <td>Team + WU (4000k WU)</td>
+  <td class="num">$979</td>
+  <td class="num"><strong>$6,348</strong></td>
+  <td class="num">+<h2>0. Annual P&amp;L scale (Core plan model)</h2>
+  <p class="note">Same columns as the Pro-stack reference sheet. ARPU ~$148.52/mo · MOTOR $0 · SMS $0 · AI Instant Quote in AI+email.</p>
+  <div style="overflow-x:auto">
+  <table>
+    <thead><tr>
+      <th>Shops</th><th>HC</th><th class="num">ARR (sales)</th><th class="num">Data licenses</th>
+      <th class="num">SMS</th><th class="num">Infra</th><th class="num">Stripe</th><th class="num">AI + email</th>
+      <th class="num">Payroll</th><th class="num">Marketing</th><th class="num">G&amp;A</th>
+      <th class="num">Total cost</th><th class="num">Op. profit</th><th class="num">Margin</th>
+    </tr></thead>
+    <tbody>
+<tr>
+<td>25</td><td>1</td>
+<td class="num">$45k</td>
+<td class="num">$450</td>
+<td class="num">$0</td>
+<td class="num">$3,350</td>
+<td class="num">$1,337</td>
+<td class="num">$1,892</td>
+<td class="num">$180k</td>
+<td class="num">$8,000</td>
+<td class="num">$18k</td>
+<td class="num">$213k</td>
+<td class="num">-$168k</td>
+<td class="num">-378%</td>
+</tr>
+<tr>
+<td>50</td><td>1.5</td>
+<td class="num">$89k</td>
+<td class="num">$900</td>
+<td class="num">$0</td>
+<td class="num">$3,900</td>
+<td class="num">$2,673</td>
+<td class="num">$3,784</td>
+<td class="num">$218k</td>
+<td class="num">$8,000</td>
+<td class="num">$19k</td>
+<td class="num">$256k</td>
+<td class="num">-$167k</td>
+<td class="num">-187%</td>
+</tr>
+<tr>
+<td>100</td><td>2.5</td>
+<td class="num">$178k</td>
+<td class="num">$1,800</td>
+<td class="num">$0</td>
+<td class="num">$5,000</td>
+<td class="num">$5,347</td>
+<td class="num">$7,568</td>
+<td class="num">$300k</td>
+<td class="num">$14k</td>
+<td class="num">$21k</td>
+<td class="num">$355k</td>
+<td class="num">-$177k</td>
+<td class="num">-99%</td>
+</tr>
+<tr>
+<td>200</td><td>4</td>
+<td class="num">$356k</td>
+<td class="num">$2,400</td>
+<td class="num">$0</td>
+<td class="num">$6,000</td>
+<td class="num">$11k</td>
+<td class="num">$15k</td>
+<td class="num">$480k</td>
+<td class="num">$23k</td>
+<td class="num">$26k</td>
+<td class="num">$563k</td>
+<td class="num">-$207k</td>
+<td class="num">-58%</td>
+</tr>
+<tr>
+<td>250</td><td>4.5</td>
+<td class="num">$446k</td>
+<td class="num">$3,000</td>
+<td class="num">$0</td>
+<td class="num">$6,800</td>
+<td class="num">$13k</td>
+<td class="num">$19k</td>
+<td class="num">$540k</td>
+<td class="num">$29k</td>
+<td class="num">$26k</td>
+<td class="num">$637k</td>
+<td class="num">-$191k</td>
+<td class="num">-43%</td>
+</tr>
+<tr>
+<td>500</td><td>7</td>
+<td class="num">$891k</td>
+<td class="num">$6,000</td>
+<td class="num">$0</td>
+<td class="num">$11k</td>
+<td class="num">$27k</td>
+<td class="num">$38k</td>
+<td class="num">$784k</td>
+<td class="num">$58k</td>
+<td class="num">$34k</td>
+<td class="num">$957k</td>
+<td class="num">-$66k</td>
+<td class="num">-7%</td>
+</tr>
+<tr>
+<td>750</td><td>10</td>
+<td class="num">$1.34M</td>
+<td class="num">$6,750</td>
+<td class="num">$0</td>
+<td class="num">$12k</td>
+<td class="num">$40k</td>
+<td class="num">$57k</td>
+<td class="num">$1.12M</td>
+<td class="num">$74k</td>
+<td class="num">$42k</td>
+<td class="num">$1.35M</td>
+<td class="num">-$14k</td>
+<td class="num">-1%</td>
+</tr>
+<tr>
+<td>1000</td><td>14</td>
+<td class="num">$1.78M</td>
+<td class="num">$9,000</td>
+<td class="num">$0</td>
+<td class="num">$15k</td>
+<td class="num">$53k</td>
+<td class="num">$76k</td>
+<td class="num">$1.61M</td>
+<td class="num">$98k</td>
+<td class="num">$52k</td>
+<td class="num">$1.91M</td>
+<td class="num">-$131k</td>
+<td class="num">-7%</td>
+</tr>
+<tr>
+<td>2000</td><td>24</td>
+<td class="num">$3.56M</td>
+<td class="num">$14k</td>
+<td class="num">$0</td>
+<td class="num">$23k</td>
+<td class="num">$107k</td>
+<td class="num">$151k</td>
+<td class="num">$2.76M</td>
+<td class="num">$178k</td>
+<td class="num">$72k</td>
+<td class="num">$3.31M</td>
+<td class="num">$259k</td>
+<td class="num">7%</td>
+</tr>
+    </tbody>
+  </table>
+  </div>
+
+  34</td>
+  <td>Vercel</td>
+</tr>
+<tr>
+  <td>750</td>
+  <td class="num"><h2>0. Annual P&amp;L scale (Core plan model)</h2>
+  <p class="note">Same columns as the Pro-stack reference sheet. ARPU ~$148.52/mo · MOTOR $0 · SMS $0 · AI Instant Quote in AI+email.</p>
+  <div style="overflow-x:auto">
+  <table>
+    <thead><tr>
+      <th>Shops</th><th>HC</th><th class="num">ARR (sales)</th><th class="num">Data licenses</th>
+      <th class="num">SMS</th><th class="num">Infra</th><th class="num">Stripe</th><th class="num">AI + email</th>
+      <th class="num">Payroll</th><th class="num">Marketing</th><th class="num">G&amp;A</th>
+      <th class="num">Total cost</th><th class="num">Op. profit</th><th class="num">Margin</th>
+    </tr></thead>
+    <tbody>
+<tr>
+<td>25</td><td>1</td>
+<td class="num">$45k</td>
+<td class="num">$450</td>
+<td class="num">$0</td>
+<td class="num">$3,350</td>
+<td class="num">$1,337</td>
+<td class="num">$1,892</td>
+<td class="num">$180k</td>
+<td class="num">$8,000</td>
+<td class="num">$18k</td>
+<td class="num">$213k</td>
+<td class="num">-$168k</td>
+<td class="num">-378%</td>
+</tr>
+<tr>
+<td>50</td><td>1.5</td>
+<td class="num">$89k</td>
+<td class="num">$900</td>
+<td class="num">$0</td>
+<td class="num">$3,900</td>
+<td class="num">$2,673</td>
+<td class="num">$3,784</td>
+<td class="num">$218k</td>
+<td class="num">$8,000</td>
+<td class="num">$19k</td>
+<td class="num">$256k</td>
+<td class="num">-$167k</td>
+<td class="num">-187%</td>
+</tr>
+<tr>
+<td>100</td><td>2.5</td>
+<td class="num">$178k</td>
+<td class="num">$1,800</td>
+<td class="num">$0</td>
+<td class="num">$5,000</td>
+<td class="num">$5,347</td>
+<td class="num">$7,568</td>
+<td class="num">$300k</td>
+<td class="num">$14k</td>
+<td class="num">$21k</td>
+<td class="num">$355k</td>
+<td class="num">-$177k</td>
+<td class="num">-99%</td>
+</tr>
+<tr>
+<td>200</td><td>4</td>
+<td class="num">$356k</td>
+<td class="num">$2,400</td>
+<td class="num">$0</td>
+<td class="num">$6,000</td>
+<td class="num">$11k</td>
+<td class="num">$15k</td>
+<td class="num">$480k</td>
+<td class="num">$23k</td>
+<td class="num">$26k</td>
+<td class="num">$563k</td>
+<td class="num">-$207k</td>
+<td class="num">-58%</td>
+</tr>
+<tr>
+<td>250</td><td>4.5</td>
+<td class="num">$446k</td>
+<td class="num">$3,000</td>
+<td class="num">$0</td>
+<td class="num">$6,800</td>
+<td class="num">$13k</td>
+<td class="num">$19k</td>
+<td class="num">$540k</td>
+<td class="num">$29k</td>
+<td class="num">$26k</td>
+<td class="num">$637k</td>
+<td class="num">-$191k</td>
+<td class="num">-43%</td>
+</tr>
+<tr>
+<td>500</td><td>7</td>
+<td class="num">$891k</td>
+<td class="num">$6,000</td>
+<td class="num">$0</td>
+<td class="num">$11k</td>
+<td class="num">$27k</td>
+<td class="num">$38k</td>
+<td class="num">$784k</td>
+<td class="num">$58k</td>
+<td class="num">$34k</td>
+<td class="num">$957k</td>
+<td class="num">-$66k</td>
+<td class="num">-7%</td>
+</tr>
+<tr>
+<td>750</td><td>10</td>
+<td class="num">$1.34M</td>
+<td class="num">$6,750</td>
+<td class="num">$0</td>
+<td class="num">$12k</td>
+<td class="num">$40k</td>
+<td class="num">$57k</td>
+<td class="num">$1.12M</td>
+<td class="num">$74k</td>
+<td class="num">$42k</td>
+<td class="num">$1.35M</td>
+<td class="num">-$14k</td>
+<td class="num">-1%</td>
+</tr>
+<tr>
+<td>1000</td><td>14</td>
+<td class="num">$1.78M</td>
+<td class="num">$9,000</td>
+<td class="num">$0</td>
+<td class="num">$15k</td>
+<td class="num">$53k</td>
+<td class="num">$76k</td>
+<td class="num">$1.61M</td>
+<td class="num">$98k</td>
+<td class="num">$52k</td>
+<td class="num">$1.91M</td>
+<td class="num">-$131k</td>
+<td class="num">-7%</td>
+</tr>
+<tr>
+<td>2000</td><td>24</td>
+<td class="num">$3.56M</td>
+<td class="num">$14k</td>
+<td class="num">$0</td>
+<td class="num">$23k</td>
+<td class="num">$107k</td>
+<td class="num">$151k</td>
+<td class="num">$2.76M</td>
+<td class="num">$178k</td>
+<td class="num">$72k</td>
+<td class="num">$3.31M</td>
+<td class="num">$259k</td>
+<td class="num">7%</td>
+</tr>
+    </tbody>
+  </table>
+  </div>
+
+  10,790</td>
+  <td>Pro + usage (busy)</td>
+  <td class="num"><h2>0. Annual P&amp;L scale (Core plan model)</h2>
+  <p class="note">Same columns as the Pro-stack reference sheet. ARPU ~$148.52/mo · MOTOR $0 · SMS $0 · AI Instant Quote in AI+email.</p>
+  <div style="overflow-x:auto">
+  <table>
+    <thead><tr>
+      <th>Shops</th><th>HC</th><th class="num">ARR (sales)</th><th class="num">Data licenses</th>
+      <th class="num">SMS</th><th class="num">Infra</th><th class="num">Stripe</th><th class="num">AI + email</th>
+      <th class="num">Payroll</th><th class="num">Marketing</th><th class="num">G&amp;A</th>
+      <th class="num">Total cost</th><th class="num">Op. profit</th><th class="num">Margin</th>
+    </tr></thead>
+    <tbody>
+<tr>
+<td>25</td><td>1</td>
+<td class="num">$45k</td>
+<td class="num">$450</td>
+<td class="num">$0</td>
+<td class="num">$3,350</td>
+<td class="num">$1,337</td>
+<td class="num">$1,892</td>
+<td class="num">$180k</td>
+<td class="num">$8,000</td>
+<td class="num">$18k</td>
+<td class="num">$213k</td>
+<td class="num">-$168k</td>
+<td class="num">-378%</td>
+</tr>
+<tr>
+<td>50</td><td>1.5</td>
+<td class="num">$89k</td>
+<td class="num">$900</td>
+<td class="num">$0</td>
+<td class="num">$3,900</td>
+<td class="num">$2,673</td>
+<td class="num">$3,784</td>
+<td class="num">$218k</td>
+<td class="num">$8,000</td>
+<td class="num">$19k</td>
+<td class="num">$256k</td>
+<td class="num">-$167k</td>
+<td class="num">-187%</td>
+</tr>
+<tr>
+<td>100</td><td>2.5</td>
+<td class="num">$178k</td>
+<td class="num">$1,800</td>
+<td class="num">$0</td>
+<td class="num">$5,000</td>
+<td class="num">$5,347</td>
+<td class="num">$7,568</td>
+<td class="num">$300k</td>
+<td class="num">$14k</td>
+<td class="num">$21k</td>
+<td class="num">$355k</td>
+<td class="num">-$177k</td>
+<td class="num">-99%</td>
+</tr>
+<tr>
+<td>200</td><td>4</td>
+<td class="num">$356k</td>
+<td class="num">$2,400</td>
+<td class="num">$0</td>
+<td class="num">$6,000</td>
+<td class="num">$11k</td>
+<td class="num">$15k</td>
+<td class="num">$480k</td>
+<td class="num">$23k</td>
+<td class="num">$26k</td>
+<td class="num">$563k</td>
+<td class="num">-$207k</td>
+<td class="num">-58%</td>
+</tr>
+<tr>
+<td>250</td><td>4.5</td>
+<td class="num">$446k</td>
+<td class="num">$3,000</td>
+<td class="num">$0</td>
+<td class="num">$6,800</td>
+<td class="num">$13k</td>
+<td class="num">$19k</td>
+<td class="num">$540k</td>
+<td class="num">$29k</td>
+<td class="num">$26k</td>
+<td class="num">$637k</td>
+<td class="num">-$191k</td>
+<td class="num">-43%</td>
+</tr>
+<tr>
+<td>500</td><td>7</td>
+<td class="num">$891k</td>
+<td class="num">$6,000</td>
+<td class="num">$0</td>
+<td class="num">$11k</td>
+<td class="num">$27k</td>
+<td class="num">$38k</td>
+<td class="num">$784k</td>
+<td class="num">$58k</td>
+<td class="num">$34k</td>
+<td class="num">$957k</td>
+<td class="num">-$66k</td>
+<td class="num">-7%</td>
+</tr>
+<tr>
+<td>750</td><td>10</td>
+<td class="num">$1.34M</td>
+<td class="num">$6,750</td>
+<td class="num">$0</td>
+<td class="num">$12k</td>
+<td class="num">$40k</td>
+<td class="num">$57k</td>
+<td class="num">$1.12M</td>
+<td class="num">$74k</td>
+<td class="num">$42k</td>
+<td class="num">$1.35M</td>
+<td class="num">-$14k</td>
+<td class="num">-1%</td>
+</tr>
+<tr>
+<td>1000</td><td>14</td>
+<td class="num">$1.78M</td>
+<td class="num">$9,000</td>
+<td class="num">$0</td>
+<td class="num">$15k</td>
+<td class="num">$53k</td>
+<td class="num">$76k</td>
+<td class="num">$1.61M</td>
+<td class="num">$98k</td>
+<td class="num">$52k</td>
+<td class="num">$1.91M</td>
+<td class="num">-$131k</td>
+<td class="num">-7%</td>
+</tr>
+<tr>
+<td>2000</td><td>24</td>
+<td class="num">$3.56M</td>
+<td class="num">$14k</td>
+<td class="num">$0</td>
+<td class="num">$23k</td>
+<td class="num">$107k</td>
+<td class="num">$151k</td>
+<td class="num">$2.76M</td>
+<td class="num">$178k</td>
+<td class="num">$72k</td>
+<td class="num">$3.31M</td>
+<td class="num">$259k</td>
+<td class="num">7%</td>
+</tr>
+    </tbody>
+  </table>
+  </div>
+
+  ,123</td>
+  <td class="num"><strong>$9,177</strong></td>
+  <td>Team + WU (6000k WU)</td>
+  <td class="num"><h2>0. Annual P&amp;L scale (Core plan model)</h2>
+  <p class="note">Same columns as the Pro-stack reference sheet. ARPU ~$148.52/mo · MOTOR $0 · SMS $0 · AI Instant Quote in AI+email.</p>
+  <div style="overflow-x:auto">
+  <table>
+    <thead><tr>
+      <th>Shops</th><th>HC</th><th class="num">ARR (sales)</th><th class="num">Data licenses</th>
+      <th class="num">SMS</th><th class="num">Infra</th><th class="num">Stripe</th><th class="num">AI + email</th>
+      <th class="num">Payroll</th><th class="num">Marketing</th><th class="num">G&amp;A</th>
+      <th class="num">Total cost</th><th class="num">Op. profit</th><th class="num">Margin</th>
+    </tr></thead>
+    <tbody>
+<tr>
+<td>25</td><td>1</td>
+<td class="num">$45k</td>
+<td class="num">$450</td>
+<td class="num">$0</td>
+<td class="num">$3,350</td>
+<td class="num">$1,337</td>
+<td class="num">$1,892</td>
+<td class="num">$180k</td>
+<td class="num">$8,000</td>
+<td class="num">$18k</td>
+<td class="num">$213k</td>
+<td class="num">-$168k</td>
+<td class="num">-378%</td>
+</tr>
+<tr>
+<td>50</td><td>1.5</td>
+<td class="num">$89k</td>
+<td class="num">$900</td>
+<td class="num">$0</td>
+<td class="num">$3,900</td>
+<td class="num">$2,673</td>
+<td class="num">$3,784</td>
+<td class="num">$218k</td>
+<td class="num">$8,000</td>
+<td class="num">$19k</td>
+<td class="num">$256k</td>
+<td class="num">-$167k</td>
+<td class="num">-187%</td>
+</tr>
+<tr>
+<td>100</td><td>2.5</td>
+<td class="num">$178k</td>
+<td class="num">$1,800</td>
+<td class="num">$0</td>
+<td class="num">$5,000</td>
+<td class="num">$5,347</td>
+<td class="num">$7,568</td>
+<td class="num">$300k</td>
+<td class="num">$14k</td>
+<td class="num">$21k</td>
+<td class="num">$355k</td>
+<td class="num">-$177k</td>
+<td class="num">-99%</td>
+</tr>
+<tr>
+<td>200</td><td>4</td>
+<td class="num">$356k</td>
+<td class="num">$2,400</td>
+<td class="num">$0</td>
+<td class="num">$6,000</td>
+<td class="num">$11k</td>
+<td class="num">$15k</td>
+<td class="num">$480k</td>
+<td class="num">$23k</td>
+<td class="num">$26k</td>
+<td class="num">$563k</td>
+<td class="num">-$207k</td>
+<td class="num">-58%</td>
+</tr>
+<tr>
+<td>250</td><td>4.5</td>
+<td class="num">$446k</td>
+<td class="num">$3,000</td>
+<td class="num">$0</td>
+<td class="num">$6,800</td>
+<td class="num">$13k</td>
+<td class="num">$19k</td>
+<td class="num">$540k</td>
+<td class="num">$29k</td>
+<td class="num">$26k</td>
+<td class="num">$637k</td>
+<td class="num">-$191k</td>
+<td class="num">-43%</td>
+</tr>
+<tr>
+<td>500</td><td>7</td>
+<td class="num">$891k</td>
+<td class="num">$6,000</td>
+<td class="num">$0</td>
+<td class="num">$11k</td>
+<td class="num">$27k</td>
+<td class="num">$38k</td>
+<td class="num">$784k</td>
+<td class="num">$58k</td>
+<td class="num">$34k</td>
+<td class="num">$957k</td>
+<td class="num">-$66k</td>
+<td class="num">-7%</td>
+</tr>
+<tr>
+<td>750</td><td>10</td>
+<td class="num">$1.34M</td>
+<td class="num">$6,750</td>
+<td class="num">$0</td>
+<td class="num">$12k</td>
+<td class="num">$40k</td>
+<td class="num">$57k</td>
+<td class="num">$1.12M</td>
+<td class="num">$74k</td>
+<td class="num">$42k</td>
+<td class="num">$1.35M</td>
+<td class="num">-$14k</td>
+<td class="num">-1%</td>
+</tr>
+<tr>
+<td>1000</td><td>14</td>
+<td class="num">$1.78M</td>
+<td class="num">$9,000</td>
+<td class="num">$0</td>
+<td class="num">$15k</td>
+<td class="num">$53k</td>
+<td class="num">$76k</td>
+<td class="num">$1.61M</td>
+<td class="num">$98k</td>
+<td class="num">$52k</td>
+<td class="num">$1.91M</td>
+<td class="num">-$131k</td>
+<td class="num">-7%</td>
+</tr>
+<tr>
+<td>2000</td><td>24</td>
+<td class="num">$3.56M</td>
+<td class="num">$14k</td>
+<td class="num">$0</td>
+<td class="num">$23k</td>
+<td class="num">$107k</td>
+<td class="num">$151k</td>
+<td class="num">$2.76M</td>
+<td class="num">$178k</td>
+<td class="num">$72k</td>
+<td class="num">$3.31M</td>
+<td class="num">$259k</td>
+<td class="num">7%</td>
+</tr>
+    </tbody>
+  </table>
+  </div>
+
+  ,339</td>
+  <td class="num"><strong>$9,393</strong></td>
+  <td class="num">+$216</td>
+  <td>Vercel</td>
+</tr>
+<tr>
+  <td>1000</td>
+  <td class="num"><h2>0. Annual P&amp;L scale (Core plan model)</h2>
+  <p class="note">Same columns as the Pro-stack reference sheet. ARPU ~$148.52/mo · MOTOR $0 · SMS $0 · AI Instant Quote in AI+email.</p>
+  <div style="overflow-x:auto">
+  <table>
+    <thead><tr>
+      <th>Shops</th><th>HC</th><th class="num">ARR (sales)</th><th class="num">Data licenses</th>
+      <th class="num">SMS</th><th class="num">Infra</th><th class="num">Stripe</th><th class="num">AI + email</th>
+      <th class="num">Payroll</th><th class="num">Marketing</th><th class="num">G&amp;A</th>
+      <th class="num">Total cost</th><th class="num">Op. profit</th><th class="num">Margin</th>
+    </tr></thead>
+    <tbody>
+<tr>
+<td>25</td><td>1</td>
+<td class="num">$45k</td>
+<td class="num">$450</td>
+<td class="num">$0</td>
+<td class="num">$3,350</td>
+<td class="num">$1,337</td>
+<td class="num">$1,892</td>
+<td class="num">$180k</td>
+<td class="num">$8,000</td>
+<td class="num">$18k</td>
+<td class="num">$213k</td>
+<td class="num">-$168k</td>
+<td class="num">-378%</td>
+</tr>
+<tr>
+<td>50</td><td>1.5</td>
+<td class="num">$89k</td>
+<td class="num">$900</td>
+<td class="num">$0</td>
+<td class="num">$3,900</td>
+<td class="num">$2,673</td>
+<td class="num">$3,784</td>
+<td class="num">$218k</td>
+<td class="num">$8,000</td>
+<td class="num">$19k</td>
+<td class="num">$256k</td>
+<td class="num">-$167k</td>
+<td class="num">-187%</td>
+</tr>
+<tr>
+<td>100</td><td>2.5</td>
+<td class="num">$178k</td>
+<td class="num">$1,800</td>
+<td class="num">$0</td>
+<td class="num">$5,000</td>
+<td class="num">$5,347</td>
+<td class="num">$7,568</td>
+<td class="num">$300k</td>
+<td class="num">$14k</td>
+<td class="num">$21k</td>
+<td class="num">$355k</td>
+<td class="num">-$177k</td>
+<td class="num">-99%</td>
+</tr>
+<tr>
+<td>200</td><td>4</td>
+<td class="num">$356k</td>
+<td class="num">$2,400</td>
+<td class="num">$0</td>
+<td class="num">$6,000</td>
+<td class="num">$11k</td>
+<td class="num">$15k</td>
+<td class="num">$480k</td>
+<td class="num">$23k</td>
+<td class="num">$26k</td>
+<td class="num">$563k</td>
+<td class="num">-$207k</td>
+<td class="num">-58%</td>
+</tr>
+<tr>
+<td>250</td><td>4.5</td>
+<td class="num">$446k</td>
+<td class="num">$3,000</td>
+<td class="num">$0</td>
+<td class="num">$6,800</td>
+<td class="num">$13k</td>
+<td class="num">$19k</td>
+<td class="num">$540k</td>
+<td class="num">$29k</td>
+<td class="num">$26k</td>
+<td class="num">$637k</td>
+<td class="num">-$191k</td>
+<td class="num">-43%</td>
+</tr>
+<tr>
+<td>500</td><td>7</td>
+<td class="num">$891k</td>
+<td class="num">$6,000</td>
+<td class="num">$0</td>
+<td class="num">$11k</td>
+<td class="num">$27k</td>
+<td class="num">$38k</td>
+<td class="num">$784k</td>
+<td class="num">$58k</td>
+<td class="num">$34k</td>
+<td class="num">$957k</td>
+<td class="num">-$66k</td>
+<td class="num">-7%</td>
+</tr>
+<tr>
+<td>750</td><td>10</td>
+<td class="num">$1.34M</td>
+<td class="num">$6,750</td>
+<td class="num">$0</td>
+<td class="num">$12k</td>
+<td class="num">$40k</td>
+<td class="num">$57k</td>
+<td class="num">$1.12M</td>
+<td class="num">$74k</td>
+<td class="num">$42k</td>
+<td class="num">$1.35M</td>
+<td class="num">-$14k</td>
+<td class="num">-1%</td>
+</tr>
+<tr>
+<td>1000</td><td>14</td>
+<td class="num">$1.78M</td>
+<td class="num">$9,000</td>
+<td class="num">$0</td>
+<td class="num">$15k</td>
+<td class="num">$53k</td>
+<td class="num">$76k</td>
+<td class="num">$1.61M</td>
+<td class="num">$98k</td>
+<td class="num">$52k</td>
+<td class="num">$1.91M</td>
+<td class="num">-$131k</td>
+<td class="num">-7%</td>
+</tr>
+<tr>
+<td>2000</td><td>24</td>
+<td class="num">$3.56M</td>
+<td class="num">$14k</td>
+<td class="num">$0</td>
+<td class="num">$23k</td>
+<td class="num">$107k</td>
+<td class="num">$151k</td>
+<td class="num">$2.76M</td>
+<td class="num">$178k</td>
+<td class="num">$72k</td>
+<td class="num">$3.31M</td>
+<td class="num">$259k</td>
+<td class="num">7%</td>
+</tr>
+    </tbody>
+  </table>
+  </div>
+
+  47,720</td>
+  <td>Pro + usage (busy)</td>
+  <td class="num"><h2>0. Annual P&amp;L scale (Core plan model)</h2>
+  <p class="note">Same columns as the Pro-stack reference sheet. ARPU ~$148.52/mo · MOTOR $0 · SMS $0 · AI Instant Quote in AI+email.</p>
+  <div style="overflow-x:auto">
+  <table>
+    <thead><tr>
+      <th>Shops</th><th>HC</th><th class="num">ARR (sales)</th><th class="num">Data licenses</th>
+      <th class="num">SMS</th><th class="num">Infra</th><th class="num">Stripe</th><th class="num">AI + email</th>
+      <th class="num">Payroll</th><th class="num">Marketing</th><th class="num">G&amp;A</th>
+      <th class="num">Total cost</th><th class="num">Op. profit</th><th class="num">Margin</th>
+    </tr></thead>
+    <tbody>
+<tr>
+<td>25</td><td>1</td>
+<td class="num">$45k</td>
+<td class="num">$450</td>
+<td class="num">$0</td>
+<td class="num">$3,350</td>
+<td class="num">$1,337</td>
+<td class="num">$1,892</td>
+<td class="num">$180k</td>
+<td class="num">$8,000</td>
+<td class="num">$18k</td>
+<td class="num">$213k</td>
+<td class="num">-$168k</td>
+<td class="num">-378%</td>
+</tr>
+<tr>
+<td>50</td><td>1.5</td>
+<td class="num">$89k</td>
+<td class="num">$900</td>
+<td class="num">$0</td>
+<td class="num">$3,900</td>
+<td class="num">$2,673</td>
+<td class="num">$3,784</td>
+<td class="num">$218k</td>
+<td class="num">$8,000</td>
+<td class="num">$19k</td>
+<td class="num">$256k</td>
+<td class="num">-$167k</td>
+<td class="num">-187%</td>
+</tr>
+<tr>
+<td>100</td><td>2.5</td>
+<td class="num">$178k</td>
+<td class="num">$1,800</td>
+<td class="num">$0</td>
+<td class="num">$5,000</td>
+<td class="num">$5,347</td>
+<td class="num">$7,568</td>
+<td class="num">$300k</td>
+<td class="num">$14k</td>
+<td class="num">$21k</td>
+<td class="num">$355k</td>
+<td class="num">-$177k</td>
+<td class="num">-99%</td>
+</tr>
+<tr>
+<td>200</td><td>4</td>
+<td class="num">$356k</td>
+<td class="num">$2,400</td>
+<td class="num">$0</td>
+<td class="num">$6,000</td>
+<td class="num">$11k</td>
+<td class="num">$15k</td>
+<td class="num">$480k</td>
+<td class="num">$23k</td>
+<td class="num">$26k</td>
+<td class="num">$563k</td>
+<td class="num">-$207k</td>
+<td class="num">-58%</td>
+</tr>
+<tr>
+<td>250</td><td>4.5</td>
+<td class="num">$446k</td>
+<td class="num">$3,000</td>
+<td class="num">$0</td>
+<td class="num">$6,800</td>
+<td class="num">$13k</td>
+<td class="num">$19k</td>
+<td class="num">$540k</td>
+<td class="num">$29k</td>
+<td class="num">$26k</td>
+<td class="num">$637k</td>
+<td class="num">-$191k</td>
+<td class="num">-43%</td>
+</tr>
+<tr>
+<td>500</td><td>7</td>
+<td class="num">$891k</td>
+<td class="num">$6,000</td>
+<td class="num">$0</td>
+<td class="num">$11k</td>
+<td class="num">$27k</td>
+<td class="num">$38k</td>
+<td class="num">$784k</td>
+<td class="num">$58k</td>
+<td class="num">$34k</td>
+<td class="num">$957k</td>
+<td class="num">-$66k</td>
+<td class="num">-7%</td>
+</tr>
+<tr>
+<td>750</td><td>10</td>
+<td class="num">$1.34M</td>
+<td class="num">$6,750</td>
+<td class="num">$0</td>
+<td class="num">$12k</td>
+<td class="num">$40k</td>
+<td class="num">$57k</td>
+<td class="num">$1.12M</td>
+<td class="num">$74k</td>
+<td class="num">$42k</td>
+<td class="num">$1.35M</td>
+<td class="num">-$14k</td>
+<td class="num">-1%</td>
+</tr>
+<tr>
+<td>1000</td><td>14</td>
+<td class="num">$1.78M</td>
+<td class="num">$9,000</td>
+<td class="num">$0</td>
+<td class="num">$15k</td>
+<td class="num">$53k</td>
+<td class="num">$76k</td>
+<td class="num">$1.61M</td>
+<td class="num">$98k</td>
+<td class="num">$52k</td>
+<td class="num">$1.91M</td>
+<td class="num">-$131k</td>
+<td class="num">-7%</td>
+</tr>
+<tr>
+<td>2000</td><td>24</td>
+<td class="num">$3.56M</td>
+<td class="num">$14k</td>
+<td class="num">$0</td>
+<td class="num">$23k</td>
+<td class="num">$107k</td>
+<td class="num">$151k</td>
+<td class="num">$2.76M</td>
+<td class="num">$178k</td>
+<td class="num">$72k</td>
+<td class="num">$3.31M</td>
+<td class="num">$259k</td>
+<td class="num">7%</td>
+</tr>
+    </tbody>
+  </table>
+  </div>
+
+  ,310</td>
+  <td class="num"><strong><h2>0. Annual P&amp;L scale (Core plan model)</h2>
+  <p class="note">Same columns as the Pro-stack reference sheet. ARPU ~$148.52/mo · MOTOR $0 · SMS $0 · AI Instant Quote in AI+email.</p>
+  <div style="overflow-x:auto">
+  <table>
+    <thead><tr>
+      <th>Shops</th><th>HC</th><th class="num">ARR (sales)</th><th class="num">Data licenses</th>
+      <th class="num">SMS</th><th class="num">Infra</th><th class="num">Stripe</th><th class="num">AI + email</th>
+      <th class="num">Payroll</th><th class="num">Marketing</th><th class="num">G&amp;A</th>
+      <th class="num">Total cost</th><th class="num">Op. profit</th><th class="num">Margin</th>
+    </tr></thead>
+    <tbody>
+<tr>
+<td>25</td><td>1</td>
+<td class="num">$45k</td>
+<td class="num">$450</td>
+<td class="num">$0</td>
+<td class="num">$3,350</td>
+<td class="num">$1,337</td>
+<td class="num">$1,892</td>
+<td class="num">$180k</td>
+<td class="num">$8,000</td>
+<td class="num">$18k</td>
+<td class="num">$213k</td>
+<td class="num">-$168k</td>
+<td class="num">-378%</td>
+</tr>
+<tr>
+<td>50</td><td>1.5</td>
+<td class="num">$89k</td>
+<td class="num">$900</td>
+<td class="num">$0</td>
+<td class="num">$3,900</td>
+<td class="num">$2,673</td>
+<td class="num">$3,784</td>
+<td class="num">$218k</td>
+<td class="num">$8,000</td>
+<td class="num">$19k</td>
+<td class="num">$256k</td>
+<td class="num">-$167k</td>
+<td class="num">-187%</td>
+</tr>
+<tr>
+<td>100</td><td>2.5</td>
+<td class="num">$178k</td>
+<td class="num">$1,800</td>
+<td class="num">$0</td>
+<td class="num">$5,000</td>
+<td class="num">$5,347</td>
+<td class="num">$7,568</td>
+<td class="num">$300k</td>
+<td class="num">$14k</td>
+<td class="num">$21k</td>
+<td class="num">$355k</td>
+<td class="num">-$177k</td>
+<td class="num">-99%</td>
+</tr>
+<tr>
+<td>200</td><td>4</td>
+<td class="num">$356k</td>
+<td class="num">$2,400</td>
+<td class="num">$0</td>
+<td class="num">$6,000</td>
+<td class="num">$11k</td>
+<td class="num">$15k</td>
+<td class="num">$480k</td>
+<td class="num">$23k</td>
+<td class="num">$26k</td>
+<td class="num">$563k</td>
+<td class="num">-$207k</td>
+<td class="num">-58%</td>
+</tr>
+<tr>
+<td>250</td><td>4.5</td>
+<td class="num">$446k</td>
+<td class="num">$3,000</td>
+<td class="num">$0</td>
+<td class="num">$6,800</td>
+<td class="num">$13k</td>
+<td class="num">$19k</td>
+<td class="num">$540k</td>
+<td class="num">$29k</td>
+<td class="num">$26k</td>
+<td class="num">$637k</td>
+<td class="num">-$191k</td>
+<td class="num">-43%</td>
+</tr>
+<tr>
+<td>500</td><td>7</td>
+<td class="num">$891k</td>
+<td class="num">$6,000</td>
+<td class="num">$0</td>
+<td class="num">$11k</td>
+<td class="num">$27k</td>
+<td class="num">$38k</td>
+<td class="num">$784k</td>
+<td class="num">$58k</td>
+<td class="num">$34k</td>
+<td class="num">$957k</td>
+<td class="num">-$66k</td>
+<td class="num">-7%</td>
+</tr>
+<tr>
+<td>750</td><td>10</td>
+<td class="num">$1.34M</td>
+<td class="num">$6,750</td>
+<td class="num">$0</td>
+<td class="num">$12k</td>
+<td class="num">$40k</td>
+<td class="num">$57k</td>
+<td class="num">$1.12M</td>
+<td class="num">$74k</td>
+<td class="num">$42k</td>
+<td class="num">$1.35M</td>
+<td class="num">-$14k</td>
+<td class="num">-1%</td>
+</tr>
+<tr>
+<td>1000</td><td>14</td>
+<td class="num">$1.78M</td>
+<td class="num">$9,000</td>
+<td class="num">$0</td>
+<td class="num">$15k</td>
+<td class="num">$53k</td>
+<td class="num">$76k</td>
+<td class="num">$1.61M</td>
+<td class="num">$98k</td>
+<td class="num">$52k</td>
+<td class="num">$1.91M</td>
+<td class="num">-$131k</td>
+<td class="num">-7%</td>
+</tr>
+<tr>
+<td>2000</td><td>24</td>
+<td class="num">$3.56M</td>
+<td class="num">$14k</td>
+<td class="num">$0</td>
+<td class="num">$23k</td>
+<td class="num">$107k</td>
+<td class="num">$151k</td>
+<td class="num">$2.76M</td>
+<td class="num">$178k</td>
+<td class="num">$72k</td>
+<td class="num">$3.31M</td>
+<td class="num">$259k</td>
+<td class="num">7%</td>
+</tr>
+    </tbody>
+  </table>
+  </div>
+
+  2,048</strong></td>
+  <td>Team + WU (8000k WU)</td>
+  <td class="num"><h2>0. Annual P&amp;L scale (Core plan model)</h2>
+  <p class="note">Same columns as the Pro-stack reference sheet. ARPU ~$148.52/mo · MOTOR $0 · SMS $0 · AI Instant Quote in AI+email.</p>
+  <div style="overflow-x:auto">
+  <table>
+    <thead><tr>
+      <th>Shops</th><th>HC</th><th class="num">ARR (sales)</th><th class="num">Data licenses</th>
+      <th class="num">SMS</th><th class="num">Infra</th><th class="num">Stripe</th><th class="num">AI + email</th>
+      <th class="num">Payroll</th><th class="num">Marketing</th><th class="num">G&amp;A</th>
+      <th class="num">Total cost</th><th class="num">Op. profit</th><th class="num">Margin</th>
+    </tr></thead>
+    <tbody>
+<tr>
+<td>25</td><td>1</td>
+<td class="num">$45k</td>
+<td class="num">$450</td>
+<td class="num">$0</td>
+<td class="num">$3,350</td>
+<td class="num">$1,337</td>
+<td class="num">$1,892</td>
+<td class="num">$180k</td>
+<td class="num">$8,000</td>
+<td class="num">$18k</td>
+<td class="num">$213k</td>
+<td class="num">-$168k</td>
+<td class="num">-378%</td>
+</tr>
+<tr>
+<td>50</td><td>1.5</td>
+<td class="num">$89k</td>
+<td class="num">$900</td>
+<td class="num">$0</td>
+<td class="num">$3,900</td>
+<td class="num">$2,673</td>
+<td class="num">$3,784</td>
+<td class="num">$218k</td>
+<td class="num">$8,000</td>
+<td class="num">$19k</td>
+<td class="num">$256k</td>
+<td class="num">-$167k</td>
+<td class="num">-187%</td>
+</tr>
+<tr>
+<td>100</td><td>2.5</td>
+<td class="num">$178k</td>
+<td class="num">$1,800</td>
+<td class="num">$0</td>
+<td class="num">$5,000</td>
+<td class="num">$5,347</td>
+<td class="num">$7,568</td>
+<td class="num">$300k</td>
+<td class="num">$14k</td>
+<td class="num">$21k</td>
+<td class="num">$355k</td>
+<td class="num">-$177k</td>
+<td class="num">-99%</td>
+</tr>
+<tr>
+<td>200</td><td>4</td>
+<td class="num">$356k</td>
+<td class="num">$2,400</td>
+<td class="num">$0</td>
+<td class="num">$6,000</td>
+<td class="num">$11k</td>
+<td class="num">$15k</td>
+<td class="num">$480k</td>
+<td class="num">$23k</td>
+<td class="num">$26k</td>
+<td class="num">$563k</td>
+<td class="num">-$207k</td>
+<td class="num">-58%</td>
+</tr>
+<tr>
+<td>250</td><td>4.5</td>
+<td class="num">$446k</td>
+<td class="num">$3,000</td>
+<td class="num">$0</td>
+<td class="num">$6,800</td>
+<td class="num">$13k</td>
+<td class="num">$19k</td>
+<td class="num">$540k</td>
+<td class="num">$29k</td>
+<td class="num">$26k</td>
+<td class="num">$637k</td>
+<td class="num">-$191k</td>
+<td class="num">-43%</td>
+</tr>
+<tr>
+<td>500</td><td>7</td>
+<td class="num">$891k</td>
+<td class="num">$6,000</td>
+<td class="num">$0</td>
+<td class="num">$11k</td>
+<td class="num">$27k</td>
+<td class="num">$38k</td>
+<td class="num">$784k</td>
+<td class="num">$58k</td>
+<td class="num">$34k</td>
+<td class="num">$957k</td>
+<td class="num">-$66k</td>
+<td class="num">-7%</td>
+</tr>
+<tr>
+<td>750</td><td>10</td>
+<td class="num">$1.34M</td>
+<td class="num">$6,750</td>
+<td class="num">$0</td>
+<td class="num">$12k</td>
+<td class="num">$40k</td>
+<td class="num">$57k</td>
+<td class="num">$1.12M</td>
+<td class="num">$74k</td>
+<td class="num">$42k</td>
+<td class="num">$1.35M</td>
+<td class="num">-$14k</td>
+<td class="num">-1%</td>
+</tr>
+<tr>
+<td>1000</td><td>14</td>
+<td class="num">$1.78M</td>
+<td class="num">$9,000</td>
+<td class="num">$0</td>
+<td class="num">$15k</td>
+<td class="num">$53k</td>
+<td class="num">$76k</td>
+<td class="num">$1.61M</td>
+<td class="num">$98k</td>
+<td class="num">$52k</td>
+<td class="num">$1.91M</td>
+<td class="num">-$131k</td>
+<td class="num">-7%</td>
+</tr>
+<tr>
+<td>2000</td><td>24</td>
+<td class="num">$3.56M</td>
+<td class="num">$14k</td>
+<td class="num">$0</td>
+<td class="num">$23k</td>
+<td class="num">$107k</td>
+<td class="num">$151k</td>
+<td class="num">$2.76M</td>
+<td class="num">$178k</td>
+<td class="num">$72k</td>
+<td class="num">$3.31M</td>
+<td class="num">$259k</td>
+<td class="num">7%</td>
+</tr>
+    </tbody>
+  </table>
+  </div>
+
+  ,699</td>
+  <td class="num"><strong><h2>0. Annual P&amp;L scale (Core plan model)</h2>
+  <p class="note">Same columns as the Pro-stack reference sheet. ARPU ~$148.52/mo · MOTOR $0 · SMS $0 · AI Instant Quote in AI+email.</p>
+  <div style="overflow-x:auto">
+  <table>
+    <thead><tr>
+      <th>Shops</th><th>HC</th><th class="num">ARR (sales)</th><th class="num">Data licenses</th>
+      <th class="num">SMS</th><th class="num">Infra</th><th class="num">Stripe</th><th class="num">AI + email</th>
+      <th class="num">Payroll</th><th class="num">Marketing</th><th class="num">G&amp;A</th>
+      <th class="num">Total cost</th><th class="num">Op. profit</th><th class="num">Margin</th>
+    </tr></thead>
+    <tbody>
+<tr>
+<td>25</td><td>1</td>
+<td class="num">$45k</td>
+<td class="num">$450</td>
+<td class="num">$0</td>
+<td class="num">$3,350</td>
+<td class="num">$1,337</td>
+<td class="num">$1,892</td>
+<td class="num">$180k</td>
+<td class="num">$8,000</td>
+<td class="num">$18k</td>
+<td class="num">$213k</td>
+<td class="num">-$168k</td>
+<td class="num">-378%</td>
+</tr>
+<tr>
+<td>50</td><td>1.5</td>
+<td class="num">$89k</td>
+<td class="num">$900</td>
+<td class="num">$0</td>
+<td class="num">$3,900</td>
+<td class="num">$2,673</td>
+<td class="num">$3,784</td>
+<td class="num">$218k</td>
+<td class="num">$8,000</td>
+<td class="num">$19k</td>
+<td class="num">$256k</td>
+<td class="num">-$167k</td>
+<td class="num">-187%</td>
+</tr>
+<tr>
+<td>100</td><td>2.5</td>
+<td class="num">$178k</td>
+<td class="num">$1,800</td>
+<td class="num">$0</td>
+<td class="num">$5,000</td>
+<td class="num">$5,347</td>
+<td class="num">$7,568</td>
+<td class="num">$300k</td>
+<td class="num">$14k</td>
+<td class="num">$21k</td>
+<td class="num">$355k</td>
+<td class="num">-$177k</td>
+<td class="num">-99%</td>
+</tr>
+<tr>
+<td>200</td><td>4</td>
+<td class="num">$356k</td>
+<td class="num">$2,400</td>
+<td class="num">$0</td>
+<td class="num">$6,000</td>
+<td class="num">$11k</td>
+<td class="num">$15k</td>
+<td class="num">$480k</td>
+<td class="num">$23k</td>
+<td class="num">$26k</td>
+<td class="num">$563k</td>
+<td class="num">-$207k</td>
+<td class="num">-58%</td>
+</tr>
+<tr>
+<td>250</td><td>4.5</td>
+<td class="num">$446k</td>
+<td class="num">$3,000</td>
+<td class="num">$0</td>
+<td class="num">$6,800</td>
+<td class="num">$13k</td>
+<td class="num">$19k</td>
+<td class="num">$540k</td>
+<td class="num">$29k</td>
+<td class="num">$26k</td>
+<td class="num">$637k</td>
+<td class="num">-$191k</td>
+<td class="num">-43%</td>
+</tr>
+<tr>
+<td>500</td><td>7</td>
+<td class="num">$891k</td>
+<td class="num">$6,000</td>
+<td class="num">$0</td>
+<td class="num">$11k</td>
+<td class="num">$27k</td>
+<td class="num">$38k</td>
+<td class="num">$784k</td>
+<td class="num">$58k</td>
+<td class="num">$34k</td>
+<td class="num">$957k</td>
+<td class="num">-$66k</td>
+<td class="num">-7%</td>
+</tr>
+<tr>
+<td>750</td><td>10</td>
+<td class="num">$1.34M</td>
+<td class="num">$6,750</td>
+<td class="num">$0</td>
+<td class="num">$12k</td>
+<td class="num">$40k</td>
+<td class="num">$57k</td>
+<td class="num">$1.12M</td>
+<td class="num">$74k</td>
+<td class="num">$42k</td>
+<td class="num">$1.35M</td>
+<td class="num">-$14k</td>
+<td class="num">-1%</td>
+</tr>
+<tr>
+<td>1000</td><td>14</td>
+<td class="num">$1.78M</td>
+<td class="num">$9,000</td>
+<td class="num">$0</td>
+<td class="num">$15k</td>
+<td class="num">$53k</td>
+<td class="num">$76k</td>
+<td class="num">$1.61M</td>
+<td class="num">$98k</td>
+<td class="num">$52k</td>
+<td class="num">$1.91M</td>
+<td class="num">-$131k</td>
+<td class="num">-7%</td>
+</tr>
+<tr>
+<td>2000</td><td>24</td>
+<td class="num">$3.56M</td>
+<td class="num">$14k</td>
+<td class="num">$0</td>
+<td class="num">$23k</td>
+<td class="num">$107k</td>
+<td class="num">$151k</td>
+<td class="num">$2.76M</td>
+<td class="num">$178k</td>
+<td class="num">$72k</td>
+<td class="num">$3.31M</td>
+<td class="num">$259k</td>
+<td class="num">7%</td>
+</tr>
+    </tbody>
+  </table>
+  </div>
+
+  2,437</strong></td>
+  <td class="num">+$389</td>
+  <td>Vercel</td>
+</tr>
+<tr>
+  <td>2000</td>
+  <td class="num">$295,440</td>
+  <td>Pro + usage (busy)</td>
+  <td class="num">$2,410</td>
+  <td class="num"><strong>$23,886</strong></td>
+  <td>Team + WU (16000k WU)</td>
+  <td class="num">$3,139</td>
+  <td class="num"><strong>$24,615</strong></td>
+  <td class="num">+$729</td>
+  <td>Vercel</td>
+</tr>
+    </tbody>
+  </table>
+  </div>
+  <p class="note">Stay on Vercel — Bubble is a full rewrite; WU for multi-tenant CRM climbs faster past ~50 shops.</p>
+
   <h2>1. Packaging</h2>
   <table>
     <thead><tr><th>Item</th><th>Detail</th><th class="num">Price / limit</th></tr></thead>
