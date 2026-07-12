@@ -1781,7 +1781,7 @@ async function main() {
     `Public maintenance plans: http://localhost:3000/plans/${DEMO_PLANS_SLUG} (also /plans/io)`,
   );
   console.log(
-    `Macuto Core estimate: http://localhost:3031/repair-orders/ro_macuto_1001/estimate (shop_macuto, RO #1001 — Maria Cortes / 2014 Honda Accord EX-L)`,
+    `Macuto Core estimate: http://localhost:3031/platform/enter?shop=shop_macuto&next=%2Frepair-orders%2Fro_macuto_1001%2Festimate`,
   );
 }
 

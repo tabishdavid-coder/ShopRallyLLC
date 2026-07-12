@@ -5,7 +5,7 @@ import { isPlatformAdmin } from "@/lib/platform";
 import { canAccessShop } from "@/lib/shop";
 import { switchShop } from "@/server/actions/platform";
 
-type SearchParams = Promise<{ shop?: string }>;
+type SearchParams = Promise<{ shop?: string; next?: string }>;
 
 /** Deep link from Master CRM — sets tenant cookie then opens Shop CRM (merge-safe, no DEV shell edits). */
 export default async function PlatformEnterShopPage({
@@ -17,7 +17,7 @@ export default async function PlatformEnterShopPage({
     redirect(enterShopCrmPath());
   }
 
-  const { shop: shopId } = await searchParams;
+  const { shop: shopId, next } = await searchParams;
   if (!shopId) {
     redirect(MASTER_CRM_HOME);
   }
@@ -32,5 +32,5 @@ export default async function PlatformEnterShopPage({
     redirect(`${MASTER_CRM_HOME}/shops?error=switch`);
   }
 
-  redirect(enterShopCrmPath(shopId));
+  redirect(enterShopCrmPath(shopId, next));
 }
