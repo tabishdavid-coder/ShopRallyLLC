@@ -56,7 +56,7 @@
 
 ## Verification checklist (Core shop)
 
-Run with demo shop on **STARTER** plan:
+Run with demo shop on **STARTER** plan (seed: **`shop_macuto`** — Macuto Auto Repair):
 
 - [ ] Top nav: **no Shop Growth** section
 - [ ] Operations: job board, customers, ROs, inspections, labor (shop lane only)

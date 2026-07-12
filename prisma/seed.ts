@@ -343,6 +343,42 @@ async function main() {
     },
   });
 
+  /** Core-plan fidelity QA shop — platform admin enters via Shops → Open CRM. */
+  const macuto = await prisma.shop.create({
+    data: {
+      id: "shop_macuto",
+      platformId: platform.id,
+      name: "Macuto Auto Repair",
+      code: "MAC",
+      masterId: "RP-MAC-481026",
+      masterIdCreatedAt: new Date(),
+      phone: "(718) 555-0199",
+      email: "service@macutoauto.com",
+      address: "450 Grand Concourse",
+      city: "Bronx",
+      state: "NY",
+      zip: "10451",
+      laborRateCents: dollars(125),
+      taxRateBps: TAX_BPS,
+      plan: "STARTER",
+      billingStatus: "ACTIVE",
+      legalEntityName: "Macuto Auto Repair",
+      legalEntityState: "NY",
+      estimateTermsHtml: DEFAULT_ESTIMATE_TERMS_HTML,
+      invoiceTermsHtml: DEFAULT_INVOICE_TERMS_HTML,
+      estimateTermsVersion: "1.0",
+      estimateTermsUpdatedAt: new Date(),
+    },
+  });
+
+  await prisma.leadSource.createMany({
+    data: LEAD_SOURCES.map((name, i) => ({
+      shopId: macuto.id,
+      name,
+      sortOrder: i,
+    })),
+  });
+
   // ── Users + memberships ────────────────────────────────
   const platformAdmin = await prisma.user.create({
     data: {
@@ -385,6 +421,8 @@ async function main() {
         permissionGroup: "Service Advisor",
         permissionMode: "GROUP",
       },
+      { shopId: macuto.id, userId: owner.id, role: Role.OWNER },
+      { shopId: macuto.id, userId: platformAdmin.id, role: Role.OWNER },
     ],
   });
 
@@ -410,6 +448,24 @@ async function main() {
         acceptanceMethod: "clickwrap_checkbox",
         metadata: {
           legalEntityName: demo.name,
+          legalEntityState: "NY",
+          seeded: true,
+        },
+      },
+    });
+    await prisma.legalAcceptance.create({
+      data: {
+        shopId: macuto.id,
+        userId: owner.id,
+        agreementType: doc.type,
+        agreementVersion: doc.version,
+        contentHash: doc.contentHash,
+        signerName: "David Tabish",
+        signerTitle: "Owner",
+        signerEmail: owner.email,
+        acceptanceMethod: "clickwrap_checkbox",
+        metadata: {
+          legalEntityName: macuto.name,
           legalEntityState: "NY",
           seeded: true,
         },

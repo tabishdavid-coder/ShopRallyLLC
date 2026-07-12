@@ -107,7 +107,7 @@ Assigning **Core** on `/platform/shops`:
 4. Walk checklist in `agents/ShopRallyCRM/CORE-PLAN-FIDELITY.md`
 5. Log results + fixes in `CORE-PLAN-FIDELITY-CHANGELOG.md`
 
-**Demo seed:** `prisma/seed.ts` includes shops; set one shop to `STARTER` for fidelity QA.
+**Demo seed:** `prisma/seed.ts` — use **`shop_macuto`** (Macuto Auto Repair, `STARTER`) for Core fidelity QA; `shop_eastside` is also `STARTER`.
 
 ---
 
