@@ -15,6 +15,10 @@ import {
 import { provisionPlatformShop } from "@/server/platform/provision-shop";
 import { ShopStatus, ShopPlan, BillingStatus, ShopProvisionMethod, type Prisma } from "@/generated/prisma";
 import {
+  mergePlanFeatureOverride,
+  type PlanFeature,
+} from "@/lib/plans";
+import {
   mergeReleaseFlagsIntoPlanFeatures,
   RELEASE_MODULES,
   type ReleaseFlagMap,
@@ -199,6 +203,56 @@ export async function updateShopReleaseFlags(
         shop.planFeatures,
         cleaned,
       ) as Prisma.InputJsonValue,
+    },
+  });
+
+  revalidatePath("/platform/shops");
+  revalidatePath(`/platform/shops/${shopId}`);
+  revalidatePath("/", "layout");
+  return { ok: true };
+}
+
+const PLAN_FEATURE_KEYS = new Set<PlanFeature>([
+  "freeformRoIntake",
+  "aiReceptionist",
+  "aiReviewReplies",
+  "aiCampaignDrafting",
+  "aiSeoContent",
+  "aiCustomerInsights",
+  "customerSms",
+  "motorLabor",
+  "partsTech",
+  "shopSite",
+  "websiteSeo",
+]);
+
+/** Platform admin: enable/disable billable plan-feature add-ons per shop. */
+export async function updateShopPlanFeatureOverride(
+  shopId: string,
+  feature: PlanFeature,
+  enabled: boolean,
+): Promise<ActionResult> {
+  try {
+    await requirePlatformAdmin();
+  } catch {
+    return { ok: false, error: "Platform admin access required." };
+  }
+
+  if (!shopId.trim()) return { ok: false, error: "Shop is required." };
+  if (!PLAN_FEATURE_KEYS.has(feature)) {
+    return { ok: false, error: "This feature cannot be toggled here." };
+  }
+
+  const shop = await prisma.shop.findUnique({
+    where: { id: shopId },
+    select: { planFeatures: true },
+  });
+  if (!shop) return { ok: false, error: "Shop not found." };
+
+  await prisma.shop.update({
+    where: { id: shopId },
+    data: {
+      planFeatures: mergePlanFeatureOverride(shop.planFeatures, feature, enabled) as Prisma.InputJsonValue,
     },
   });
 

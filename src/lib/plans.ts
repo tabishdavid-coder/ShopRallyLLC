@@ -31,7 +31,9 @@ export type PlanFeature =
   | "aiCampaignDrafting"
   | "aiSeoContent"
   | "aiCustomerInsights"
-  | "aiReceptionist";
+  | "aiReceptionist"
+  /** Freeform AI repair-order intake — $20/mo add-on; natural language → vehicle, jobs & labor hours. */
+  | "freeformRoIntake";
 
 export type PlanLimits = {
   /** null = unlimited */
@@ -473,6 +475,14 @@ export const PLAN_ADDONS: PlanAddOn[] = [
     vsIndustry: "Most platforms charge nearly full list price again per location.",
     tiers: "all",
   },
+  {
+    id: "freeform-ro-intake",
+    name: "Freeform RO intake",
+    priceLabel: "$20/mo",
+    description:
+      "Describe the job in plain English — AI fills vehicle details, concerns, and labor hours on a new repair order.",
+    tiers: "all",
+  },
 ];
 
 const starterFeatures: PlanFeatureSet = {
@@ -503,6 +513,7 @@ const starterFeatures: PlanFeatureSet = {
   aiSeoContent: false,
   aiCustomerInsights: false,
   aiReceptionist: false,
+  freeformRoIntake: false,
 };
 
 const professionalFeatures: PlanFeatureSet = {
@@ -533,6 +544,7 @@ const professionalFeatures: PlanFeatureSet = {
   aiSeoContent: false,
   aiCustomerInsights: false,
   aiReceptionist: false,
+  freeformRoIntake: false,
 };
 
 const EliteFeatures: PlanFeatureSet = {
@@ -563,6 +575,7 @@ const EliteFeatures: PlanFeatureSet = {
   aiSeoContent: true,
   aiCustomerInsights: true,
   aiReceptionist: true,
+  freeformRoIntake: false,
 };
 
 /** Canonical plan catalog — premium tiers vs legacy & budget stacks. */
@@ -871,6 +884,15 @@ export const COMPARISON_ROWS: {
     values: { STARTER: false, PROFESSIONAL: false, ENTERPRISE: true },
   },
   {
+    label: "Freeform RO intake (AI)",
+    category: "AI integrations",
+    values: {
+      STARTER: "$20/mo add-on",
+      PROFESSIONAL: "$20/mo add-on",
+      ENTERPRISE: "$20/mo add-on",
+    },
+  },
+  {
     label: "Premium migration",
     values: {
       STARTER: "$399 add-on",
@@ -957,6 +979,20 @@ export function resolvePlanFeatures(shop: ShopPlanContext): PlanFeatureSet {
 
 export function shopHasFeature(shop: ShopPlanContext, feature: PlanFeature): boolean {
   return resolvePlanFeatures(shop)[feature];
+}
+
+/** Merge a single plan-feature override into Shop.planFeatures (preserves `_release`). */
+export function mergePlanFeatureOverride(
+  planFeatures: unknown,
+  feature: PlanFeature,
+  enabled: boolean,
+): Record<string, unknown> {
+  const base =
+    planFeatures && typeof planFeatures === "object" && !Array.isArray(planFeatures)
+      ? { ...(planFeatures as Record<string, unknown>) }
+      : {};
+  base[feature] = enabled;
+  return base;
 }
 
 export function formatPlanPrice(cents: number | null, annual: boolean): string {

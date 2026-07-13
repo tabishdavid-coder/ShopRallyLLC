@@ -72,7 +72,7 @@ export default async function AppLayout({
     }
   }
 
-  const [activeShop, customerCount, notificationData, unreadSmsCount, intakeConfig, smsOnPlan, stripeOnPlan] =
+  const [activeShop, customerCount, notificationData, unreadSmsCount, intakeConfig, smsOnPlan, stripeOnPlan, freeformRoOnPlan] =
     dbSeeded
       ? await Promise.all([
           getCurrentShop(),
@@ -82,8 +82,9 @@ export default async function AppLayout({
           loadRoIntakeConfig(activeShopId),
           canUseFeature(activeShopId, "sms"),
           canUseFeature(activeShopId, "stripePayments"),
+          canUseReleasedFeature(activeShopId, "freeform_ro_intake"),
         ])
-      : [null, 0, { notifications: [], unreadCount: 0 }, 0, null, false, false];
+      : [null, 0, { notifications: [], unreadCount: 0 }, 0, null, false, false, false];
 
   const showPlatformShopContext = platformAdmin && activeShop && !isPlatformRoute;
 
@@ -122,7 +123,7 @@ export default async function AppLayout({
         allowedNavHrefs={crmAccess?.allowedNavHrefs}
         allowedSectionIds={crmAccess?.allowedSectionIds}
         intakeConfig={intakeConfig}
-        capabilities={{ sms: smsOnPlan, stripePayments: stripeOnPlan }}
+        capabilities={{ sms: smsOnPlan, stripePayments: stripeOnPlan, freeformRoIntake: freeformRoOnPlan }}
         banner={
           !dbSeeded ? (
             <EmptyDatabaseBanner />

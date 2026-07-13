@@ -1,7 +1,7 @@
 import "server-only";
 
 import { prisma } from "@/db/client";
-import { PLANS, billingStatusLabel } from "@/lib/plans";
+import { PLANS, billingStatusLabel, resolvePlanFeatures, type PlanFeatureSet } from "@/lib/plans";
 import {
   parseReleaseFlags,
   releaseFlagsDefaultOpen,
@@ -24,6 +24,8 @@ export type PlatformShopDetail = PlatformShopRow & {
   releaseFlags: ReleaseFlagMap;
   /** Env/default: open in local/preview, closed in production. */
   releaseFlagsDefaultOpen: boolean;
+  /** Merged plan defaults + per-shop overrides. */
+  resolvedFeatures: PlanFeatureSet;
 };
 
 export async function getPlatformShopDetail(shopId: string): Promise<PlatformShopDetail | null> {
@@ -108,5 +110,6 @@ export async function getPlatformShopDetail(shopId: string): Promise<PlatformSho
     openTicketCount,
     releaseFlags: parseReleaseFlags(shop.planFeatures),
     releaseFlagsDefaultOpen: releaseFlagsDefaultOpen(),
+    resolvedFeatures: resolvePlanFeatures({ plan: shop.plan, planFeatures: shop.planFeatures }),
   };
 }

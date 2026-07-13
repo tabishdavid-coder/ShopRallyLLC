@@ -11,15 +11,19 @@ import {
   ChevronRight,
   FileText,
   Loader2,
+  Lock,
   MoreVertical,
   Plus,
-  Receipt,
+  Sparkles,
   UserPlus,
 } from "lucide-react";
 import { useClerk } from "@clerk/nextjs";
 
 import { ShopRallyLogo } from "@/components/brand/shoprally-logo";
 import { useRoIntakeOptional } from "@/components/repair-order/ro-intake-context";
+import { FreeformRoDialog } from "@/components/repair-order/freeform-ro-dialog";
+import { FREEFORM_RO_ADDON_LABEL } from "@/lib/freeform-ro-types";
+import { useFreeformRoIntakeEnabled } from "@/lib/shop-capabilities";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -149,68 +153,87 @@ function SidebarLink({
 }
 
 function SidebarCreateButton({ collapsed }: { collapsed?: boolean }) {
+  const router = useRouter();
   const { openIntake, config } = useRoIntakeOptional();
+  const freeformEnabled = useFreeformRoIntakeEnabled();
+  const [freeformOpen, setFreeformOpen] = useState(false);
+
+  function openManualIntake() {
+    if (config) {
+      openIntake();
+      return;
+    }
+    router.push("/repair-orders/new");
+  }
 
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button
-          type="button"
-          className={cn(
-            "w-full gap-1.5 bg-brand-orange font-semibold text-white shadow-md hover:bg-brand-orange/90 active:bg-brand-orange/85",
-            collapsed ? "h-10 px-0" : "h-10 justify-between rounded-lg px-3",
-          )}
-          aria-label="Create"
-        >
-          {collapsed ? (
-            <Plus className="size-4" aria-hidden />
-          ) : (
-            <>
-              <span className="inline-flex items-center gap-1.5">
-                <Plus className="size-4 shrink-0" aria-hidden />
-                Create
-              </span>
-              <ChevronDown className="size-3.5 shrink-0 opacity-80" aria-hidden />
-            </>
-          )}
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="start" className="w-56" side="right">
-        <DropdownMenuLabel>Create</DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        {config ? (
-          <DropdownMenuItem onClick={() => openIntake()}>
-            <FileText className="mr-2 size-4" />
-            New repair order
+    <>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button
+            type="button"
+            className={cn(
+              "w-full gap-1.5 bg-brand-orange font-semibold text-white shadow-md hover:bg-brand-orange/90 active:bg-brand-orange/85",
+              collapsed ? "h-10 px-0" : "h-10 justify-between rounded-lg px-3",
+            )}
+            aria-label="Repair order"
+          >
+            {collapsed ? (
+              <Plus className="size-4" aria-hidden />
+            ) : (
+              <>
+                <span className="inline-flex items-center gap-1.5">
+                  <Plus className="size-4 shrink-0" aria-hidden />
+                  Repair Order
+                </span>
+                <ChevronDown className="size-3.5 shrink-0 opacity-80" aria-hidden />
+              </>
+            )}
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="start" className="w-60" side="right">
+          <DropdownMenuLabel>Repair order</DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem
+            disabled={!freeformEnabled}
+            onClick={() => freeformEnabled && setFreeformOpen(true)}
+            className="items-start gap-2"
+          >
+            {freeformEnabled ? (
+              <Sparkles className="mr-2 size-4 shrink-0 text-brand-orange" />
+            ) : (
+              <Lock className="mr-2 size-4 shrink-0 text-muted-foreground" />
+            )}
+            <span className="flex flex-col gap-0.5">
+              <span>Freeform (AI)</span>
+              {!freeformEnabled ? (
+                <span className="text-xs font-normal text-muted-foreground">
+                  {FREEFORM_RO_ADDON_LABEL}
+                </span>
+              ) : null}
+            </span>
           </DropdownMenuItem>
-        ) : (
+          <DropdownMenuItem onClick={openManualIntake}>
+            <FileText className="mr-2 size-4" />
+            Create manually
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
           <DropdownMenuItem asChild>
-            <Link href="/repair-orders/new">
-              <FileText className="mr-2 size-4" />
-              New repair order
+            <Link href="/appointments">
+              <CalendarPlus className="mr-2 size-4" />
+              New appointment
             </Link>
           </DropdownMenuItem>
-        )}
-        <DropdownMenuItem asChild>
-          <Link href="/repair-orders/new">
-            <Receipt className="mr-2 size-4" />
-            New estimate
-          </Link>
-        </DropdownMenuItem>
-        <DropdownMenuItem asChild>
-          <Link href="/appointments">
-            <CalendarPlus className="mr-2 size-4" />
-            New appointment
-          </Link>
-        </DropdownMenuItem>
-        <DropdownMenuItem asChild>
-          <Link href="/customers?add=1">
-            <UserPlus className="mr-2 size-4" />
-            New customer
-          </Link>
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+          <DropdownMenuItem asChild>
+            <Link href="/customers?add=1">
+              <UserPlus className="mr-2 size-4" />
+              New customer
+            </Link>
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+      <FreeformRoDialog open={freeformOpen} onOpenChange={setFreeformOpen} />
+    </>
   );
 }
 

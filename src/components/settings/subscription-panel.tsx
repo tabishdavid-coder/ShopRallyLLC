@@ -31,6 +31,7 @@ const FEATURE_LABELS: { key: PlanFeature; label: string }[] = [
   { key: "aiSeoContent", label: "Growth Engine SEO content" },
   { key: "aiCustomerInsights", label: "AI customer insights" },
   { key: "aiReceptionist", label: "AI receptionist (SMS + voice after-hours)" },
+  { key: "freeformRoIntake", label: "Freeform RO intake (AI) — $20/mo add-on" },
   { key: "advancedReports", label: "Advanced reporting" },
 ];
 

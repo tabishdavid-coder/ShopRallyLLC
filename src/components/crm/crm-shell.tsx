@@ -61,7 +61,7 @@ export function CrmShell({
   allowedNavHrefs,
   allowedSectionIds,
   intakeConfig = null,
-  capabilities = { sms: false, stripePayments: false },
+  capabilities = { sms: false, stripePayments: false, freeformRoIntake: false },
   children,
 }: CrmShellProps) {
   const fullBleed =

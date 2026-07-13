@@ -10,9 +10,11 @@ export type ShopCapabilities = {
   sms: boolean;
   /** Stripe Connect / online RO checkout — Pro+ only. */
   stripePayments: boolean;
+  /** Freeform AI repair-order intake — $20/mo add-on. */
+  freeformRoIntake: boolean;
 };
 
-const DEFAULT: ShopCapabilities = { sms: false, stripePayments: false };
+const DEFAULT: ShopCapabilities = { sms: false, stripePayments: false, freeformRoIntake: false };
 
 const ShopCapabilitiesContext = createContext<ShopCapabilities>(DEFAULT);
 
@@ -36,4 +38,9 @@ export function useShopCapabilities(): ShopCapabilities {
 export function useSmsUiEnabled(): boolean {
   const caps = useShopCapabilities();
   return SMS_ENABLED && caps.sms;
+}
+
+/** Freeform AI repair-order intake — $20/mo add-on (server still enforces). */
+export function useFreeformRoIntakeEnabled(): boolean {
+  return useShopCapabilities().freeformRoIntake;
 }
