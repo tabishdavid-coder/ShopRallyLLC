@@ -556,8 +556,42 @@ function StatusCard({
     : "Unassigned";
   const techWarn = techUnassigned || (quickReference?.unassignedJobs ?? 0) > 0;
 
-  const approvalChipClass =
-    "flex min-h-9 min-w-0 flex-1 items-center justify-center gap-1.5 rounded-none border border-[var(--jb-line,#dde5ef)] bg-[var(--jb-surface,#f0f3f8)] px-2 py-1.5 text-[12.5px] leading-tight tabular-nums transition-colors";
+  const authRows = [
+    {
+      key: "approved",
+      label: "Approved",
+      count: authCounts.approved,
+      swatch: "bg-[var(--jb-green,#1c9e5a)]",
+      active: authCounts.approved > 0,
+    },
+    {
+      key: "pending",
+      label: "Pending",
+      count: authCounts.pendingApproval,
+      swatch: "bg-[#B27A00]",
+      active: authCounts.pendingApproval > 0,
+    },
+    {
+      key: "declined",
+      label: "Declined",
+      count: authCounts.declined,
+      swatch: "bg-[var(--jb-red,#c93838)]",
+      active: authCounts.declined > 0,
+    },
+  ] as const;
+
+  const authTotal =
+    authCounts.approved + authCounts.pendingApproval + authCounts.declined;
+  const authSummary =
+    authTotal === 0
+      ? "No jobs yet"
+      : authCounts.pendingApproval > 0
+        ? `${authCounts.pendingApproval} waiting on customer`
+        : authCounts.declined > 0 && authCounts.approved === 0
+          ? "All declined"
+          : authCounts.approved === authTotal
+            ? "Fully approved"
+            : `${authCounts.approved} of ${authTotal} approved`;
 
   return (
     <div className={cn(RAIL_CARD, "overflow-hidden")}>
@@ -592,55 +626,63 @@ function StatusCard({
           </Button>
         ) : null}
 
-        <div className="grid w-full grid-cols-3 gap-1">
-          <button
-            type="button"
-            disabled={!approvable}
-            onClick={() => setAuthorizeOpen(true)}
-            className={cn(
-              approvalChipClass,
-              approvable
-                ? "hover:border-[var(--jb-azure,#1e7fe0)] hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--jb-azure,#1e7fe0)]/40"
-                : "cursor-default opacity-80",
-            )}
-            title={approvable ? "Get approval / authorize" : "Approval counts"}
-          >
-            <span className="size-2 shrink-0 rounded-none bg-[var(--jb-green,#1c9e5a)]" aria-hidden />
-            <span className="truncate text-[var(--jb-slate,#5b7295)]">Approved</span>
-            <span className="shrink-0 font-bold text-[var(--jb-ink,#0b1f3b)]">{authCounts.approved}</span>
-          </button>
-          <button
-            type="button"
-            disabled={!approvable}
-            onClick={() => setAuthorizeOpen(true)}
-            className={cn(
-              approvalChipClass,
-              approvable
-                ? "hover:border-[#B27A00] hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#B27A00]/40"
-                : "cursor-default opacity-80",
-            )}
-            title={approvable ? "Get approval / authorize" : "Approval counts"}
-          >
-            <span className="size-2 shrink-0 rounded-none bg-[#B27A00]" aria-hidden />
-            <span className="truncate text-[var(--jb-slate,#5b7295)]">Pending</span>
-            <span className="shrink-0 font-bold text-[var(--jb-ink,#0b1f3b)]">{authCounts.pendingApproval}</span>
-          </button>
-          <button
-            type="button"
-            disabled={!approvable}
-            onClick={() => setAuthorizeOpen(true)}
-            className={cn(
-              approvalChipClass,
-              approvable
-                ? "hover:border-[var(--jb-red,#c93838)] hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--jb-red,#c93838)]/40"
-                : "cursor-default opacity-80",
-            )}
-            title={approvable ? "Get approval / authorize" : "Approval counts"}
-          >
-            <span className="size-2 shrink-0 rounded-none bg-[var(--jb-red,#c93838)]" aria-hidden />
-            <span className="truncate text-[var(--jb-slate,#5b7295)]">Declined</span>
-            <span className="shrink-0 font-bold text-[var(--jb-ink,#0b1f3b)]">{authCounts.declined}</span>
-          </button>
+        {/* Authorizations — full-label rows (rail is too narrow for 3 crowded chips). */}
+        <div className="overflow-hidden rounded-none border border-[var(--jb-line,#dde5ef)] bg-white">
+          <div className="flex items-start justify-between gap-2 border-b border-[var(--jb-line,#dde5ef)] bg-[var(--jb-surface,#f0f3f8)] px-2.5 py-2">
+            <div className="min-w-0">
+              <p className="text-[11px] font-bold uppercase tracking-[0.06em] text-[var(--jb-ink,#0b1f3b)]">
+                Authorizations
+              </p>
+              <p className="mt-0.5 text-[12px] leading-snug text-[var(--jb-slate,#5b7295)]">
+                {authSummary}
+              </p>
+            </div>
+            {approvable ? (
+              <button
+                type="button"
+                onClick={() => setAuthorizeOpen(true)}
+                className="shrink-0 text-[12px] font-semibold text-[var(--jb-azure,#1e7fe0)] hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--jb-azure,#1e7fe0)]/40"
+              >
+                Review
+              </button>
+            ) : null}
+          </div>
+          <ul className="divide-y divide-[var(--jb-line,#dde5ef)]" aria-label="Authorization counts">
+            {authRows.map((row) => {
+              const RowInner = (
+                <>
+                  <span className={cn("size-2.5 shrink-0 rounded-sm", row.swatch)} aria-hidden />
+                  <span className="min-w-0 flex-1 text-[13px] text-[var(--jb-ink,#0b1f3b)]">
+                    {row.label}
+                  </span>
+                  <span
+                    className={cn(
+                      "shrink-0 text-[13px] font-semibold tabular-nums",
+                      row.active ? "text-[var(--jb-ink,#0b1f3b)]" : "text-[var(--jb-faint,#8ca2c0)]",
+                    )}
+                  >
+                    {row.count}
+                  </span>
+                </>
+              );
+              return (
+                <li key={row.key}>
+                  {approvable ? (
+                    <button
+                      type="button"
+                      onClick={() => setAuthorizeOpen(true)}
+                      className="flex w-full items-center gap-2.5 px-2.5 py-2 text-left transition-colors hover:bg-[var(--jb-surface,#f0f3f8)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-[var(--jb-azure,#1e7fe0)]/40"
+                      title={`Review authorizations — ${row.label}: ${row.count}`}
+                    >
+                      {RowInner}
+                    </button>
+                  ) : (
+                    <div className="flex w-full items-center gap-2.5 px-2.5 py-2">{RowInner}</div>
+                  )}
+                </li>
+              );
+            })}
+          </ul>
         </div>
 
         {quickReference ? (
