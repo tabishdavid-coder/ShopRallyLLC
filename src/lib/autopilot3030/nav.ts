@@ -370,10 +370,19 @@ export const AP_SETTINGS_NAV_FLAT: ApNavLink[] = AP_SETTINGS_GROUPS.flatMap((g) 
 /** Settings nav groups for the active shop CRM build (plan-filtered). */
 export function apSettingsGroupsForBuild(features?: PlanFeatureSet): ApNavGroup[] {
   if (!features) return AP_SETTINGS_GROUPS;
-  return AP_SETTINGS_GROUPS.map((group) => ({
-    ...group,
-    items: group.items.filter((item) => isApSettingsLinkVisible(item.href, features)),
-  })).filter((g) => g.items.length > 0);
+  return AP_SETTINGS_GROUPS.map((group) => {
+    const items = group.items.filter((item) => isApSettingsLinkVisible(item.href, features));
+    let label = group.label;
+    if (
+      group.id === "connections" &&
+      items.length === 1 &&
+      items[0]?.href === "/settings/communications" &&
+      !features.integrations
+    ) {
+      label = "Communications";
+    }
+    return { ...group, label, items };
+  }).filter((g) => g.items.length > 0);
 }
 
 /** Repair Order workspace phases — stepper labels (routes unchanged). See `src/lib/ro-phases.ts`.

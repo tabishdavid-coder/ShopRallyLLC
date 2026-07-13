@@ -10,7 +10,9 @@ export const SETTINGS_SECTION_REQUIREMENTS: Partial<
   Record<string, SettingsPlanRequirement>
 > = {
   markups: "markupMatrices",
+  integrations: "integrations",
   quickbooks: "integrations",
+  commissions: "advancedReports",
 };
 
 /** Deep-link children gated independently (e.g. communications → phone-sms). */
@@ -18,6 +20,7 @@ export const SETTINGS_CHILD_REQUIREMENTS: Partial<
   Record<string, SettingsPlanRequirement>
 > = {
   "phone-sms": "customerSms",
+  notifications: "customerSms",
 };
 
 /** Autopilot 3030 settings hub links → plan feature. */
@@ -28,9 +31,13 @@ export const AP_SETTINGS_LINK_REQUIREMENTS: Partial<
   "/settings/markups/parts": "markupMatrices",
   "/settings/markups/labor": "markupMatrices",
   "/settings/markups/transparency": "markupMatrices",
+  "/settings/integrations": "integrations",
   "/settings/quickbooks": "integrations",
+  "/settings/commissions": "advancedReports",
   "/settings/communications/phone-sms": "customerSms",
+  "/settings/communications/notifications": "customerSms",
   "/settings/messaging": "customerSms",
+  "/settings/notifications": "customerSms",
   "/settings/payments": "integrations",
   "/settings/integrations/stripe": "integrations",
 };
@@ -93,8 +100,12 @@ export function isIntegrationCardVisible(
 /** Routes that Core shops must not access — redirect to subscription. */
 export const SETTINGS_UPGRADE_ROUTES: { prefix: string; feature: PlanFeature }[] = [
   { prefix: "/settings/markups", feature: "markupMatrices" },
+  { prefix: "/settings/integrations", feature: "integrations" },
   { prefix: "/settings/communications/phone-sms", feature: "customerSms" },
+  { prefix: "/settings/communications/notifications", feature: "customerSms" },
   { prefix: "/settings/messaging", feature: "customerSms" },
+  { prefix: "/settings/notifications", feature: "customerSms" },
+  { prefix: "/settings/commissions", feature: "advancedReports" },
   { prefix: "/settings/quickbooks", feature: "integrations" },
   { prefix: "/settings/payments", feature: "integrations" },
   { prefix: "/settings/integrations/stripe", feature: "integrations" },
@@ -118,6 +129,7 @@ export function settingsUpgradeLabel(feature: PlanFeature): string {
     markupMatrices: "Markup matrices",
     customerSms: "Two-way SMS",
     integrations: "Integrations",
+    advancedReports: "Commissions & advanced reporting",
     partsTech: "PartsTech",
   };
   return labels[feature] ?? "This feature";

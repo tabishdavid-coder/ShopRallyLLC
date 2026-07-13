@@ -15,8 +15,13 @@ export default async function CommunicationsSettingsLayout({
   const sub = await getShopSubscription(shopId);
   const subnav = communicationsSubnavForPlan(sub.features);
   if (subnav.length === 0) {
+    if (sub.features.customerEmail) {
+      redirect("/settings/communications/email");
+    }
     redirect("/settings/subscription?upgrade=customerSms");
   }
+
+  const emailOnly = subnav.length === 1 && subnav[0]?.id === "email";
 
   return (
     <div className="space-y-5">
@@ -26,12 +31,16 @@ export default async function CommunicationsSettingsLayout({
         description={
           sub.features.customerSms
             ? "Phone & SMS, email sending, and customer/staff notifications — how ShopRally talks to your customers."
-            : "Email sending and customer/staff notifications — how ShopRally talks to your customers."
+            : "Email sending for estimates, invoices, and customer outreach — how ShopRally talks to your customers."
         }
       />
-      <SettingsSubnav items={subnav} ariaLabel="Communications settings">
-        {children}
-      </SettingsSubnav>
+      {emailOnly ? (
+        children
+      ) : (
+        <SettingsSubnav items={subnav} ariaLabel="Communications settings">
+          {children}
+        </SettingsSubnav>
+      )}
     </div>
   );
 }

@@ -183,19 +183,19 @@ export const SETTINGS_SECTIONS: SettingsSection[] = [
   {
     id: "communications",
     label: "Communications",
-    href: "/settings/communications/phone-sms",
+    href: "/settings/communications/email",
     group: "communications",
     icon: MessagesSquare,
-    description: "Phone & SMS, email sending, and customer notifications.",
+    description: "Email sending for estimates, invoices, and customer outreach.",
     keywords: ["sms", "text", "phone", "twilio", "email", "notifications", "messaging", "alerts"],
     children: [
+      { id: "email", label: "Email", href: "/settings/communications/email", keywords: ["resend", "sender", "smtp"] },
       {
         id: "phone-sms",
         label: "Phone & SMS",
         href: "/settings/communications/phone-sms",
         keywords: ["twilio", "text", "number", "messaging"],
       },
-      { id: "email", label: "Email", href: "/settings/communications/email", keywords: ["resend", "sender", "smtp"] },
       {
         id: "notifications",
         label: "Notifications",
@@ -241,7 +241,13 @@ function filterSectionForPlan(section: SettingsSection, features: PlanFeatureSet
     section.id === "communications" && children?.[0]
       ? children[0].href
       : section.href;
-  return { ...section, href, children: children?.length ? children : undefined };
+  const description =
+    section.id === "communications" && !features.customerSms
+      ? "Email sending for estimates, invoices, and customer outreach."
+      : section.id === "communications" && features.customerSms
+        ? "Phone & SMS, email sending, and customer/staff notifications."
+        : section.description;
+  return { ...section, href, description, children: children?.length ? children : undefined };
 }
 
 /** Plan-filtered sections grouped for nav + overview. */
@@ -249,12 +255,19 @@ export function filterGroupedSettingsSections(features: PlanFeatureSet): {
   group: SettingsGroup;
   sections: SettingsSection[];
 }[] {
-  return SETTINGS_GROUPS.map((group) => ({
-    group,
-    sections: SETTINGS_SECTIONS.map((s) => filterSectionForPlan(s, features))
+  return SETTINGS_GROUPS.map((group) => {
+    const sections = SETTINGS_SECTIONS.map((s) => filterSectionForPlan(s, features))
       .filter((s): s is SettingsSection => s != null)
-      .filter((s) => s.group === group.id),
-  })).filter((g) => g.sections.length > 0);
+      .filter((s) => s.group === group.id);
+    const label =
+      group.id === "platform" &&
+      sections.length === 1 &&
+      sections[0]?.id === "subscription" &&
+      !features.integrations
+        ? "Billing"
+        : group.label;
+    return { group: { ...group, label }, sections };
+  }).filter((g) => g.sections.length > 0);
 }
 
 /** Plan-filtered searchable index. */
