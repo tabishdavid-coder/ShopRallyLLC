@@ -22,14 +22,16 @@ export function PlatformShell({
 }) {
   return (
     <TooltipProvider delayDuration={0}>
-      <SidebarProvider defaultOpen>
+      <SidebarProvider defaultOpen className="h-svh min-h-0 overflow-hidden">
         <PlatformSidebar shops={shops} activeShopId={activeShopId} />
-        <SidebarInset className="min-h-svh bg-muted/20">
+        <SidebarInset className="flex min-h-0 flex-1 flex-col overflow-hidden bg-muted/20">
           <Suspense fallback={null}>
             <PlatformReviewTourChrome>
               <PlatformTopBar shops={shops} activeShopId={activeShopId} />
-              <div className="mx-auto w-full max-w-7xl flex-1 px-4 py-6 sm:px-6">
-                <KeyedChildren>{children}</KeyedChildren>
+              <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+                <div className="mx-auto w-full max-w-7xl flex-1 px-4 py-6 sm:px-6">
+                  <KeyedChildren>{children}</KeyedChildren>
+                </div>
               </div>
             </PlatformReviewTourChrome>
           </Suspense>
