@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import {
   AlertTriangle,
   Car,
+  Flag,
   Loader2,
   Sparkles,
   User,
@@ -64,6 +65,10 @@ function ConfidenceFlag({ score, label }: { score: number; label?: string }) {
       {label ?? `Verify (${score}%)`}
     </span>
   );
+}
+
+function laborLineFlagged(line: SmartRoLaborLine): boolean {
+  return line.flagged ?? isLowConfidence(line.confidence_score);
 }
 
 export function SmartRoIntakeDialog({
@@ -493,26 +498,27 @@ export function SmartRoIntakeDialog({
                 <div className="overflow-x-auto">
                   <div
                     className="grid min-w-[720px] gap-x-3 border-b border-border/60 bg-[#F0F3F8] px-4 py-2 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground"
-                    style={{ gridTemplateColumns: "minmax(0,1.4fr) minmax(0,1.8fr) 5.5rem 7.5rem 4.5rem" }}
+                    style={{ gridTemplateColumns: "minmax(0,1.4fr) minmax(0,1.8fr) 5.5rem 7.5rem 6.5rem" }}
                   >
                     <span>Task</span>
                     <span>Description</span>
                     <span className="text-right">Hours</span>
                     <span className="text-right">Amount</span>
-                    <span className="text-right">Flag</span>
+                    <span className="text-center">Flag</span>
                   </div>
                   <ul>
                     {staging.laborLines.map((line, index) => {
-                      const low = isLowConfidence(line.confidence_score);
+                      const flagged = laborLineFlagged(line);
+                      const aiLow = isLowConfidence(line.confidence_score);
                       return (
                         <li
                           key={index}
                           className={cn(
                             "grid min-w-[720px] items-start gap-x-3 border-b border-dashed border-border/60 px-4 py-2.5 last:border-b-0",
-                            low ? "bg-red-50/50" : "bg-white",
+                            flagged ? "bg-amber-50/70" : "bg-white",
                           )}
                           style={{
-                            gridTemplateColumns: "minmax(0,1.4fr) minmax(0,1.8fr) 5.5rem 7.5rem 4.5rem",
+                            gridTemplateColumns: "minmax(0,1.4fr) minmax(0,1.8fr) 5.5rem 7.5rem 6.5rem",
                           }}
                         >
                           <div className="min-w-0">
@@ -556,12 +562,34 @@ export function SmartRoIntakeDialog({
                               {formatLaborCost(line.estimated_hours, laborRateCents)}
                             </span>
                           </div>
-                          <div className="flex h-9 items-center justify-end">
-                            {low ? (
-                              <ConfidenceFlag score={line.confidence_score} label="Verify" />
-                            ) : (
-                              <span className="text-[10px] text-muted-foreground">—</span>
-                            )}
+                          <div className="flex h-9 flex-col items-center justify-center gap-0.5">
+                            <button
+                              type="button"
+                              onClick={() =>
+                                updateLaborLine(index, { flagged: !flagged })
+                              }
+                              className={cn(
+                                "inline-flex h-8 items-center gap-1 rounded-md border px-2 text-[11px] font-semibold transition-colors",
+                                flagged
+                                  ? "border-amber-400 bg-amber-100 text-amber-950 hover:bg-amber-200/80"
+                                  : "border-border bg-white text-muted-foreground hover:border-brand-navy/30 hover:text-brand-navy",
+                              )}
+                              title={
+                                flagged
+                                  ? aiLow
+                                    ? `Clear review flag (AI confidence ${line.confidence_score}%)`
+                                    : "Clear review flag"
+                                  : "Flag this line for review"
+                              }
+                              aria-pressed={flagged}
+                              aria-label={flagged ? "Clear flag" : "Flag for review"}
+                            >
+                              <Flag
+                                className={cn("size-3.5", flagged && "fill-current")}
+                                aria-hidden
+                              />
+                              {flagged ? "Flagged" : "Flag"}
+                            </button>
                           </div>
                         </li>
                       );
