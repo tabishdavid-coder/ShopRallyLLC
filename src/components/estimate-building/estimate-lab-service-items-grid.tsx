@@ -973,11 +973,11 @@ export function EstimateLabServiceItemsGrid({
                 />
               </div>
               <LabNameDescCells
-                descEmpty={!laborDetail.trim()}
                 name={
                   editing ? (
-                    <Input
+                    <LabDescriptionTextarea
                       value={laborName}
+                      placeholder="Enter name*"
                       onChange={(e) =>
                         updateAt(index, (m) =>
                           m.kind === "labor"
@@ -985,17 +985,9 @@ export function EstimateLabServiceItemsGrid({
                             : m,
                         )
                       }
-                      className={cn(LAB_INPUT_FLAT, "w-full")}
-                      placeholder="Enter name*"
                     />
                   ) : (
-                    <p
-                      className={cn(
-                        "min-w-0 text-xs text-brand-navy",
-                        laborDetail.trim() ? "line-clamp-2" : "line-clamp-3 whitespace-normal",
-                        lineThrough,
-                      )}
-                    >
+                    <p className={cn("min-w-0 line-clamp-2 text-xs text-brand-navy", lineThrough)}>
                       {laborName || "—"}
                     </p>
                   )
@@ -1143,7 +1135,6 @@ export function EstimateLabServiceItemsGrid({
                 />
               </div>
               <LabNameDescCells
-                descEmpty={false}
                 name={
                   editing ? (
                     <Input
@@ -1299,27 +1290,19 @@ export function EstimateLabServiceItemsGrid({
               />
             </div>
             <LabNameDescCells
-              descEmpty={!partDetail.trim()}
               name={
                 editing ? (
-                  <Input
+                  <LabDescriptionTextarea
                     value={p.description}
+                    placeholder="Enter name*"
                     onChange={(e) =>
                       updateAt(index, (m) =>
                         m.kind === "part" ? { ...m, row: { ...m.row, description: e.target.value } } : m,
                       )
                     }
-                    className={cn(LAB_INPUT_FLAT, "w-full")}
-                    placeholder="Enter name*"
                   />
                 ) : (
-                  <p
-                    className={cn(
-                      "min-w-0 text-xs",
-                      partDetail.trim() ? "line-clamp-2" : "line-clamp-3 whitespace-normal",
-                      lineThrough,
-                    )}
-                  >
+                  <p className={cn("min-w-0 line-clamp-2 text-xs", lineThrough)}>
                     {p.description || "—"}
                   </p>
                 )
