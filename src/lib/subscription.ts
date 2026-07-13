@@ -5,6 +5,8 @@ import type { BillingStatus, ShopPlan, ShopStatus } from "@/generated/prisma";
 import {
   PLANS,
   PLAN_ORDER,
+  PHASE_ONE_LAUNCH,
+  PUBLIC_PLAN_ORDER,
   billingStatusLabel,
   resolvePlanFeatures,
   shopHasFeature,
@@ -235,6 +237,7 @@ export function defaultSignupSubscription(): {
 
 /** Next upgrade tier, or null if already on highest. */
 export function nextPlanTier(current: ShopPlan): ShopPlan | null {
+  if (PHASE_ONE_LAUNCH) return null;
   const idx = PLAN_ORDER.indexOf(current);
   if (idx < 0 || idx >= PLAN_ORDER.length - 1) return null;
   return PLAN_ORDER[idx + 1] ?? null;

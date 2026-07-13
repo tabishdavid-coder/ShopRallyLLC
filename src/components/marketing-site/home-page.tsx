@@ -24,7 +24,7 @@ import { OutcomeMetricsStrip } from "@/components/marketing-site/outcome-metrics
 import { Button } from "@/components/ui/button";
 import { getFoundingSpotMessaging, MARKETING_LAUNCH } from "@/lib/marketing-launch";
 import { cn } from "@/lib/utils";
-import { PLANS, DVI_PLAN_COPY, LABOR_PLAN_COPY, DASHBOARD_PLAN_COPY, repairPilotAllInMonthly, repairPilotOverdriveMonthly, repairPilotStarterMonthly } from "@/lib/plans";
+import { PLANS, DVI_PLAN_COPY, LABOR_PLAN_COPY, DASHBOARD_PLAN_COPY, PHASE_ONE_COPY, PHASE_ONE_LAUNCH, repairPilotStarterMonthly } from "@/lib/plans";
 
 const PILLARS = [
   {
@@ -139,8 +139,10 @@ export function HomePageContent({ foundingSpotsClaimed = 0 }: { foundingSpotsCla
 
             <p className="mx-auto mt-5 max-w-2xl text-lg leading-relaxed text-slate-600">
               {preLaunch
-                ? "Between legacy desktop CRM and budget add-on stacks — one modern platform from job board to Growth Engine."
-                : `Premium all-in-one for independents — ${PLANS.STARTER.name} from $${repairPilotStarterMonthly(true)}/mo, ${PLANS.PROFESSIONAL.name} flagship from $${repairPilotAllInMonthly(true)}/mo, ${PLANS.ENTERPRISE.name} from $${repairPilotOverdriveMonthly(true)}/mo.`}
+                ? "Between legacy desktop CRM and budget add-on stacks — one modern platform from job board to invoice."
+                : PHASE_ONE_LAUNCH
+                  ? `${PHASE_ONE_COPY.subhead} ${PLANS.STARTER.name} from $${repairPilotStarterMonthly(true)}/mo — AI Plus optional +$20/mo.`
+                  : `Premium all-in-one for independents — ${PLANS.STARTER.name} from $${repairPilotStarterMonthly(true)}/mo.`}
             </p>
 
             <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
@@ -225,10 +227,11 @@ export function HomePageContent({ foundingSpotsClaimed = 0 }: { foundingSpotsCla
                   DASHBOARD_PLAN_COPY.featuresAllTiers,
                   DVI_PLAN_COPY.featuresAllTiers,
                   LABOR_PLAN_COPY.featuresIgnition,
-                  "Job board, canned jobs & email estimates on Core (no SMS)",
-                  "100 VIN/plate decodes on Core · unlimited + PartsTech on Pro+",
-                  "Stripe Connect & two-way SMS on Pro+",
-                  "Growth Engine automations & win-back on Pro+",
+                  "Job board, canned jobs & email estimates on Ignition",
+                  "100 VIN/plate decodes on Ignition · unlimited on Pro+ (coming)",
+                  PHASE_ONE_LAUNCH
+                    ? "AI Plus add-on — freeform intake & advisor app (+$20/mo)"
+                    : "Stripe Connect & two-way SMS on Pro+",
                 ].map((item) => (
                   <li key={item} className="flex items-start gap-2 text-sm text-slate-700">
                     <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-brand-navy" />
@@ -259,18 +262,20 @@ export function HomePageContent({ foundingSpotsClaimed = 0 }: { foundingSpotsCla
         </div>
       </section>
 
-      {/* Growth Engine */}
+      {/* Growth Engine — phase two teaser when single-plan launch */}
       <section id="growth" className="scroll-mt-20 bg-brand-navy text-white">
         <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20">
           <div className="mx-auto max-w-2xl text-center lg:max-w-3xl">
-            <p className="text-xs font-semibold uppercase tracking-wider text-brand-light">Growth Engine</p>
+            <p className="text-xs font-semibold uppercase tracking-wider text-brand-light">Coming in phase two</p>
             <h2 className="mt-2 text-3xl font-bold sm:text-4xl">
-              Growth tools included on {PLANS.PROFESSIONAL.name} — not sold as bolt-ons
+              {PHASE_ONE_LAUNCH
+                ? "Growth Engine, licensed MOTOR & payments — on Pro"
+                : `Growth tools included on ${PLANS.PROFESSIONAL.name} — not sold as bolt-ons`}
             </h2>
             <p className="mt-4 text-white/75">
-              Budget CRMs charge extra for booking, SMS, and reviews. ShopRally {PLANS.PROFESSIONAL.name}{" "}
-              bundles Growth Engine automations & win-back from ${repairPilotAllInMonthly(true)}/mo annual —
-              with Google review management included.
+              {PHASE_ONE_LAUNCH
+                ? "Ignition covers your shop floor today. Pro adds two-way SMS, online booking, Growth Engine automations, Stripe Connect, and licensed MOTOR labor — we're building it now for shops that outgrow one plan."
+                : `Budget CRMs charge extra for booking, SMS, and reviews. ShopRally ${PLANS.PROFESSIONAL.name} bundles Growth Engine automations & win-back with Google review management included.`}
             </p>
           </div>
           <ul className="mx-auto mt-10 grid max-w-3xl gap-3 sm:grid-cols-2">

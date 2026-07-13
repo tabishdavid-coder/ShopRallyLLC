@@ -30,7 +30,7 @@ export type DisconnectNoticeResult =
   | { ok: false; error: string };
 
 const CORE_STRIPE_DENIED =
-  "Stripe Connect is not included on Core. Upgrade to Pro or Elite to accept online customer payments.";
+  "Stripe Connect is not included on Ignition. Upgrade to Pro or Elite to accept online customer payments.";
 
 function revalidateConnectPaths() {
   revalidatePath("/marketing/payment-account");

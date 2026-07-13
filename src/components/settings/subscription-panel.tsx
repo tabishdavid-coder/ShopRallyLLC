@@ -4,8 +4,10 @@ import { ExternalLink, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   PLANS,
-  PLAN_ORDER,
+  PHASE_ONE_LAUNCH,
+  PUBLIC_PLAN_ORDER,
   billingStatusLabel,
+  formatPriceFromCents,
   resolvePlanFeatures,
   type PlanFeature,
 } from "@/lib/plans";
@@ -67,9 +69,9 @@ export function SubscriptionPanel({
 
         <p className="mt-4 text-sm text-muted-foreground">
           <span className="text-2xl font-bold tabular-nums text-foreground">
-            ${(def.annualMonthlyCents / 100).toFixed(0)}
+            {formatPriceFromCents(def.annualMonthlyCents)}
           </span>
-          /mo per location (annual) · ${(def.monthlyCents / 100).toFixed(0)}/mo monthly
+          /mo per location (annual) · {formatPriceFromCents(def.monthlyCents)}/mo monthly
         </p>
 
         <p className="mt-3 text-xs text-muted-foreground">
@@ -140,32 +142,47 @@ export function SubscriptionPanel({
         </ul>
       </div>
 
-      <div className="rounded-lg border border-brand-light/40 bg-brand-light/5 p-5 shadow-sm">
+      <div className="rounded-lg border bg-card p-5 shadow-sm">
         <h3 className="font-semibold">Add-on services</h3>
         <div className="mt-3 flex flex-wrap items-start justify-between gap-3">
           <div>
-            <p className="text-sm font-medium">ShopSite + Local SEO</p>
+            <p className="text-sm font-medium">AI Plus</p>
             <p className="mt-1 text-sm text-muted-foreground">
-              Monthly: ShopSite $99, Local SEO $129, or bundle $199. One-time launch setup when you start
-              ($349 / $299 / $549 bundle). Included on {PLANS.ENTERPRISE.name} (monthly + setup).
+              Freeform AI repair-order intake, labor-hour assist, and the ShopRally advisor mobile app — $20/mo.
             </p>
           </div>
-          <Button variant="outline" size="sm" asChild>
-            <Link href="/marketing/website">ShopSite</Link>
+          <Button variant="outline" size="sm" disabled title="Add-on checkout — coming soon">
+            Add AI Plus
           </Button>
         </div>
-        <div className="mt-3 flex flex-wrap items-start justify-between gap-3 border-t pt-3">
-          <div>
-            <p className="text-sm font-medium">Local SEO subscription</p>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Included on {PLANS.ENTERPRISE.name}; $129/mo add-on on other tiers. Audits, Search Console, and
-              monthly reports.
-            </p>
-          </div>
-          <Button variant="outline" size="sm" asChild>
-            <Link href="/marketing/seo-automation">Open Growth Engine SEO</Link>
-          </Button>
-        </div>
+        {!PHASE_ONE_LAUNCH ? (
+          <>
+            <div className="mt-3 flex flex-wrap items-start justify-between gap-3 border-t pt-3">
+              <div>
+                <p className="text-sm font-medium">ShopSite + Local SEO</p>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Monthly: ShopSite $99, Local SEO $129, or bundle $199. One-time launch setup when you start
+                  ($349 / $299 / $549 bundle). Included on {PLANS.ENTERPRISE.name} (monthly + setup).
+                </p>
+              </div>
+              <Button variant="outline" size="sm" asChild>
+                <Link href="/marketing/website">ShopSite</Link>
+              </Button>
+            </div>
+            <div className="mt-3 flex flex-wrap items-start justify-between gap-3 border-t pt-3">
+              <div>
+                <p className="text-sm font-medium">Local SEO subscription</p>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Included on {PLANS.ENTERPRISE.name}; $129/mo add-on on other tiers. Audits, Search Console, and
+                  monthly reports.
+                </p>
+              </div>
+              <Button variant="outline" size="sm" asChild>
+                <Link href="/marketing/seo-automation">Open Growth Engine SEO</Link>
+              </Button>
+            </div>
+          </>
+        ) : null}
       </div>
 
       <div className="flex flex-wrap gap-2">
@@ -174,7 +191,7 @@ export function SubscriptionPanel({
         </Button>
         <Button variant="outline" size="sm" className="gap-1.5" asChild>
           <Link href="/pricing" target="_blank">
-            View all plans
+            {PHASE_ONE_LAUNCH ? "View pricing" : "View all plans"}
             <ExternalLink className="size-3.5" />
           </Link>
         </Button>
@@ -196,7 +213,7 @@ export function SubscriptionPanel({
         </p>
       </div>
 
-      <PlanComparison current={plan} />
+      {PHASE_ONE_LAUNCH ? null : <PlanComparison current={plan} />}
     </div>
   );
 }
@@ -206,7 +223,7 @@ function PlanComparison({ current }: { current: ShopPlan }) {
     <div className="rounded-lg border bg-card p-5 shadow-sm">
       <h3 className="font-semibold">Compare plans</h3>
       <div className="mt-3 grid gap-2 sm:grid-cols-3">
-        {PLAN_ORDER.map((id) => {
+        {PUBLIC_PLAN_ORDER.map((id) => {
           const p = PLANS[id];
           const isCurrent = id === current;
           return (
@@ -215,7 +232,7 @@ function PlanComparison({ current }: { current: ShopPlan }) {
               className={`rounded-md border p-3 text-sm ${isCurrent ? "border-brand-navy bg-brand-navy/5" : ""}`}
             >
               <p className="font-semibold">{p.name}</p>
-              <p className="text-xs text-muted-foreground">${(p.monthlyCents / 100).toFixed(0)}/mo</p>
+              <p className="text-xs text-muted-foreground">{formatPriceFromCents(p.monthlyCents)}/mo</p>
               {isCurrent ? (
                 <span className="mt-1 inline-block text-[10px] font-semibold uppercase text-brand-navy">
                   Current

@@ -38,8 +38,9 @@ import { subnavBarClass, subnavTabClass } from "@/lib/subnav-styles";
 import { cn } from "@/lib/utils";
 import {
   PLANS,
-  PLAN_ORDER,
+  PUBLIC_PLAN_ORDER,
   billingStatusLabel,
+  formatPriceFromCents,
   planDisplayPrice,
 } from "@/lib/plans";
 import type { ShopPlan } from "@/generated/prisma";
@@ -177,8 +178,8 @@ function YourPlanTab({ overview }: { overview: BillingOverview }) {
 
       <div>
         <h3 className="text-lg font-semibold">ShopRally Plans</h3>
-        <div className="mt-4 grid gap-4 lg:grid-cols-3">
-          {PLAN_ORDER.map((planId) => (
+        <div className={cn("mt-4 grid gap-4", PUBLIC_PLAN_ORDER.length === 1 ? "max-w-md" : "lg:grid-cols-3")}>
+          {PUBLIC_PLAN_ORDER.map((planId) => (
             <PlanColumn
               key={planId}
               planId={planId}

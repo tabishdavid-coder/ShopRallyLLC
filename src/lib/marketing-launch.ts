@@ -1,7 +1,7 @@
 /**
  * Pre-launch marketing config — flip `preLaunch` to false when GA opens self-serve signup.
  */
-import { PLANS, repairPilotAllInMonthly } from "@/lib/plans";
+import { PLANS, PHASE_ONE_LAUNCH, repairPilotAllInMonthly, repairPilotStarterMonthly } from "@/lib/plans";
 
 export const MARKETING_LAUNCH = {
   preLaunch: true,
@@ -54,8 +54,9 @@ export const OUTCOME_METRICS = [
 export const MARKET_POSITIONING = {
   eyebrow: "Where ShopRally fits",
   headline: "Premium shop software — not legacy, not piecemeal",
-  subhead:
-    "Legacy systems split workflow across desktop installs and agency retainers. Budget cloud CRMs look cheap until SMS, booking, reviews, and website work stack on. ShopRally is the modern all-in-one — Core CRM through Elite full stack.",
+  subhead: PHASE_ONE_LAUNCH
+    ? "Legacy systems split workflow across desktop installs and agency retainers. Budget cloud CRMs look cheap until SMS, booking, reviews, and website work stack on. ShopRally Ignition is one plan to run your shop — add AI Plus when you're ready."
+    : "Legacy systems split workflow across desktop installs and agency retainers. Budget cloud CRMs look cheap until SMS, booking, reviews, and website work stack on. ShopRally is the modern all-in-one — Ignition through Elite full stack.",
   tiers: [
     {
       id: "legacy" as const,
@@ -87,17 +88,29 @@ export const MARKET_POSITIONING = {
       id: "premium" as const,
       label: "ShopRally premium",
       summary: "Cloud CRM, Growth Engine, training & optional full stack",
-      priceLabel: `From $${repairPilotAllInMonthly(true)}/mo`,
-      subPrice: "Pro flagship · licensed MOTOR + Growth Engine · Elite full stack",
-      points: [
-        "Core: ShopRally CRM suite, DVIs, email estimates, job board & Operations Daily Snapshot",
-        "Core: 100 VIN & plate decodes / mo · $10 per extra 100 · email only (no SMS / no Stripe Connect)",
-        "Licensed MOTOR labor data included on Pro & Elite",
-        "Pro: unlimited VIN/plate, OEM specs & fluids, PartsTech, SMS, Stripe Connect, booking, Growth Engine",
-        "Google review management on Pro · AI review replies on Elite",
-        "Elite adds AI receptionist, ShopSite, Local SEO & maintenance programs",
-        "One customer record from job board to invoice to campaign",
-      ],
+      priceLabel: PHASE_ONE_LAUNCH
+        ? `From $${repairPilotStarterMonthly(true)}/mo`
+        : `From $${repairPilotAllInMonthly(true)}/mo`,
+      subPrice: PHASE_ONE_LAUNCH
+        ? "Ignition shop plan · AI Plus optional +$20/mo"
+        : "Pro flagship · licensed MOTOR + Growth Engine · Elite full stack",
+      points: PHASE_ONE_LAUNCH
+        ? [
+            "Ignition: ShopRally CRM suite, DVIs, email estimates, job board & Operations Daily Snapshot",
+            "Ignition: 100 VIN & plate decodes / mo · $10 per extra 100 · manual payments",
+            "AI Plus (+$20/mo): freeform AI intake, labor assist & advisor mobile app",
+            "Pro & Elite coming later — licensed MOTOR, Growth Engine, Stripe Connect & AI receptionist",
+            "One customer record from job board to invoice",
+          ]
+        : [
+            "Ignition: ShopRally CRM suite, DVIs, email estimates, job board & Operations Daily Snapshot",
+            "Ignition: 100 VIN & plate decodes / mo · $10 per extra 100 · email only (no SMS / no Stripe Connect)",
+            "Licensed MOTOR labor data included on Pro & Elite",
+            "Pro: unlimited VIN/plate, OEM specs & fluids, PartsTech, SMS, Stripe Connect, booking, Growth Engine",
+            "Google review management on Pro · AI review replies on Elite",
+            "Elite adds AI receptionist, ShopSite, Local SEO & maintenance programs",
+            "One customer record from job board to invoice to campaign",
+          ],
     },
   ],
 } as const;

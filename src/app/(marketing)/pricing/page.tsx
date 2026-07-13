@@ -3,7 +3,7 @@ import { getFoundingWaitlistStats } from "@/server/marketing-launch-stats";
 
 export const metadata = {
   title: "Pricing — ShopRally",
-  description: "Core, Pro, and Elite — per-location shop management with Growth Engine and AI tiers.",
+  description: "ShopRally Ignition — $49.99/mo shop CRM. Optional AI Plus add-on $20/mo.",
 };
 
 export default async function PricingPage() {
