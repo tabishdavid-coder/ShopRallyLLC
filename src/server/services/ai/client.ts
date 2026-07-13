@@ -2,6 +2,7 @@ import "server-only";
 
 import Anthropic from "@anthropic-ai/sdk";
 import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
+import type { ResponseSchema } from "@google/generative-ai";
 import type { z } from "zod";
 
 import { prisma } from "@/db/client";
@@ -178,6 +179,8 @@ export async function createAiMessage(input: CreateAiMessageInput): Promise<Crea
 
 export type CreateAiJsonMessageInput<T extends z.ZodType> = CreateAiMessageInput & {
   schema: T;
+  /** Gemini structured output — enforces JSON shape (recommended for Zod-validated calls). */
+  responseSchema?: ResponseSchema;
 };
 
 /** Structured JSON output — Zod-validated; uses native JSON mode on Gemini. */
@@ -204,6 +207,7 @@ export async function createAiJsonMessage<T extends z.ZodType>(
         user: input.userContent,
         maxTokens: input.maxTokens ?? 2048,
         json: true,
+        responseSchema: input.responseSchema,
       });
 
       await logAiUsage({

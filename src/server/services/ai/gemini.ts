@@ -1,6 +1,6 @@
 import "server-only";
 
-import { GoogleGenerativeAI } from "@google/generative-ai";
+import { GoogleGenerativeAI, type ResponseSchema } from "@google/generative-ai";
 
 import { geminiApiKey } from "@/server/services/ai/provider";
 
@@ -62,6 +62,7 @@ async function geminiGenerateTextOnce(args: {
   user: string;
   maxTokens?: number;
   json?: boolean;
+  responseSchema?: ResponseSchema;
 }): Promise<GeminiGenerateResult> {
   const key = geminiApiKey();
   if (!key) throw new Error("GEMINI_API_KEY is not configured.");
@@ -72,7 +73,12 @@ async function geminiGenerateTextOnce(args: {
     systemInstruction: args.system,
     generationConfig: {
       maxOutputTokens: args.maxTokens ?? 1024,
-      ...(args.json ? { responseMimeType: "application/json" as const } : {}),
+      ...(args.json
+        ? {
+            responseMimeType: "application/json" as const,
+            ...(args.responseSchema ? { responseSchema: args.responseSchema } : {}),
+          }
+        : {}),
     },
   });
 
@@ -96,6 +102,7 @@ export async function geminiGenerateText(args: {
   user: string;
   maxTokens?: number;
   json?: boolean;
+  responseSchema?: ResponseSchema;
 }): Promise<GeminiGenerateResult> {
   const candidates = args.models?.length
     ? args.models
@@ -112,6 +119,7 @@ export async function geminiGenerateText(args: {
           user: args.user,
           maxTokens: args.maxTokens,
           json: args.json,
+          responseSchema: args.responseSchema,
         });
       } catch (err) {
         lastErr = err;
