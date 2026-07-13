@@ -16,6 +16,8 @@ export type ShopCapabilities = {
   partsTech: boolean;
   /** Growth Engine / marketing campaigns — Pro+ only. */
   marketingCampaigns: boolean;
+  /** VIN/vPIC vehicle specs rail — Pro+ only (Core uses manual YMM). */
+  vehicleSpecs: boolean;
 };
 
 const DEFAULT: ShopCapabilities = {
@@ -24,6 +26,7 @@ const DEFAULT: ShopCapabilities = {
   motorLabor: false,
   partsTech: false,
   marketingCampaigns: false,
+  vehicleSpecs: false,
 };
 
 const ShopCapabilitiesContext = createContext<ShopCapabilities>(DEFAULT);
@@ -63,4 +66,9 @@ export function usePartsTechUiEnabled(): boolean {
 /** Growth Engine / marketing campaigns UI — Pro+. */
 export function useMarketingCampaignsUiEnabled(): boolean {
   return useShopCapabilities().marketingCampaigns;
+}
+
+/** VIN/vPIC vehicle specs rail — Pro+. */
+export function useVehicleSpecsUiEnabled(): boolean {
+  return useShopCapabilities().vehicleSpecs;
 }

@@ -14,6 +14,7 @@ Track every change on branch `cursor/core-plan-fidelity-5e7c` so we can merge sa
 | 2026-07-13 | Estimate toolbar | Core hides Labor Book, Parts lookup, + Work line / Pro Job cluster; single Core `+ Job` (canned/blank only). Gate Labor Book from launcher, line lookup, type menu, parts strip | `estimate-lab-toolbar.tsx`, `shop-capabilities.tsx`, `estimate-job-launcher.tsx`, … | ⬜ Macuto verify |
 | 2026-07-13 | Growth nav | Hide Business → Growth (`/marketing`) + Lead Tracking / booking settings on Core | `src/server/crm-access.ts`, settings catalog/overview | ⬜ Macuto verify |
 | 2026-07-13 | Labor Book nav | Hide Shop → Labor Book (`/quick-labor`) on Core — MOTOR VIN/plate lookup; Catalog Labor Library stays | `src/server/crm-access.ts` | ⬜ Macuto verify |
+| 2026-07-13 | Vehicle specs | Hide estimate right-rail VEHICLE SPECS (vPIC) + drawer specs on Core | `shop-capabilities.tsx`, `estimate-lab-right-rail.tsx`, context drawer | ⬜ Macuto verify |
 
 ### Template (copy for new rows)
 

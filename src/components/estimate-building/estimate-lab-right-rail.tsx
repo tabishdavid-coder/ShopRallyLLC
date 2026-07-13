@@ -21,7 +21,7 @@ import { EstimateLabMessagesHost } from "@/components/estimate-building/estimate
 import { useEstimateLabContextDrawerOptional } from "@/components/estimate-building/estimate-lab-context-drawer-provider";
 import { EstimateLabVehicleSpecsSection } from "@/components/estimate-building/estimate-lab-vehicle-specs-section";
 import { useEstimateLabPartsOptional } from "@/components/estimate-building/estimate-lab-parts-provider";
-import { usePartsTechUiEnabled } from "@/lib/shop-capabilities";
+import { usePartsTechUiEnabled, useVehicleSpecsUiEnabled } from "@/lib/shop-capabilities";
 
 import { EstimateDepositRequestDialog } from "@/components/estimate-building/estimate-deposit-request-dialog";
 import {
@@ -933,9 +933,10 @@ function VehicleSpecsRailSection({
   canEdit: boolean;
 }) {
   const ctx = useEstimateLabContextDrawerOptional();
+  const vehicleSpecsOk = useVehicleSpecsUiEnabled();
 
   useEffect(() => {
-    if (!ctx) return;
+    if (!ctx || !vehicleSpecsOk) return;
     ctx.registerOpenVehicleSpecs(() => {
       requestAnimationFrame(() => {
         document.getElementById("estimate-lab-vehicle-specs")?.scrollIntoView({
@@ -945,7 +946,9 @@ function VehicleSpecsRailSection({
       });
     });
     return () => ctx.registerOpenVehicleSpecs(null);
-  }, [ctx]);
+  }, [ctx, vehicleSpecsOk]);
+
+  if (!vehicleSpecsOk) return null;
 
   return (
     <div id="estimate-lab-vehicle-specs" className={cn(RAIL_CARD, "overflow-hidden")}>
