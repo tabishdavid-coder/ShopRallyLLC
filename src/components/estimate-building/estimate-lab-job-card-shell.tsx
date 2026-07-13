@@ -59,7 +59,9 @@ export function EstimateLabServiceItemsHeader() {
 export const LAB_TABLE_HEAD =
   "border-b border-border/70 bg-muted/25 text-[10px] font-semibold uppercase tracking-wide text-subtle-foreground";
 export const LAB_CELL = "px-1 py-0.5";
-export const LAB_INPUT = "h-7 min-w-0 px-1 text-xs tabular-nums shadow-none";
+/** Shared value size for service-items name, qty, money, and tax cells. */
+export const LAB_GRID_TEXT = "text-xs leading-snug";
+export const LAB_INPUT = cn("h-7 min-w-0 px-1 shadow-none", LAB_GRID_TEXT, "tabular-nums");
 
 /** Borderless inline field — focus ring only (Tekmetric flat grid). */
 export const LAB_INPUT_FLAT = cn(
@@ -124,13 +126,15 @@ export const LAB_GRID_CELL_END = cn(
  * Edge-to-edge in cell; subtle focus ring only.
  */
 export const LAB_DESCRIPTION_TEXTAREA_CLASS = cn(
-  "min-h-7 max-h-16 min-w-0 w-full resize-none px-1 py-0.5 text-xs",
+  "min-h-7 max-h-16 min-w-0 w-full resize-none px-1 py-0.5",
+  LAB_GRID_TEXT,
   "rounded-none border-0 bg-transparent shadow-none",
   "focus-visible:ring-1 focus-visible:ring-ring/40 focus-visible:ring-inset",
 );
 
 /** Fee/discount description column selects — flat, matches description textarea. */
 export const LAB_DESCRIPTION_SELECT_CLASS = cn(
-  "h-7 w-full min-w-0 rounded-none border-0 bg-transparent px-1 py-0.5 text-[10px] shadow-none outline-none",
+  "h-7 w-full min-w-0 rounded-none border-0 bg-transparent px-1 py-0.5 shadow-none outline-none",
+  LAB_GRID_TEXT,
   "focus-visible:ring-1 focus-visible:ring-ring/40 focus-visible:ring-inset",
 );
