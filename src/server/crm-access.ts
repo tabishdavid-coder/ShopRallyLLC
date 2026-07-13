@@ -37,6 +37,7 @@ const HREF_PLAN_FEATURES: Partial<Record<string, SubscriptionFeature>> = {
   "/settings/communications/phone-sms": "sms",
   "/settings/payments": "stripePayments",
   "/settings/integrations/stripe": "stripePayments",
+  "/quick-labor": "motorLabor",
 };
 
 type PlanRouteGate = {
@@ -51,6 +52,7 @@ const PLAN_ROUTE_GATES: PlanRouteGate[] = [
   { prefix: "/messages", feature: "sms" },
   { prefix: "/orders", feature: "parts", released: true },
   { prefix: "/vendors", feature: "parts", released: true },
+  { prefix: "/quick-labor", feature: "motorLabor", released: true },
   { prefix: "/settings/marketing", feature: "marketing_campaigns", released: true },
   { prefix: "/settings/booking", feature: "booking", released: true },
   { prefix: "/settings/markups", feature: "markupMatrices" },
