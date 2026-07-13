@@ -8,6 +8,7 @@ import { PaymentTransactionsPanel } from "@/components/repair-order/payment-tran
 import { PaymentInvoiceActions } from "@/components/repair-order/payment-invoice-actions";
 import { formatCents } from "@/lib/format";
 import { paymentMethodLabel, type PaymentRow } from "@/lib/payment-display";
+import { useStripePaymentsUiEnabled } from "@/lib/shop-capabilities";
 import { cn } from "@/lib/utils";
 
 /** Client-safe RO payment snapshot for the Finance drawer panel (JSON-serialized). */
@@ -88,15 +89,22 @@ export function PaymentFinancePanel({ data }: { data: PaymentFinanceData }) {
     failedCustomerPayments = [],
   } = data;
 
+  const stripeOnPlan = useStripePaymentsUiEnabled();
+  const canStripeCheckout = stripeOnPlan && stripeEnabled;
+
   return (
     <div className="space-y-3 pb-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
-          <h3 className="text-sm font-semibold text-brand-navy">Collect payment</h3>
+          <h3 className="text-sm font-semibold text-brand-navy">
+            {stripeOnPlan ? "Collect payment" : "Record payment"}
+          </h3>
           <p className="mt-0.5 text-xs text-muted-foreground">
             {isPaid
               ? "This repair order is paid in full."
-              : "Record in-shop payments or share an invoice link with the customer."}
+              : stripeOnPlan
+                ? "Record in-shop payments or share an invoice link with the customer."
+                : "Record cash, check, card, or other payments taken in the shop."}
           </p>
         </div>
         <div
@@ -122,29 +130,36 @@ export function PaymentFinancePanel({ data }: { data: PaymentFinanceData }) {
       <div
         className={cn(
           "flex items-start gap-2 rounded-md border px-2.5 py-2 text-xs leading-snug",
-          stripeEnabled
+          canStripeCheckout
             ? "border-emerald-200/80 bg-emerald-50/80 text-emerald-900"
-            : "border-amber-200/80 bg-amber-50/80 text-amber-900",
+            : stripeOnPlan
+              ? "border-amber-200/80 bg-amber-50/80 text-amber-900"
+              : "border-brand-navy/15 bg-brand-navy/[0.04] text-foreground/80",
         )}
       >
-        {stripeEnabled ? (
+        {canStripeCheckout ? (
           <CheckCircle2 className="mt-0.5 size-3.5 shrink-0" aria-hidden />
         ) : (
           <AlertCircle className="mt-0.5 size-3.5 shrink-0" aria-hidden />
         )}
         <p>
-          {stripeEnabled ? (
+          {canStripeCheckout ? (
             <>
               <span className="font-semibold">Stripe enabled.</span> Share invoice links or take card
               payments online. Cash and check still record below.
             </>
-          ) : (
+          ) : stripeOnPlan ? (
             <>
               Online card payments are off. Connect Stripe in{" "}
               <Link href="/marketing/payment-account" className="font-semibold text-brand-navy underline">
                 Settings → Stripe
               </Link>{" "}
               for pay links. In-shop recording still works below.
+            </>
+          ) : (
+            <>
+              <span className="font-semibold">Manual payments only.</span> Record cash, check, card
+              terminal, or other — online Stripe collection is not on Core.
             </>
           )}
         </p>
@@ -198,7 +213,7 @@ export function PaymentFinancePanel({ data }: { data: PaymentFinanceData }) {
           invoiceId={invoiceId}
           invoiceNumber={invoiceNumber}
           shareUrl={shareUrl}
-          stripeEnabled={stripeEnabled}
+          stripeEnabled={canStripeCheckout}
           customerFirstName={customerFirstName}
           shopName={shopName}
           phones={phones}

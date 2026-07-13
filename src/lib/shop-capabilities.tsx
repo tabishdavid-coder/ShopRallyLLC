@@ -72,3 +72,8 @@ export function useMarketingCampaignsUiEnabled(): boolean {
 export function useVehicleSpecsUiEnabled(): boolean {
   return useShopCapabilities().vehicleSpecs;
 }
+
+/** Stripe Connect / online checkout UI — Pro+. Core is manual payments only. */
+export function useStripePaymentsUiEnabled(): boolean {
+  return useShopCapabilities().stripePayments;
+}

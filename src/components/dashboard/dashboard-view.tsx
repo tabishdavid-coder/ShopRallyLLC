@@ -22,6 +22,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { exportDashboardSnapshot } from "@/lib/dashboard-export";
 import { collectionRatePct, type DashboardData } from "@/lib/dashboard";
 import { formatCents } from "@/lib/format";
+import { useStripePaymentsUiEnabled } from "@/lib/shop-capabilities";
 import type { StripeConfigStatus } from "@/lib/stripe";
 
 type DashboardViewProps = {
@@ -33,12 +34,15 @@ type DashboardViewProps = {
 export function DashboardView({ data, shopName, stripe }: DashboardViewProps) {
   const { kpis, rangeLabel } = data;
   const collectionRate = collectionRatePct(kpis.invoicedCents, kpis.collectedCents);
+  const stripeOnPlan = useStripePaymentsUiEnabled();
 
-  const paymentsHint = !stripe.enabled
-    ? "Add Stripe in Settings → Integrations"
-    : kpis.grossVolumeCents > 0
-      ? "Stripe + recorded payments"
-      : "Record payments or share an invoice";
+  const paymentsHint = !stripeOnPlan
+    ? "Record cash, check, card, or other"
+    : !stripe.enabled
+      ? "Add Stripe in Settings → Integrations"
+      : kpis.grossVolumeCents > 0
+        ? "Stripe + recorded payments"
+        : "Record payments or share an invoice";
 
   return (
     <div className="space-y-6">
@@ -150,25 +154,34 @@ export function DashboardView({ data, shopName, stripe }: DashboardViewProps) {
 
       <Card>
         <CardHeader>
-          <CardTitle>Collect payment</CardTitle>
+          <CardTitle>{stripeOnPlan ? "Collect payment" : "Record payment"}</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3 text-sm text-muted-foreground">
-          <p>
-            Open a completed repair order → Payment tab → Share invoice with customer. Record cash, check, or card
-            in-shop anytime; customers pay online when Stripe is configured.
-          </p>
-          {stripe.enabled ? (
-            <p>
-              With Stripe: public invoice link → Pay invoice → test card{" "}
-              <span className="font-mono text-xs">4242 4242 4242 4242</span>. Gross volume updates when payments
-              succeed.
-            </p>
+          {stripeOnPlan ? (
+            <>
+              <p>
+                Open a completed repair order → Payment tab → Share invoice with customer. Record cash, check, or card
+                in-shop anytime; customers pay online when Stripe is configured.
+              </p>
+              {stripe.enabled ? (
+                <p>
+                  With Stripe: public invoice link → Pay invoice → test card{" "}
+                  <span className="font-mono text-xs">4242 4242 4242 4242</span>. Gross volume updates when payments
+                  succeed.
+                </p>
+              ) : (
+                <p>
+                  <a href="/marketing/payment-account" className="font-medium text-brand-navy hover:underline">
+                    Set up Stripe
+                  </a>{" "}
+                  to enable Pay invoice on shared links and Stripe Checkout from the Payment tab.
+                </p>
+              )}
+            </>
           ) : (
             <p>
-              <a href="/marketing/payment-account" className="font-medium text-brand-navy hover:underline">
-                Set up Stripe
-              </a>{" "}
-              to enable Pay invoice on shared links and Stripe Checkout from the Payment tab.
+              Open a repair order → Payment → record cash, check, card (terminal), or other. Online Stripe
+              collection is not included on Core.
             </p>
           )}
         </CardContent>

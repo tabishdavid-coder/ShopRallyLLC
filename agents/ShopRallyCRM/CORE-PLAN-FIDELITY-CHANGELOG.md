@@ -15,6 +15,7 @@ Track every change on branch `cursor/core-plan-fidelity-5e7c` so we can merge sa
 | 2026-07-13 | Growth nav | Hide Business → Growth (`/marketing`) + Lead Tracking / booking settings on Core | `src/server/crm-access.ts`, settings catalog/overview | ⬜ Macuto verify |
 | 2026-07-13 | Labor Book nav | Hide Shop → Labor Book (`/quick-labor`) on Core — MOTOR VIN/plate lookup; Catalog Labor Library stays | `src/server/crm-access.ts` | ⬜ Macuto verify |
 | 2026-07-13 | Vehicle specs | Hide estimate right-rail VEHICLE SPECS (vPIC) + drawer specs on Core | `shop-capabilities.tsx`, `estimate-lab-right-rail.tsx`, context drawer | ⬜ Macuto verify |
+| 2026-07-13 | Payments | Core: no Stripe Collect CTA — Money card **Record $…**, manual cash/check/card/other only; hide Stripe connect upsells in finance/share/dashboard | `estimate-lab-right-rail.tsx`, `payment-methods-panel.tsx`, `payment-finance-panel.tsx`, `share-invoice-dialog.tsx`, `dashboard-view.tsx`, `ro-context-deck.tsx` | ⬜ Macuto verify |
 
 ### Template (copy for new rows)
 

@@ -21,7 +21,11 @@ import { EstimateLabMessagesHost } from "@/components/estimate-building/estimate
 import { useEstimateLabContextDrawerOptional } from "@/components/estimate-building/estimate-lab-context-drawer-provider";
 import { EstimateLabVehicleSpecsSection } from "@/components/estimate-building/estimate-lab-vehicle-specs-section";
 import { useEstimateLabPartsOptional } from "@/components/estimate-building/estimate-lab-parts-provider";
-import { usePartsTechUiEnabled, useVehicleSpecsUiEnabled } from "@/lib/shop-capabilities";
+import {
+  usePartsTechUiEnabled,
+  useStripePaymentsUiEnabled,
+  useVehicleSpecsUiEnabled,
+} from "@/lib/shop-capabilities";
 
 import { EstimateDepositRequestDialog } from "@/components/estimate-building/estimate-deposit-request-dialog";
 import {
@@ -268,6 +272,7 @@ function MoneyCard({
   depositAmountCents?: number;
 }) {
   const { paymentPreview } = useEstimateLabDisplay();
+  const stripeOnPlan = useStripePaymentsUiEnabled();
   const displayPaid = allowPreview
     ? effectiveLabPaidCents(paymentPreview, paidCents, totalCents)
     : paidCents;
@@ -359,12 +364,20 @@ function MoneyCard({
           className="h-9 w-full rounded-none border-0 bg-[var(--jb-orange,#e86a10)] text-[12px] font-bold uppercase tracking-[0.06em] text-white shadow-none hover:bg-[var(--jb-orange,#e86a10)]/90 focus-visible:ring-2 focus-visible:ring-[var(--jb-orange,#e86a10)]/40"
         >
           <Link href={roEstimateActionHref(roId, "payment")}>
-            <CreditCard className="size-3.5 shrink-0" aria-hidden />
+            {stripeOnPlan ? (
+              <CreditCard className="size-3.5 shrink-0" aria-hidden />
+            ) : (
+              <Wallet className="size-3.5 shrink-0" aria-hidden />
+            )}
             {displayRemaining > 0
-              ? `Collect ${formatCents(displayRemaining)}`
+              ? stripeOnPlan
+                ? `Collect ${formatCents(displayRemaining)}`
+                : `Record ${formatCents(displayRemaining)}`
               : totalCents > 0
                 ? "View payment"
-                : "Collect payment"}
+                : stripeOnPlan
+                  ? "Collect payment"
+                  : "Record payment"}
           </Link>
         </Button>
 
