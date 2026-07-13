@@ -122,14 +122,14 @@ export function EstimateLineTypeMenu({
 
   if (!editing) {
     return (
-      <span className="text-[10px] font-semibold uppercase tracking-wide text-brand-navy">{label}</span>
+      <span className="text-[11px] font-semibold text-brand-navy">{label}</span>
     );
   }
 
-  /** Labor Book / Part type — matched size + subtle weight. Fee/discount "all" stays bordered. */
+  /** Labor Book / Part type — matched size; normal case so labels stay readable in the Type column. */
   const triggerClass = useMatchedTypeTrigger
     ? cn(
-        "inline-flex h-7 w-full min-w-0 items-center gap-2 rounded-md border border-brand-navy/15 bg-brand-navy/[0.03] px-2 text-xs font-semibold uppercase tracking-wide text-brand-navy",
+        "inline-flex h-7 w-full min-w-0 items-center gap-1 rounded-md border border-brand-navy/15 bg-brand-navy/[0.03] px-1.5 text-[11px] font-semibold text-brand-navy",
         "hover:border-brand-navy/25 hover:bg-brand-light/10 hover:text-brand-navy",
       )
     : size === "table"
@@ -181,22 +181,22 @@ export function EstimateLineTypeMenu({
       ) : null}
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <button type="button" className={triggerClass} aria-label={ariaLabel}>
+          <button type="button" className={triggerClass} aria-label={ariaLabel} title={label}>
             {menuScope === "labor" ? (
               <>
-                <Wrench className="size-3.5 shrink-0" aria-hidden />
-                <span className="min-w-0 flex-1 truncate text-left">{label}</span>
+                <Wrench className="size-3 shrink-0" aria-hidden />
+                <span className="min-w-0 flex-1 whitespace-nowrap text-left">{label}</span>
                 <ChevronDown className="size-3 shrink-0 opacity-60" aria-hidden />
               </>
             ) : menuScope === "part" ? (
               <>
-                <Package className="size-3.5 shrink-0" aria-hidden />
-                <span className="min-w-0 flex-1 truncate text-left">{label}</span>
+                <Package className="size-3 shrink-0" aria-hidden />
+                <span className="min-w-0 flex-1 whitespace-nowrap text-left">{label}</span>
                 <ChevronDown className="size-3 shrink-0 opacity-60" aria-hidden />
               </>
             ) : (
               <>
-                <span className="min-w-0 flex-1 truncate text-left">{label}</span>
+                <span className="min-w-0 flex-1 whitespace-nowrap text-left">{label}</span>
                 <ChevronDown className="size-3 shrink-0 opacity-60" aria-hidden />
               </>
             )}
