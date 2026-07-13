@@ -82,10 +82,10 @@ export const LAB_LINE_GRID_HEAD_BASE = "grid items-center gap-0";
 
 /** @deprecated Prefer labLineGridTemplate() + inline gridTemplateColumns for resizable name/desc. */
 export const LAB_LINE_GRID =
-  "grid grid-cols-[24px_128px_minmax(96px,0.62fr)_minmax(64px,0.38fr)_72px_84px_84px_96px_80px_96px_52px_28px] items-stretch gap-0";
+  "grid grid-cols-[24px_128px_minmax(120px,0.62fr)_minmax(100px,0.38fr)_72px_84px_84px_96px_80px_96px_52px_28px] items-stretch gap-0";
 /** @deprecated Prefer labLineGridTemplate() + inline gridTemplateColumns for resizable name/desc. */
 export const LAB_LINE_GRID_HEAD =
-  "grid grid-cols-[24px_128px_minmax(96px,0.62fr)_minmax(64px,0.38fr)_72px_84px_84px_96px_80px_96px_52px_28px] items-center gap-0";
+  "grid grid-cols-[24px_128px_minmax(120px,0.62fr)_minmax(100px,0.38fr)_72px_84px_84px_96px_80px_96px_52px_28px] items-center gap-0";
 
 /** Minimum width before horizontal scroll kicks in. */
 export const LAB_LINE_GRID_MIN_W = "min-w-[1112px]";

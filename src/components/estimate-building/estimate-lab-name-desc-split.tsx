@@ -29,7 +29,7 @@ function readStoredRatio(): number {
 export function labLineGridTemplate(nameShare = LAB_NAME_DESC_RATIO_DEFAULT): string {
   const name = clampRatio(nameShare);
   const desc = 1 - name;
-  return `24px 128px minmax(96px,${name}fr) minmax(64px,${desc}fr) 72px 84px 84px 96px 80px 96px 52px 28px`;
+  return `24px 128px minmax(120px,${name}fr) minmax(100px,${desc}fr) 72px 84px 84px 96px 80px 96px 52px 28px`;
 }
 
 export function useLabNameDescSplit() {
@@ -117,26 +117,21 @@ export function LabNameDescResizeHandle({
   );
 }
 
-/** When description is empty, let Name borrow the full Name+Description width. */
+/** Always two cells — Name and Description stay separate typing areas. */
 export function LabNameDescCells({
-  descEmpty,
   name,
   description,
 }: {
-  descEmpty: boolean;
   name: ReactNode;
   description: ReactNode;
 }) {
-  if (descEmpty) {
-    return <div className="col-span-2 flex min-h-7 min-w-0 items-center border-r border-border/50 px-1 py-0.5">{name}</div>;
-  }
   return (
     <>
-      <div className="flex min-h-7 min-w-0 items-center overflow-hidden border-r border-border/50 px-1 py-0.5">
-        {name}
+      <div className="flex min-h-7 min-w-0 items-stretch overflow-hidden border-r border-border/70 bg-background px-1 py-0.5">
+        <div className="min-w-0 w-full self-center">{name}</div>
       </div>
-      <div className="flex min-h-7 min-w-0 items-center overflow-hidden border-r border-border/50 px-1 py-0.5">
-        {description}
+      <div className="flex min-h-7 min-w-0 items-stretch overflow-hidden border-r border-border/70 bg-muted/10 px-1 py-0.5">
+        <div className="min-w-0 w-full self-center">{description}</div>
       </div>
     </>
   );
