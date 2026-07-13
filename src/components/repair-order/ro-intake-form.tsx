@@ -66,6 +66,11 @@ import {
   resolveVehicleFromVin,
   type VehicleLookupFields,
 } from "@/components/vehicles/use-plate-vin-lookup";
+import { useAutodevDecodingUiEnabled } from "@/lib/shop-capabilities";
+import {
+  CORE_INTAKE_VEHICLE_PLACEHOLDER,
+  CORE_INTAKE_VEHICLE_SUBTITLE,
+} from "@/lib/core-vehicle-decode";
 import {
   searchCustomers,
   getCustomerVehicles,
@@ -356,6 +361,7 @@ export function RoIntakeForm({
   const concernSectionRef = useRef<HTMLDivElement | null>(null);
   const concernInputRef = useRef<HTMLTextAreaElement | null>(null);
   const lookupSeqRef = useRef(0);
+  const autodevDecodingOk = useAutodevDecodingUiEnabled();
 
   const [error, setError] = useState<string | null>(null);
   const [creating, startCreate] = useTransition();
@@ -460,31 +466,45 @@ export function RoIntakeForm({
             }
           } else if (detected.kind === "plate") {
             const plate = detected.value;
-            const res = await resolveVehicleFromPlate(
-              vehicleLookupState,
-              plate,
-              {},
-              { overwrite: true },
-            );
-            if (seq !== lookupSeqRef.current) return;
-            if (res.ok) {
+            if (!autodevDecodingOk) {
               nextHits.push({
-                id: `plate:${vehicleLookupState}:${normalizeLookupToken(plate)}`,
+                id: `plate-manual:${vehicleLookupState}:${normalizeLookupToken(plate)}`,
                 source: "plate",
-                title: lookupHitTitle(res.result.fields),
-                subtitle: `Plate ${plate.toUpperCase()} · ${vehicleLookupState}${
-                  res.result.vin ? ` · VIN ${res.result.vin}` : ""
-                }`,
+                title: `Plate ${plate.toUpperCase()}`,
+                subtitle: `Manual entry · ${vehicleLookupState} — decode a VIN or add vehicle`,
                 lookup: plate.toUpperCase(),
                 fields: {
-                  ...res.result.fields,
-                  vin: res.result.vin ?? res.result.fields.vin,
                   plate: plate.toUpperCase(),
                   plateState: vehicleLookupState,
                 },
               });
             } else {
-              setLookupNote(res.error);
+              const res = await resolveVehicleFromPlate(
+                vehicleLookupState,
+                plate,
+                {},
+                { overwrite: true },
+              );
+              if (seq !== lookupSeqRef.current) return;
+              if (res.ok) {
+                nextHits.push({
+                  id: `plate:${vehicleLookupState}:${normalizeLookupToken(plate)}`,
+                  source: "plate",
+                  title: lookupHitTitle(res.result.fields),
+                  subtitle: `Plate ${plate.toUpperCase()} · ${vehicleLookupState}${
+                    res.result.vin ? ` · VIN ${res.result.vin}` : ""
+                  }`,
+                  lookup: plate.toUpperCase(),
+                  fields: {
+                    ...res.result.fields,
+                    vin: res.result.vin ?? res.result.fields.vin,
+                    plate: plate.toUpperCase(),
+                    plateState: vehicleLookupState,
+                  },
+                });
+              } else {
+                setLookupNote(res.error);
+              }
             }
           } else if (detected.kind === "ymm") {
             const { ymm } = detected;
@@ -515,7 +535,7 @@ export function RoIntakeForm({
       clearTimeout(t);
       lookupSeqRef.current += 1;
     };
-  }, [customer, vehicleQuery, vehicleLookupState, hasVehicleLookupInput]);
+  }, [customer, vehicleQuery, vehicleLookupState, hasVehicleLookupInput, autodevDecodingOk]);
 
   function loadVehicles(customerId: string, selectId?: string) {
     startLoadVehicles(async () => {
@@ -1087,7 +1107,11 @@ export function RoIntakeForm({
               <IntakeSectionCard
                 step={2}
                 title="Vehicle"
-                subtitle="Search plate, VIN, or year/make/model — or pick from the garage"
+                subtitle={
+                  autodevDecodingOk
+                    ? "Search plate, VIN, or year/make/model — or pick from the garage"
+                    : CORE_INTAKE_VEHICLE_SUBTITLE
+                }
               >
                 <div className="space-y-3">
                   {laborGuideCarPrefill ? (
@@ -1165,7 +1189,9 @@ export function RoIntakeForm({
                           }}
                           placeholder={
                             customer
-                              ? "Search plate, VIN, or year/make/model…"
+                              ? autodevDecodingOk
+                                ? "Search plate, VIN, or year/make/model…"
+                                : CORE_INTAKE_VEHICLE_PLACEHOLDER
                               : "Select a customer first…"
                           }
                           disabled={!customer}
@@ -1302,8 +1328,9 @@ export function RoIntakeForm({
 
                   {customer && vehicles.length === 0 && !loadingVehicles && !hasVehicleLookupInput ? (
                     <p className="text-xs text-muted-foreground">
-                      No vehicles on file — search by plate, VIN, or year/make/model, or add a new
-                      vehicle.
+                      {autodevDecodingOk
+                        ? "No vehicles on file — search by plate, VIN, or year/make/model, or add a new vehicle."
+                        : "No vehicles on file — decode a VIN, enter year/make/model, or add a new vehicle."}
                     </p>
                   ) : null}
                 </div>

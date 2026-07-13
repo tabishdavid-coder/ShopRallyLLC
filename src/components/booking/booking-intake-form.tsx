@@ -66,6 +66,8 @@ type Props = {
   defaultDurationMins: number;
   dropOffEnabled?: boolean;
   dropOffLabel?: string;
+  /** Pro+ Auto.dev plate→VIN — false on Core (manual plate + free NHTSA VIN only). */
+  plateLookupEnabled?: boolean;
 };
 
 type StepId = "services" | "contact" | "vehicle" | "schedule" | "review";
@@ -246,6 +248,7 @@ export function BookingIntakeForm({
   defaultDurationMins,
   dropOffEnabled = true,
   dropOffLabel = "I will drop-off my vehicle",
+  plateLookupEnabled = false,
 }: Props) {
   const sortedServices = useMemo(
     () => [...services].sort((a, b) => a.sortOrder - b.sortOrder),
@@ -335,7 +338,7 @@ export function BookingIntakeForm({
     (vehicleStepIndex < 0 || stepIndex > vehicleStepIndex);
   const vehicleChip = showVehicleChip ? vehicleSummaryLabel(form) : null;
 
-  // YMM is always the default; plate/VIN is only shown when the user toggles.
+  // YMM is always the default; plate/VIN mode only when shop enables it.
   const showPlateMode = fieldConfig.showPlateLookup && vehicleMode === "plate";
 
   useEffect(() => {
@@ -467,6 +470,7 @@ export function BookingIntakeForm({
   }
 
   function tryLookupPlate(rawPlate: string, state: string) {
+    if (!plateLookupEnabled) return;
     const pl = rawPlate.trim();
     if (!pl || pl.replace(/\s/g, "").length === 17) return;
     startDecodeVin(async () => {
@@ -885,9 +889,13 @@ export function BookingIntakeForm({
             {showPlateMode ? (
               <>
                 <div className="grid gap-4 sm:grid-cols-[1fr_5.5rem]">
-                  <Field label="Plate / VIN">
+                  <Field label={plateLookupEnabled ? "Plate / VIN" : "VIN or plate"}>
                     <Input
-                      placeholder="Enter Plate or VIN"
+                      placeholder={
+                        plateLookupEnabled
+                          ? "Enter Plate or VIN"
+                          : "17-character VIN or enter plate manually"
+                      }
                       className={TOUCH_INPUT}
                       value={form.vehiclePlate}
                       onChange={(e) => {
@@ -901,7 +909,7 @@ export function BookingIntakeForm({
                         const v = e.target.value.trim();
                         if (v.replace(/[^A-HJ-NPR-Z0-9]/gi, "").length === 17) {
                           tryDecodeVin(v);
-                        } else if (v) {
+                        } else if (v && plateLookupEnabled) {
                           tryLookupPlate(v, form.vehiclePlateState);
                         }
                       }}
@@ -935,6 +943,12 @@ export function BookingIntakeForm({
                   >
                     <Search className="size-4 shrink-0" aria-hidden /> Search by Year / Make / Model
                   </button>
+                ) : null}
+                {!plateLookupEnabled && showPlateMode ? (
+                  <p className="text-xs text-muted-foreground">
+                    VIN decode uses free NHTSA vPIC. Plates are saved manually — no plate lookup on
+                    Core.
+                  </p>
                 ) : null}
               </>
             ) : (
@@ -1128,7 +1142,8 @@ export function BookingIntakeForm({
                     onClick={() => setVehicleMode("plate")}
                     className={MODE_TOGGLE_LINK}
                   >
-                    <Search className="size-4 shrink-0" aria-hidden /> Search by Plate / VIN
+                    <Search className="size-4 shrink-0" aria-hidden />{" "}
+                    {plateLookupEnabled ? "Search by Plate / VIN" : "Search by VIN"}
                   </button>
                 ) : null}
                 {fieldConfig.showVin && !fieldConfig.showPlateLookup ? (

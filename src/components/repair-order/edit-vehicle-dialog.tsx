@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/select";
 import { updateVehicle } from "@/server/actions/vehicles";
 import { useAutodevDecodingUiEnabled } from "@/lib/shop-capabilities";
+import { CORE_EDIT_VEHICLE_IDENTITY_DESC } from "@/lib/core-vehicle-decode";
 import {
   usePlateVinLookup,
   type VehicleLookupFields,
@@ -206,7 +207,13 @@ export function EditVehicleDialog({
       }
     >
       <div className="space-y-4">
-        <CrmFormSection title="Identity" description="Decode by VIN or plate lookup" accent="navy">
+        <CrmFormSection
+          title="Identity"
+          description={
+            autodevDecodingOk ? "Decode by VIN or plate lookup" : CORE_EDIT_VEHICLE_IDENTITY_DESC
+          }
+          accent="navy"
+        >
           <CrmFormField label="VIN">
             <div className="flex gap-2">
               <Input

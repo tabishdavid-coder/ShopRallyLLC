@@ -5,6 +5,11 @@ import { Info, Loader2, Search } from "lucide-react";
 
 import { QuickLaborVehicleStrip } from "@/components/quick-labor/quick-labor-vehicle-strip";
 import type { QuickLaborVehicle } from "@/lib/quick-labor";
+import {
+  CORE_VEHICLE_SEARCH_HELPER,
+  CORE_VEHICLE_SEARCH_PLACEHOLDER,
+} from "@/lib/core-vehicle-decode";
+import { useAutodevDecodingUiEnabled } from "@/lib/shop-capabilities";
 import { cn } from "@/lib/utils";
 import { decodeVin, lookupPlate } from "@/server/actions/vehicles";
 import type { DecodedVin } from "@/server/services/vin";
@@ -55,6 +60,7 @@ export function QuickLaborVehicleLookup({
   const [lookupState, setLookupState] = useState("NY");
   const [lookupNote, setLookupNote] = useState<string | null>(null);
   const [decoding, startDecode] = useTransition();
+  const autodevDecodingOk = useAutodevDecodingUiEnabled();
 
   const looksLikeVin = lookup.trim().replace(/\s/g, "").length === 17;
 
@@ -76,6 +82,11 @@ export function QuickLaborVehicleLookup({
           setLookupNote(res.error);
           onContextChange(null);
         }
+      } else if (!autodevDecodingOk) {
+        setLookupNote(
+          "Plate lookup is not included on Core. Enter a 17-character VIN for free NHTSA decode.",
+        );
+        onContextChange(null);
       } else {
         const res = await lookupPlate(lookupState, v);
         if (res.ok) {
@@ -121,7 +132,9 @@ export function QuickLaborVehicleLookup({
             onKeyDown={(e) => {
               if (e.key === "Enter") runLookup();
             }}
-            placeholder="License plate or 17-character VIN"
+            placeholder={
+              autodevDecodingOk ? "License plate or 17-character VIN" : CORE_VEHICLE_SEARCH_PLACEHOLDER
+            }
             className={cn(input, "w-full pl-7 font-mono uppercase")}
           />
         </div>
@@ -146,7 +159,7 @@ export function QuickLaborVehicleLookup({
             className="inline-flex h-8 items-center gap-1.5 rounded-md bg-brand-navy px-3 text-sm font-medium text-white transition-colors hover:bg-brand-navy/90 disabled:opacity-50"
           >
             {decoding ? <Loader2 className="size-3.5 animate-spin" /> : null}
-            Look up
+            {autodevDecodingOk ? "Look up" : "Decode VIN"}
           </button>
         </div>
       </div>
@@ -155,11 +168,13 @@ export function QuickLaborVehicleLookup({
           <Info className="mt-0.5 size-3.5 shrink-0" />
           {lookupNote}
         </div>
-      ) : (
+      ) : autodevDecodingOk ? (
         <p className="mt-1.5 text-[11px] text-muted-foreground">
           No customer needed · demo plate{" "}
           <span className="font-mono font-medium">RP1000</span> (NY)
         </p>
+      ) : (
+        <p className="mt-1.5 text-[11px] text-muted-foreground">{CORE_VEHICLE_SEARCH_HELPER}</p>
       )}
     </div>
   );
