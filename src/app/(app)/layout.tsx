@@ -80,7 +80,7 @@ export default async function AppLayout({
     }
   }
 
-  const [activeShop, customerCount, notificationData, unreadSmsCount, intakeConfig, smsOnPlan, stripeOnPlan, motorLaborOnPlan, partsTechOnPlan, marketingOnPlan, autodevDecodingOnPlan, shopSubscription] =
+  const [activeShop, customerCount, notificationData, unreadSmsCount, intakeConfig, smsOnPlan, stripeOnPlan, motorLaborOnPlan, partsTechOnPlan, marketingOnPlan, autodevDecodingOnPlan, smartRoIntakeOnPlan, shopSubscription] =
     dbSeeded
       ? await Promise.all([
           getCurrentShop(),
@@ -94,9 +94,10 @@ export default async function AppLayout({
           canUseReleasedFeature(activeShopId, "parts"),
           canUseReleasedFeature(activeShopId, "marketing_campaigns"),
           canUseFeature(activeShopId, "autodevDecoding"),
+          canUseReleasedFeature(activeShopId, "freeform_ro_intake"),
           getShopSubscription(activeShopId),
         ])
-      : [null, 0, { notifications: [], unreadCount: 0 }, 0, null, false, false, false, false, false, false, null];
+      : [null, 0, { notifications: [], unreadCount: 0 }, 0, null, false, false, false, false, false, false, false, null];
 
   const vehicleSpecsOnPlan = shopSubscription ? shopSubscription.plan !== "STARTER" : false;
 
@@ -145,6 +146,7 @@ export default async function AppLayout({
           marketingCampaigns: marketingOnPlan,
           vehicleSpecs: vehicleSpecsOnPlan,
           autodevDecoding: autodevDecodingOnPlan,
+          freeformRoIntake: smartRoIntakeOnPlan,
           planFeatures: shopSubscription?.features ?? resolvePlanFeatures({ plan: "STARTER" }),
         }}
         banner={

@@ -21,6 +21,8 @@ export type ShopCapabilities = {
   vehicleSpecs: boolean;
   /** Auto.dev plate→VIN lookup — Pro+ only (Core: manual plate + free NHTSA VIN). */
   autodevDecoding: boolean;
+  /** Smart AI repair-order intake — AI Plus add-on. */
+  freeformRoIntake: boolean;
   /** Resolved plan features — drives settings nav pruning on Core. */
   planFeatures: PlanFeatureSet;
 };
@@ -33,6 +35,7 @@ const DEFAULT: ShopCapabilities = {
   marketingCampaigns: false,
   vehicleSpecs: false,
   autodevDecoding: false,
+  freeformRoIntake: false,
   planFeatures: {} as PlanFeatureSet,
 };
 
@@ -93,4 +96,9 @@ export function useStripePaymentsUiEnabled(): boolean {
 /** Auto.dev plate→VIN lookup UI — Pro+. */
 export function useAutodevDecodingUiEnabled(): boolean {
   return useShopCapabilities().autodevDecoding;
+}
+
+/** Smart AI repair-order intake — AI Plus add-on. */
+export function useSmartRoIntakeEnabled(): boolean {
+  return useShopCapabilities().freeformRoIntake;
 }

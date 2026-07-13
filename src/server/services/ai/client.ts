@@ -1,36 +1,27 @@
 import "server-only";
 
 import Anthropic from "@anthropic-ai/sdk";
+import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
+import type { z } from "zod";
 
 import { prisma } from "@/db/client";
 import type { AiFeature } from "@/generated/prisma";
+import { geminiGenerateText } from "@/server/services/ai/gemini";
+import {
+  anthropicApiKey,
+  isAnyAiProviderConfigured,
+  resolveAiModel,
+  resolveAiProvider,
+  type AiProvider,
+} from "@/server/services/ai/provider";
 
 export type { AiFeature };
+export type { AiProvider };
+export { resolveAiProvider, geminiApiKey, anthropicApiKey } from "@/server/services/ai/provider";
 
-const DEFAULT_MODEL = "claude-haiku-4-5";
-
-const FEATURE_MODEL_ENV: Record<AiFeature, readonly string[]> = {
-  REVIEW_REPLY: ["REVIEW_REPLY_AI_MODEL", "AI_DEFAULT_MODEL", "SUPPORT_AI_MODEL"],
-  CAMPAIGN_DRAFT: ["CAMPAIGN_AI_MODEL", "AI_DEFAULT_MODEL", "SUPPORT_AI_MODEL"],
-  SEO_CONTENT: ["SEO_CONTENT_AI_MODEL", "AI_DEFAULT_MODEL", "SUPPORT_AI_MODEL"],
-  CUSTOMER_INSIGHTS: ["CUSTOMER_INSIGHTS_AI_MODEL", "AI_DEFAULT_MODEL", "SUPPORT_AI_MODEL"],
-  SMS_AFTER_HOURS: ["SMS_AGENT_AI_MODEL", "AI_DEFAULT_MODEL", "SUPPORT_AI_MODEL"],
-  VOICE_RECEPTIONIST: ["VOICE_AGENT_AI_MODEL", "SMS_AGENT_AI_MODEL", "AI_DEFAULT_MODEL", "SUPPORT_AI_MODEL"],
-  SUPPORT_FAQ: ["SUPPORT_AI_MODEL", "AI_DEFAULT_MODEL"],
-  LABOR_GUIDE: ["LABOR_GUIDE_MODEL", "AI_DEFAULT_MODEL"],
-};
-
-/** True when Anthropic API key is present — all Elite AI features depend on this. */
+/** True when Gemini or Anthropic API key is present. */
 export function isAiConfigured(): boolean {
-  return Boolean(process.env.ANTHROPIC_API_KEY?.trim());
-}
-
-export function resolveAiModel(feature: AiFeature): string {
-  for (const key of FEATURE_MODEL_ENV[feature]) {
-    const value = process.env[key]?.trim();
-    if (value) return value;
-  }
-  return DEFAULT_MODEL;
+  return isAnyAiProviderConfigured();
 }
 
 function dailyLimitPerShop(): number {
@@ -66,6 +57,7 @@ async function logAiUsage(args: {
   shopId: string | null;
   feature: AiFeature;
   model: string;
+  provider: AiProvider;
   inputTokens: number | null;
   outputTokens: number | null;
 }): Promise<void> {
@@ -79,7 +71,7 @@ async function logAiUsage(args: {
       data: {
         shopId: args.shopId,
         feature: args.feature,
-        model: args.model,
+        model: `${args.provider}:${args.model}`,
         inputTokens: args.inputTokens,
         outputTokens: args.outputTokens,
         totalTokens,
@@ -103,23 +95,16 @@ export type CreateAiMessageInput = {
 export type CreateAiMessageResult = {
   text: string;
   model: string;
+  provider: AiProvider;
   inputTokens: number;
   outputTokens: number;
 };
 
-/** Shared Anthropic call — rate limit, usage log, and model routing. */
-export async function createAiMessage(input: CreateAiMessageInput): Promise<CreateAiMessageResult> {
-  if (!isAiConfigured()) {
-    throw new Error("AI is not configured on this platform.");
-  }
-
-  if (input.shopId) {
-    await assertShopAiRateLimit(input.shopId);
-  }
-
-  const model = resolveAiModel(input.feature);
-  const client = new Anthropic();
-
+async function callAnthropicText(
+  input: CreateAiMessageInput,
+  model: string,
+): Promise<{ text: string; inputTokens: number; outputTokens: number }> {
+  const client = new Anthropic({ apiKey: anthropicApiKey() ?? undefined });
   const response = await client.messages.create({
     model,
     max_tokens: input.maxTokens ?? 1024,
@@ -133,21 +118,119 @@ export async function createAiMessage(input: CreateAiMessageInput): Promise<Crea
     .join("\n")
     .trim();
 
-  const inputTokens = response.usage?.input_tokens ?? null;
-  const outputTokens = response.usage?.output_tokens ?? null;
+  return {
+    text,
+    inputTokens: response.usage?.input_tokens ?? 0,
+    outputTokens: response.usage?.output_tokens ?? 0,
+  };
+}
+
+/** Shared AI call — Gemini (preferred) or Anthropic, with rate limit + usage log. */
+export async function createAiMessage(input: CreateAiMessageInput): Promise<CreateAiMessageResult> {
+  const provider = resolveAiProvider();
+  if (!provider) {
+    throw new Error("AI is not configured. Set GEMINI_API_KEY or ANTHROPIC_API_KEY.");
+  }
+
+  if (input.shopId) {
+    await assertShopAiRateLimit(input.shopId);
+  }
+
+  const model = resolveAiModel(input.feature, provider);
+
+  const result =
+    provider === "gemini"
+      ? await geminiGenerateText({
+          model,
+          system: input.system,
+          user: input.userContent,
+          maxTokens: input.maxTokens,
+        })
+      : await callAnthropicText(input, model);
 
   await logAiUsage({
     shopId: input.shopId ?? null,
     feature: input.feature,
     model,
-    inputTokens,
-    outputTokens,
+    provider,
+    inputTokens: result.inputTokens,
+    outputTokens: result.outputTokens,
   });
 
   return {
-    text,
+    text: result.text,
     model,
-    inputTokens: inputTokens ?? 0,
-    outputTokens: outputTokens ?? 0,
+    provider,
+    inputTokens: result.inputTokens,
+    outputTokens: result.outputTokens,
   };
+}
+
+export type CreateAiJsonMessageInput<T extends z.ZodType> = CreateAiMessageInput & {
+  schema: T;
+};
+
+/** Structured JSON output — Zod-validated; uses native JSON mode on Gemini. */
+export async function createAiJsonMessage<T extends z.ZodType>(
+  input: CreateAiJsonMessageInput<T>,
+): Promise<{ data: z.infer<T>; model: string; provider: AiProvider }> {
+  const provider = resolveAiProvider();
+  if (!provider) {
+    throw new Error("AI is not configured. Set GEMINI_API_KEY or ANTHROPIC_API_KEY.");
+  }
+
+  if (input.shopId) {
+    await assertShopAiRateLimit(input.shopId);
+  }
+
+  const model = resolveAiModel(input.feature, provider);
+
+  if (provider === "gemini") {
+    const gemini = await geminiGenerateText({
+      model,
+      system: `${input.system}\n\nRespond with valid JSON only. No markdown.`,
+      user: input.userContent,
+      maxTokens: input.maxTokens ?? 2048,
+      json: true,
+    });
+
+    await logAiUsage({
+      shopId: input.shopId ?? null,
+      feature: input.feature,
+      model,
+      provider,
+      inputTokens: gemini.inputTokens,
+      outputTokens: gemini.outputTokens,
+    });
+
+    const parsed = input.schema.safeParse(JSON.parse(gemini.text));
+    if (!parsed.success) {
+      throw new Error("AI returned JSON that did not match the expected schema.");
+    }
+    return { data: parsed.data, model, provider };
+  }
+
+  const client = new Anthropic({ apiKey: anthropicApiKey() ?? undefined });
+  const response = await client.messages.parse({
+    model,
+    max_tokens: input.maxTokens ?? 2048,
+    system: input.system,
+    messages: [{ role: "user", content: input.userContent }],
+    output_config: { format: zodOutputFormat(input.schema) },
+  });
+
+  await logAiUsage({
+    shopId: input.shopId ?? null,
+    feature: input.feature,
+    model,
+    provider,
+    inputTokens: response.usage?.input_tokens ?? null,
+    outputTokens: response.usage?.output_tokens ?? null,
+  });
+
+  if (!response.parsed_output) {
+    throw new Error("AI returned no structured output.");
+  }
+
+  return { data: response.parsed_output as z.infer<T>, model, provider };
 }

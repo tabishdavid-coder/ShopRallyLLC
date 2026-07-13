@@ -50,7 +50,9 @@ export type SubscriptionFeature =
   /** Parts/labor markup matrices — Pro+ only. */
   | "markupMatrices"
   /** Auto.dev plate→VIN + rich VIN decode — Pro+ only. */
-  | "autodevDecoding";
+  | "autodevDecoding"
+  /** Smart AI repair-order intake — AI Plus add-on. */
+  | "freeform_ro_intake";
 
 const FEATURE_MAP: Record<SubscriptionFeature, PlanFeature | null> = {
   coreCrm: null, // always on
@@ -78,6 +80,7 @@ const FEATURE_MAP: Record<SubscriptionFeature, PlanFeature | null> = {
   ai_receptionist: "aiReceptionist",
   markupMatrices: "markupMatrices",
   autodevDecoding: "autodevDecoding",
+  freeform_ro_intake: "freeformRoIntake",
 };
 
 /** Map subscription features that require a phased release flag. */
@@ -95,6 +98,7 @@ const FEATURE_RELEASE_MODULE: Partial<Record<SubscriptionFeature, ReleaseModule>
   ai_seo_content: "aiSuite",
   ai_customer_insights: "aiSuite",
   ai_receptionist: "aiSuite",
+  freeform_ro_intake: "aiSuite",
 };
 
 export type ShopSubscription = {

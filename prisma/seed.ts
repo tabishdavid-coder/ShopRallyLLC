@@ -371,6 +371,10 @@ async function main() {
       invoiceTermsHtml: DEFAULT_INVOICE_TERMS_HTML,
       estimateTermsVersion: "1.0",
       estimateTermsUpdatedAt: new Date(),
+      planFeatures: {
+        freeformRoIntake: true,
+        _release: { aiSuite: true },
+      },
     },
   });
 

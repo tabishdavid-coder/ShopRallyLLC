@@ -68,6 +68,7 @@ export function AutopilotShell({
     marketingCampaigns: false,
     vehicleSpecs: false,
     autodevDecoding: false,
+    freeformRoIntake: false,
     planFeatures: resolvePlanFeatures({ plan: "STARTER" }),
   },
   children,

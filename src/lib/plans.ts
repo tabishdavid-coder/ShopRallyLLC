@@ -33,7 +33,9 @@ export type PlanFeature =
   | "aiCustomerInsights"
   | "aiReceptionist"
   /** Auto.dev plate→VIN + rich VIN decode — Pro+ only. Core uses free NHTSA VIN + manual entry. */
-  | "autodevDecoding";
+  | "autodevDecoding"
+  /** Smart / freeform AI repair-order intake — AI Plus $20/mo add-on. */
+  | "freeformRoIntake";
 
 export type PlanLimits = {
   /** null = unlimited */
@@ -540,6 +542,7 @@ const starterFeatures: PlanFeatureSet = {
   aiCustomerInsights: false,
   aiReceptionist: false,
   autodevDecoding: false,
+  freeformRoIntake: false,
 };
 
 const professionalFeatures: PlanFeatureSet = {
@@ -571,6 +574,7 @@ const professionalFeatures: PlanFeatureSet = {
   aiCustomerInsights: false,
   aiReceptionist: false,
   autodevDecoding: true,
+  freeformRoIntake: false,
 };
 
 const EliteFeatures: PlanFeatureSet = {
@@ -602,6 +606,7 @@ const EliteFeatures: PlanFeatureSet = {
   aiCustomerInsights: true,
   aiReceptionist: true,
   autodevDecoding: true,
+  freeformRoIntake: false,
 };
 
 /** Canonical plan catalog — premium tiers vs legacy & budget stacks. */
