@@ -104,6 +104,8 @@ export function EstimateLineTypeMenu({
   const partsTechOk = usePartsTechUiEnabled();
   const laborScope = menuScope === "labor" || menuScope === "all";
   const partScope = menuScope === "part" || menuScope === "all";
+  /** Parts actions also appear on labor Type so advisors can add parts without leaving the row. */
+  const showPartActionsOnLabor = menuScope === "labor" && Boolean(h.onPartFromGuide || h.onCustomPart);
   const showLaborGuide = laborScope && motorLaborOk;
   const showLaborCustom = laborScope && Boolean(h.onCustomLabor);
   const showPartGuide = (partScope || showPartActionsOnLabor) && partsTechOk && Boolean(h.onPartFromGuide);
@@ -124,7 +126,6 @@ export function EstimateLineTypeMenu({
     value === "fee" ||
     value === "discount" ||
     menuScope === "all";
-  const showPartActionsOnLabor = menuScope === "labor" && Boolean(h.onPartFromGuide || h.onCustomPart);
 
   if (!editing) {
     return (
