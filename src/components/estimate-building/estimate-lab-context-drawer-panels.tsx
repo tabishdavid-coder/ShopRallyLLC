@@ -51,12 +51,6 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
 import { SharePlansLinkButton } from "@/components/maintenance/share-plans-link-button";
 import type { ContextDrawerTab } from "@/components/estimate-building/estimate-lab-context-drawer";
 import { fetchCustomerCarePlans } from "@/server/actions/customer-care-plans";
