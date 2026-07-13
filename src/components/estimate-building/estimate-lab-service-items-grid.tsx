@@ -24,8 +24,7 @@ import { GripVertical, Plus, X } from "lucide-react";
 import { EstimateLabLineAddSplit } from "@/components/estimate-building/estimate-lab-line-add-split";
 import {
   EstimateLineTypeMenu,
-  LABOR_LINE_TYPES,
-  PART_FAMILY_LINE_TYPES,
+  SERVICE_LINE_TYPE_OPTIONS,
   type EstimateLineTypeMenuHandlers,
   type InlineLineType,
 } from "@/components/estimate-building/estimate-line-type-menu";
@@ -77,14 +76,6 @@ import {
   LabNameDescResizeHandle,
   useLabNameDescSplit,
 } from "@/components/estimate-building/estimate-lab-name-desc-split";
-
-const DESC_STACK = "flex min-w-0 flex-col gap-0.5 overflow-hidden";
-
-/** All convertible line types in the service-items Type column. */
-const SERVICE_LINE_TYPE_OPTIONS: InlineLineType[] = [
-  ...LABOR_LINE_TYPES,
-  ...PART_FAMILY_LINE_TYPES,
-];
 
 function LabDescriptionTextarea({
   value = "",
@@ -975,7 +966,6 @@ export function EstimateLabServiceItemsGrid({
               <div className={LAB_GRID_CELL_BORDERED}>
                 <EstimateLineTypeMenu
                   value="labor"
-                  scope="labor"
                   typeOptions={SERVICE_LINE_TYPE_OPTIONS}
                   editing={editing}
                   onChange={(t) => onTypeChange(index, t)}
@@ -1146,7 +1136,6 @@ export function EstimateLabServiceItemsGrid({
               <div className={LAB_GRID_CELL_BORDERED}>
                 <EstimateLineTypeMenu
                   value={item.adjKind}
-                  scope="all"
                   typeOptions={SERVICE_LINE_TYPE_OPTIONS}
                   editing={editing}
                   onChange={(t) => onTypeChange(index, t)}
@@ -1303,7 +1292,6 @@ export function EstimateLabServiceItemsGrid({
             <div className={LAB_GRID_CELL_BORDERED}>
               <EstimateLineTypeMenu
                 value={item.lineType}
-                scope="part"
                 typeOptions={SERVICE_LINE_TYPE_OPTIONS}
                 editing={editing}
                 onChange={(t) => onTypeChange(index, t)}
@@ -1490,7 +1478,7 @@ export function EstimateLabServiceItemsGrid({
               <div className={LAB_GRID_CELL_BORDERED}>
                 <EstimateLineTypeMenu
                   value={addType}
-                  scope={addType === "labor" ? "labor" : addType === "fee" || addType === "discount" ? "all" : "part"}
+                  typeOptions={SERVICE_LINE_TYPE_OPTIONS}
                   editing
                   onChange={setAddType}
                   handlers={typeGuideHandlers}
