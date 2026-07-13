@@ -9,6 +9,7 @@ import {
   groupedSettingsSections,
   settingsSectionIsActive,
 } from "@/lib/settings-catalog";
+import { useMarketingCampaignsUiEnabled } from "@/lib/shop-capabilities";
 
 /**
  * Grouped left index rail for Admin / Settings. A pinned "Overview" link back
@@ -19,7 +20,8 @@ import {
  */
 export function SettingsIndexNav({ className }: { className?: string }) {
   const pathname = usePathname();
-  const groups = groupedSettingsSections();
+  const marketingOk = useMarketingCampaignsUiEnabled();
+  const groups = groupedSettingsSections({ includeMarketing: marketingOk });
   const onOverview = pathname === "/settings";
 
   return (

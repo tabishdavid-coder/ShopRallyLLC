@@ -14,6 +14,8 @@ export type ShopCapabilities = {
   motorLabor: boolean;
   /** PartsTech / vendor parts lookup — Pro+ only. */
   partsTech: boolean;
+  /** Growth Engine / marketing campaigns — Pro+ only. */
+  marketingCampaigns: boolean;
 };
 
 const DEFAULT: ShopCapabilities = {
@@ -21,6 +23,7 @@ const DEFAULT: ShopCapabilities = {
   stripePayments: false,
   motorLabor: false,
   partsTech: false,
+  marketingCampaigns: false,
 };
 
 const ShopCapabilitiesContext = createContext<ShopCapabilities>(DEFAULT);
@@ -55,4 +58,9 @@ export function useMotorLaborUiEnabled(): boolean {
 /** PartsTech / vendor parts lookup UI — Pro+. */
 export function usePartsTechUiEnabled(): boolean {
   return useShopCapabilities().partsTech;
+}
+
+/** Growth Engine / marketing campaigns UI — Pro+. */
+export function useMarketingCampaignsUiEnabled(): boolean {
+  return useShopCapabilities().marketingCampaigns;
 }

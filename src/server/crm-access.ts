@@ -27,6 +27,10 @@ const HREF_PLAN_FEATURES: Partial<Record<string, SubscriptionFeature>> = {
   "/orders": "parts",
   "/vendors/integrations": "parts",
   "/maintenance-programs/subscribers": "maintenance_programs",
+  "/marketing": "marketing_campaigns",
+  "/marketing/payment-account": "marketing_campaigns",
+  "/settings/marketing": "marketing_campaigns",
+  "/settings/booking": "booking",
   "/settings/markups": "markupMatrices",
   "/settings/markups/parts": "markupMatrices",
   "/settings/markups/labor": "markupMatrices",
@@ -47,11 +51,54 @@ const PLAN_ROUTE_GATES: PlanRouteGate[] = [
   { prefix: "/messages", feature: "sms" },
   { prefix: "/orders", feature: "parts", released: true },
   { prefix: "/vendors", feature: "parts", released: true },
+  { prefix: "/settings/marketing", feature: "marketing_campaigns", released: true },
+  { prefix: "/settings/booking", feature: "booking", released: true },
   { prefix: "/settings/markups", feature: "markupMatrices" },
   { prefix: "/settings/communications/phone-sms", feature: "sms" },
   { prefix: "/settings/payments", feature: "stripePayments" },
   { prefix: "/settings/integrations/stripe", feature: "stripePayments" },
 ];
+
+const RELEASED_FEATURES = new Set<SubscriptionFeature>([
+  "parts",
+  "maintenance_programs",
+  "marketing_campaigns",
+  "booking",
+  "motorLabor",
+  "sms",
+]);
+
+async function planAllowsFeature(
+  shopId: string,
+  feature: SubscriptionFeature,
+  released?: boolean,
+): Promise<boolean> {
+  if (released || RELEASED_FEATURES.has(feature)) {
+    return canUseReleasedFeature(shopId, feature);
+  }
+  return canUseFeature(shopId, feature);
+}
+
+async function filterNavHrefsByPlan(shopId: string, hrefs: string[]): Promise<string[]> {
+  const results = await Promise.all(
+    hrefs.map(async (href) => {
+      const feature = HREF_PLAN_FEATURES[href];
+      if (!feature) return { href, ok: true as const };
+      const ok = await planAllowsFeature(shopId, feature, RELEASED_FEATURES.has(feature));
+      return { href, ok };
+    }),
+  );
+  return results.filter((r) => r.ok).map((r) => r.href);
+}
+
+async function planAllowsPath(shopId: string, pathname: string): Promise<boolean> {
+  const sorted = [...PLAN_ROUTE_GATES].sort((a, b) => b.prefix.length - a.prefix.length);
+  const rule = sorted.find(
+    (r) => pathname === r.prefix || pathname.startsWith(`${r.prefix}/`),
+  );
+  if (!rule) return true;
+  return planAllowsFeature(shopId, rule.feature, rule.released);
+}
 
 const GROWTH_ROUTE_PREFIXES = ["/marketing", "/maintenance-programs"];
 
@@ -70,37 +117,6 @@ async function growthFeaturesForPath(pathname: string): Promise<SubscriptionFeat
     return ["marketing_campaigns"];
   }
   return ["marketing_campaigns"];
-}
-
-async function planAllowsFeature(
-  shopId: string,
-  feature: SubscriptionFeature,
-  released?: boolean,
-): Promise<boolean> {
-  if (released) return canUseReleasedFeature(shopId, feature);
-  return canUseFeature(shopId, feature);
-}
-
-async function filterNavHrefsByPlan(shopId: string, hrefs: string[]): Promise<string[]> {
-  const results = await Promise.all(
-    hrefs.map(async (href) => {
-      const feature = HREF_PLAN_FEATURES[href];
-      if (!feature) return { href, ok: true as const };
-      const released = feature === "parts" || feature === "maintenance_programs";
-      const ok = await planAllowsFeature(shopId, feature, released);
-      return { href, ok };
-    }),
-  );
-  return results.filter((r) => r.ok).map((r) => r.href);
-}
-
-async function planAllowsPath(shopId: string, pathname: string): Promise<boolean> {
-  const sorted = [...PLAN_ROUTE_GATES].sort((a, b) => b.prefix.length - a.prefix.length);
-  const rule = sorted.find(
-    (r) => pathname === r.prefix || pathname.startsWith(`${r.prefix}/`),
-  );
-  if (!rule) return true;
-  return planAllowsFeature(shopId, rule.feature, rule.released);
 }
 
 export async function getCrmAccessContext(shopId: string): Promise<CrmAccessContext> {

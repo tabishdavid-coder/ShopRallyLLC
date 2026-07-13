@@ -72,7 +72,7 @@ export default async function AppLayout({
     }
   }
 
-  const [activeShop, customerCount, notificationData, unreadSmsCount, intakeConfig, smsOnPlan, stripeOnPlan, motorLaborOnPlan, partsTechOnPlan] =
+  const [activeShop, customerCount, notificationData, unreadSmsCount, intakeConfig, smsOnPlan, stripeOnPlan, motorLaborOnPlan, partsTechOnPlan, marketingOnPlan] =
     dbSeeded
       ? await Promise.all([
           getCurrentShop(),
@@ -84,8 +84,9 @@ export default async function AppLayout({
           canUseFeature(activeShopId, "stripePayments"),
           canUseReleasedFeature(activeShopId, "motorLabor"),
           canUseReleasedFeature(activeShopId, "parts"),
+          canUseReleasedFeature(activeShopId, "marketing_campaigns"),
         ])
-      : [null, 0, { notifications: [], unreadCount: 0 }, 0, null, false, false, false, false];
+      : [null, 0, { notifications: [], unreadCount: 0 }, 0, null, false, false, false, false, false];
 
   const showPlatformShopContext = platformAdmin && activeShop && !isPlatformRoute;
 
@@ -129,6 +130,7 @@ export default async function AppLayout({
           stripePayments: stripeOnPlan,
           motorLabor: motorLaborOnPlan,
           partsTech: partsTechOnPlan,
+          marketingCampaigns: marketingOnPlan,
         }}
         banner={
           !dbSeeded ? (

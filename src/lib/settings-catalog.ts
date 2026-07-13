@@ -228,13 +228,22 @@ export const SETTINGS_SECTIONS: SettingsSection[] = [
 ];
 
 /** Sections grouped for the left index rail + overview. */
-export function groupedSettingsSections(): {
+export function groupedSettingsSections(opts?: {
+  includeMarketing?: boolean;
+}): {
   group: SettingsGroup;
   sections: SettingsSection[];
 }[] {
+  const includeMarketing = opts?.includeMarketing ?? true;
   return SETTINGS_GROUPS.map((group) => ({
     group,
-    sections: SETTINGS_SECTIONS.filter((s) => s.group === group.id),
+    sections: SETTINGS_SECTIONS.filter((s) => {
+      if (s.group !== group.id) return false;
+      if (!includeMarketing && (s.id === "marketing" || s.href.startsWith("/settings/booking"))) {
+        return false;
+      }
+      return true;
+    }),
   })).filter((g) => g.sections.length > 0);
 }
 
@@ -338,11 +347,22 @@ function subsequenceMatch(query: string, text: string): boolean {
  * Prefers label prefix > label word-start > label substring > keyword
  * substring > fuzzy subsequence. Top-level sections beat children on ties.
  */
-export function searchSettings(query: string, limit = 8): SettingsSearchEntry[] {
+export function searchSettings(
+  query: string,
+  limit = 8,
+  opts?: { includeMarketing?: boolean },
+): SettingsSearchEntry[] {
   const q = query.trim().toLowerCase();
   if (!q) return [];
 
+  const includeMarketing = opts?.includeMarketing ?? true;
   const scored = SETTINGS_SEARCH_INDEX.map((entry) => {
+    if (
+      !includeMarketing &&
+      (entry.href.startsWith("/settings/marketing") || entry.href.startsWith("/settings/booking"))
+    ) {
+      return { entry, score: 0 };
+    }
     const label = entry.label.toLowerCase();
     let score = 0;
     if (label === q) score = 100;

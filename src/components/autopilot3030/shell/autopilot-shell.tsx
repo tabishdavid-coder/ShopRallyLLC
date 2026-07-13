@@ -64,6 +64,7 @@ export function AutopilotShell({
     stripePayments: false,
     motorLabor: false,
     partsTech: false,
+    marketingCampaigns: false,
   },
   children,
 }: AutopilotShellProps) {

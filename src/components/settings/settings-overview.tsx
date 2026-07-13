@@ -1,7 +1,10 @@
+"use client";
+
 import Link from "next/link";
 import { ArrowRight, SlidersHorizontal } from "lucide-react";
 
-import { groupedSettingsSections, SETTINGS_SECTIONS } from "@/lib/settings-catalog";
+import { groupedSettingsSections } from "@/lib/settings-catalog";
+import { useMarketingCampaignsUiEnabled } from "@/lib/shop-capabilities";
 
 /**
  * Admin / Settings landing page — a searchable index of every settings
@@ -10,7 +13,9 @@ import { groupedSettingsSections, SETTINGS_SECTIONS } from "@/lib/settings-catal
  * search (⌘K) as the fast path and this grid as the browsable one.
  */
 export function SettingsOverview() {
-  const groups = groupedSettingsSections();
+  const marketingOk = useMarketingCampaignsUiEnabled();
+  const groups = groupedSettingsSections({ includeMarketing: marketingOk });
+  const sectionCount = groups.reduce((n, g) => n + g.sections.length, 0);
 
   return (
     <div className="space-y-8">
@@ -20,7 +25,7 @@ export function SettingsOverview() {
           <div>
             <h2 className="text-xl font-bold sm:text-2xl">Shop configuration, all in one place</h2>
             <p className="mt-2 max-w-2xl text-sm text-white/85">
-              Search above or browse the {SETTINGS_SECTIONS.length} sections below — labor rates, taxes,
+              Search above or browse the {sectionCount} sections below — labor rates, taxes,
               communications, integrations, billing, and more.
             </p>
           </div>

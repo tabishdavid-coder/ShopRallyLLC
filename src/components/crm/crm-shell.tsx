@@ -66,6 +66,7 @@ export function CrmShell({
     stripePayments: false,
     motorLabor: false,
     partsTech: false,
+    marketingCampaigns: false,
   },
   children,
 }: CrmShellProps) {

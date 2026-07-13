@@ -10,6 +10,7 @@ import {
   searchSettings,
   type SettingsSearchEntry,
 } from "@/lib/settings-catalog";
+import { useMarketingCampaignsUiEnabled } from "@/lib/shop-capabilities";
 
 /**
  * Settings command search. Typeahead over every section + deep-linkable
@@ -22,15 +23,16 @@ export function SettingsSearch() {
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const listId = useId();
+  const marketingOk = useMarketingCampaignsUiEnabled();
 
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(0);
 
   const results = useMemo<SettingsSearchEntry[]>(() => {
-    if (query.trim()) return searchSettings(query, 8);
+    if (query.trim()) return searchSettings(query, 8, { includeMarketing: marketingOk });
     // Empty state: flatten the grouped catalog into a browsable list.
-    return groupedSettingsSections().flatMap(({ group, sections }) =>
+    return groupedSettingsSections({ includeMarketing: marketingOk }).flatMap(({ group, sections }) =>
       sections.map((s) => ({
         key: s.id,
         label: s.label,
@@ -43,7 +45,7 @@ export function SettingsSearch() {
         isChild: false,
       })),
     );
-  }, [query]);
+  }, [query, marketingOk]);
 
   useEffect(() => setActive(0), [query]);
 
