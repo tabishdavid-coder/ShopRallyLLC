@@ -20,9 +20,7 @@ import {
 import { EstimateLabMessagesHost } from "@/components/estimate-building/estimate-lab-messages-host";
 import { useEstimateLabContextDrawerOptional } from "@/components/estimate-building/estimate-lab-context-drawer-provider";
 import { EstimateLabVehicleSpecsSection } from "@/components/estimate-building/estimate-lab-vehicle-specs-section";
-import { useEstimateLabPartsOptional } from "@/components/estimate-building/estimate-lab-parts-provider";
 import {
-  usePartsTechUiEnabled,
   useStripePaymentsUiEnabled,
   useVehicleSpecsUiEnabled,
 } from "@/lib/shop-capabilities";
