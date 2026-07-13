@@ -4,20 +4,19 @@ import { usePathname } from "next/navigation";
 
 import {
   AP_ADMIN_MODULE_NAV_ITEMS,
-  AP_CATALOG_MODULE_NAV_ITEMS,
   AP_CUSTOMERS_MODULE_NAV_ITEMS,
   AP_DASHBOARD_MODULE_NAV_ITEMS,
   AP_GROWTH_NAV_ITEMS,
   AP_MARKUPS_NAV_ITEMS,
   AP_PAYMENTS_NAV_ITEMS,
   AP_SEO_AUTOPILOT_NAV_ITEMS,
+  apCatalogNavItemsForPlan,
   apModuleSubnavKind,
 } from "@/lib/autopilot3030/nav";
 import { AP_TERMS } from "@/lib/autopilot3030/terminology";
 import { ApSubnavPills } from "@/components/autopilot3030/shell/ap-subnav-pills";
 import { RoPhaseStepperFromPath } from "@/components/repair-order/ro-phase-stepper";
 import { isRoEstimateWorkspacePath } from "@/lib/ro-workspace";
-import { isCatalogNavHrefVisible } from "@/lib/settings-plan-gates";
 import { usePlanFeatures } from "@/lib/shop-capabilities";
 
 export function ApModuleSubnav() {
@@ -70,9 +69,7 @@ export function ApModuleSubnav() {
     case "catalog":
       return (
         <ApSubnavPills
-          items={AP_CATALOG_MODULE_NAV_ITEMS.filter((item) =>
-            isCatalogNavHrefVisible(item.href, planFeatures),
-          )}
+          items={apCatalogNavItemsForPlan(planFeatures)}
           ariaLabel="Catalog"
           pathname={pathname}
         />
