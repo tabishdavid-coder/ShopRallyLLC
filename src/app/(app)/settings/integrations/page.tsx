@@ -1,11 +1,19 @@
 import { IntegrationsPanel, type IntegrationStatus, type IntegrationState } from "@/components/settings/integrations-panel";
 import { getStripeConfigStatus } from "@/lib/stripe";
+import { isIntegrationCardVisible } from "@/lib/settings-plan-gates";
+import { PLANS } from "@/lib/plans";
+import { getShopId } from "@/lib/shop";
+import { getShopSubscription } from "@/lib/subscription";
 
 export const dynamic = "force-dynamic";
 
 const has = (k: string) => Boolean(process.env[k]?.trim());
 
-export default function IntegrationsSettingsPage() {
+export default async function IntegrationsSettingsPage() {
+  const shopId = await getShopId();
+  const sub = await getShopSubscription(shopId);
+  const { features, plan } = sub;
+
   const twilioPlatform = has("TWILIO_ACCOUNT_SID") && has("TWILIO_AUTH_TOKEN");
   const twilioAny = has("TWILIO_ACCOUNT_SID") || has("TWILIO_AUTH_TOKEN");
   const carfaxOn = has("CARFAX_PRODUCT_DATA_ID") && has("CARFAX_LOCATION_ID");
@@ -16,7 +24,7 @@ export default function IntegrationsSettingsPage() {
 
   const pick = (on: boolean, any = false): IntegrationState => (on ? "connected" : any ? "mock" : "inactive");
 
-  const statuses: IntegrationStatus[] = [
+  const allStatuses: IntegrationStatus[] = [
     {
       name: "Auto.dev",
       category: "VIN decode + license-plate lookup",
@@ -98,5 +106,15 @@ export default function IntegrationsSettingsPage() {
     },
   ];
 
-  return <IntegrationsPanel statuses={statuses} />;
+  const statuses = allStatuses.filter((s) =>
+    isIntegrationCardVisible(s.name, features, plan),
+  );
+
+  return (
+    <IntegrationsPanel
+      statuses={statuses}
+      planName={PLANS[plan].name}
+      isCore={plan === "STARTER"}
+    />
+  );
 }

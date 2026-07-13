@@ -6,10 +6,10 @@ import { CornerDownLeft, Search, X } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import {
-  groupedSettingsSections,
   searchSettings,
   type SettingsSearchEntry,
 } from "@/lib/settings-catalog";
+import { useSettingsPlan } from "@/lib/settings-plan-context";
 
 /**
  * Settings command search. Typeahead over every section + deep-linkable
@@ -18,6 +18,7 @@ import {
  */
 export function SettingsSearch() {
   const router = useRouter();
+  const { features, searchIndex } = useSettingsPlan();
   const rootRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
@@ -28,22 +29,9 @@ export function SettingsSearch() {
   const [active, setActive] = useState(0);
 
   const results = useMemo<SettingsSearchEntry[]>(() => {
-    if (query.trim()) return searchSettings(query, 8);
-    // Empty state: flatten the grouped catalog into a browsable list.
-    return groupedSettingsSections().flatMap(({ group, sections }) =>
-      sections.map((s) => ({
-        key: s.id,
-        label: s.label,
-        href: s.href,
-        icon: s.icon,
-        sectionLabel: s.label,
-        groupLabel: group.label,
-        description: s.description,
-        haystack: "",
-        isChild: false,
-      })),
-    );
-  }, [query]);
+    if (query.trim()) return searchSettings(query, 8, features);
+    return searchIndex;
+  }, [query, features, searchIndex]);
 
   useEffect(() => setActive(0), [query]);
 

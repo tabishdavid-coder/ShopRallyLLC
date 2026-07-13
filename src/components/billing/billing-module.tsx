@@ -45,6 +45,8 @@ import {
 import type { ShopPlan } from "@/generated/prisma";
 import type { BillingOverview, BillingInvoice } from "@/lib/billing-shared";
 import { BILLING_PLAN_FEATURES, comparePlanAction } from "@/lib/billing-shared";
+import type { PlanFeature } from "@/lib/plans";
+import { settingsUpgradeLabel } from "@/lib/settings-plan-gates";
 import {
   createBillingPortalSession,
   createUpgradeCheckoutSession,
@@ -59,11 +61,27 @@ const TABS: { id: TabId; label: string }[] = [
   { id: "payment-methods", label: "Payment Methods" },
 ];
 
-export function BillingModule({ overview }: { overview: BillingOverview }) {
+export function BillingModule({
+  overview,
+  blockedFeature,
+}: {
+  overview: BillingOverview;
+  blockedFeature?: PlanFeature | null;
+}) {
   const [tab, setTab] = useState<TabId>("plan");
 
   return (
     <div className="space-y-5">
+      {blockedFeature ? (
+        <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950">
+          <p className="font-medium">
+            {settingsUpgradeLabel(blockedFeature)} requires {PLANS.PROFESSIONAL.name} or above
+          </p>
+          <p className="mt-1 text-amber-900/85">
+            That settings page is not included on your current plan. Compare plans below or contact support to upgrade.
+          </p>
+        </div>
+      ) : null}
       <div>
         <h1 className="text-xl font-bold tracking-tight">Billing</h1>
         <p className="mt-1 text-sm text-muted-foreground">
