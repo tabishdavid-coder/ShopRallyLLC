@@ -74,14 +74,17 @@ export const LAB_MONEY_PREFIX = "flex w-9 shrink-0 items-center justify-center";
 /**
  * Tekmetric-style service items grid — shared numeric tracks across labor + parts:
  * drag | type | name | description | qty/hrs | cost | rate/price | amount | discount | net | taxable | remove
+ *
+ * Name is intentionally modest (0.5fr) so Type + money columns stay readable;
+ * Description takes the larger flexible share for part # / brand.
  */
 export const LAB_LINE_GRID =
-  "grid grid-cols-[24px_96px_minmax(88px,0.95fr)_minmax(80px,110px)_64px_64px_64px_64px_80px_64px_48px_28px] items-stretch gap-0";
+  "grid grid-cols-[24px_108px_minmax(72px,0.5fr)_minmax(120px,1.15fr)_64px_72px_72px_76px_72px_84px_56px_28px] items-stretch gap-0";
 export const LAB_LINE_GRID_HEAD =
-  "grid grid-cols-[24px_96px_minmax(88px,0.95fr)_minmax(80px,110px)_64px_64px_64px_64px_80px_64px_48px_28px] items-center gap-0";
+  "grid grid-cols-[24px_108px_minmax(72px,0.5fr)_minmax(120px,1.15fr)_64px_72px_72px_76px_72px_84px_56px_28px] items-center gap-0";
 
 /** Minimum width before horizontal scroll kicks in. */
-export const LAB_LINE_GRID_MIN_W = "min-w-[976px]";
+export const LAB_LINE_GRID_MIN_W = "min-w-[1100px]";
 
 /** Vertical column divider — shared between adjacent cells (not a full box). */
 export const LAB_GRID_DIVIDER = "border-r border-border/50";
