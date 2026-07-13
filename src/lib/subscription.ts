@@ -8,6 +8,7 @@ import {
   PHASE_ONE_LAUNCH,
   PUBLIC_PLAN_ORDER,
   billingStatusLabel,
+  isCorePlan,
   resolvePlanFeatures,
   shopHasFeature,
   type PlanFeature,
@@ -51,7 +52,7 @@ export type SubscriptionFeature =
   | "markupMatrices"
   /** Auto.dev plate→VIN + rich VIN decode — Pro+ only. */
   | "autodevDecoding"
-  /** Smart AI repair-order intake — AI Plus add-on. */
+  /** Smart AI repair-order intake — Core-only AI Plus add-on. */
   | "freeform_ro_intake";
 
 const FEATURE_MAP: Record<SubscriptionFeature, PlanFeature | null> = {
@@ -171,6 +172,11 @@ export async function canUseFeature(
   const mapped = FEATURE_MAP[feature];
   if (mapped === null) return true;
 
+  if (feature === "freeform_ro_intake") {
+    const sub = await getShopSubscription(shopId);
+    if (!isCorePlan(sub.plan)) return false;
+  }
+
   return shopHasFeature(sub, mapped);
 }
 
@@ -192,6 +198,9 @@ export async function canUseReleasedFeature(
   shopId: string,
   feature: SubscriptionFeature,
 ): Promise<boolean> {
+  if (feature === "freeform_ro_intake") {
+    return canUseSmartRoIntake(shopId);
+  }
   const entitled = await canUseFeature(shopId, feature);
   if (!entitled) return false;
   const module = FEATURE_RELEASE_MODULE[feature];
@@ -212,10 +221,50 @@ export async function releasedFeatureDenied(
   shopId: string,
   feature: SubscriptionFeature,
 ): Promise<string | null> {
+  if (feature === "freeform_ro_intake") {
+    return smartRoIntakeDenied(shopId);
+  }
   if (!(await canUseFeature(shopId, feature))) {
     return "This feature is not included in your plan.";
   }
   const module = FEATURE_RELEASE_MODULE[feature];
+  if (module && !(await isReleased(shopId, module))) {
+    return releaseDeniedMessage(module);
+  }
+  return null;
+}
+
+/**
+ * Smart AI RO Intake — Core plan only, requires AI Plus add-on + aiSuite release.
+ * Pro/Elite shops cannot purchase or use this feature (even with planFeatures override).
+ */
+export async function canUseSmartRoIntake(shopId: string): Promise<boolean> {
+  const sub = await getShopSubscription(shopId);
+
+  if (!isCorePlan(sub.plan)) return false;
+  if (sub.billingStatus === "CANCELED") return false;
+
+  if (!sub.features.freeformRoIntake) return false;
+
+  const module = FEATURE_RELEASE_MODULE.freeform_ro_intake;
+  if (module && !(await isReleased(shopId, module))) return false;
+
+  return true;
+}
+
+export async function smartRoIntakeDenied(shopId: string): Promise<string | null> {
+  const sub = await getShopSubscription(shopId);
+
+  if (!isCorePlan(sub.plan)) {
+    return "Smart AI Intake is a Core-only add-on (AI Plus). It is not available on Pro or Elite plans.";
+  }
+  if (sub.billingStatus === "CANCELED") {
+    return "Reactivate your Core subscription to use Smart AI Intake.";
+  }
+  if (!sub.features.freeformRoIntake) {
+    return "Add AI Plus ($20/mo) on Core to unlock Smart AI repair-order intake.";
+  }
+  const module = FEATURE_RELEASE_MODULE.freeform_ro_intake;
   if (module && !(await isReleased(shopId, module))) {
     return releaseDeniedMessage(module);
   }

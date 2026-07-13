@@ -34,7 +34,7 @@ export type PlanFeature =
   | "aiReceptionist"
   /** Auto.dev plate→VIN + rich VIN decode — Pro+ only. Core uses free NHTSA VIN + manual entry. */
   | "autodevDecoding"
-  /** Smart / freeform AI repair-order intake — AI Plus $20/mo add-on. */
+  /** Smart / freeform AI repair-order intake — Core-only AI Plus $20/mo add-on (not Pro/Elite). */
   | "freeformRoIntake";
 
 export type PlanLimits = {
@@ -434,7 +434,7 @@ export type PlanAddOn = {
   priceLabel: string;
   description: string;
   vsIndustry?: string;
-  tiers: "all" | "starter+" | "professional+" | "premier";
+  tiers: "all" | "starter+" | "professional+" | "premier" | "core-only";
   /** Featured on public pricing during phase-one launch. */
   phaseOne?: boolean;
 };
@@ -456,19 +456,19 @@ export const PHASE_ONE_COPY = {
     "Ignition is ShopRally's launch plan — job board, repair orders, DVIs, estimates, and your daily shop snapshot. No tier maze.",
   addonHeadline: "AI Plus — optional",
   addonSubhead:
-    "Add freeform AI repair-order intake, labor-hour assist, and the ShopRally advisor app for $20/mo.",
+    "Core plan only — add freeform AI repair-order intake, labor-hour assist, and the ShopRally advisor app for $20/mo.",
 } as const;
 
-/** Optional monthly add-ons — stack on any tier where noted. */
+/** Optional monthly add-ons — stack on eligible tiers only. */
 export const PLAN_ADDONS: PlanAddOn[] = [
   {
     id: "ai-plus",
     name: "AI Plus",
     priceLabel: "$20/mo",
     description:
-      "Freeform AI repair-order intake, labor-hour assist, and the ShopRally advisor mobile app.",
+      "Freeform AI repair-order intake, labor-hour assist, and the ShopRally advisor mobile app. Core plan add-on only.",
     vsIndustry: "Competitor AI receptionist add-ons often list at $59–99/mo.",
-    tiers: "all",
+    tiers: "core-only",
     phaseOne: true,
   },
   {
@@ -698,6 +698,29 @@ export function publicPlanAddons(): PlanAddOn[] {
     return PLAN_ADDONS.filter((addon) => addon.phaseOne);
   }
   return PLAN_ADDONS;
+}
+
+/** Whether a billable add-on can be purchased on the given shop plan. */
+export function planAddonEligible(plan: ShopPlan, addon: PlanAddOn): boolean {
+  switch (addon.tiers) {
+    case "core-only":
+      return plan === "STARTER";
+    case "all":
+      return true;
+    case "starter+":
+      return plan === "STARTER" || plan === "PROFESSIONAL" || plan === "ENTERPRISE";
+    case "professional+":
+      return plan === "PROFESSIONAL" || plan === "ENTERPRISE";
+    case "premier":
+      return plan === "ENTERPRISE";
+    default:
+      return false;
+  }
+}
+
+/** Core (STARTER) is the only tier that can buy AI Plus / Smart RO Intake. */
+export function isCorePlan(plan: ShopPlan): boolean {
+  return plan === "STARTER";
 }
 
 /** Format cents as a price string — preserves .99 when present. */

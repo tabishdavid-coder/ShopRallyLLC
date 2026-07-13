@@ -17,7 +17,7 @@ import { ensureAutoApplyFees } from "@/server/ro-fees";
 import { getShopMatrices, shopLaborRate } from "@/server/pricing-matrix";
 import { recomputeRoTotals } from "@/server/estimate";
 import { revalidateEstimatePaths } from "@/lib/estimate-revalidate";
-import { releasedFeatureDenied } from "@/lib/subscription";
+import { smartRoIntakeDenied } from "@/lib/subscription";
 import { parseSmartRoIntakeText } from "@/server/services/smart-ro-intake";
 
 const ParseInput = z.object({
@@ -36,7 +36,7 @@ export async function parseSmartRoIntake(raw: z.infer<typeof ParseInput>): Promi
   }
 
   const shopId = await getShopId();
-  const denied = await releasedFeatureDenied(shopId, "freeform_ro_intake");
+  const denied = await smartRoIntakeDenied(shopId);
   if (denied) return { ok: false, error: denied };
 
   const viewDenied = await gates.jobBoardView(shopId);
@@ -100,7 +100,7 @@ export async function commitSmartRoIntake(
   if (!parsed.success) return { ok: false, error: "Invalid staging data. Check required fields." };
 
   const shopId = await getShopId();
-  const denied = await releasedFeatureDenied(shopId, "freeform_ro_intake");
+  const denied = await smartRoIntakeDenied(shopId);
   if (denied) return { ok: false, error: denied };
 
   const editDenied = await gates.estimateEdit(shopId);

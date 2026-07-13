@@ -71,6 +71,7 @@ export function CrmShell({
     vehicleSpecs: false,
     autodevDecoding: false,
     freeformRoIntake: false,
+    corePlan: false,
     planFeatures: resolvePlanFeatures({ plan: "STARTER" }),
   },
   children,

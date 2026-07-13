@@ -170,17 +170,25 @@ export function SubscriptionPanel({
 
       <div className="rounded-lg border bg-card p-5 shadow-sm">
         <h3 className="font-semibold">Add-on services</h3>
-        <div className="mt-3 flex flex-wrap items-start justify-between gap-3">
-          <div>
-            <p className="text-sm font-medium">AI Plus</p>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Freeform AI repair-order intake, labor-hour assist, and the ShopRally advisor mobile app — $20/mo.
-            </p>
+        {isCore ? (
+          <div className="mt-3 flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <p className="text-sm font-medium">AI Plus</p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Core-only add-on — Smart AI repair-order intake, labor-hour assist, and the ShopRally
+                advisor mobile app — $20/mo.
+              </p>
+            </div>
+            <Button variant="outline" size="sm" disabled title="Add-on checkout — coming soon">
+              Add AI Plus
+            </Button>
           </div>
-          <Button variant="outline" size="sm" disabled title="Add-on checkout — coming soon">
-            Add AI Plus
-          </Button>
-        </div>
+        ) : (
+          <p className="mt-2 text-sm text-muted-foreground">
+            AI Plus (Smart AI Intake) is available only on the Core plan. This shop is on{" "}
+            {PLANS[plan].name}.
+          </p>
+        )}
         {!isCore ? (
           <>
             <div className="mt-3 flex flex-wrap items-start justify-between gap-3 border-t pt-3">

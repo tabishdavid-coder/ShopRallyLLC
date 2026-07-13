@@ -112,7 +112,11 @@ export function PlatformShopDetailView({
         releaseFlagsDefaultOpen={shop.releaseFlagsDefaultOpen}
       />
 
-      <PlatformShopPlanAddons shopId={shop.id} resolvedFeatures={shop.resolvedFeatures} />
+      <PlatformShopPlanAddons
+        shopId={shop.id}
+        shopPlan={shop.plan}
+        resolvedFeatures={shop.resolvedFeatures}
+      />
 
       <div className="grid gap-6 lg:grid-cols-2">
         <section className="rounded-xl border bg-card p-5 shadow-sm">

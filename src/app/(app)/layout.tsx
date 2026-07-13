@@ -15,7 +15,8 @@ import { prisma } from "@/db/client";
 import { isPlatformAdmin } from "@/lib/platform";
 import { getCurrentShop, getShopId, listShops, ShopAccessError, DEMO_SHOP_ID } from "@/lib/shop";
 import { settingsRouteDenied } from "@/lib/settings-plan-gates";
-import { canUseFeature, canUseReleasedFeature, getShopSubscription, resolvePlanFeatures } from "@/lib/subscription";
+import { canUseFeature, canUseReleasedFeature, canUseSmartRoIntake, getShopSubscription, resolvePlanFeatures } from "@/lib/subscription";
+import { isCorePlan } from "@/lib/plans";
 import { checkCrmRouteAccess, getCrmAccessContext } from "@/server/crm-access";
 import { getNotifications } from "@/server/notifications";
 import { countUnreadMessages } from "@/server/messages-inbox";
@@ -94,12 +95,13 @@ export default async function AppLayout({
           canUseReleasedFeature(activeShopId, "parts"),
           canUseReleasedFeature(activeShopId, "marketing_campaigns"),
           canUseFeature(activeShopId, "autodevDecoding"),
-          canUseReleasedFeature(activeShopId, "freeform_ro_intake"),
+          canUseSmartRoIntake(activeShopId),
           getShopSubscription(activeShopId),
         ])
       : [null, 0, { notifications: [], unreadCount: 0 }, 0, null, false, false, false, false, false, false, false, null];
 
   const vehicleSpecsOnPlan = shopSubscription ? shopSubscription.plan !== "STARTER" : false;
+  const corePlanShop = shopSubscription ? isCorePlan(shopSubscription.plan) : false;
 
   const showPlatformShopContext = platformAdmin && activeShop && !isPlatformRoute;
 
@@ -147,6 +149,7 @@ export default async function AppLayout({
           vehicleSpecs: vehicleSpecsOnPlan,
           autodevDecoding: autodevDecodingOnPlan,
           freeformRoIntake: smartRoIntakeOnPlan,
+          corePlan: corePlanShop,
           planFeatures: shopSubscription?.features ?? resolvePlanFeatures({ plan: "STARTER" }),
         }}
         banner={

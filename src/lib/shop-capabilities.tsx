@@ -21,8 +21,10 @@ export type ShopCapabilities = {
   vehicleSpecs: boolean;
   /** Auto.dev plate→VIN lookup — Pro+ only (Core: manual plate + free NHTSA VIN). */
   autodevDecoding: boolean;
-  /** Smart AI repair-order intake — AI Plus add-on. */
+  /** Smart AI repair-order intake — Core-only AI Plus add-on. */
   freeformRoIntake: boolean;
+  /** Shop is on Core (STARTER) — Smart intake option only shown for Core. */
+  corePlan: boolean;
   /** Resolved plan features — drives settings nav pruning on Core. */
   planFeatures: PlanFeatureSet;
 };
@@ -36,6 +38,7 @@ const DEFAULT: ShopCapabilities = {
   vehicleSpecs: false,
   autodevDecoding: false,
   freeformRoIntake: false,
+  corePlan: false,
   planFeatures: {} as PlanFeatureSet,
 };
 
@@ -98,7 +101,12 @@ export function useAutodevDecodingUiEnabled(): boolean {
   return useShopCapabilities().autodevDecoding;
 }
 
-/** Smart AI repair-order intake — AI Plus add-on. */
+/** Smart AI repair-order intake — Core-only AI Plus add-on. */
 export function useSmartRoIntakeEnabled(): boolean {
   return useShopCapabilities().freeformRoIntake;
+}
+
+/** True when active shop is on Core (STARTER) — Smart intake card is Core-only. */
+export function useCorePlanShop(): boolean {
+  return useShopCapabilities().corePlan;
 }

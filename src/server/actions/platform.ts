@@ -229,9 +229,12 @@ export async function updateShopPlanFeatureOverride(
 
   const shop = await prisma.shop.findUnique({
     where: { id: shopId },
-    select: { planFeatures: true },
+    select: { planFeatures: true, plan: true },
   });
   if (!shop) return { ok: false, error: "Shop not found." };
+  if (feature === "freeformRoIntake" && shop.plan !== "STARTER") {
+    return { ok: false, error: "AI Plus (Smart AI Intake) is only available on Core plan shops." };
+  }
 
   await prisma.shop.update({
     where: { id: shopId },
