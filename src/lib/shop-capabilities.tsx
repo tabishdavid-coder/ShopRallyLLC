@@ -19,6 +19,8 @@ export type ShopCapabilities = {
   marketingCampaigns: boolean;
   /** VIN/vPIC vehicle specs rail — Pro+ only (Core uses manual YMM). */
   vehicleSpecs: boolean;
+  /** Auto.dev plate→VIN lookup — Pro+ only (Core: manual plate + free NHTSA VIN). */
+  autodevDecoding: boolean;
   /** Resolved plan features — drives settings nav pruning on Core. */
   planFeatures: PlanFeatureSet;
 };
@@ -30,6 +32,7 @@ const DEFAULT: ShopCapabilities = {
   partsTech: false,
   marketingCampaigns: false,
   vehicleSpecs: false,
+  autodevDecoding: false,
   planFeatures: {} as PlanFeatureSet,
 };
 
@@ -85,4 +88,9 @@ export function useVehicleSpecsUiEnabled(): boolean {
 /** Stripe Connect / online checkout UI — Pro+. Core is manual payments only. */
 export function useStripePaymentsUiEnabled(): boolean {
   return useShopCapabilities().stripePayments;
+}
+
+/** Auto.dev plate→VIN lookup UI — Pro+. */
+export function useAutodevDecodingUiEnabled(): boolean {
+  return useShopCapabilities().autodevDecoding;
 }

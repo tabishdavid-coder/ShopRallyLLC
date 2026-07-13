@@ -78,7 +78,7 @@ import { fmtDate } from "@/lib/datetime";
 import { fetchVehicleSpecsBundle } from "@/server/actions/vehicle-specs";
 import { formatPhoneInput } from "@/lib/phone";
 import { RO_STATUS_PILL } from "@/lib/ro-status";
-import { useVehicleSpecsUiEnabled } from "@/lib/shop-capabilities";
+import { useAutodevDecodingUiEnabled, useVehicleSpecsUiEnabled } from "@/lib/shop-capabilities";
 import { getCustomerTagNames } from "@/server/actions/customer-settings";
 import { updateCustomer } from "@/server/actions/customers";
 import { updateVehicle } from "@/server/actions/vehicles";
@@ -509,6 +509,7 @@ function VehicleAccordionCard({
 }) {
   const [open, setOpen] = useState(vehicle.id === currentRoVehicleId || autoOpenSpecs);
   const vehicleSpecsOk = useVehicleSpecsUiEnabled();
+  const autodevDecodingOk = useAutodevDecodingUiEnabled();
   const [specsOpen, setSpecsOpen] = useState(false);
   const [specsData, setSpecsData] = useState<EstimateLabVehicleSpecsBundle | null>(
     vehicle.id === currentRoVehicleId ? preloadedSpecs : null,
@@ -547,7 +548,7 @@ function VehicleAccordionCard({
   });
   const vinNormalized = vin.trim().replace(/\s/g, "").toUpperCase();
   const canDecodeVin = vinNormalized.length === 17;
-  const canLookupPlate = plate.trim().length > 0;
+  const canLookupPlate = autodevDecodingOk && plate.trim().length > 0;
   const busy = pending || lookupPending;
 
   useEffect(() => {
@@ -892,6 +893,13 @@ function VehicleAccordionCard({
               </Select>
             </CrmFormField>
           </div>
+
+          {canEdit && !autodevDecodingOk ? (
+            <p className="text-xs text-muted-foreground">
+              Enter the plate manually on Core. Decode a 17-character VIN (free NHTSA) or fill in year / make /
+              model below.
+            </p>
+          ) : null}
 
           {canEdit && canLookupPlate ? (
             <Button

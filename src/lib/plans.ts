@@ -31,7 +31,9 @@ export type PlanFeature =
   | "aiCampaignDrafting"
   | "aiSeoContent"
   | "aiCustomerInsights"
-  | "aiReceptionist";
+  | "aiReceptionist"
+  /** Auto.dev plate→VIN + rich VIN decode — Pro+ only. Core uses free NHTSA VIN + manual entry. */
+  | "autodevDecoding";
 
 export type PlanLimits = {
   /** null = unlimited */
@@ -537,6 +539,7 @@ const starterFeatures: PlanFeatureSet = {
   aiSeoContent: false,
   aiCustomerInsights: false,
   aiReceptionist: false,
+  autodevDecoding: false,
 };
 
 const professionalFeatures: PlanFeatureSet = {
@@ -567,6 +570,7 @@ const professionalFeatures: PlanFeatureSet = {
   aiSeoContent: false,
   aiCustomerInsights: false,
   aiReceptionist: false,
+  autodevDecoding: true,
 };
 
 const EliteFeatures: PlanFeatureSet = {
@@ -597,6 +601,7 @@ const EliteFeatures: PlanFeatureSet = {
   aiSeoContent: true,
   aiCustomerInsights: true,
   aiReceptionist: true,
+  autodevDecoding: true,
 };
 
 /** Canonical plan catalog — premium tiers vs legacy & budget stacks. */

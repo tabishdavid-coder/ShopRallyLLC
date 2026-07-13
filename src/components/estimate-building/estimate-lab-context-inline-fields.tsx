@@ -6,11 +6,13 @@ import {
   ChevronRight,
   Copy,
   Crosshair,
+  Mail,
   MessageSquare,
   Phone,
 } from "lucide-react";
 
 import type { EditableCustomerRecord } from "@/components/customers/customer-form-shared";
+import { EmailCustomerDialog } from "@/components/customers/email-customer-dialog";
 import type { EditableVehicle } from "@/components/repair-order/edit-vehicle-dialog";
 import type { ContextDrawerTab } from "@/components/estimate-building/estimate-lab-context-drawer";
 import type { EstimateWorkspaceVariant } from "@/components/estimate-building/estimate-building-lab-panel";
@@ -20,10 +22,8 @@ import type { EstimateLabVehicleSpecsBundle } from "@/lib/estimate-lab-vehicle-s
 import { formatPhoneInput } from "@/lib/phone";
 import {
   formatVehicleContextLabel,
-  smsPhoneHref,
   splitVinForDisplay,
 } from "@/lib/ro-context-display";
-import { useSmsUiEnabled } from "@/lib/shop-capabilities";
 import { cn } from "@/lib/utils";
 
 function QuickAction({
@@ -110,7 +110,7 @@ function vehicleTitleWithDrivetrain(vehicle: EditableVehicle | null): { display:
 export function EstimateLabContextStack({
   variant: _variant = "lab",
   customer,
-  customerId: _customerId,
+  customerId,
   vehicle,
   mileageIn,
   odometerNotWorking,
@@ -128,13 +128,14 @@ export function EstimateLabContextStack({
   drawerData: EstimateContextDrawerData | null;
   vehicleSpecs: EstimateLabVehicleSpecsBundle | null;
 }) {
-  const smsEnabled = useSmsUiEnabled();
+  const [emailOpen, setEmailOpen] = useState(false);
   const ctx = useEstimateLabContextDrawerOptional();
 
   const isBusiness = Boolean(customer.company?.trim());
   const personName = `${customer.firstName ?? ""} ${customer.lastName ?? ""}`.trim();
   const displayName = isBusiness ? (customer.company ?? "") : personName;
   const phoneFormatted = customer.phone ? formatPhoneInput(customer.phone) : "";
+  const customerEmail = customer.email?.trim() || null;
 
   const vehicleLabel = vehicleTitleWithDrivetrain(vehicle);
   const vinDisplay = vehicle?.vin ? splitVinForDisplay(vehicle.vin) : null;
@@ -217,27 +218,31 @@ export function EstimateLabContextStack({
           </div>
         </div>
 
-        {phoneFormatted && customer.phone ? (
+        {(phoneFormatted && customer.phone) || customerEmail ? (
           <div
             className="relative z-10 flex shrink-0 items-center gap-0.5 self-center pr-0.5"
             onClick={(e) => e.stopPropagation()}
             onKeyDown={(e) => e.stopPropagation()}
           >
-            {smsEnabled && ctx ? (
-              <QuickAction label="Text customer" onClick={() => ctx.openMessages()}>
-                <MessageSquare className="size-3.5" />
-              </QuickAction>
-            ) : (
-              <QuickAction label="Text customer" href={smsPhoneHref(customer.phone)}>
-                <MessageSquare className="size-3.5" />
-              </QuickAction>
-            )}
-            <CopyFieldButton value={customer.phone} label="Copy phone" />
+            <QuickAction label="Email customer" onClick={() => setEmailOpen(true)}>
+              <Mail className="size-3.5" />
+            </QuickAction>
+            {phoneFormatted && customer.phone ? (
+              <CopyFieldButton value={customer.phone} label="Copy phone" />
+            ) : null}
           </div>
         ) : null}
 
         <ContextCardChevron />
       </div>
+
+      <EmailCustomerDialog
+        open={emailOpen}
+        onOpenChange={setEmailOpen}
+        customerId={customerId}
+        customerName={displayName || "Customer"}
+        email={customerEmail}
+      />
 
       {/* Vehicle card → Vehicles tab */}
       {vehicle ? (

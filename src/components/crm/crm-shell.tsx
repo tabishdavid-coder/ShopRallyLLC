@@ -69,6 +69,7 @@ export function CrmShell({
     partsTech: false,
     marketingCampaigns: false,
     vehicleSpecs: false,
+    autodevDecoding: false,
     planFeatures: resolvePlanFeatures({ plan: "STARTER" }),
   },
   children,

@@ -88,21 +88,20 @@ export function EstimateAdjustments({
   jobCount?: number;
 }) {
   if (layout === "estimate-ro") {
+    // Same column inset as job cards (parent provides px) — no extra white pad/frame.
     return (
-      <div className="space-y-3 border-t border-[#DDE5EF] bg-white px-3 py-3">
-        <Section
-          kind="fee"
-          title="Fees"
-          roId={roId}
-          jobId={jobId}
-          items={fees}
-          laborCents={laborCents}
-          partsCents={partsCents}
-          templates={feeTemplates}
-          layout="estimate-ro"
-          jobCount={jobCount}
-        />
-      </div>
+      <Section
+        kind="fee"
+        title="Fees"
+        roId={roId}
+        jobId={jobId}
+        items={fees}
+        laborCents={laborCents}
+        partsCents={partsCents}
+        templates={feeTemplates}
+        layout="estimate-ro"
+        jobCount={jobCount}
+      />
     );
   }
 

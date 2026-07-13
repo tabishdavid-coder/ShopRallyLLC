@@ -369,11 +369,11 @@ function partFromLabor(row: LaborRow, partTiers: PartTier[], lineType: PartFamil
   return base;
 }
 
-const MONEY_CELL = "flex h-7 w-full min-w-0 items-center";
+const MONEY_CELL = "flex h-7 w-full min-w-0 items-center overflow-visible";
 const VENDOR_COST_TITLE = "From vendor — edit via parts ordering";
 const ADD_ROW_CHIP =
   "inline-flex h-7 shrink-0 items-center gap-0.5 rounded-md border border-brand-navy/25 bg-white px-1.5 text-[10px] font-semibold uppercase tracking-wide text-brand-navy hover:bg-brand-light/15";
-const MONEY_INPUT = cn(LAB_INPUT_FLAT, "min-w-0 w-full text-right");
+const MONEY_INPUT = cn(LAB_INPUT_FLAT, "min-w-0 w-full text-right text-[11px] tabular-nums");
 const MONEY_INPUT_LOCKED = "cursor-default bg-muted/25 text-foreground/90";
 
 function InlineMoneyCell({
@@ -404,32 +404,37 @@ function InlineMoneyCell({
 
   return (
     <div className={MONEY_CELL}>
-      <Input
-        type="text"
-        inputMode="decimal"
-        readOnly={locked}
-        placeholder={placeholder}
-        value={locked ? display : display || placeholder || ""}
-        onFocus={() => {
-          if (locked) return;
-          focusFieldDraft(draftKey, dollars(valueCents));
-        }}
-        onChange={(e) => {
-          if (locked) return;
-          const v = e.target.value;
-          if (!isDecimalInput(v)) return;
-          setFieldDraft(draftKey, v);
-          const cents = parseOptionalCents(v);
-          if (cents !== null) onCommitCents(cents);
-        }}
-        onBlur={(e) => {
-          if (locked) return;
-          const cents = parseOptionalCents(e.target.value) ?? 0;
-          onCommitCents(cents);
-          clearFieldDraft(draftKey);
-        }}
-        className={cn(MONEY_INPUT, fontMedium && "font-medium", locked && MONEY_INPUT_LOCKED)}
-      />
+      <div className="relative w-full min-w-0">
+        <span className="pointer-events-none absolute left-0 top-1/2 -translate-y-1/2 text-[10px] text-muted-foreground">
+          $
+        </span>
+        <Input
+          type="text"
+          inputMode="decimal"
+          readOnly={locked}
+          placeholder={placeholder}
+          value={locked ? display : display || placeholder || ""}
+          onFocus={() => {
+            if (locked) return;
+            focusFieldDraft(draftKey, dollars(valueCents));
+          }}
+          onChange={(e) => {
+            if (locked) return;
+            const v = e.target.value;
+            if (!isDecimalInput(v)) return;
+            setFieldDraft(draftKey, v);
+            const cents = parseOptionalCents(v);
+            if (cents !== null) onCommitCents(cents);
+          }}
+          onBlur={(e) => {
+            if (locked) return;
+            const cents = parseOptionalCents(e.target.value) ?? 0;
+            onCommitCents(cents);
+            clearFieldDraft(draftKey);
+          }}
+          className={cn(MONEY_INPUT, "pl-3", fontMedium && "font-medium", locked && MONEY_INPUT_LOCKED)}
+        />
+      </div>
     </div>
   );
 }
@@ -489,7 +494,12 @@ function TaxableCell({
 
 function ReadOnlyMoney({ cents, className }: { cents: number; className?: string }) {
   return (
-    <span className={cn("inline-flex h-7 w-full items-center justify-end text-xs tabular-nums", className)}>
+    <span
+      className={cn(
+        "inline-flex h-7 w-full min-w-0 items-center justify-end overflow-visible text-[11px] tabular-nums",
+        className,
+      )}
+    >
       {formatCents(cents)}
     </span>
   );
@@ -1437,12 +1447,12 @@ export function EstimateLabServiceItemsGrid({
               <span className={cn(LAB_GRID_BORDER, "px-1 text-left")}>Type</span>
               <span className={cn(LAB_GRID_BORDER, "px-1 text-left")}>Name</span>
               <span className={cn(LAB_GRID_BORDER, "px-1 text-left")}>Description</span>
-              <span className={cn(LAB_GRID_BORDER, "px-1 text-right")}>Qty / Hrs</span>
-              <span className={cn(LAB_GRID_BORDER, "px-1 text-right")}>Cost</span>
-              <span className={cn(LAB_GRID_BORDER, "px-1 text-right")}>Price</span>
-              <span className={cn(LAB_GRID_BORDER, "px-1 text-right")}>Amount</span>
-              <span className={cn(LAB_GRID_BORDER, "px-1 text-right")}>Discount</span>
-              <span className={cn(LAB_GRID_BORDER, "px-1 text-right")}>Net Amount</span>
+              <span className={cn(LAB_GRID_BORDER, "px-1.5 text-right")}>Qty / Hrs</span>
+              <span className={cn(LAB_GRID_BORDER, "px-1.5 text-right")}>Cost</span>
+              <span className={cn(LAB_GRID_BORDER, "px-1.5 text-right")}>Price</span>
+              <span className={cn(LAB_GRID_BORDER, "px-1.5 text-right")}>Amount</span>
+              <span className={cn(LAB_GRID_BORDER, "px-1.5 text-right")}>Discount</span>
+              <span className={cn(LAB_GRID_BORDER, "px-1.5 text-right")}>Net Amount</span>
               <span className={cn(LAB_GRID_BORDER, "px-1 text-center")}>Taxable</span>
               <span className="min-h-7" />
             </div>

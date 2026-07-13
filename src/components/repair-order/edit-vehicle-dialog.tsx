@@ -18,6 +18,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { updateVehicle } from "@/server/actions/vehicles";
+import { useAutodevDecodingUiEnabled } from "@/lib/shop-capabilities";
 import {
   usePlateVinLookup,
   type VehicleLookupFields,
@@ -85,6 +86,7 @@ export function EditVehicleDialog({
   const [saving, startSave] = useTransition();
   const { pending: lookupPending, error: lookupError, note: lookupNote, clearMessages, lookupByPlate, lookupByVin } =
     usePlateVinLookup();
+  const autodevDecodingOk = useAutodevDecodingUiEnabled();
 
   function currentFields(): VehicleLookupFields {
     return {
@@ -257,7 +259,7 @@ export function EditVehicleDialog({
             </CrmFormField>
           </div>
 
-          {plate.trim() ? (
+          {plate.trim() && autodevDecodingOk ? (
             <Button
               type="button"
               variant="secondary"
@@ -269,6 +271,12 @@ export function EditVehicleDialog({
               {lookupPending ? <Loader2 className="size-4 animate-spin" /> : <Search className="size-4" />}
               Look up VIN
             </Button>
+          ) : null}
+
+          {plate.trim() && !autodevDecodingOk ? (
+            <p className="mt-2 text-xs text-muted-foreground">
+              Plate is saved manually on Core. Decode a 17-character VIN above or edit year / make / model.
+            </p>
           ) : null}
 
           {lookupNote ? <p className="mt-2 text-xs text-emerald-700">{lookupNote}</p> : null}
