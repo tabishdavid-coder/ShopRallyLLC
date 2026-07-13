@@ -373,11 +373,24 @@ function partFromLabor(row: LaborRow, partTiers: PartTier[], lineType: PartFamil
 }
 
 const MONEY_CELL = "flex h-7 w-full min-w-0 items-center overflow-visible";
-const VENDOR_COST_TITLE = "From vendor — edit via parts ordering";
+/** PartsTech vendor cost is still editable — enter internal cost; matrix sets Price when on. */
+const PART_COST_TITLE =
+  "Internal cost — when Parts Matrix is on, Price updates from this cost";
 const ADD_ROW_CHIP =
   "inline-flex h-7 shrink-0 items-center gap-0.5 rounded-md border border-brand-navy/25 bg-white px-1.5 text-[10px] font-semibold uppercase tracking-wide text-brand-navy hover:bg-brand-light/15";
 const MONEY_INPUT = cn(LAB_INPUT_FLAT, "min-w-0 w-full text-right text-[11px] tabular-nums");
 const MONEY_INPUT_LOCKED = "cursor-default bg-muted/25 text-foreground/90";
+
+/** Enter cost → apply parts matrix markup to retail unless the row was switched to manual price. */
+function patchPartCost(row: PartRow, costCents: number, partTiers: PartTier[]): PartRow {
+  const matrixOn = partTiers.length > 0 && row.usePartMatrix !== false;
+  return patchPartLine(
+    matrixOn ? { ...row, usePartMatrix: true } : row,
+    "cost",
+    costCents,
+    partTiers,
+  );
+}
 
 function InlineMoneyCell({
   draftKey,
@@ -1349,8 +1362,24 @@ export function EstimateLabServiceItemsGrid({
                 </span>
               )}
             </div>
-            <div className={LAB_GRID_NUM_BORDERED} title={editing ? VENDOR_COST_TITLE : undefined}>
-              <ReadOnlyMoney cents={p.costCents} className={lineThrough} />
+            <div className={LAB_GRID_NUM_BORDERED} title={editing ? PART_COST_TITLE : undefined}>
+              {editing ? (
+                <InlineMoneyCell
+                  draftKey={`${draftPrefix}-cost`}
+                  valueCents={p.costCents}
+                  fieldDrafts={fieldDrafts}
+                  focusFieldDraft={focusFieldDraft}
+                  setFieldDraft={setFieldDraft}
+                  clearFieldDraft={clearFieldDraft}
+                  onCommitCents={(cents) =>
+                    updateAt(index, (m) =>
+                      m.kind === "part" ? { ...m, row: patchPartCost(m.row, cents, partTiers) } : m,
+                    )
+                  }
+                />
+              ) : (
+                <ReadOnlyMoney cents={p.costCents} className={lineThrough} />
+              )}
             </div>
             <div className={LAB_GRID_NUM_BORDERED}>
               {editing ? (
@@ -1499,7 +1528,7 @@ export function EstimateLabServiceItemsGrid({
                   LAB_GRID_NUM_BORDERED,
                   "inline-flex min-h-7 items-center justify-end text-[10px] text-muted-foreground/40",
                 )}
-                title={isPartFamily(addType) ? VENDOR_COST_TITLE : undefined}
+                title={isPartFamily(addType) ? PART_COST_TITLE : undefined}
               >
                 {isPartFamily(addType) ? "—" : "0.00"}
               </span>
