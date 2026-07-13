@@ -66,11 +66,16 @@ import {
   LAB_DESCRIPTION_SELECT_CLASS,
   LAB_DESCRIPTION_TEXTAREA_CLASS,
   LAB_INPUT_FLAT,
-  LAB_LINE_GRID,
-  LAB_LINE_GRID_HEAD,
+  LAB_LINE_GRID_BASE,
+  LAB_LINE_GRID_HEAD_BASE,
   LAB_LINE_GRID_MIN_W,
   LAB_TABLE_HEAD,
 } from "@/components/estimate-building/estimate-lab-job-card-shell";
+import {
+  LabNameDescCells,
+  LabNameDescResizeHandle,
+  useLabNameDescSplit,
+} from "@/components/estimate-building/estimate-lab-name-desc-split";
 
 const DESC_STACK = "flex min-w-0 flex-col gap-0.5 overflow-hidden";
 
@@ -579,6 +584,7 @@ function SortableRow({
   id,
   children,
   disabled,
+  gridTemplateColumns,
 }: {
   id: string;
   children: (handle: {
@@ -587,6 +593,7 @@ function SortableRow({
     isDragging: boolean;
   }) => ReactNode;
   disabled?: boolean;
+  gridTemplateColumns: string;
 }) {
   const { setNodeRef, transform, transition, isDragging, attributes, listeners } = useSortable({
     id,
@@ -595,9 +602,9 @@ function SortableRow({
   return (
     <div
       ref={setNodeRef}
-      style={{ transform: CSS.Transform.toString(transform), transition }}
+      style={{ transform: CSS.Transform.toString(transform), transition, gridTemplateColumns }}
       className={cn(
-        LAB_LINE_GRID,
+        LAB_LINE_GRID_BASE,
         "border-b border-border/60 last:border-0",
         isDragging && "relative z-10 bg-white shadow-md ring-1 ring-brand-navy/20",
       )}
@@ -672,6 +679,8 @@ export function EstimateLabServiceItemsGrid({
 }) {
   const router = useRouter();
   const [, startAdj] = useTransition();
+  const { ratio, setLive: setNameDescRatio, persist: persistNameDescRatio, gridTemplateColumns } =
+    useLabNameDescSplit();
   const calcOpts = { baseRateCents, laborTiers };
   const [addType, setAddType] = useState<InlineLineType>("labor");
   const [dndReady, setDndReady] = useState(false);
@@ -948,7 +957,7 @@ export function EstimateLabServiceItemsGrid({
       const amountCents = laborLineTotal(l);
 
       return (
-        <SortableRow key={item.key} id={item.key} disabled={!editing || !dndReady}>
+        <SortableRow key={item.key} id={item.key} disabled={!editing || !dndReady} gridTemplateColumns={gridTemplateColumns}>
           {({ listeners, attributes, isDragging }) => (
             <>
               <div className={cn(LAB_GRID_CELL_BORDERED, "justify-center")}>
@@ -968,42 +977,53 @@ export function EstimateLabServiceItemsGrid({
                   handlers={typeGuideHandlers}
                 />
               </div>
-              <div className={LAB_GRID_CELL_BORDERED}>
-                {editing ? (
-                  <Input
-                    value={laborName}
-                    onChange={(e) =>
-                      updateAt(index, (m) =>
-                        m.kind === "labor"
-                          ? { ...m, row: { ...m.row, description: joinLaborDesc(e.target.value, laborDetail) } }
-                          : m,
-                      )
-                    }
-                    className={cn(LAB_INPUT_FLAT, "w-full")}
-                    placeholder="Enter name*"
-                  />
-                ) : (
-                  <p className={cn("min-w-0 truncate text-xs text-brand-navy", lineThrough)}>{laborName || "—"}</p>
-                )}
-              </div>
-              <div className={LAB_GRID_CELL_BORDERED}>
-                {editing ? (
-                  <LabDescriptionTextarea
-                    value={laborDetail}
-                    onChange={(e) =>
-                      updateAt(index, (m) =>
-                        m.kind === "labor"
-                          ? { ...m, row: { ...m.row, description: joinLaborDesc(laborName, e.target.value) } }
-                          : m,
-                      )
-                    }
-                  />
-                ) : (
-                  <p className={cn("line-clamp-2 min-w-0 text-[10px] leading-snug text-muted-foreground", lineThrough)}>
-                    {laborDetail || "—"}
-                  </p>
-                )}
-              </div>
+              <LabNameDescCells
+                descEmpty={!laborDetail.trim()}
+                name={
+                  editing ? (
+                    <Input
+                      value={laborName}
+                      onChange={(e) =>
+                        updateAt(index, (m) =>
+                          m.kind === "labor"
+                            ? { ...m, row: { ...m.row, description: joinLaborDesc(e.target.value, laborDetail) } }
+                            : m,
+                        )
+                      }
+                      className={cn(LAB_INPUT_FLAT, "w-full")}
+                      placeholder="Enter name*"
+                    />
+                  ) : (
+                    <p
+                      className={cn(
+                        "min-w-0 text-xs text-brand-navy",
+                        laborDetail.trim() ? "line-clamp-2" : "line-clamp-3 whitespace-normal",
+                        lineThrough,
+                      )}
+                    >
+                      {laborName || "—"}
+                    </p>
+                  )
+                }
+                description={
+                  editing ? (
+                    <LabDescriptionTextarea
+                      value={laborDetail}
+                      onChange={(e) =>
+                        updateAt(index, (m) =>
+                          m.kind === "labor"
+                            ? { ...m, row: { ...m.row, description: joinLaborDesc(laborName, e.target.value) } }
+                            : m,
+                        )
+                      }
+                    />
+                  ) : (
+                    <p className={cn("line-clamp-2 min-w-0 text-[10px] leading-snug text-muted-foreground", lineThrough)}>
+                      {laborDetail || "—"}
+                    </p>
+                  )
+                }
+              />
               <div className={LAB_GRID_NUM_BORDERED}>
                 {editing ? (
                   <InlineQtyCell
@@ -1114,7 +1134,7 @@ export function EstimateLabServiceItemsGrid({
         a.base === "LABOR_PARTS" ? "Labor + parts" : a.base === "LABOR" ? "Labor" : "Parts";
 
       return (
-        <SortableRow key={item.key} id={item.key} disabled>
+        <SortableRow key={item.key} id={item.key} disabled gridTemplateColumns={gridTemplateColumns}>
           {() => (
             <>
               <div className={cn(LAB_GRID_CELL_BORDERED, "justify-center")}>
@@ -1291,7 +1311,7 @@ export function EstimateLabServiceItemsGrid({
     const amountCents = partLineTotal(p);
 
     return (
-      <SortableRow key={item.key} id={item.key} disabled={!editing || !dndReady}>
+      <SortableRow key={item.key} id={item.key} disabled={!editing || !dndReady} gridTemplateColumns={gridTemplateColumns}>
         {({ listeners, attributes, isDragging }) => (
           <>
             <div className={cn(LAB_GRID_CELL_BORDERED, "justify-center")}>
@@ -1311,40 +1331,51 @@ export function EstimateLabServiceItemsGrid({
                 handlers={typeGuideHandlers}
               />
             </div>
-            <div className={LAB_GRID_CELL_BORDERED}>
-              {editing ? (
-                <Input
-                  value={p.description}
-                  onChange={(e) =>
-                    updateAt(index, (m) =>
-                      m.kind === "part" ? { ...m, row: { ...m.row, description: e.target.value } } : m,
-                    )
-                  }
-                  className={cn(LAB_INPUT_FLAT, "w-full")}
-                  placeholder="Enter name*"
-                />
-              ) : (
-                <p className={cn("min-w-0 truncate text-xs", lineThrough)}>{p.description || "—"}</p>
-              )}
-            </div>
-            <div className={LAB_GRID_CELL_BORDERED}>
-              {editing ? (
-                <LabDescriptionTextarea
-                  value={partDetail}
-                  placeholder="Part # · brand"
-                  onChange={(e) => {
-                    const { partNumber, brand } = parsePartDetail(e.target.value);
-                    updateAt(index, (m) =>
-                      m.kind === "part" ? { ...m, row: { ...m.row, partNumber, brand } } : m,
-                    );
-                  }}
-                />
-              ) : (
-                <p className={cn("line-clamp-2 min-w-0 text-[10px] leading-snug text-muted-foreground", lineThrough)}>
-                  {partDetail || "—"}
-                </p>
-              )}
-            </div>
+            <LabNameDescCells
+              descEmpty={!partDetail.trim()}
+              name={
+                editing ? (
+                  <Input
+                    value={p.description}
+                    onChange={(e) =>
+                      updateAt(index, (m) =>
+                        m.kind === "part" ? { ...m, row: { ...m.row, description: e.target.value } } : m,
+                      )
+                    }
+                    className={cn(LAB_INPUT_FLAT, "w-full")}
+                    placeholder="Enter name*"
+                  />
+                ) : (
+                  <p
+                    className={cn(
+                      "min-w-0 text-xs",
+                      partDetail.trim() ? "line-clamp-2" : "line-clamp-3 whitespace-normal",
+                      lineThrough,
+                    )}
+                  >
+                    {p.description || "—"}
+                  </p>
+                )
+              }
+              description={
+                editing ? (
+                  <LabDescriptionTextarea
+                    value={partDetail}
+                    placeholder="Part # · brand"
+                    onChange={(e) => {
+                      const { partNumber, brand } = parsePartDetail(e.target.value);
+                      updateAt(index, (m) =>
+                        m.kind === "part" ? { ...m, row: { ...m.row, partNumber, brand } } : m,
+                      );
+                    }}
+                  />
+                ) : (
+                  <p className={cn("line-clamp-2 min-w-0 text-[10px] leading-snug text-muted-foreground", lineThrough)}>
+                    {partDetail || "—"}
+                  </p>
+                )
+              }
+            />
             <div className={LAB_GRID_NUM_BORDERED}>
               {editing ? (
                 <InlineQtyCell
@@ -1442,10 +1473,21 @@ export function EstimateLabServiceItemsGrid({
       <div className="overflow-x-auto">
         <div className={LAB_LINE_GRID_MIN_W}>
           {showHeaders ? (
-            <div className={cn(LAB_TABLE_HEAD, LAB_LINE_GRID_HEAD, "sticky top-0 z-[1] border-b py-0.5")}>
+            <div
+              data-lab-name-desc-header
+              style={{ gridTemplateColumns }}
+              className={cn(LAB_TABLE_HEAD, LAB_LINE_GRID_HEAD_BASE, "sticky top-0 z-[1] border-b py-0.5")}
+            >
               <span className={cn(LAB_GRID_BORDER, "min-h-7")} />
               <span className={cn(LAB_GRID_BORDER, "px-1 text-left")}>Type</span>
-              <span className={cn(LAB_GRID_BORDER, "px-1 text-left")}>Name</span>
+              <span className={cn(LAB_GRID_BORDER, "relative px-1 text-left")}>
+                Name
+                <LabNameDescResizeHandle
+                  ratio={ratio}
+                  onRatioChange={setNameDescRatio}
+                  onRatioCommit={persistNameDescRatio}
+                />
+              </span>
               <span className={cn(LAB_GRID_BORDER, "px-1 text-left")}>Description</span>
               <span className={cn(LAB_GRID_BORDER, "px-1.5 text-right")}>Qty / Hrs</span>
               <span className={cn(LAB_GRID_BORDER, "px-1.5 text-right")}>Cost</span>
@@ -1461,7 +1503,10 @@ export function EstimateLabServiceItemsGrid({
           {listBody}
 
           {editing && (onAddLine || onLaborManual || onLaborLookup || onPartManual || onPartLookup || roId) ? (
-            <div className={cn(LAB_LINE_GRID, "border-t border-dashed border-border/70 bg-muted/10")}>
+            <div
+              style={{ gridTemplateColumns }}
+              className={cn(LAB_LINE_GRID_BASE, "border-t border-dashed border-border/70 bg-muted/10")}
+            >
               <span className={cn(LAB_GRID_BORDER, "min-h-7")} />
               <div className={LAB_GRID_CELL_BORDERED}>
                 <EstimateLineTypeMenu
