@@ -2,13 +2,14 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState, useTransition } from "react";
-import { Loader2 } from "lucide-react";
+import { useEffect, useId, useRef, useState, useTransition } from "react";
+import { ChevronDown, Loader2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { cn } from "@/lib/utils";
 import {
   createInventoryPart,
   updateInventoryPart,
@@ -29,6 +30,104 @@ const CATEGORIES = [
   "Other",
 ];
 
+/** Free-text input + suggestion list anchored under the field (avoids native datalist mis-position in overflow shells). */
+function SuggestInput({
+  id,
+  value,
+  onChange,
+  options,
+  placeholder,
+}: {
+  id: string;
+  value: string;
+  onChange: (next: string) => void;
+  options: string[];
+  placeholder?: string;
+}) {
+  const listId = useId();
+  const rootRef = useRef<HTMLDivElement>(null);
+  const [open, setOpen] = useState(false);
+  const filtered = options.filter((opt) =>
+    value.trim() ? opt.toLowerCase().includes(value.trim().toLowerCase()) : true,
+  );
+
+  useEffect(() => {
+    if (!open) return;
+    function onPointerDown(e: PointerEvent) {
+      if (!rootRef.current?.contains(e.target as Node)) setOpen(false);
+    }
+    document.addEventListener("pointerdown", onPointerDown);
+    return () => document.removeEventListener("pointerdown", onPointerDown);
+  }, [open]);
+
+  return (
+    <div ref={rootRef} className="relative">
+      <div className="relative">
+        <Input
+          id={id}
+          role="combobox"
+          aria-expanded={open}
+          aria-controls={listId}
+          aria-autocomplete="list"
+          value={value}
+          placeholder={placeholder}
+          onChange={(e) => {
+            onChange(e.target.value);
+            setOpen(true);
+          }}
+          onFocus={() => setOpen(true)}
+          onKeyDown={(e) => {
+            if (e.key === "Escape") setOpen(false);
+            if (e.key === "ArrowDown") {
+              e.preventDefault();
+              setOpen(true);
+            }
+          }}
+          className="pr-8"
+          autoComplete="off"
+        />
+        <button
+          type="button"
+          tabIndex={-1}
+          aria-label="Show category suggestions"
+          className="absolute inset-y-0 right-0 flex w-8 items-center justify-center text-muted-foreground hover:text-foreground"
+          onClick={() => setOpen((v) => !v)}
+        >
+          <ChevronDown className="size-3.5" aria-hidden />
+        </button>
+      </div>
+      {open && filtered.length > 0 ? (
+        <ul
+          id={listId}
+          role="listbox"
+          className={cn(
+            "absolute left-0 right-0 top-full z-50 mt-1 max-h-48 overflow-y-auto",
+            "rounded-md border border-border bg-popover py-1 text-popover-foreground shadow-md",
+          )}
+        >
+          {filtered.map((opt) => (
+            <li key={opt} role="option" aria-selected={opt === value}>
+              <button
+                type="button"
+                className={cn(
+                  "flex w-full px-2.5 py-1.5 text-left text-sm hover:bg-accent hover:text-accent-foreground",
+                  opt === value && "bg-accent/60 font-medium",
+                )}
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => {
+                  onChange(opt);
+                  setOpen(false);
+                }}
+              >
+                {opt}
+              </button>
+            </li>
+          ))}
+        </ul>
+      ) : null}
+    </div>
+  );
+}
 function dollarsToCents(v: string): number {
   const n = parseFloat(v.replace(/[^0-9.]/g, ""));
   return Number.isFinite(n) ? Math.round(n * 100) : 0;
@@ -184,18 +283,13 @@ export function InventoryPartForm({
         </div>
         <div className="space-y-2">
           <Label htmlFor="category">Category</Label>
-          <Input
+          <SuggestInput
             id="category"
-            list="inv-categories"
             value={form.category}
-            onChange={(e) => setField("category", e.target.value)}
+            onChange={(next) => setField("category", next)}
+            options={CATEGORIES}
             placeholder="Filters, Brakes…"
           />
-          <datalist id="inv-categories">
-            {CATEGORIES.map((c) => (
-              <option key={c} value={c} />
-            ))}
-          </datalist>
         </div>
         <div className="space-y-2">
           <Label htmlFor="brand">Brand</Label>
