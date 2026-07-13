@@ -29,6 +29,12 @@ export function isRetryableGeminiError(err: unknown): boolean {
   );
 }
 
+/** Model id deprecated or blocked for this API key — try the next candidate. */
+export function isUnavailableGeminiModelError(err: unknown): boolean {
+  const msg = err instanceof Error ? err.message : String(err);
+  return /404|not found|not supported|no longer available/i.test(msg);
+}
+
 /** Short user-facing message — hides SDK noise and long URLs. */
 export function friendlyGeminiError(err: unknown): string {
   const msg = err instanceof Error ? err.message : String(err);
@@ -41,8 +47,8 @@ export function friendlyGeminiError(err: unknown): string {
   if (/401|403|API key|PERMISSION_DENIED|invalid.*key/i.test(msg)) {
     return "Gemini API key is missing or invalid. Check GEMINI_API_KEY in your server environment.";
   }
-  if (/404|not found|not supported/i.test(msg)) {
-    return "Gemini model not available for this API key. Set GEMINI_DEFAULT_MODEL=gemini-2.5-flash in .env.";
+  if (/404|not found|not supported|no longer available/i.test(msg)) {
+    return "Gemini model not available for this API key. Set GEMINI_DEFAULT_MODEL=gemini-3.1-flash-lite in .env.";
   }
   if (msg.length > 160) {
     return "AI parse failed. Try again in a moment or use manual intake.";
@@ -110,12 +116,13 @@ export async function geminiGenerateText(args: {
       } catch (err) {
         lastErr = err;
         const retryable = isRetryableGeminiError(err);
+        const unavailableModel = isUnavailableGeminiModelError(err);
         const hasMoreAttempts = attempt < maxAttemptsPerModel - 1;
         if (retryable && hasMoreAttempts) {
           await sleep(400 * 2 ** attempt);
           continue;
         }
-        if (retryable) break;
+        if (retryable || unavailableModel) break;
         throw err;
       }
     }
