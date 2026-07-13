@@ -10,3 +10,9 @@ export const CORE_QA_SHOP_ID = "shop_macuto";
 
 /** Empty demo tenant — platform admins should not land here by default. */
 export const EMPTY_DEMO_SHOP_ID = "shop_eastside";
+
+/** Core fidelity QA shop — Macuto Auto Repair (plan STARTER). */
+export const MACUTO_SHOP_ID = "shop_macuto";
+
+/** Seeded Macuto estimate RO for Core walkthroughs. */
+export const MACUTO_ESTIMATE_RO_ID = "ro_macuto_1001";

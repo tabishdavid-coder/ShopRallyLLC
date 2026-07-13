@@ -76,12 +76,9 @@ export async function getShopId(): Promise<string> {
     if (isOperator) {
       const shop = await prisma.shop.findUnique({
         where: { id: cookieShop },
-        select: { id: true, _count: { select: { customers: true } } },
+        select: { id: true },
       });
-      // Platform admins land on data-rich shops; empty tenants fall through to demo.
-      if (shop && (shop.id === DEMO_SHOP_ID || shop._count.customers > 0)) {
-        return shop.id;
-      }
+      if (shop) return shop.id;
     } else {
       const membership = await prisma.membership.findFirst({
         where: { shopId: cookieShop, userId: user.id, active: true },
