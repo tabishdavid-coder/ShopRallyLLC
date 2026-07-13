@@ -41,6 +41,7 @@ const FEATURE_LABELS: Record<PlanFeature, string> = {
   aiCustomerInsights: "AI customer insights",
   aiReceptionist: "AI receptionist (SMS + voice after-hours)",
   motorLabor: "Licensed MOTOR labor data",
+  autodevDecoding: "Auto.dev plate lookup",
 };
 
 export function SubscriptionPanel({
