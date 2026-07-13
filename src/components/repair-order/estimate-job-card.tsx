@@ -33,6 +33,7 @@ import {
 } from "@/components/repair-order/approval-signature-panel";
 import { formatCents } from "@/lib/format";
 import { jobAuthState } from "@/lib/ro-totals";
+import { usePartsTechUiEnabled } from "@/lib/shop-capabilities";
 import {
   laborLineTotal,
   partLineTotal,
@@ -428,6 +429,7 @@ export function EstimateJobCard({
   const [, startAdj] = useTransition();
   const [labSaveState, setLabSaveState] = useState<"idle" | "dirty" | "saving" | "saved">("idle");
   const labAutoSaveSkip = useRef(true);
+  const partsTechOk = usePartsTechUiEnabled();
 
   const isLab = variant === "lab";
 
@@ -660,7 +662,7 @@ export function EstimateJobCard({
   }
 
   function addPartLookup() {
-    if (!canEdit) return;
+    if (!canEdit || !partsTechOk) return;
     if (onOpenParts) {
       onOpenParts("lookup");
       return;
@@ -946,7 +948,7 @@ export function EstimateJobCard({
                       handlers={{
                         onAddLabor: addLaborLine,
                         onAddPart: addPartManual,
-                        onPartLookup: onOpenParts ? () => onOpenParts("lookup") : undefined,
+                        onPartLookup: partsTechOk && onOpenParts ? () => onOpenParts("lookup") : undefined,
                         onAddFee: addJobFee,
                         onAddDiscount: addJobDiscount,
                         onSaveAsCanned: openSaveAsCanned,
@@ -1043,7 +1045,7 @@ export function EstimateJobCard({
                 handlers={{
                   onAddLabor: addLaborLine,
                   onAddPart: addPartManual,
-                  onPartLookup: onOpenParts ? () => onOpenParts("lookup") : undefined,
+                  onPartLookup: partsTechOk && onOpenParts ? () => onOpenParts("lookup") : undefined,
                   onAddFee: addJobFee,
                   onAddDiscount: addJobDiscount,
                   onSaveAsCanned: openSaveAsCanned,
@@ -1804,15 +1806,17 @@ export function EstimateJobCard({
               >
                 <Plus className="size-4" /> Add Part
               </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                className={FOOTER_ACTION_BUTTON}
-                onClick={addPartLookup}
-                title="PartsTech — search catalogs and import parts"
-              >
-                <ShoppingCart className="size-4" /> PartsTech
-              </Button>
+              {partsTechOk ? (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className={FOOTER_ACTION_BUTTON}
+                  onClick={addPartLookup}
+                  title="PartsTech — search catalogs and import parts"
+                >
+                  <ShoppingCart className="size-4" /> PartsTech
+                </Button>
+              ) : null}
             </div>
           ) : null}
 

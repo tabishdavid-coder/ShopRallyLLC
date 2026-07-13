@@ -70,7 +70,7 @@ export default async function AppLayout({
   if (dbSeeded && crmAccess && !isPlatformRoute && pathname !== "/shop-access") {
     const routeAccess = await checkCrmRouteAccess(pathname, activeShopId);
     if (!routeAccess.allowed) {
-      if (routeAccess.reason === "plan" && pathname.startsWith("/settings")) {
+      if (routeAccess.reason === "plan" && (pathname.startsWith("/settings") || pathname.startsWith("/vendors"))) {
         const sub = await getShopSubscription(activeShopId);
         const denied = settingsRouteDenied(pathname, sub.features);
         if (denied) {

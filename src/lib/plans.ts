@@ -1029,12 +1029,18 @@ export type ShopPlanContext = {
   planFeatures?: unknown;
 };
 
-/** Merge plan defaults with optional per-shop JSON overrides (ignores `_release`). */
+/** Merge plan defaults with optional per-shop JSON overrides (ignores `_release`).
+ * Core never gets PartsTech — overrides cannot re-enable (Pro+ only). */
 export function resolvePlanFeatures(shop: ShopPlanContext): PlanFeatureSet {
   const base = PLANS[shop.plan].features;
   const overrides = stripReleaseFromPlanFeatures(shop.planFeatures);
-  if (!overrides) return base;
-  return { ...base, ...(overrides as Partial<PlanFeatureSet>) };
+  const merged: PlanFeatureSet = overrides
+    ? { ...base, ...(overrides as Partial<PlanFeatureSet>) }
+    : { ...base };
+  if (shop.plan === "STARTER") {
+    merged.partsTech = false;
+  }
+  return merged;
 }
 
 export function shopHasFeature(shop: ShopPlanContext, feature: PlanFeature): boolean {
