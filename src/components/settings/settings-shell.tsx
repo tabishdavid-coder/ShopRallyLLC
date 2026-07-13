@@ -6,9 +6,9 @@ import { ChevronRight, PanelLeft, SlidersHorizontal } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import {
-  SETTINGS_SECTIONS,
   settingsSectionIsActive,
 } from "@/lib/settings-catalog";
+import { useSettingsPlan } from "@/lib/settings-plan-context";
 import { SettingsIndexNav } from "@/components/settings/settings-index-nav";
 import { SettingsSearch } from "@/components/settings/settings-search";
 import {
@@ -28,8 +28,9 @@ import {
 export function SettingsShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const [mobileNav, setMobileNav] = useState(false);
+  const { sections } = useSettingsPlan();
 
-  const activeSection = SETTINGS_SECTIONS.find((s) =>
+  const activeSection = sections.find((s) =>
     settingsSectionIsActive(pathname, s),
   );
 

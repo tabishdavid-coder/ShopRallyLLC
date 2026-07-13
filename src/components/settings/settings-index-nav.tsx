@@ -9,6 +9,7 @@ import {
   groupedSettingsSections,
   settingsSectionIsActive,
 } from "@/lib/settings-catalog";
+import { useSettingsPlan } from "@/lib/settings-plan-context";
 
 /**
  * Grouped left index rail for Admin / Settings. A pinned "Overview" link back
@@ -19,7 +20,7 @@ import {
  */
 export function SettingsIndexNav({ className }: { className?: string }) {
   const pathname = usePathname();
-  const groups = groupedSettingsSections();
+  const { groupedSections: groups } = useSettingsPlan();
   const onOverview = pathname === "/settings";
 
   return (

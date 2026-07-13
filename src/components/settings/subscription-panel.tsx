@@ -11,30 +11,37 @@ import {
   resolvePlanFeatures,
   type PlanFeature,
 } from "@/lib/plans";
+import { subscriptionFeatureLabelsForPlan, settingsUpgradeLabel } from "@/lib/settings-plan-gates";
 import { BILLING_PLAN_FEATURES } from "@/lib/billing-shared";
 import { nextPlanTier } from "@/lib/subscription";
 import type { BillingStatus, ShopPlan } from "@/generated/prisma";
 
-const FEATURE_LABELS: { key: PlanFeature; label: string }[] = [
-  { key: "cannedJobs", label: "Canned jobs" },
-  { key: "markupMatrices", label: "Markup matrices" },
-  { key: "partsTech", label: "PartsTech catalog" },
-  { key: "laborGuide", label: "Licensed MOTOR labor" },
-  { key: "customerEmail", label: "Customer email" },
-  { key: "customerSms", label: "Two-way SMS" },
-  { key: "digitalInspections", label: "Digital vehicle inspections" },
-  { key: "appointments", label: "Appointments" },
-  { key: "reports", label: "Operations Daily Snapshot" },
-  { key: "integrations", label: "Integrations" },
-  { key: "shopSite", label: "ShopSite (hosted website)" },
-  { key: "websiteSeo", label: "Local SEO · Growth Engine SEO" },
-  { key: "aiReviewReplies", label: "AI Google Review drafts" },
-  { key: "aiCampaignDrafting", label: "AI campaign drafting" },
-  { key: "aiSeoContent", label: "Growth Engine SEO content" },
-  { key: "aiCustomerInsights", label: "AI customer insights" },
-  { key: "aiReceptionist", label: "AI receptionist (SMS + voice after-hours)" },
-  { key: "advancedReports", label: "Advanced reporting" },
-];
+const FEATURE_LABELS: Record<PlanFeature, string> = {
+  cannedJobs: "Canned jobs",
+  markupMatrices: "Markup matrices",
+  partsTech: "PartsTech catalog",
+  laborGuide: "Labor guide & estimate tooling",
+  customerEmail: "Customer email",
+  customerSms: "Two-way SMS",
+  digitalInspections: "Digital vehicle inspections",
+  appointments: "Appointments",
+  reports: "Operations Daily Snapshot",
+  integrations: "Integrations (Stripe, QuickBooks sync)",
+  multiLocation: "Multi-location",
+  approvalLinks: "Text-to-approve links",
+  invoiceSharing: "Digital invoicing",
+  advancedReports: "Advanced reporting",
+  shopSite: "ShopSite (hosted website)",
+  websiteSeo: "Local SEO · Growth Engine SEO",
+  marketingCampaigns: "SMS & email campaigns",
+  maintenancePrograms: "Maintenance programs",
+  aiReviewReplies: "AI Google Review drafts",
+  aiCampaignDrafting: "AI campaign drafting",
+  aiSeoContent: "Growth Engine SEO content",
+  aiCustomerInsights: "AI customer insights",
+  aiReceptionist: "AI receptionist (SMS + voice after-hours)",
+  motorLabor: "Licensed MOTOR labor data",
+};
 
 export function SubscriptionPanel({
   plan,
@@ -42,19 +49,34 @@ export function SubscriptionPanel({
   trialEndsAt,
   planName,
   planTagline,
+  upgradeFeature,
 }: {
   plan: ShopPlan;
   billingStatus: BillingStatus;
   trialEndsAt: string | null;
   planName: string;
   planTagline: string;
+  upgradeFeature?: PlanFeature | null;
 }) {
   const features = resolvePlanFeatures({ plan });
   const def = PLANS[plan];
   const upgrade = nextPlanTier(plan);
+  const includedFeatureKeys = subscriptionFeatureLabelsForPlan(plan);
+  const isCore = plan === "STARTER";
 
   return (
     <div className="max-w-2xl space-y-6">
+      {upgradeFeature ? (
+        <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950">
+          <p className="font-medium">
+            {settingsUpgradeLabel(upgradeFeature)} is on {PLANS.PROFESSIONAL.name} and above
+          </p>
+          <p className="mt-1 text-amber-900/85">
+            Upgrade your plan to unlock this settings section, or contact support to add it to your shop.
+          </p>
+        </div>
+      ) : null}
+
       <div className="rounded-lg border bg-card p-5 shadow-sm">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
@@ -124,9 +146,11 @@ export function SubscriptionPanel({
             </li>
           ))}
         </ul>
-        <h4 className="mt-6 text-sm font-semibold text-muted-foreground">Feature gates</h4>
+        <h4 className="mt-6 text-sm font-semibold text-muted-foreground">
+          {isCore ? "Included on Core" : "Feature gates"}
+        </h4>
         <ul className="mt-3 grid gap-2 sm:grid-cols-2">
-          {FEATURE_LABELS.map(({ key, label }) => (
+          {(isCore ? includedFeatureKeys : (Object.keys(FEATURE_LABELS) as PlanFeature[])).map((key) => (
             <li
               key={key}
               className={`flex items-center gap-2 text-sm ${
@@ -136,7 +160,7 @@ export function SubscriptionPanel({
               <span
                 className={`size-1.5 rounded-full ${features[key] ? "bg-brand-navy" : "bg-muted-foreground/40"}`}
               />
-              {label}
+              {FEATURE_LABELS[key]}
             </li>
           ))}
         </ul>
@@ -155,7 +179,7 @@ export function SubscriptionPanel({
             Add AI Plus
           </Button>
         </div>
-        {!PHASE_ONE_LAUNCH ? (
+        {!isCore ? (
           <>
             <div className="mt-3 flex flex-wrap items-start justify-between gap-3 border-t pt-3">
               <div>
@@ -182,7 +206,20 @@ export function SubscriptionPanel({
               </Button>
             </div>
           </>
-        ) : null}
+        ) : (
+          <div className="mt-3 border-t pt-3 text-sm text-muted-foreground">
+            <p className="font-medium text-foreground">Need Pro features?</p>
+            <p className="mt-1">
+              Markup matrices, two-way SMS, PartsTech, Stripe payments, and Growth Engine tools are on{" "}
+              {PLANS.PROFESSIONAL.name} and above.
+            </p>
+            {upgrade ? (
+              <Button size="sm" className="mt-3 bg-brand-navy" disabled title="Stripe Billing checkout — coming soon">
+                Upgrade to {PLANS[upgrade].name}
+              </Button>
+            ) : null}
+          </div>
+        )}
       </div>
 
       <div className="flex flex-wrap gap-2">

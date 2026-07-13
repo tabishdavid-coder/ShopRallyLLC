@@ -3,6 +3,7 @@
 import { createContext, useContext, type ReactNode } from "react";
 
 import { SMS_ENABLED } from "@/lib/features";
+import type { PlanFeatureSet } from "@/lib/plans";
 
 /** Per-shop plan capabilities for client UI (server still enforces). */
 export type ShopCapabilities = {
@@ -10,9 +11,15 @@ export type ShopCapabilities = {
   sms: boolean;
   /** Stripe Connect / online RO checkout — Pro+ only. */
   stripePayments: boolean;
+  /** Resolved plan features — drives settings nav pruning on Core. */
+  planFeatures: PlanFeatureSet;
 };
 
-const DEFAULT: ShopCapabilities = { sms: false, stripePayments: false };
+const DEFAULT: ShopCapabilities = {
+  sms: false,
+  stripePayments: false,
+  planFeatures: {} as PlanFeatureSet,
+};
 
 const ShopCapabilitiesContext = createContext<ShopCapabilities>(DEFAULT);
 
@@ -36,4 +43,9 @@ export function useShopCapabilities(): ShopCapabilities {
 export function useSmsUiEnabled(): boolean {
   const caps = useShopCapabilities();
   return SMS_ENABLED && caps.sms;
+}
+
+/** Plan features for settings / admin UI gates. */
+export function usePlanFeatures(): PlanFeatureSet {
+  return useShopCapabilities().planFeatures;
 }

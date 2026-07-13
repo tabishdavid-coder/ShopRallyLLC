@@ -14,6 +14,12 @@ import {
   Wrench,
 } from "lucide-react";
 
+import type { PlanFeatureSet } from "@/lib/plans";
+import {
+  isSettingsChildVisible,
+  isSettingsSectionVisible,
+} from "@/lib/settings-plan-gates";
+
 /**
  * Single source of truth for the Admin / Settings information architecture.
  * Drives the grouped left index rail, the settings search typeahead, and the
@@ -227,11 +233,74 @@ export const SETTINGS_SECTIONS: SettingsSection[] = [
   },
 ];
 
-/** Sections grouped for the left index rail + overview. */
-export function groupedSettingsSections(): {
+function filterSectionForPlan(section: SettingsSection, features: PlanFeatureSet): SettingsSection | null {
+  if (!isSettingsSectionVisible(section.id, features)) return null;
+  const children = section.children?.filter((c) => isSettingsChildVisible(c.id, features));
+  if (section.id === "communications" && (!children || children.length === 0)) return null;
+  const href =
+    section.id === "communications" && children?.[0]
+      ? children[0].href
+      : section.href;
+  return { ...section, href, children: children?.length ? children : undefined };
+}
+
+/** Plan-filtered sections grouped for nav + overview. */
+export function filterGroupedSettingsSections(features: PlanFeatureSet): {
   group: SettingsGroup;
   sections: SettingsSection[];
 }[] {
+  return SETTINGS_GROUPS.map((group) => ({
+    group,
+    sections: SETTINGS_SECTIONS.map((s) => filterSectionForPlan(s, features))
+      .filter((s): s is SettingsSection => s != null)
+      .filter((s) => s.group === group.id),
+  })).filter((g) => g.sections.length > 0);
+}
+
+/** Plan-filtered searchable index. */
+export function filterSettingsSearchIndex(features: PlanFeatureSet): SettingsSearchEntry[] {
+  const visible = SETTINGS_SECTIONS.map((s) => filterSectionForPlan(s, features)).filter(
+    (s): s is SettingsSection => s != null,
+  );
+  const groupLabel = new Map(SETTINGS_GROUPS.map((g) => [g.id, g.label]));
+
+  return visible.flatMap((section) => {
+    const groupLabelStr = groupLabel.get(section.group) ?? "";
+    const sectionEntry: SettingsSearchEntry = {
+      key: section.id,
+      label: section.label,
+      href: section.href,
+      icon: section.icon,
+      sectionLabel: section.label,
+      groupLabel: groupLabelStr,
+      description: section.description,
+      haystack: [section.label, section.description, groupLabelStr, ...section.keywords]
+        .join(" ")
+        .toLowerCase(),
+      isChild: false,
+    };
+    const childEntries: SettingsSearchEntry[] = (section.children ?? []).map((child) => ({
+      key: `${section.id}:${child.id}`,
+      label: child.label,
+      href: child.href,
+      icon: section.icon,
+      sectionLabel: section.label,
+      groupLabel: groupLabelStr,
+      haystack: [child.label, section.label, groupLabelStr, ...(child.keywords ?? [])]
+        .join(" ")
+        .toLowerCase(),
+      isChild: true,
+    }));
+    return [sectionEntry, ...childEntries];
+  });
+}
+
+/** Sections grouped for the left index rail + overview. */
+export function groupedSettingsSections(features?: PlanFeatureSet): {
+  group: SettingsGroup;
+  sections: SettingsSection[];
+}[] {
+  if (features) return filterGroupedSettingsSections(features);
   return SETTINGS_GROUPS.map((group) => ({
     group,
     sections: SETTINGS_SECTIONS.filter((s) => s.group === group.id),
@@ -333,16 +402,21 @@ function subsequenceMatch(query: string, text: string): boolean {
   return i === query.length;
 }
 
-/**
- * Rank a query against the flattened index. Higher score = better match.
+/** Rank a query against the flattened index. Higher score = better match.
  * Prefers label prefix > label word-start > label substring > keyword
  * substring > fuzzy subsequence. Top-level sections beat children on ties.
  */
-export function searchSettings(query: string, limit = 8): SettingsSearchEntry[] {
+export function searchSettings(
+  query: string,
+  limit = 8,
+  features?: PlanFeatureSet,
+): SettingsSearchEntry[] {
   const q = query.trim().toLowerCase();
   if (!q) return [];
 
-  const scored = SETTINGS_SEARCH_INDEX.map((entry) => {
+  const index = features ? filterSettingsSearchIndex(features) : SETTINGS_SEARCH_INDEX;
+
+  const scored = index.map((entry) => {
     const label = entry.label.toLowerCase();
     let score = 0;
     if (label === q) score = 100;

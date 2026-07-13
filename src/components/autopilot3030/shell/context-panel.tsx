@@ -15,6 +15,7 @@ import {
   type ApNavLink,
 } from "@/lib/autopilot3030/nav";
 import { apContextNavClass } from "@/lib/autopilot3030/nav-active";
+import { usePlanFeatures } from "@/lib/shop-capabilities";
 import { cn } from "@/lib/utils";
 
 function filterItems(items: ApNavLink[], allowedNavHrefs?: string[]): ApNavLink[] {
@@ -76,6 +77,7 @@ export function ApContextPanel({
   allowedNavHrefs?: string[];
 }) {
   const pathname = usePathname();
+  const planFeatures = usePlanFeatures();
   const section = apSectionForPath(pathname);
   const showOps = apShowOperationsPanel(pathname);
   const isSettings =
@@ -101,7 +103,7 @@ export function ApContextPanel({
       <div className="min-h-0 flex-1 overflow-y-auto px-2 pb-3">
         {isSettings ? (
           <nav className="space-y-4" aria-label="Shop configuration">
-            {apSettingsGroupsForBuild().map((group) => {
+            {apSettingsGroupsForBuild(planFeatures).map((group) => {
               const items = filterItems(group.items, allowedNavHrefs);
               if (items.length === 0) return null;
               return (

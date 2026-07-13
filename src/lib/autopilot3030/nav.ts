@@ -34,6 +34,8 @@ import {
 import { AP_TERMS } from "@/lib/autopilot3030/terminology";
 import { GROWTH_PRODUCTS, type GrowthProductId } from "@/lib/growth-engine-brand";
 import { SEO_AUTOPILOT_TABS } from "@/lib/seo-autopilot-nav";
+import type { PlanFeatureSet } from "@/lib/plans";
+import { isApSettingsLinkVisible } from "@/lib/settings-plan-gates";
 
 export type ApNavLink = {
   title: string;
@@ -365,9 +367,13 @@ export const AP_SETTINGS_GROUPS: ApNavGroup[] = [
 
 export const AP_SETTINGS_NAV_FLAT: ApNavLink[] = AP_SETTINGS_GROUPS.flatMap((g) => g.items);
 
-/** Settings nav groups for the active shop CRM build. */
-export function apSettingsGroupsForBuild(): ApNavGroup[] {
-  return AP_SETTINGS_GROUPS;
+/** Settings nav groups for the active shop CRM build (plan-filtered). */
+export function apSettingsGroupsForBuild(features?: PlanFeatureSet): ApNavGroup[] {
+  if (!features) return AP_SETTINGS_GROUPS;
+  return AP_SETTINGS_GROUPS.map((group) => ({
+    ...group,
+    items: group.items.filter((item) => isApSettingsLinkVisible(item.href, features)),
+  })).filter((g) => g.items.length > 0);
 }
 
 /** Repair Order workspace phases — stepper labels (routes unchanged). See `src/lib/ro-phases.ts`.
