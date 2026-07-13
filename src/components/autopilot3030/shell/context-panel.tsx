@@ -21,7 +21,14 @@ import { cn } from "@/lib/utils";
 function filterItems(items: ApNavLink[], allowedNavHrefs?: string[]): ApNavLink[] {
   if (!allowedNavHrefs) return items;
   const allowed = new Set(allowedNavHrefs);
-  return items.filter((item) => allowed.has(item.href) || item.stub);
+  return items.filter((item) => {
+    if (item.stub) return true;
+    if (allowed.has(item.href)) return true;
+    // Settings deep links may include query strings.
+    const bare = item.href.split("?")[0]!;
+    if (allowed.has(bare)) return true;
+    return false;
+  });
 }
 
 function ContextNavLink({

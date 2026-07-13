@@ -28,6 +28,7 @@ import { addJob } from "@/server/actions/estimate";
 import { useEstimateActionToast } from "@/components/repair-order/estimate-action-toast";
 import type { CannedJobSummary } from "@/lib/canned-job-types";
 import type { LaborTier, PartTier } from "@/lib/matrix";
+import { useMotorLaborUiEnabled } from "@/lib/shop-capabilities";
 import { cn } from "@/lib/utils";
 
 type LauncherItem = {
@@ -81,14 +82,19 @@ export function EstimateJobLauncher({
   const [feeOpen, setFeeOpen] = useState(false);
   const [discountOpen, setDiscountOpen] = useState(false);
   const [pending, start] = useTransition();
+  const motorLaborOk = useMotorLaborUiEnabled();
 
   const items: LauncherItem[] = [
-    {
-      id: "labor-guide",
-      label: "Search Labor Book",
-      description: "Find flat-rate operations and build a job with labor lines.",
-      icon: <ListTree className="size-5 text-brand-navy" />,
-    },
+    ...(motorLaborOk
+      ? [
+          {
+            id: "labor-guide",
+            label: "Search Labor Book",
+            description: "Find flat-rate operations and build a job with labor lines.",
+            icon: <ListTree className="size-5 text-brand-navy" />,
+          } satisfies LauncherItem,
+        ]
+      : []),
     {
       id: "canned",
       label: "Add Canned Job",

@@ -124,7 +124,7 @@ export default async function InvoicePage({
             </div>
           ) : !stripeEnabled && view.balanceCents > 0 ? (
             <p className="mx-6 mb-6 mt-4 text-center text-sm text-muted-foreground">
-              Online payment is not available yet. Contact {view.shopName} to pay this invoice.
+              Please contact {view.shopName} to arrange payment for this invoice.
             </p>
           ) : null}
 

@@ -78,6 +78,7 @@ import { fmtDate } from "@/lib/datetime";
 import { fetchVehicleSpecsBundle } from "@/server/actions/vehicle-specs";
 import { formatPhoneInput } from "@/lib/phone";
 import { RO_STATUS_PILL } from "@/lib/ro-status";
+import { useVehicleSpecsUiEnabled } from "@/lib/shop-capabilities";
 import { getCustomerTagNames } from "@/server/actions/customer-settings";
 import { updateCustomer } from "@/server/actions/customers";
 import { updateVehicle } from "@/server/actions/vehicles";
@@ -507,6 +508,7 @@ function VehicleAccordionCard({
   onSaved: () => void;
 }) {
   const [open, setOpen] = useState(vehicle.id === currentRoVehicleId || autoOpenSpecs);
+  const vehicleSpecsOk = useVehicleSpecsUiEnabled();
   const [specsOpen, setSpecsOpen] = useState(false);
   const [specsData, setSpecsData] = useState<EstimateLabVehicleSpecsBundle | null>(
     vehicle.id === currentRoVehicleId ? preloadedSpecs : null,
@@ -572,7 +574,7 @@ function VehicleAccordionCard({
   }, [vehicle.id, currentRoVehicleId, preloadedSpecs]);
 
   useEffect(() => {
-    if (!autoOpenSpecs) {
+    if (!autoOpenSpecs || !vehicleSpecsOk) {
       autoSpecsRequested.current = false;
       return;
     }
@@ -599,6 +601,7 @@ function VehicleAccordionCard({
     });
   }, [
     autoOpenSpecs,
+    vehicleSpecsOk,
     currentRoVehicleId,
     preloadedSpecs,
     roId,
@@ -773,24 +776,26 @@ function VehicleAccordionCard({
             >
               Tire storage
             </Button>
-            <Button
-              type="button"
-              variant={specsOpen ? "default" : "outline"}
-              size="sm"
-              className={cn("h-7 text-xs", specsOpen && "bg-brand-navy hover:bg-brand-navy/90")}
-              disabled={specsPending}
-              onClick={toggleSpecs}
-            >
-              {specsPending ? (
-                <Loader2 className="mr-1 size-3 animate-spin" aria-hidden />
-              ) : null}
-              Vehicle specs
-            </Button>
+            {vehicleSpecsOk ? (
+              <Button
+                type="button"
+                variant={specsOpen ? "default" : "outline"}
+                size="sm"
+                className={cn("h-7 text-xs", specsOpen && "bg-brand-navy hover:bg-brand-navy/90")}
+                disabled={specsPending}
+                onClick={toggleSpecs}
+              >
+                {specsPending ? (
+                  <Loader2 className="mr-1 size-3 animate-spin" aria-hidden />
+                ) : null}
+                Vehicle specs
+              </Button>
+            ) : null}
           </div>
 
           {specsError ? <p className="text-xs text-brand-red">{specsError}</p> : null}
 
-          {specsOpen && specsData ? (
+          {vehicleSpecsOk && specsOpen && specsData ? (
             <div className="overflow-hidden rounded-lg border border-border bg-muted/10">
               <EstimateLabVehicleSpecsSection data={specsData} canEdit={canEdit} />
             </div>

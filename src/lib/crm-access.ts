@@ -35,6 +35,8 @@ export const CRM_NAV_HREF_PERMISSIONS: Record<string, readonly string[]> = {
   "/employees": ["employees.manage"],
   "/settings": ["employees.manage"],
   "/settings/subscription": ["finance.account", "employees.manage"],
+  "/settings/marketing": ["employees.manage"],
+  "/settings/booking": ["employees.manage"],
   "/marketing": [],
   "/marketing/payment-account": ["finance.account", "employees.manage"],
   "/billing": ["finance.account", "employees.manage"],

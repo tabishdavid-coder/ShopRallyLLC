@@ -14,7 +14,7 @@ import { KeyedChildren } from "@/lib/keyed-children";
 import { prisma } from "@/db/client";
 import { isPlatformAdmin } from "@/lib/platform";
 import { getCurrentShop, getShopId, listShops, ShopAccessError, DEMO_SHOP_ID } from "@/lib/shop";
-import { canUseFeature, getShopSubscription, resolvePlanFeatures } from "@/lib/subscription";
+import { canUseFeature, canUseReleasedFeature, getShopSubscription, resolvePlanFeatures } from "@/lib/subscription";
 import { checkCrmRouteAccess, getCrmAccessContext } from "@/server/crm-access";
 import { getNotifications } from "@/server/notifications";
 import { countUnreadMessages } from "@/server/messages-inbox";
@@ -72,7 +72,7 @@ export default async function AppLayout({
     }
   }
 
-  const [activeShop, customerCount, notificationData, unreadSmsCount, intakeConfig, smsOnPlan, stripeOnPlan, shopSubscription] =
+  const [activeShop, customerCount, notificationData, unreadSmsCount, intakeConfig, smsOnPlan, stripeOnPlan, motorLaborOnPlan, partsTechOnPlan, marketingOnPlan, vehicleSpecsOnPlan, shopSubscription] =
     dbSeeded
       ? await Promise.all([
           getCurrentShop(),
@@ -82,9 +82,13 @@ export default async function AppLayout({
           loadRoIntakeConfig(activeShopId),
           canUseFeature(activeShopId, "sms"),
           canUseFeature(activeShopId, "stripePayments"),
+          canUseReleasedFeature(activeShopId, "motorLabor"),
+          canUseReleasedFeature(activeShopId, "parts"),
+          canUseReleasedFeature(activeShopId, "marketing_campaigns"),
+          getShopSubscription(activeShopId).then((s) => s.plan !== "STARTER"),
           getShopSubscription(activeShopId),
         ])
-      : [null, 0, { notifications: [], unreadCount: 0 }, 0, null, false, false, null];
+      : [null, 0, { notifications: [], unreadCount: 0 }, 0, null, false, false, false, false, false, false, null];
 
   const showPlatformShopContext = platformAdmin && activeShop && !isPlatformRoute;
 
@@ -126,6 +130,10 @@ export default async function AppLayout({
         capabilities={{
           sms: smsOnPlan,
           stripePayments: stripeOnPlan,
+          motorLabor: motorLaborOnPlan,
+          partsTech: partsTechOnPlan,
+          marketingCampaigns: marketingOnPlan,
+          vehicleSpecs: vehicleSpecsOnPlan,
           planFeatures: shopSubscription?.features ?? resolvePlanFeatures({ plan: "STARTER" }),
         }}
         banner={

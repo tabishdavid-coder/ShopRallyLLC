@@ -26,6 +26,7 @@ import { formatCents } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import { recordManualPayment, startStaffInvoiceCheckout } from "@/server/actions/payments";
 import { ShareInvoiceDialog } from "@/components/repair-order/share-invoice-dialog";
+import { useStripePaymentsUiEnabled } from "@/lib/shop-capabilities";
 
 type MethodKey = "CASH" | "CHECK" | "CARD" | "OTHER";
 
@@ -66,6 +67,8 @@ export function PaymentMethodsPanel({
   embedded?: boolean;
 }) {
   const router = useRouter();
+  const stripeOnPlan = useStripePaymentsUiEnabled();
+  const canStripeCheckout = stripeOnPlan && stripeEnabled;
   const [activeMethod, setActiveMethod] = useState<MethodKey | null>(null);
   const [amountStr, setAmountStr] = useState("");
   const [reference, setReference] = useState("");
@@ -247,10 +250,12 @@ export function PaymentMethodsPanel({
           </DialogHeader>
           <div className="space-y-3 py-2">
             <p className="text-sm text-muted-foreground">
-              Collect {formatCents(balanceDueCents)} by sending a pay link or recording an in-shop card payment.
+              {stripeOnPlan
+                ? `Collect ${formatCents(balanceDueCents)} by sending a pay link or recording an in-shop card payment.`
+                : `Record ${formatCents(balanceDueCents)} as an in-shop card payment (terminal or external processor).`}
             </p>
 
-            {stripeEnabled ? (
+            {canStripeCheckout ? (
               <>
                 <Button
                   className="w-full justify-start gap-2 bg-brand-navy hover:bg-brand-navy/90"
@@ -270,10 +275,10 @@ export function PaymentMethodsPanel({
                   disabled={pending}
                 >
                   <MessageSquare className="size-4" />
-                  Text or email pay link
+                  Send or email pay link
                 </Button>
               </>
-            ) : (
+            ) : stripeOnPlan ? (
               <p className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-900">
                 Stripe is not configured — connect in{" "}
                 <a href="/payments/account" className="font-medium underline">
@@ -281,12 +286,14 @@ export function PaymentMethodsPanel({
                 </a>{" "}
                 so customers can pay online.
               </p>
-            )}
+            ) : null}
 
-            <div className="border-t pt-3">
-              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-foreground/55">
-                Record manual card payment
-              </p>
+            <div className={cn(canStripeCheckout || stripeOnPlan ? "border-t pt-3" : undefined)}>
+              {stripeOnPlan ? (
+                <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-foreground/55">
+                  Record manual card payment
+                </p>
+              ) : null}
               <div className="space-y-3">
                 <div>
                   <label className="mb-1.5 block text-sm text-muted-foreground">Amount</label>
@@ -308,7 +315,7 @@ export function PaymentMethodsPanel({
                   <Input
                     value={reference}
                     onChange={(e) => setReference(e.target.value)}
-                    placeholder="Visa ••4242, terminal receipt #"
+                    placeholder="Visa ending 4242, terminal receipt #"
                   />
                 </div>
               </div>
@@ -321,8 +328,12 @@ export function PaymentMethodsPanel({
               Cancel
             </Button>
             <Button
-              variant="outline"
-              className="border-brand-navy/30 text-brand-navy"
+              className={
+                stripeOnPlan
+                  ? "border-brand-navy/30 text-brand-navy"
+                  : "bg-brand-navy hover:bg-brand-navy/90"
+              }
+              variant={stripeOnPlan ? "outline" : "default"}
               onClick={() => record("CARD")}
               disabled={pending}
             >
@@ -339,7 +350,7 @@ export function PaymentMethodsPanel({
         repairOrderId={repairOrderId}
         invoiceId={invoiceId}
         invoiceNumber={invoiceNumber}
-        stripeEnabled={stripeEnabled}
+        stripeEnabled={canStripeCheckout}
         customerFirstName={customerFirstName}
         shopName={shopName}
         phones={phones}

@@ -11,7 +11,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { useSmsUiEnabled } from "@/lib/shop-capabilities";
+import { useSmsUiEnabled, useStripePaymentsUiEnabled } from "@/lib/shop-capabilities";
 import { formatPhoneInput } from "@/lib/phone";
 import { getShopEmailSendStatus } from "@/server/actions/email-settings";
 import { getInvoiceLink, shareInvoice, type ShareMethod } from "@/server/actions/share";
@@ -41,6 +41,8 @@ export function ShareInvoiceDialog({
   phones: { label: string; value: string }[];
   email: string | null;
 }) {
+  const stripeOnPlan = useStripePaymentsUiEnabled();
+  const canStripeCheckout = stripeOnPlan && stripeEnabled === true;
   const [method, setMethod] = useState<ShareMethod>("EMAIL");
   const [phoneChoice, setPhoneChoice] = useState<string>(phones[0]?.value ?? "other");
   const [otherPhone, setOtherPhone] = useState("");
@@ -138,12 +140,17 @@ export function ShareInvoiceDialog({
         </DialogHeader>
 
         <div className="min-w-0 space-y-4 overflow-hidden px-5 py-4">
-          {stripeEnabled === false ? (
+          {!stripeOnPlan ? (
+            <p className="rounded-md border border-brand-navy/15 bg-brand-navy/[0.04] px-3 py-2 text-xs text-foreground/80">
+              This link opens a view-only invoice. On Core, record cash, check, card, or other payments
+              in the shop — online pay is not included.
+            </p>
+          ) : stripeEnabled === false ? (
             <p className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">
               Online Pay invoice is disabled until Stripe is configured. The link still opens a view-only invoice;
               record in-shop payments from the Payment tab.
             </p>
-          ) : stripeEnabled ? (
+          ) : canStripeCheckout ? (
             <p className="rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs text-emerald-900">
               Customers can tap <span className="font-semibold">Pay invoice</span> on this link to pay by card
               (Stripe Checkout).

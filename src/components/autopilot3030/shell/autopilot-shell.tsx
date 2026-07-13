@@ -63,6 +63,10 @@ export function AutopilotShell({
   capabilities = {
     sms: false,
     stripePayments: false,
+    motorLabor: false,
+    partsTech: false,
+    marketingCampaigns: false,
+    vehicleSpecs: false,
     planFeatures: resolvePlanFeatures({ plan: "STARTER" }),
   },
   children,

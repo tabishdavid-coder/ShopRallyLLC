@@ -11,6 +11,14 @@ export type ShopCapabilities = {
   sms: boolean;
   /** Stripe Connect / online RO checkout — Pro+ only. */
   stripePayments: boolean;
+  /** Licensed MOTOR Labor Book — Pro+ only. */
+  motorLabor: boolean;
+  /** PartsTech / vendor parts lookup — Pro+ only. */
+  partsTech: boolean;
+  /** Growth Engine / marketing campaigns — Pro+ only. */
+  marketingCampaigns: boolean;
+  /** VIN/vPIC vehicle specs rail — Pro+ only (Core uses manual YMM). */
+  vehicleSpecs: boolean;
   /** Resolved plan features — drives settings nav pruning on Core. */
   planFeatures: PlanFeatureSet;
 };
@@ -18,6 +26,10 @@ export type ShopCapabilities = {
 const DEFAULT: ShopCapabilities = {
   sms: false,
   stripePayments: false,
+  motorLabor: false,
+  partsTech: false,
+  marketingCampaigns: false,
+  vehicleSpecs: false,
   planFeatures: {} as PlanFeatureSet,
 };
 
@@ -48,4 +60,29 @@ export function useSmsUiEnabled(): boolean {
 /** Plan features for settings / admin UI gates. */
 export function usePlanFeatures(): PlanFeatureSet {
   return useShopCapabilities().planFeatures;
+}
+
+/** Licensed MOTOR Labor Book UI — Pro+. */
+export function useMotorLaborUiEnabled(): boolean {
+  return useShopCapabilities().motorLabor;
+}
+
+/** PartsTech / vendor parts lookup UI — Pro+. */
+export function usePartsTechUiEnabled(): boolean {
+  return useShopCapabilities().partsTech;
+}
+
+/** Growth Engine / marketing campaigns UI — Pro+. */
+export function useMarketingCampaignsUiEnabled(): boolean {
+  return useShopCapabilities().marketingCampaigns;
+}
+
+/** VIN/vPIC vehicle specs rail — Pro+. */
+export function useVehicleSpecsUiEnabled(): boolean {
+  return useShopCapabilities().vehicleSpecs;
+}
+
+/** Stripe Connect / online checkout UI — Pro+. Core is manual payments only. */
+export function useStripePaymentsUiEnabled(): boolean {
+  return useShopCapabilities().stripePayments;
 }
