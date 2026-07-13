@@ -2,6 +2,7 @@
 
 import { Plus, Search, Wrench, ListTree } from "lucide-react";
 
+import { useMotorLaborUiEnabled, usePartsTechUiEnabled } from "@/lib/shop-capabilities";
 import { cn } from "@/lib/utils";
 
 const BTN_BASE =
@@ -23,6 +24,10 @@ export function EstimateLabLineAddSplit({
   compact?: boolean;
   className?: string;
 }) {
+  const motorLaborOk = useMotorLaborUiEnabled();
+  const partsTechOk = usePartsTechUiEnabled();
+  const lookupAllowed = kind === "labor" ? motorLaborOk : partsTechOk;
+
   const size = compact
     ? "h-6 border-l border-brand-navy/15 px-1.5 text-[9px]"
     : "h-7 rounded-md border border-brand-navy/25 bg-white px-2 text-[10px]";
@@ -49,19 +54,21 @@ export function EstimateLabLineAddSplit({
         <Wrench className={compact ? "size-2.5 opacity-80" : "size-3 opacity-80"} aria-hidden />
         {compact ? "Manual" : "Manual order"}
       </button>
-      <button
-        type="button"
-        title={
-          kind === "labor"
-            ? "Labor Book — search flat-rate operations"
-            : "Parts lookup — pick supplier and search catalogs"
-        }
-        onClick={onLookup}
-        className={cn(BTN_BASE, size, compact ? "border-l border-brand-navy/15" : "shadow-sm")}
-      >
-        <LookupIcon className={compact ? "size-2.5" : "size-3"} aria-hidden />
-        {compact ? "Lookup" : lookupLabel}
-      </button>
+      {lookupAllowed ? (
+        <button
+          type="button"
+          title={
+            kind === "labor"
+              ? "Labor Book — search flat-rate operations"
+              : "Parts lookup — pick supplier and search catalogs"
+          }
+          onClick={onLookup}
+          className={cn(BTN_BASE, size, compact ? "border-l border-brand-navy/15" : "shadow-sm")}
+        >
+          <LookupIcon className={compact ? "size-2.5" : "size-3"} aria-hidden />
+          {compact ? "Lookup" : lookupLabel}
+        </button>
+      ) : null}
     </div>
   );
 }

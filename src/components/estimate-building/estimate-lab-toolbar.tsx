@@ -12,6 +12,10 @@ import { useEstimateLabLabor } from "@/components/estimate-building/estimate-lab
 import { useEstimateLabParts } from "@/components/estimate-building/estimate-lab-parts-provider";
 import type { CannedJobSummary } from "@/lib/canned-job-types";
 import type { LaborTier, PartTier } from "@/lib/matrix";
+import {
+  useMotorLaborUiEnabled,
+  usePartsTechUiEnabled,
+} from "@/lib/shop-capabilities";
 import { cn } from "@/lib/utils";
 
 /** Karvio quote toolbar — search + differentiated action cluster (not competitor pill row). */
@@ -49,6 +53,10 @@ export function EstimateLabToolbar({
   const [browseQuery, setBrowseQuery] = useState("");
   const { openPartsMenu } = useEstimateLabParts();
   const { openLaborGuide } = useEstimateLabLabor();
+  const motorLaborOk = useMotorLaborUiEnabled();
+  const partsTechOk = usePartsTechUiEnabled();
+  /** Core: Labor Book / Parts lookup / Pro job launchers are off — canned search only. */
+  const showProActionCluster = motorLaborOk || partsTechOk;
 
   if (!canEdit) return null;
 
@@ -70,27 +78,88 @@ export function EstimateLabToolbar({
         />
       </div>
 
-      <div
-        className="flex shrink-0 flex-wrap items-center gap-2"
-        role="group"
-        aria-label="Quote actions"
-      >
-        <button
-          type="button"
-          onClick={() => openLaborGuide()}
-          title="Open Labor Book — search flat-rate operations for this vehicle"
-          aria-label="Open Labor Book — search flat-rate operations for this vehicle"
-          className={cn(
-            "inline-flex h-9 items-center gap-1.5 rounded-none border border-[#DDE5EF] bg-white",
-            "px-3 text-sm font-medium text-[#0B1F3B]",
-            "transition-colors hover:border-[#E86A10]/50 hover:bg-[#E86A10]/[0.06]",
-            "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E86A10]/40",
-          )}
+      {showProActionCluster ? (
+        <div
+          className="flex shrink-0 flex-wrap items-center gap-2"
+          role="group"
+          aria-label="Quote actions"
         >
-          <ListTree className="size-4 shrink-0 text-[#E86A10]" aria-hidden />
-          Labor Book
-        </button>
+          {motorLaborOk ? (
+            <button
+              type="button"
+              onClick={() => openLaborGuide()}
+              title="Open Labor Book — search flat-rate operations for this vehicle"
+              aria-label="Open Labor Book — search flat-rate operations for this vehicle"
+              className={cn(
+                "inline-flex h-9 items-center gap-1.5 rounded-none border border-[#DDE5EF] bg-white",
+                "px-3 text-sm font-medium text-[#0B1F3B]",
+                "transition-colors hover:border-[#E86A10]/50 hover:bg-[#E86A10]/[0.06]",
+                "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#E86A10]/40",
+              )}
+            >
+              <ListTree className="size-4 shrink-0 text-[#E86A10]" aria-hidden />
+              Labor Book
+            </button>
+          ) : null}
 
+          <EstimateJobLauncher
+            roId={roId}
+            cannedJobs={cannedJobs}
+            cannedJobCategories={cannedJobCategories}
+            baseRateCents={baseRateCents}
+            partTiers={partTiers}
+            laborTiers={laborTiers}
+            vehicleId={vehicleId}
+            customerName={customerName}
+            vehicleLabel={vehicleLabel}
+            specLine={specLine}
+            mileageIn={mileageIn}
+            odometerNotWorking={odometerNotWorking}
+            triggerLabel="Job"
+            triggerIcon={<Plus className="size-4" aria-hidden />}
+            triggerClassName={cn(
+              "h-9 gap-1.5 rounded-none border border-[#DDE5EF] bg-white px-3 text-sm font-medium text-[#0B1F3B] shadow-none",
+              "hover:border-[#0B1F3B]/40 hover:bg-[#0B1F3B]/[0.04] hover:text-[#0B1F3B]",
+              "[&>svg:first-child]:text-[#0B1F3B]",
+            )}
+          />
+
+          <EstimateJobLauncher
+            roId={roId}
+            cannedJobs={cannedJobs}
+            cannedJobCategories={cannedJobCategories}
+            baseRateCents={baseRateCents}
+            partTiers={partTiers}
+            laborTiers={laborTiers}
+            vehicleId={vehicleId}
+            customerName={customerName}
+            vehicleLabel={vehicleLabel}
+            specLine={specLine}
+            mileageIn={mileageIn}
+            odometerNotWorking={odometerNotWorking}
+            triggerLabel="+ Work line"
+            triggerClassName={cn(
+              "h-9 gap-1.5 rounded-none bg-[#0B1F3B] px-3.5 text-sm font-medium shadow-none hover:bg-[#0B1F3B]/90",
+              "[&>svg:first-child]:text-white",
+            )}
+          />
+
+          {partsTechOk ? (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="h-9 gap-1.5 rounded-none border-[#DDE5EF] bg-white px-3 text-sm font-medium text-[#0B1F3B] shadow-none hover:border-[#1E7FE0]/50 hover:bg-[#1E7FE0]/[0.06] hover:text-[#0B1F3B]"
+              onClick={() => openPartsMenu({ mode: "lookup" })}
+              title="Parts lookup — pick supplier and search catalogs"
+            >
+              <Package className="size-4 text-[#1E7FE0]" aria-hidden />
+              Parts lookup
+            </Button>
+          ) : null}
+        </div>
+      ) : (
+        /* Core: no Labor Book / Parts lookup / Work line — one canned + blank job add */
         <EstimateJobLauncher
           roId={roId}
           cannedJobs={cannedJobs}
@@ -104,47 +173,14 @@ export function EstimateLabToolbar({
           specLine={specLine}
           mileageIn={mileageIn}
           odometerNotWorking={odometerNotWorking}
-          triggerLabel="Job"
+          triggerLabel="+ Job"
           triggerIcon={<Plus className="size-4" aria-hidden />}
-          triggerClassName={cn(
-            "h-9 gap-1.5 rounded-none border border-[#DDE5EF] bg-white px-3 text-sm font-medium text-[#0B1F3B] shadow-none",
-            "hover:border-[#0B1F3B]/40 hover:bg-[#0B1F3B]/[0.04] hover:text-[#0B1F3B]",
-            "[&>svg:first-child]:text-[#0B1F3B]",
-          )}
-        />
-
-        <EstimateJobLauncher
-          roId={roId}
-          cannedJobs={cannedJobs}
-          cannedJobCategories={cannedJobCategories}
-          baseRateCents={baseRateCents}
-          partTiers={partTiers}
-          laborTiers={laborTiers}
-          vehicleId={vehicleId}
-          customerName={customerName}
-          vehicleLabel={vehicleLabel}
-          specLine={specLine}
-          mileageIn={mileageIn}
-          odometerNotWorking={odometerNotWorking}
-          triggerLabel="+ Work line"
           triggerClassName={cn(
             "h-9 gap-1.5 rounded-none bg-[#0B1F3B] px-3.5 text-sm font-medium shadow-none hover:bg-[#0B1F3B]/90",
             "[&>svg:first-child]:text-white",
           )}
         />
-
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          className="h-9 gap-1.5 rounded-none border-[#DDE5EF] bg-white px-3 text-sm font-medium text-[#0B1F3B] shadow-none hover:border-[#1E7FE0]/50 hover:bg-[#1E7FE0]/[0.06] hover:text-[#0B1F3B]"
-          onClick={() => openPartsMenu({ mode: "lookup" })}
-          title="Parts lookup — pick supplier and search catalogs"
-        >
-          <Package className="size-4 text-[#1E7FE0]" aria-hidden />
-          Parts lookup
-        </Button>
-      </div>
+      )}
 
       <EstimateLabCannedBrowseSheet
         open={cannedOpen}

@@ -21,6 +21,7 @@ import { EstimateLabMessagesHost } from "@/components/estimate-building/estimate
 import { useEstimateLabContextDrawerOptional } from "@/components/estimate-building/estimate-lab-context-drawer-provider";
 import { EstimateLabVehicleSpecsSection } from "@/components/estimate-building/estimate-lab-vehicle-specs-section";
 import { useEstimateLabPartsOptional } from "@/components/estimate-building/estimate-lab-parts-provider";
+import { usePartsTechUiEnabled } from "@/lib/shop-capabilities";
 
 import { EstimateDepositRequestDialog } from "@/components/estimate-building/estimate-deposit-request-dialog";
 import {
@@ -511,6 +512,7 @@ function StatusCard({
   const [authorizeOpen, setAuthorizeOpen] = useState(false);
   const [techOpen, setTechOpen] = useState(false);
   const partsCtx = useEstimateLabPartsOptional();
+  const partsTechOk = usePartsTechUiEnabled();
   const saveSidebar = useRoSidebarSave(roId);
   const [roAge, setRoAge] = useState("—");
 
@@ -701,7 +703,7 @@ function StatusCard({
                     },
                   ] as const
                 ).map((pill) => {
-                  const clickable = Boolean(partsCtx);
+                  const clickable = Boolean(partsCtx) && partsTechOk;
                   const cellClass = cn(
                     "flex min-h-9 w-full min-w-0 items-center justify-center gap-1.5 rounded-none border px-1.5 py-1.5 text-[12.5px] leading-tight tabular-nums",
                     pill.tone,

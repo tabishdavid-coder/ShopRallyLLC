@@ -11,6 +11,7 @@ Track every change on branch `cursor/core-plan-fidelity-5e7c` so we can merge sa
 | 2026-07-12 | Seed / estimate | Macuto estimate RO **#1001** — Maria Cortes, 2014 Honda Accord EX-L, front brakes job (`ro_macuto_1001`) | `prisma/seed.ts`, `src/lib/shop-constants.ts` | ⬜ re-seed + open URL |
 | 2026-07-12 | RO access | Fix shop mismatch: honor platform admin cookie; auto-switch shop via `/platform/enter?next=` when RO is on another tenant | `src/lib/shop.ts`, `src/server/repair-order-access.ts`, `src/lib/platform-routing.ts` | ⬜ pending |
 | 2026-07-12 | Platform enter | **Root cause fix:** `/platform/enter` moved to Route Handler — `switchShop` cookie set failed in Server Component ("Cookies can only be modified in a Server Action or Route Handler") | `src/app/(app)/platform/enter/route.ts` | ✅ loads locally |
+| 2026-07-13 | Estimate toolbar | Core hides Labor Book, Parts lookup, + Work line / Pro Job cluster; single Core `+ Job` (canned/blank only). Gate Labor Book from launcher, line lookup, type menu, parts strip | `estimate-lab-toolbar.tsx`, `shop-capabilities.tsx`, `estimate-job-launcher.tsx`, … | ⬜ Macuto verify |
 
 ### Template (copy for new rows)
 

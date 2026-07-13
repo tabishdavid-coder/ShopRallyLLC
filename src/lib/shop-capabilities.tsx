@@ -10,9 +10,18 @@ export type ShopCapabilities = {
   sms: boolean;
   /** Stripe Connect / online RO checkout — Pro+ only. */
   stripePayments: boolean;
+  /** Licensed MOTOR Labor Book — Pro+ only. */
+  motorLabor: boolean;
+  /** PartsTech / vendor parts lookup — Pro+ only. */
+  partsTech: boolean;
 };
 
-const DEFAULT: ShopCapabilities = { sms: false, stripePayments: false };
+const DEFAULT: ShopCapabilities = {
+  sms: false,
+  stripePayments: false,
+  motorLabor: false,
+  partsTech: false,
+};
 
 const ShopCapabilitiesContext = createContext<ShopCapabilities>(DEFAULT);
 
@@ -36,4 +45,14 @@ export function useShopCapabilities(): ShopCapabilities {
 export function useSmsUiEnabled(): boolean {
   const caps = useShopCapabilities();
   return SMS_ENABLED && caps.sms;
+}
+
+/** Licensed MOTOR Labor Book UI — Pro+. */
+export function useMotorLaborUiEnabled(): boolean {
+  return useShopCapabilities().motorLabor;
+}
+
+/** PartsTech / vendor parts lookup UI — Pro+. */
+export function usePartsTechUiEnabled(): boolean {
+  return useShopCapabilities().partsTech;
 }
