@@ -62,6 +62,7 @@ import {
   LAB_GRID_CELL_BORDERED,
   LAB_GRID_CELL_END,
   LAB_GRID_NUM_BORDERED,
+  LAB_GRID_TEXT,
   LAB_DESCRIPTION_SELECT_CLASS,
   LAB_DESCRIPTION_TEXTAREA_CLASS,
   LAB_INPUT_FLAT,
@@ -376,8 +377,14 @@ const MONEY_CELL = "flex h-7 w-full min-w-0 items-center overflow-visible";
 const VENDOR_COST_TITLE = "From vendor — edit via parts ordering";
 const ADD_ROW_CHIP =
   "inline-flex h-7 shrink-0 items-center gap-0.5 rounded-md border border-brand-navy/25 bg-white px-1.5 text-[10px] font-semibold uppercase tracking-wide text-brand-navy hover:bg-brand-light/15";
-const MONEY_INPUT = cn(LAB_INPUT_FLAT, "min-w-0 w-full text-right text-[11px] tabular-nums");
+const MONEY_INPUT = cn(LAB_INPUT_FLAT, "min-w-0 w-full text-right");
 const MONEY_INPUT_LOCKED = "cursor-default bg-muted/25 text-foreground/90";
+const GRID_VALUE = cn(LAB_GRID_TEXT, "tabular-nums");
+const GRID_VALUE_MUTED = cn(LAB_GRID_TEXT, "text-muted-foreground");
+const GRID_NUM_READONLY = cn(
+  "inline-flex h-7 w-full min-w-0 items-center justify-end overflow-visible",
+  GRID_VALUE,
+);
 
 function InlineMoneyCell({
   draftKey,
@@ -389,7 +396,6 @@ function InlineMoneyCell({
   onCommitCents,
   readOnly,
   placeholder,
-  fontMedium,
 }: {
   draftKey: string;
   valueCents: number;
@@ -400,7 +406,6 @@ function InlineMoneyCell({
   onCommitCents: (cents: number) => void;
   readOnly?: boolean;
   placeholder?: string;
-  fontMedium?: boolean;
 }) {
   const locked = readOnly;
   const display = draftValue(fieldDrafts, draftKey, dollars(valueCents));
@@ -408,7 +413,12 @@ function InlineMoneyCell({
   return (
     <div className={MONEY_CELL}>
       <div className="relative w-full min-w-0">
-        <span className="pointer-events-none absolute left-0 top-1/2 -translate-y-1/2 text-[10px] text-muted-foreground">
+        <span
+          className={cn(
+            "pointer-events-none absolute left-0 top-1/2 -translate-y-1/2 text-muted-foreground",
+            LAB_GRID_TEXT,
+          )}
+        >
           $
         </span>
         <Input
@@ -435,7 +445,7 @@ function InlineMoneyCell({
             onCommitCents(cents);
             clearFieldDraft(draftKey);
           }}
-          className={cn(MONEY_INPUT, "pl-3", fontMedium && "font-medium", locked && MONEY_INPUT_LOCKED)}
+          className={cn(MONEY_INPUT, "pl-3.5", locked && MONEY_INPUT_LOCKED)}
         />
       </div>
     </div>
@@ -459,9 +469,16 @@ function InlinePlaceholderCell({ placeholder = "—" }: { placeholder?: string }
 /** Per-line discount — schema has no line-level discount; Tekmetric column stub. */
 function LineDiscountStub({ editing }: { editing: boolean }) {
   return (
-    <div className={cn("flex min-w-0 flex-col gap-0.5", editing ? "" : "items-end")}>
-      <span className="text-[10px] tabular-nums text-muted-foreground/70">$0.00</span>
-      <span className="text-[10px] tabular-nums text-muted-foreground/50">0%</span>
+    <div
+      className={cn(
+        "flex h-7 w-full min-w-0 items-center justify-end gap-1",
+        GRID_VALUE,
+        editing ? "text-muted-foreground/70" : "text-muted-foreground/70",
+      )}
+    >
+      <span>$0.00</span>
+      <span className="text-muted-foreground/50">·</span>
+      <span className="text-muted-foreground/50">0%</span>
     </div>
   );
 }
@@ -477,7 +494,7 @@ function TaxableCell({
 }) {
   if (!editing) {
     return (
-      <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
+      <span className={cn(LAB_GRID_TEXT, "font-medium text-muted-foreground")}>
         {value ? "Yes" : "No"}
       </span>
     );
@@ -486,7 +503,7 @@ function TaxableCell({
     <select
       value={value ? "yes" : "no"}
       onChange={(e) => onChange?.(e.target.value === "yes")}
-      className={cn(LAB_INPUT_FLAT, "w-full text-[10px]")}
+      className={cn(LAB_INPUT_FLAT, "w-full")}
       aria-label="Taxable"
     >
       <option value="yes">Yes</option>
@@ -497,12 +514,7 @@ function TaxableCell({
 
 function ReadOnlyMoney({ cents, className }: { cents: number; className?: string }) {
   return (
-    <span
-      className={cn(
-        "inline-flex h-7 w-full min-w-0 items-center justify-end overflow-visible text-[11px] tabular-nums",
-        className,
-      )}
-    >
+    <span className={cn(GRID_NUM_READONLY, className)}>
       {formatCents(cents)}
     </span>
   );
@@ -543,7 +555,7 @@ function InlineQtyCell({
         onCommit(e.target.value);
         clearFieldDraft(draftKey);
       }}
-      className={cn(LAB_INPUT_FLAT, "w-full min-w-0 text-right tabular-nums")}
+      className={cn(LAB_INPUT_FLAT, "w-full min-w-0 text-right")}
     />
   );
 }
@@ -987,7 +999,7 @@ export function EstimateLabServiceItemsGrid({
                       }
                     />
                   ) : (
-                    <p className={cn("min-w-0 line-clamp-2 text-xs text-brand-navy", lineThrough)}>
+                    <p className={cn("min-w-0 line-clamp-2 text-brand-navy", LAB_GRID_TEXT, lineThrough)}>
                       {laborName || "—"}
                     </p>
                   )
@@ -1005,7 +1017,7 @@ export function EstimateLabServiceItemsGrid({
                       }
                     />
                   ) : (
-                    <p className={cn("line-clamp-2 min-w-0 text-[10px] leading-snug text-muted-foreground", lineThrough)}>
+                    <p className={cn("line-clamp-2 min-w-0", GRID_VALUE_MUTED, lineThrough)}>
                       {laborDetail || "—"}
                     </p>
                   )
@@ -1028,12 +1040,7 @@ export function EstimateLabServiceItemsGrid({
                     }}
                   />
                 ) : (
-                  <span
-                    className={cn(
-                      "inline-flex h-7 w-full min-w-0 items-center justify-end overflow-visible text-xs tabular-nums",
-                      lineThrough,
-                    )}
-                  >
+                  <span className={cn(GRID_NUM_READONLY, lineThrough)}>
                     {l.hours ? formatLaborHours(l.hours) : "0"}
                   </span>
                 )}
@@ -1077,13 +1084,13 @@ export function EstimateLabServiceItemsGrid({
                 )}
               </div>
               <div className={LAB_GRID_NUM_BORDERED}>
-                <ReadOnlyMoney cents={amountCents} className={cn("font-medium", lineThrough)} />
+                <ReadOnlyMoney cents={amountCents} className={lineThrough} />
               </div>
               <div className={LAB_GRID_NUM_BORDERED}>
                 <LineDiscountStub editing={editing} />
               </div>
               <div className={LAB_GRID_NUM_BORDERED}>
-                <ReadOnlyMoney cents={amountCents} className={cn("font-semibold", lineThrough)} />
+                <ReadOnlyMoney cents={amountCents} className={lineThrough} />
               </div>
               <div className={cn(LAB_GRID_CELL_BORDERED, "justify-center")}>
                 <TaxableCell
@@ -1145,7 +1152,9 @@ export function EstimateLabServiceItemsGrid({
                       placeholder={isFee ? "Fee name" : "Discount name"}
                     />
                   ) : (
-                    <p className="min-w-0 line-clamp-2 text-xs text-brand-navy">{a.name || "—"}</p>
+                    <p className={cn("min-w-0 line-clamp-2 text-brand-navy", LAB_GRID_TEXT)}>
+                      {a.name || "—"}
+                    </p>
                   )
                 }
                 description={
@@ -1164,14 +1173,12 @@ export function EstimateLabServiceItemsGrid({
                       <option value="PARTS">Parts</option>
                     </select>
                   ) : (
-                    <p className="line-clamp-2 min-w-0 text-[10px] leading-snug text-muted-foreground">
-                      {baseLabel}
-                    </p>
+                    <p className={cn("line-clamp-2 min-w-0", GRID_VALUE_MUTED)}>{baseLabel}</p>
                   )
                 }
               />
               <div className={LAB_GRID_NUM_BORDERED}>
-                <span className="inline-flex h-7 w-full items-center justify-end text-xs tabular-nums text-muted-foreground">
+                <span className={cn(GRID_NUM_READONLY, "text-muted-foreground")}>
                   {a.method === "PERCENT" ? "—" : "1"}
                 </span>
               </div>
@@ -1182,7 +1189,7 @@ export function EstimateLabServiceItemsGrid({
                 {editing ? (
                   <div className={MONEY_CELL}>
                     <select
-                      className={cn(LAB_MONEY_PREFIX, LAB_INPUT_FLAT, "text-[10px]")}
+                      className={cn(LAB_MONEY_PREFIX, LAB_INPUT_FLAT)}
                       value={a.method}
                       onChange={(e) =>
                         commitAdjustment(a, item.adjKind, { method: e.target.value as AdjustMethod })
@@ -1212,25 +1219,20 @@ export function EstimateLabServiceItemsGrid({
                     />
                   </div>
                 ) : a.method === "PERCENT" ? (
-                  <span className="inline-flex h-7 w-full items-center justify-end text-xs font-medium tabular-nums">
-                    {a.amount / 100}%
-                  </span>
+                  <span className={GRID_NUM_READONLY}>{a.amount / 100}%</span>
                 ) : (
-                  <ReadOnlyMoney cents={a.amount} className="font-medium" />
+                  <ReadOnlyMoney cents={a.amount} />
                 )}
               </div>
               <div className={LAB_GRID_NUM_BORDERED}>
-                <ReadOnlyMoney cents={total} className="font-medium" />
+                <ReadOnlyMoney cents={total} />
               </div>
               <div className={LAB_GRID_NUM_BORDERED}>
                 <LineDiscountStub editing={editing} />
               </div>
               <div className={LAB_GRID_NUM_BORDERED}>
                 <span
-                  className={cn(
-                    "inline-flex h-7 w-full items-center justify-end text-xs font-semibold tabular-nums",
-                    !isFee && total > 0 && "text-destructive",
-                  )}
+                  className={cn(GRID_NUM_READONLY, !isFee && total > 0 && "text-destructive")}
                 >
                   {!isFee && total > 0 ? "−" : ""}
                   {formatCents(total)}
@@ -1244,7 +1246,7 @@ export function EstimateLabServiceItemsGrid({
                     onChange={(v) => commitAdjustment(a, "fee", { taxable: v })}
                   />
                 ) : (
-                  <span className="text-[10px] text-muted-foreground/40">—</span>
+                  <span className={cn(LAB_GRID_TEXT, "text-muted-foreground/40")}>—</span>
                 )}
               </div>
               <div className={LAB_GRID_CELL_END}>
@@ -1302,7 +1304,7 @@ export function EstimateLabServiceItemsGrid({
                     }
                   />
                 ) : (
-                  <p className={cn("min-w-0 line-clamp-2 text-xs", lineThrough)}>
+                  <p className={cn("min-w-0 line-clamp-2", LAB_GRID_TEXT, lineThrough)}>
                     {p.description || "—"}
                   </p>
                 )
@@ -1320,7 +1322,7 @@ export function EstimateLabServiceItemsGrid({
                     }}
                   />
                 ) : (
-                  <p className={cn("line-clamp-2 min-w-0 text-[10px] leading-snug text-muted-foreground", lineThrough)}>
+                  <p className={cn("line-clamp-2 min-w-0", GRID_VALUE_MUTED, lineThrough)}>
                     {partDetail || "—"}
                   </p>
                 )
@@ -1344,9 +1346,7 @@ export function EstimateLabServiceItemsGrid({
                   }}
                 />
               ) : (
-                <span className={cn("inline-flex h-7 w-full items-center justify-end text-xs", lineThrough)}>
-                  {p.quantity}
-                </span>
+                <span className={cn(GRID_NUM_READONLY, lineThrough)}>{p.quantity}</span>
               )}
             </div>
             <div className={LAB_GRID_NUM_BORDERED} title={editing ? VENDOR_COST_TITLE : undefined}>
@@ -1368,17 +1368,17 @@ export function EstimateLabServiceItemsGrid({
                   }
                 />
               ) : (
-                <ReadOnlyMoney cents={p.retailCents} className={cn("font-medium", lineThrough)} />
+                <ReadOnlyMoney cents={p.retailCents} className={lineThrough} />
               )}
             </div>
             <div className={LAB_GRID_NUM_BORDERED}>
-              <ReadOnlyMoney cents={amountCents} className={cn("font-medium", lineThrough)} />
+              <ReadOnlyMoney cents={amountCents} className={lineThrough} />
             </div>
             <div className={LAB_GRID_NUM_BORDERED}>
               <LineDiscountStub editing={editing} />
             </div>
             <div className={LAB_GRID_NUM_BORDERED}>
-              <ReadOnlyMoney cents={amountCents} className={cn("font-semibold", lineThrough)} />
+              <ReadOnlyMoney cents={amountCents} className={lineThrough} />
             </div>
             <div className={cn(LAB_GRID_CELL_BORDERED, "justify-center")}>
               <TaxableCell
@@ -1481,7 +1481,7 @@ export function EstimateLabServiceItemsGrid({
                       Add line
                     </button>
                   )}
-                  <span className="text-[10px] text-muted-foreground">{addRowHint}</span>
+                  <span className={cn(LAB_GRID_TEXT, "text-muted-foreground")}>{addRowHint}</span>
                 </div>
               </div>
               <div className={LAB_GRID_CELL_BORDERED}>
@@ -1493,21 +1493,30 @@ export function EstimateLabServiceItemsGrid({
                   }
                 />
               </div>
-              <span className={cn(LAB_GRID_NUM_BORDERED, "text-[10px] text-muted-foreground/40")}>—</span>
+              <span className={cn(LAB_GRID_NUM_BORDERED, LAB_GRID_TEXT, "text-muted-foreground/40")}>—</span>
               <span
                 className={cn(
                   LAB_GRID_NUM_BORDERED,
-                  "inline-flex min-h-7 items-center justify-end text-[10px] text-muted-foreground/40",
+                  "inline-flex min-h-7 items-center justify-end",
+                  LAB_GRID_TEXT,
+                  "text-muted-foreground/40",
                 )}
                 title={isPartFamily(addType) ? VENDOR_COST_TITLE : undefined}
               >
                 {isPartFamily(addType) ? "—" : "0.00"}
               </span>
-              <span className={cn(LAB_GRID_NUM_BORDERED, "text-[10px] text-muted-foreground/40")}>0.00</span>
-              <span className={cn(LAB_GRID_NUM_BORDERED, "text-[10px] text-muted-foreground/40")}>0.00</span>
-              <span className={cn(LAB_GRID_NUM_BORDERED, "text-[10px] text-muted-foreground/40")}>$0 / 0%</span>
-              <span className={cn(LAB_GRID_NUM_BORDERED, "text-[10px] text-muted-foreground/40")}>0.00</span>
-              <span className={cn(LAB_GRID_CELL_BORDERED, "justify-center text-[10px] text-muted-foreground/40")}>
+              <span className={cn(LAB_GRID_NUM_BORDERED, LAB_GRID_TEXT, "text-muted-foreground/40")}>0.00</span>
+              <span className={cn(LAB_GRID_NUM_BORDERED, LAB_GRID_TEXT, "text-muted-foreground/40")}>0.00</span>
+              <span className={cn(LAB_GRID_NUM_BORDERED, LAB_GRID_TEXT, "text-muted-foreground/40")}>$0 / 0%</span>
+              <span className={cn(LAB_GRID_NUM_BORDERED, LAB_GRID_TEXT, "text-muted-foreground/40")}>0.00</span>
+              <span
+                className={cn(
+                  LAB_GRID_CELL_BORDERED,
+                  "justify-center",
+                  LAB_GRID_TEXT,
+                  "text-muted-foreground/40",
+                )}
+              >
                 —
               </span>
               <span className="min-h-7" />

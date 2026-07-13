@@ -150,20 +150,20 @@ export function EstimateLineTypeMenu({
 
   if (!editing) {
     return (
-      <span className="text-[11px] font-semibold text-brand-navy">{label}</span>
+      <span className="text-xs font-semibold text-brand-navy">{label}</span>
     );
   }
 
   const triggerClass = useMatchedTypeTrigger
     ? cn(
-        "inline-flex h-7 w-full min-w-0 items-center gap-1 rounded-md border border-brand-navy/15 bg-brand-navy/[0.03] px-1.5 text-[11px] font-semibold text-brand-navy",
+        "inline-flex h-7 w-full min-w-0 items-center gap-1 rounded-md border border-brand-navy/15 bg-brand-navy/[0.03] px-1.5 text-xs font-semibold text-brand-navy",
         "hover:border-brand-navy/25 hover:bg-brand-light/10 hover:text-brand-navy",
       )
     : size === "table"
       ? "flex h-8 w-full min-w-16 items-center justify-between gap-0.5 rounded-md border border-input bg-background px-1.5 text-xs font-medium text-brand-navy hover:bg-muted/40"
       : cn(
           LAB_INPUT_FLAT,
-          "flex w-full items-center justify-between gap-0.5 px-1 text-[10px] font-medium text-brand-navy hover:bg-muted/40",
+          "flex w-full items-center justify-between gap-0.5 px-1 text-xs font-medium text-brand-navy hover:bg-muted/40",
         );
 
   const ariaLabel = "Line type, labor, and parts";
