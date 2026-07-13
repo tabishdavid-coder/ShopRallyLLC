@@ -292,24 +292,26 @@ export function AddVehicleDialog({
             {autodevDecodingOk ? "Primary search" : "VIN decode"}
           </p>
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-            <div className="w-full shrink-0 sm:w-[140px]">
-              <label className="sr-only">Registration state</label>
-              <div className="relative">
-                <MapPin className="pointer-events-none absolute left-3 top-1/2 z-10 size-4 -translate-y-1/2 text-muted-foreground/60" />
-                <Select value={headerPlateState} onValueChange={setHeaderPlateState}>
-                  <SelectTrigger className={cn(fieldClass, "w-full min-w-0 pl-9")}>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {US_STATE_CODES.map((s) => (
-                      <SelectItem key={s} value={s}>
-                        {US_STATE_NAMES[s] ?? s}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+            {autodevDecodingOk ? (
+              <div className="w-full shrink-0 sm:w-[140px]">
+                <label className="sr-only">Registration state</label>
+                <div className="relative">
+                  <MapPin className="pointer-events-none absolute left-3 top-1/2 z-10 size-4 -translate-y-1/2 text-muted-foreground/60" />
+                  <Select value={headerPlateState} onValueChange={setHeaderPlateState}>
+                    <SelectTrigger className={cn(fieldClass, "w-full min-w-0 pl-9")}>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {US_STATE_CODES.map((s) => (
+                        <SelectItem key={s} value={s}>
+                          {US_STATE_NAMES[s] ?? s}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
-            </div>
+            ) : null}
             <div className="relative min-w-0 flex-1">
               <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground/60" />
               <input
