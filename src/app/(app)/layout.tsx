@@ -14,6 +14,7 @@ import { KeyedChildren } from "@/lib/keyed-children";
 import { prisma } from "@/db/client";
 import { isPlatformAdmin } from "@/lib/platform";
 import { getCurrentShop, getShopId, listShops, ShopAccessError, DEMO_SHOP_ID } from "@/lib/shop";
+import { settingsRouteDenied } from "@/lib/settings-plan-gates";
 import { canUseFeature, canUseReleasedFeature, getShopSubscription, resolvePlanFeatures } from "@/lib/subscription";
 import { checkCrmRouteAccess, getCrmAccessContext } from "@/server/crm-access";
 import { getNotifications } from "@/server/notifications";
@@ -68,6 +69,13 @@ export default async function AppLayout({
   if (dbSeeded && crmAccess && !isPlatformRoute && pathname !== "/shop-access") {
     const routeAccess = await checkCrmRouteAccess(pathname, activeShopId);
     if (!routeAccess.allowed) {
+      if (routeAccess.reason === "plan" && pathname.startsWith("/settings")) {
+        const sub = await getShopSubscription(activeShopId);
+        const denied = settingsRouteDenied(pathname, sub.features);
+        if (denied) {
+          redirect(`/settings/subscription?upgrade=${denied}`);
+        }
+      }
       redirect("/dashboard/snapshot?access=denied");
     }
   }
