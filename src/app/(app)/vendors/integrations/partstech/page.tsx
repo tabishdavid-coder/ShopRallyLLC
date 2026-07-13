@@ -1,12 +1,21 @@
+import { redirect } from "next/navigation";
+
 import { VendorConnectForm } from "@/components/vendors/vendor-connect-form";
 import { VendorSetupShell } from "@/components/vendors/vendor-setup-shell";
 import { vendorByKey } from "@/lib/integrations";
+import { getShopId } from "@/lib/shop";
+import { canUseReleasedFeature } from "@/lib/subscription";
 import { getIntegrationStatus } from "@/server/integrations";
 
 export const metadata = { title: "PartsTech — Vendor Integrations" };
 export const dynamic = "force-dynamic";
 
 export default async function PartstechIntegrationPage() {
+  const shopId = await getShopId();
+  if (!(await canUseReleasedFeature(shopId, "parts"))) {
+    redirect("/settings/subscription?upgrade=partsTech");
+  }
+
   const vendor = vendorByKey("partstech");
   const status = await getIntegrationStatus("partstech");
   const c = status.safeConfig;

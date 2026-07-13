@@ -7,6 +7,7 @@ import type { Prisma } from "@/generated/prisma";
 import { prisma } from "@/db/client";
 import { type VendorKey, vendorByKey } from "@/lib/integrations";
 import { getShopId } from "@/lib/shop";
+import { releasedFeatureDenied } from "@/lib/subscription";
 import { getShopIntegrationRow, mergeConfig } from "@/server/integrations";
 import { gates } from "@/server/permission-gates";
 
@@ -65,6 +66,12 @@ export async function saveVendorIntegration(
   const shopId = await getShopId();
   const denied = await gates.vendorsManage(shopId);
   if (denied) return denied;
+
+  if (vendorKey === "partstech") {
+    const featureDenied = await releasedFeatureDenied(shopId, "parts");
+    if (featureDenied) return { ok: false, error: featureDenied };
+  }
+
   const existing = await getShopIntegrationRow(vendorKey);
   const prev = (existing?.config && typeof existing.config === "object" && !Array.isArray(existing.config)
     ? existing.config

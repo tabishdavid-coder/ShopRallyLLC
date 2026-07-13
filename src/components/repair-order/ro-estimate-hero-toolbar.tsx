@@ -6,6 +6,7 @@ import { SmartLaborGuide } from "@/components/repair-order/smart-labor-guide";
 import { PartsHub, type HubPart } from "@/components/repair-order/parts-hub";
 import type { CannedJobSummary } from "@/lib/canned-job-types";
 import type { LaborTier, PartTier } from "@/lib/matrix";
+import { usePartsTechUiEnabled } from "@/lib/shop-capabilities";
 
 /** Estimate-only hero actions — build tools beside odometer / lifecycle. */
 export function RoEstimateHeroToolbar({
@@ -41,6 +42,7 @@ export function RoEstimateHeroToolbar({
   jobs: { id: string; name: string }[];
   parts: HubPart[];
 }) {
+  const partsTechOk = usePartsTechUiEnabled();
   if (!canEdit) return null;
 
   return (
@@ -66,15 +68,17 @@ export function RoEstimateHeroToolbar({
         odometerNotWorking={odometerNotWorking}
         variant="hero"
       />
-      <PartsHub
-        roId={roId}
-        jobs={jobs}
-        vehicleLabel={vehicleLabel}
-        specLine={specLine}
-        partTiers={partTiers}
-        parts={parts}
-        variant="hero"
-      />
+      {partsTechOk ? (
+        <PartsHub
+          roId={roId}
+          jobs={jobs}
+          vehicleLabel={vehicleLabel}
+          specLine={specLine}
+          partTiers={partTiers}
+          parts={parts}
+          variant="hero"
+        />
+      ) : null}
     </div>
   );
 }
