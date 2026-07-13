@@ -1,16 +1,29 @@
 # Dev 3031 — build state (ShopRallyCRM)
 
-Last updated: 2026-07-12 (Core plan fidelity session opened)
+Last updated: 2026-07-13 (Macuto Core QA — merged working branch)
 
 > **Canonical dev:** **`ShopRally/`** folder only — `npm run dev` → :3031. See `docs/SHOPRALLY-DEV.md`.
 > Do **not** develop shop CRM in the sibling `karvio/` folder (legacy platform fork).
 
-## Active session — Core plan fidelity
+## Active session — Macuto Core QA
 
-**Branch:** `cursor/core-plan-fidelity-5e7c`  
-**Track:** `agents/ShopRallyCRM/CORE-PLAN-FIDELITY.md` + `CORE-PLAN-FIDELITY-CHANGELOG.md`  
-**Spec:** `docs/CORE-PLAN-FIDELITY.md`  
-**Goal:** `STARTER` (Core) shops only see/operate Core entitlements; merge later.
+**Branch:** `cursor/phase-one-plan-rebrand-5e7c` ([PR #12](https://github.com/tabishdavid-coder/ShopRallyLLC/pull/12))  
+**QA shop:** **Macuto Auto Repair** (`shop_macuto`, code **MAC**) — platform admin default tenant  
+**Plan:** Core (`STARTER`) @ $49.99/mo · optional AI Plus +$20/mo  
+**Merged into branch:** `core-settings-prune`, `core-plan-fidelity`, phase-one pricing rebrand  
+**Track:** `docs/CORE-PLAN-FIDELITY.md` · `agents/ShopRallyCRM/CORE-PLAN-FIDELITY-CHANGELOG.md`  
+**Goal:** Core-only CRM surfaces for Macuto; Pro/Elite stay in platform admin only until phase two.
+
+### Quick open
+
+```bash
+git checkout cursor/phase-one-plan-rebrand-5e7c
+npm run dev
+# → http://localhost:3031 (Macuto Auto Repair in shop switcher)
+```
+
+Key routes: `/settings` (Core badge) · `/settings/subscription` · `/job-board` · `/repair-orders/ro_macuto_1001/estimate`
+
 
 ## Done
 
