@@ -1463,10 +1463,6 @@ export function DrawerActionRail({
   );
   const outlineActionClass =
     "flex w-full items-center justify-center gap-1.5 rounded-md border border-[#1E7FE0] bg-white px-3 py-2.5 text-sm font-semibold text-[#1E7FE0] transition-colors hover:bg-[#f2f8fe] [&_svg]:text-[#1E7FE0]";
-  const disabledActionClass = cn(
-    outlineActionClass,
-    "cursor-not-allowed opacity-50 hover:bg-white",
-  );
 
   return (
     <aside className="hidden w-[13rem] shrink-0 flex-col border-l border-[#DDE5EF] bg-[#F7F9FC] md:flex">
@@ -1480,21 +1476,6 @@ export function DrawerActionRail({
             <Plus className="size-4" />
             Appointment
           </button>
-          <TooltipProvider>
-            <Tooltip>
-              <TooltipTrigger asChild>
-                <span className="inline-flex w-full">
-                  <button type="button" className={disabledActionClass} disabled aria-disabled="true">
-                    <Plus className="size-4" />
-                    Credit Memo
-                  </button>
-                </span>
-              </TooltipTrigger>
-              <TooltipContent side="left">
-                Credit memos are not available yet. View store credit under Finances.
-              </TooltipContent>
-            </Tooltip>
-          </TooltipProvider>
         </div>
       </div>
 
