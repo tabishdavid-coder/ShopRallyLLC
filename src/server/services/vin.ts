@@ -174,6 +174,16 @@ class FallbackVinProvider implements VinProvider {
 
 const autodevKey = process.env.AUTODEV_API_KEY?.trim();
 
+const nhtsaVinProvider = new NhtsaVinProvider();
+
+/** Shop-plan-aware VIN decode — Core uses free NHTSA only; Pro+ may use Auto.dev when configured. */
+export async function decodeVinForShop(shopId: string, vin: string): Promise<DecodedVin | null> {
+  const { canUseFeature } = await import("@/lib/subscription");
+  const autodev = await canUseFeature(shopId, "autodevDecoding");
+  if (autodev) return vinService.decode(vin);
+  return nhtsaVinProvider.decode(vin);
+}
+
 export const vinService: VinProvider = new FallbackVinProvider(
   autodevKey ? new AutoDevVinProvider(autodevKey) : null,
   new NhtsaVinProvider(),

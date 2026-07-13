@@ -46,7 +46,9 @@ export type SubscriptionFeature =
   | "ai_customer_insights"
   | "ai_receptionist"
   /** Parts/labor markup matrices — Pro+ only. */
-  | "markupMatrices";
+  | "markupMatrices"
+  /** Auto.dev plate→VIN + rich VIN decode — Pro+ only. */
+  | "autodevDecoding";
 
 const FEATURE_MAP: Record<SubscriptionFeature, PlanFeature | null> = {
   coreCrm: null, // always on
@@ -73,6 +75,7 @@ const FEATURE_MAP: Record<SubscriptionFeature, PlanFeature | null> = {
   ai_customer_insights: "aiCustomerInsights",
   ai_receptionist: "aiReceptionist",
   markupMatrices: "markupMatrices",
+  autodevDecoding: "autodevDecoding",
 };
 
 /** Map subscription features that require a phased release flag. */

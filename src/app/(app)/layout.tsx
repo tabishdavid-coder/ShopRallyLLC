@@ -72,7 +72,7 @@ export default async function AppLayout({
     }
   }
 
-  const [activeShop, customerCount, notificationData, unreadSmsCount, intakeConfig, smsOnPlan, stripeOnPlan, motorLaborOnPlan, partsTechOnPlan, marketingOnPlan, vehicleSpecsOnPlan] =
+  const [activeShop, customerCount, notificationData, unreadSmsCount, intakeConfig, smsOnPlan, stripeOnPlan, motorLaborOnPlan, partsTechOnPlan, marketingOnPlan, vehicleSpecsOnPlan, autodevDecodingOnPlan] =
     dbSeeded
       ? await Promise.all([
           getCurrentShop(),
@@ -86,8 +86,9 @@ export default async function AppLayout({
           canUseReleasedFeature(activeShopId, "parts"),
           canUseReleasedFeature(activeShopId, "marketing_campaigns"),
           getShopSubscription(activeShopId).then((s) => s.plan !== "STARTER"),
+          canUseFeature(activeShopId, "autodevDecoding"),
         ])
-      : [null, 0, { notifications: [], unreadCount: 0 }, 0, null, false, false, false, false, false, false];
+      : [null, 0, { notifications: [], unreadCount: 0 }, 0, null, false, false, false, false, false, false, false];
 
   const showPlatformShopContext = platformAdmin && activeShop && !isPlatformRoute;
 
@@ -133,6 +134,7 @@ export default async function AppLayout({
           partsTech: partsTechOnPlan,
           marketingCampaigns: marketingOnPlan,
           vehicleSpecs: vehicleSpecsOnPlan,
+          autodevDecoding: autodevDecodingOnPlan,
         }}
         banner={
           !dbSeeded ? (

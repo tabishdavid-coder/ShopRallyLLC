@@ -17,9 +17,10 @@ import {
 } from "@/server/consent-records";
 import { recordShopAuditEventSafe } from "@/server/shop-audit";
 import { sendBookingNotifications } from "@/server/services/booking-notifications";
-import { isValidVin, vinService } from "@/server/services/vin";
+import { isValidVin, decodeVinForShop } from "@/server/services/vin";
 import { lookupPlateService } from "@/server/services/plate-lookup";
 import { recordDecodeUsage } from "@/server/services/decode-usage";
+import { canUseFeature } from "@/lib/subscription";
 
 const IntakeInput = z.object({
   shopSlug: z.string().trim().min(1).max(80),
@@ -183,7 +184,7 @@ export async function submitIntakeForm(raw: IntakeInput): Promise<IntakeResult> 
 
   if (resolvedVin) {
     try {
-      const decoded = await vinService.decode(resolvedVin);
+      const decoded = await decodeVinForShop(shop.id, resolvedVin);
       if (decoded) {
         if (!vehicleYear && decoded.year) vehicleYear = decoded.year;
         if (!vehicleMake && decoded.make) vehicleMake = decoded.make;
@@ -196,7 +197,12 @@ export async function submitIntakeForm(raw: IntakeInput): Promise<IntakeResult> 
     } catch {
       // Non-fatal — proceed with whatever the customer entered.
     }
-  } else if (actualPlate && plateStateNorm && fieldConfig.showPlateLookup) {
+  } else if (
+    actualPlate &&
+    plateStateNorm &&
+    fieldConfig.showPlateLookup &&
+    (await canUseFeature(shop.id, "autodevDecoding"))
+  ) {
     try {
       const plateResult = await lookupPlateService(actualPlate, plateStateNorm);
       if (plateResult.ok) {

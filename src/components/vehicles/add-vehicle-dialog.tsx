@@ -25,6 +25,7 @@ import {
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { parseYmmSearch } from "@/lib/parse-ymm-search";
+import { useAutodevDecodingUiEnabled } from "@/lib/shop-capabilities";
 import { decodeVin, lookupPlate, createVehicle } from "@/server/actions/vehicles";
 
 export function AddVehicleDialog({
@@ -66,6 +67,7 @@ export function AddVehicleDialog({
   const [error, setError] = useState<string | null>(null);
   const [saving, startSave] = useTransition();
   const [searching, startSearch] = useTransition();
+  const autodevDecodingOk = useAutodevDecodingUiEnabled();
 
   const years = useMemo(() => {
     const max = new Date().getFullYear() + 1;
@@ -101,6 +103,18 @@ export function AddVehicleDialog({
       }
 
       if (/^[A-Z0-9]{2,8}$/i.test(v)) {
+        if (!autodevDecodingOk) {
+          setVehicleForm((prev) => ({
+            ...prev,
+            plate: v.toUpperCase(),
+            plateState: state,
+          }));
+          setSearchQuery(v.toUpperCase());
+          setLookupNote(
+            "Plate saved — enter a 17-character VIN to decode (free), or fill in year / make / model below.",
+          );
+          return;
+        }
         const res = await lookupPlate(state, v);
         if (res.ok) {
           applyLookupResult(
@@ -134,7 +148,9 @@ export function AddVehicleDialog({
       }
 
       setLookupNote(
-        "Enter a 17-character VIN or a license plate. Use Year / Make / Model below only if VIN or plate is unavailable.",
+        autodevDecodingOk
+          ? "Enter a 17-character VIN or a license plate. Use Year / Make / Model below only if VIN or plate is unavailable."
+          : "Enter a 17-character VIN to decode (free NHTSA). Use Year / Make / Model below, or type the plate in the form.",
       );
     });
   }
@@ -219,8 +235,12 @@ export function AddVehicleDialog({
   }
 
   const subtitle = customerName
-    ? `For ${customerName} — search by VIN or license plate first, then confirm vehicle details.`
-    : "Search by VIN or license plate first, then confirm vehicle details.";
+    ? autodevDecodingOk
+      ? `For ${customerName} — search by VIN or license plate first, then confirm vehicle details.`
+      : `For ${customerName} — decode a VIN (free) or enter year / make / model; add the plate manually on Core.`
+    : autodevDecodingOk
+      ? "Search by VIN or license plate first, then confirm vehicle details."
+      : "Decode a VIN (free) or enter year / make / model; add the plate manually on Core.";
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>

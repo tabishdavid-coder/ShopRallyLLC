@@ -68,6 +68,7 @@ export function CrmShell({
     partsTech: false,
     marketingCampaigns: false,
     vehicleSpecs: false,
+    autodevDecoding: false,
   },
   children,
 }: CrmShellProps) {

@@ -66,6 +66,7 @@ export function AutopilotShell({
     partsTech: false,
     marketingCampaigns: false,
     vehicleSpecs: false,
+    autodevDecoding: false,
   },
   children,
 }: AutopilotShellProps) {
