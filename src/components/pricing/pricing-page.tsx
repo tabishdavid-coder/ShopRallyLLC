@@ -20,6 +20,7 @@ import {
   PRICING_FAQ,
   PUBLIC_PLAN_ORDER,
   WEB_PRESENCE_SERVICES,
+  planMarketingDisplayName,
   publicPlanAddons,
   repairPilotStarterMonthly,
   webPresenceAlaCarteMonthlyCents,
@@ -43,6 +44,7 @@ export function PricingPageContent({ foundingSpotsClaimed = 0 }: { foundingSpots
   const foundingMessaging = getFoundingSpotMessaging(foundingSpotsClaimed);
   const ignitionPrice = repairPilotStarterMonthly(annual);
   const ignitionPlan = PLANS.STARTER;
+  const ignitionMarketingName = planMarketingDisplayName(ignitionPlan);
   const phaseOneAddons = publicPlanAddons();
   const legacyStack = COMPETITOR_BENCHMARK.legacy.typicalMonthly;
   const budgetStack = COMPETITOR_BENCHMARK.typicalStackMonthly;
@@ -60,7 +62,7 @@ export function PricingPageContent({ foundingSpotsClaimed = 0 }: { foundingSpots
           <h1 className="text-3xl font-bold tracking-tight text-brand-navy sm:text-4xl lg:text-5xl">
             {PHASE_ONE_COPY.headline}
             <span className="mt-2 block pb-1 leading-[1.15] bg-gradient-to-r from-brand-navy to-brand-light bg-clip-text text-transparent">
-              {ignitionPlan.name} — ${ignitionPrice}/mo
+              {ignitionMarketingName} — ${ignitionPrice}/mo
             </span>
           </h1>
           <p className="mt-4 text-base leading-relaxed text-slate-600 sm:text-lg">
@@ -82,7 +84,7 @@ export function PricingPageContent({ foundingSpotsClaimed = 0 }: { foundingSpots
             </div>
             <div className="rounded-xl border-2 border-brand-navy/20 bg-brand-navy/5 p-4 text-left ring-1 ring-brand-navy/10">
               <p className="text-xs font-semibold uppercase tracking-wide text-brand-navy">
-                ShopRally {ignitionPlan.name}
+                ShopRally {ignitionMarketingName}
               </p>
               <p className="mt-2 text-2xl font-bold tabular-nums text-brand-navy">${ignitionPrice}/mo</p>
               <p className="mt-1 text-[11px] text-slate-600">vs ~${entryCrm}/mo entry DVI-class CRMs</p>
@@ -116,7 +118,7 @@ export function PricingPageContent({ foundingSpotsClaimed = 0 }: { foundingSpots
         <div className="relative mx-auto max-w-6xl">
           <div className="mx-auto max-w-2xl text-center">
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-brand-red">
-              {ignitionPlan.name}
+              {ignitionMarketingName}
             </p>
             <h2 className="mt-3 text-3xl font-bold tracking-tight text-brand-navy sm:text-5xl">
               Your shop plan
@@ -261,7 +263,7 @@ export function PricingPageContent({ foundingSpotsClaimed = 0 }: { foundingSpots
           onClick={() => setFeaturesOpen((o) => !o)}
           className="mx-auto flex w-full max-w-md items-center justify-center gap-2 rounded-full border border-brand-navy/15 bg-white px-6 py-3 text-sm font-semibold text-brand-navy shadow-sm hover:bg-brand-light/10"
         >
-          {featuresOpen ? "Hide" : "View"} {ignitionPlan.name} feature list
+          {featuresOpen ? "Hide" : "View"} {planMarketingDisplayName(ignitionPlan)} feature list
           <ChevronDown className={cn("size-4 transition", featuresOpen && "rotate-180")} />
         </button>
         {featuresOpen ? (
@@ -346,7 +348,7 @@ export function PricingPageContent({ foundingSpotsClaimed = 0 }: { foundingSpots
           ) : (
             <>
               <p className="text-xl font-bold text-brand-navy">
-                Start {ignitionPlan.name} — ${ignitionPrice}/mo
+                Start {ignitionMarketingName} — ${ignitionPrice}/mo
               </p>
               <p className="mt-2 text-sm text-slate-600">14-day trial · add AI Plus anytime for $20/mo</p>
               <Button className="mt-6 bg-brand-navy" asChild>

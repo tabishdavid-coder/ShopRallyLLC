@@ -24,7 +24,7 @@ import { OutcomeMetricsStrip } from "@/components/marketing-site/outcome-metrics
 import { Button } from "@/components/ui/button";
 import { getFoundingSpotMessaging, MARKETING_LAUNCH } from "@/lib/marketing-launch";
 import { cn } from "@/lib/utils";
-import { PLANS, DVI_PLAN_COPY, LABOR_PLAN_COPY, DASHBOARD_PLAN_COPY, PHASE_ONE_COPY, PHASE_ONE_LAUNCH, repairPilotStarterMonthly } from "@/lib/plans";
+import { PLANS, DVI_PLAN_COPY, LABOR_PLAN_COPY, DASHBOARD_PLAN_COPY, PHASE_ONE_COPY, PHASE_ONE_LAUNCH, planMarketingDisplayName, repairPilotStarterMonthly } from "@/lib/plans";
 
 const PILLARS = [
   {
@@ -141,7 +141,7 @@ export function HomePageContent({ foundingSpotsClaimed = 0 }: { foundingSpotsCla
               {preLaunch
                 ? "Between legacy desktop CRM and budget add-on stacks — one modern platform from job board to invoice."
                 : PHASE_ONE_LAUNCH
-                  ? `${PHASE_ONE_COPY.subhead} ${PLANS.STARTER.name} from $${repairPilotStarterMonthly(true)}/mo — AI Plus optional +$20/mo.`
+                  ? `${PHASE_ONE_COPY.subhead} ${planMarketingDisplayName(PLANS.STARTER)} from $${repairPilotStarterMonthly(true)}/mo — AI Plus optional +$20/mo.`
                   : `Premium all-in-one for independents — ${PLANS.STARTER.name} from $${repairPilotStarterMonthly(true)}/mo.`}
             </p>
 

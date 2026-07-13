@@ -4,7 +4,8 @@ import { stripReleaseFromPlanFeatures } from "@/lib/release-flags";
 /**
  * Public pricing strategy (2026 Q3): phase-one launch sells a single plan (**Ignition**).
  * Pro & Elite stay in the catalog for platform ops — hidden from public marketing until phase two.
- * Internal enums: STARTER / PROFESSIONAL / ENTERPRISE (STARTER displays as Ignition).
+ * Internal enums: STARTER / PROFESSIONAL / ENTERPRISE (STARTER displays as **Core** in CRM;
+ * public marketing may use `marketingName` e.g. Ignition).
  */
 export type PlanFeature =
   | "cannedJobs"
@@ -86,6 +87,8 @@ export type PlanPricingCard = {
 export type PlanDefinition = {
   id: ShopPlan;
   name: string;
+  /** Public GTM label when different from in-app plan name (e.g. Ignition on /pricing). */
+  marketingName?: string;
   /** Short label on pricing cards (e.g. "Core shop"). */
   subtitle: string;
   /** One sentence under bestFor — kept short for card layout. */
@@ -600,7 +603,8 @@ const EliteFeatures: PlanFeatureSet = {
 export const PLANS: Record<ShopPlan, PlanDefinition> = {
   STARTER: {
     id: "STARTER",
-    name: "Ignition",
+    name: "Core",
+    marketingName: "Ignition",
     subtitle: "Shop plan",
     tagline: "Everything to run your shop — job board, DVIs, estimates & Operations Daily Snapshot.",
     monthlyCents: 4999,
@@ -1016,6 +1020,16 @@ export function formatPlanPrice(cents: number | null, annual: boolean): string {
 export function planDisplayPrice(plan: PlanDefinition, annual: boolean): string {
   const cents = annual ? plan.annualMonthlyCents : plan.monthlyCents;
   return formatPriceFromCents(cents);
+}
+
+/** In-app / CRM plan label (e.g. Core on Settings → Subscription). */
+export function planAppDisplayName(plan: PlanDefinition): string {
+  return plan.name;
+}
+
+/** Public marketing plan label (e.g. Ignition on /pricing when `marketingName` is set). */
+export function planMarketingDisplayName(plan: PlanDefinition): string {
+  return plan.marketingName ?? plan.name;
 }
 
 /** List (monthly) price — shown struck-through when annual billing is selected. */

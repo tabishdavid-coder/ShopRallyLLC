@@ -343,6 +343,43 @@ async function main() {
     },
   });
 
+  /** Core plan QA tenant — mirrors live Macuto Auto Repair fidelity work. */
+  const macuto = await prisma.shop.create({
+    data: {
+      id: "shop_macuto",
+      platformId: platform.id,
+      name: "Macuto Auto Repair",
+      code: "MAC",
+      masterId: "RP-MAC-104827",
+      masterIdCreatedAt: new Date(),
+      phone: "(718) 555-0199",
+      email: "service@macutoautorepair.com",
+      address: "450 Grand Concourse",
+      city: "Bronx",
+      state: "NY",
+      zip: "10451",
+      laborRateCents: dollars(125),
+      taxRateBps: TAX_BPS,
+      apptDayStart: "08:00",
+      apptDayEnd: "18:00",
+      apptDefaultDurationMins: 60,
+      plan: "STARTER",
+      billingStatus: "ACTIVE",
+      estimateTermsHtml: DEFAULT_ESTIMATE_TERMS_HTML,
+      invoiceTermsHtml: DEFAULT_INVOICE_TERMS_HTML,
+      estimateTermsVersion: "1.0",
+      estimateTermsUpdatedAt: new Date(),
+    },
+  });
+
+  await prisma.leadSource.createMany({
+    data: LEAD_SOURCES.map((name, i) => ({
+      shopId: macuto.id,
+      name,
+      sortOrder: i,
+    })),
+  });
+
   // ── Users + memberships ────────────────────────────────
   const platformAdmin = await prisma.user.create({
     data: {
@@ -369,6 +406,7 @@ async function main() {
   await prisma.membership.createMany({
     data: [
       { shopId: demo.id, userId: owner.id, role: Role.OWNER },
+      { shopId: macuto.id, userId: owner.id, role: Role.OWNER },
       {
         shopId: demo.id,
         userId: carlos.id,
@@ -536,6 +574,81 @@ async function main() {
   const customers = loadCustomers(demo.id);
   await prisma.customer.createMany({ data: customers });
   console.log(`  imported ${customers.length} customers from CSV`);
+
+  // Macuto Core QA — one customer + estimate RO for plan fidelity testing
+  const macutoCustomer = await prisma.customer.create({
+    data: {
+      shopId: macuto.id,
+      firstName: "Maria",
+      lastName: "Santos",
+      phone: "(718) 555-0144",
+      phoneDigits: "7185550144",
+      email: "maria.santos@example.com",
+      city: "Bronx",
+      state: "NY",
+    },
+  });
+  const macutoVehicle = await prisma.vehicle.create({
+    data: {
+      shopId: macuto.id,
+      customerId: macutoCustomer.id,
+      year: 2016,
+      make: "Honda",
+      model: "Civic",
+      trim: "LX",
+      plate: "MAC-1024",
+      plateState: "NY",
+    },
+  });
+  await prisma.repairOrder.create({
+    data: {
+      shopId: macuto.id,
+      number: 1001,
+      customerId: macutoCustomer.id,
+      vehicleId: macutoVehicle.id,
+      status: ROStatus.ESTIMATE,
+      serviceWriterId: owner.id,
+      mileageIn: 68420,
+      laborSubtotalCents: dollars(125),
+      partsSubtotalCents: dollars(45),
+      taxCents: Math.round(((dollars(125) + dollars(45)) * TAX_BPS) / 10000),
+      totalCents:
+        dollars(125) +
+        dollars(45) +
+        Math.round(((dollars(125) + dollars(45)) * TAX_BPS) / 10000),
+      jobs: {
+        create: [
+          {
+            shopId: macuto.id,
+            name: "Oil change & inspection",
+            laborLines: {
+              create: [
+                {
+                  shopId: macuto.id,
+                  description: "Synthetic oil & filter change",
+                  hours: 1.0,
+                  rateCents: dollars(125),
+                  totalCents: dollars(125),
+                },
+              ],
+            },
+            partLines: {
+              create: [
+                {
+                  shopId: macuto.id,
+                  description: "Oil filter",
+                  quantity: 1,
+                  costCents: dollars(8),
+                  retailCents: dollars(45),
+                  totalCents: dollars(45),
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  });
 
   // ── Attach sample vehicles + ROs to two real customers ──
   const david = await prisma.customer.findFirst({
