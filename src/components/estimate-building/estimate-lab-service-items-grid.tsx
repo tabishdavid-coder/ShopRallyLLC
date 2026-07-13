@@ -112,17 +112,13 @@ export { INLINE_LINE_TYPE_OPTIONS } from "@/components/estimate-building/estimat
 function lineTypeGuideHandlers(
   onLaborLookup?: () => void,
   onPartLookup?: () => void,
-  onLaborManual?: () => void,
-  onPartManual?: () => void,
 ): EstimateLineTypeMenuHandlers | undefined {
-  if (!onLaborLookup && !onPartLookup && !onLaborManual && !onPartManual) {
+  if (!onLaborLookup && !onPartLookup) {
     return undefined;
   }
   return {
     onLaborFromGuide: onLaborLookup,
     onPartFromGuide: onPartLookup,
-    onCustomLabor: onLaborManual,
-    onCustomPart: onPartManual,
   };
 }
 
@@ -895,8 +891,6 @@ export function EstimateLabServiceItemsGrid({
   const typeGuideHandlers = lineTypeGuideHandlers(
     onLaborLookup,
     onPartLookup,
-    onLaborManual,
-    onPartManual,
   );
 
   function addManualForType(type: InlineLineType) {
