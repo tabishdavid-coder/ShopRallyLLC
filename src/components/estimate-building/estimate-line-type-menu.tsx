@@ -106,8 +106,8 @@ export function EstimateLineTypeMenu({
   const partScope = menuScope === "part" || menuScope === "all";
   const showLaborGuide = laborScope && motorLaborOk;
   const showLaborCustom = laborScope && Boolean(h.onCustomLabor);
-  const showPartGuide = partScope && partsTechOk && Boolean(h.onPartFromGuide);
-  const showPartCustom = partScope && Boolean(h.onCustomPart);
+  const showPartGuide = (partScope || showPartActionsOnLabor) && partsTechOk && Boolean(h.onPartFromGuide);
+  const showPartCustom = (partScope || showPartActionsOnLabor) && Boolean(h.onCustomPart);
 
   const hasGuideMenu = Boolean(
     (showLaborGuide && (h.onLaborFromGuide || h.onLaborFromCatalog)) ||
@@ -117,8 +117,14 @@ export function EstimateLineTypeMenu({
   );
 
   const resolvedTypeOptions: InlineLineType[] = typeOptions ?? defaultTypeOptions(menuScope);
-  /** Labor + Part Type columns share the same compact navy trigger (job-card Type column). */
-  const useMatchedTypeTrigger = menuScope === "labor" || menuScope === "part";
+  /** Labor, Part, Fee, and Discount share the compact navy Type trigger. */
+  const useMatchedTypeTrigger =
+    menuScope === "labor" ||
+    menuScope === "part" ||
+    value === "fee" ||
+    value === "discount" ||
+    menuScope === "all";
+  const showPartActionsOnLabor = menuScope === "labor" && Boolean(h.onPartFromGuide || h.onCustomPart);
 
   if (!editing) {
     return (

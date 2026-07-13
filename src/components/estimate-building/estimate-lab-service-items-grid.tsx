@@ -69,6 +69,7 @@ import {
   LAB_LINE_GRID_BASE,
   LAB_LINE_GRID_HEAD_BASE,
   LAB_LINE_GRID_MIN_W,
+  LAB_MONEY_PREFIX,
   LAB_TABLE_HEAD,
 } from "@/components/estimate-building/estimate-lab-job-card-shell";
 import {
@@ -78,6 +79,12 @@ import {
 } from "@/components/estimate-building/estimate-lab-name-desc-split";
 
 const DESC_STACK = "flex min-w-0 flex-col gap-0.5 overflow-hidden";
+
+/** All convertible line types in the service-items Type column. */
+const SERVICE_LINE_TYPE_OPTIONS: InlineLineType[] = [
+  ...LABOR_LINE_TYPES,
+  ...PART_FAMILY_LINE_TYPES,
+];
 
 function LabDescriptionTextarea({
   value = "",
@@ -614,8 +621,6 @@ function SortableRow({
   );
 }
 
-const ADJ_SELECT = cn(LAB_DESCRIPTION_SELECT_CLASS);
-
 export function EstimateLabServiceItemsGrid({
   labor,
   parts,
@@ -971,7 +976,7 @@ export function EstimateLabServiceItemsGrid({
                 <EstimateLineTypeMenu
                   value="labor"
                   scope="labor"
-                  typeOptions={LABOR_LINE_TYPES}
+                  typeOptions={SERVICE_LINE_TYPE_OPTIONS}
                   editing={editing}
                   onChange={(t) => onTypeChange(index, t)}
                   handlers={typeGuideHandlers}
@@ -1126,10 +1131,8 @@ export function EstimateLabServiceItemsGrid({
     if (item.kind === "adjustment") {
       const a = item.row;
       const isFee = item.adjKind === "fee";
-      const templates = isFee ? feeTemplates : discountTemplates;
       const total = calcAdjustmentTotal(a, laborCents, partsCents);
       const amountKey = `${draftPrefix}-amount`;
-      const methodLabel = a.method === "PERCENT" ? `${a.amount / 100}%` : formatCents(a.amount);
       const baseLabel =
         a.base === "LABOR_PARTS" ? "Labor + parts" : a.base === "LABOR" ? "Labor" : "Parts";
 
@@ -1143,103 +1146,72 @@ export function EstimateLabServiceItemsGrid({
               <div className={LAB_GRID_CELL_BORDERED}>
                 <EstimateLineTypeMenu
                   value={item.adjKind}
+                  scope="all"
+                  typeOptions={SERVICE_LINE_TYPE_OPTIONS}
                   editing={editing}
                   onChange={(t) => onTypeChange(index, t)}
                   handlers={typeGuideHandlers}
                 />
               </div>
-              <div className={LAB_GRID_CELL_BORDERED}>
-                {editing ? (
-                  <div className="flex min-w-0 items-center gap-0.5">
-                    {templates.length > 0 ? (
-                      <select
-                        className={cn(ADJ_SELECT, "max-w-[4.5rem] shrink-0")}
-                        value=""
-                        onChange={(e) => {
-                          const t = templates.find((x) => x.name === e.target.value);
-                          if (!t) return;
-                          commitAdjustment(a, item.adjKind, {
-                            name: t.name,
-                            method: t.method,
-                            base: t.base,
-                            amount: t.amount,
-                            ...(isFee ? { taxable: t.taxable ?? false } : {}),
-                          });
-                        }}
-                        aria-label={`Saved ${isFee ? "fee" : "discount"} preset`}
-                      >
-                        <option value="">Preset…</option>
-                        {templates.map((t) => (
-                          <option key={t.name} value={t.name}>
-                            {t.name}
-                          </option>
-                        ))}
-                      </select>
-                    ) : null}
+              <LabNameDescCells
+                descEmpty={false}
+                name={
+                  editing ? (
                     <Input
                       defaultValue={a.name}
                       key={`${a.id}-${a.name}`}
                       onBlur={(e) => commitAdjustment(a, item.adjKind, { name: e.target.value })}
-                      className={cn(LAB_INPUT_FLAT, "min-w-0 flex-1")}
+                      className={cn(LAB_INPUT_FLAT, "w-full")}
                       placeholder={isFee ? "Fee name" : "Discount name"}
                     />
-                  </div>
-                ) : (
-                  <p className="min-w-0 truncate text-xs text-brand-navy">{a.name}</p>
-                )}
-              </div>
-              <div className={LAB_GRID_CELL_BORDERED}>
-                {editing ? (
-                  <div className={DESC_STACK}>
-                    <select
-                      data-lab-description
-                      value={a.method}
-                      onChange={(e) =>
-                        commitAdjustment(a, item.adjKind, { method: e.target.value as AdjustMethod })
-                      }
-                      className={ADJ_SELECT}
-                      aria-label="Method"
-                    >
-                      <option value="FIXED">Fixed $</option>
-                      <option value="PERCENT">Percent %</option>
-                    </select>
+                  ) : (
+                    <p className="min-w-0 line-clamp-2 text-xs text-brand-navy">{a.name || "—"}</p>
+                  )
+                }
+                description={
+                  editing ? (
                     <select
                       data-lab-description
                       value={a.base}
                       onChange={(e) =>
                         commitAdjustment(a, item.adjKind, { base: e.target.value as AdjustBase })
                       }
-                      className={ADJ_SELECT}
+                      className={LAB_DESCRIPTION_SELECT_CLASS}
                       aria-label="Calculate on"
                     >
                       <option value="LABOR_PARTS">Labor + parts</option>
                       <option value="LABOR">Labor</option>
                       <option value="PARTS">Parts</option>
                     </select>
-                  </div>
-                ) : (
-                  <p className="text-[10px] leading-snug text-muted-foreground">
-                    {a.method === "PERCENT" ? "Percent" : "Fixed"} on {baseLabel}
-                  </p>
-                )}
-              </div>
-              <div className={LAB_GRID_NUM_BORDERED}>
-                <InlinePlaceholderCell />
-              </div>
-              <div className={LAB_GRID_NUM_BORDERED}>
-                <InlinePlaceholderCell />
-              </div>
-              <div className={LAB_GRID_NUM_BORDERED}>
-                <InlinePlaceholderCell />
-              </div>
+                  ) : (
+                    <p className="line-clamp-2 min-w-0 text-[10px] leading-snug text-muted-foreground">
+                      {baseLabel}
+                    </p>
+                  )
+                }
+              />
               <div className={LAB_GRID_NUM_BORDERED}>
                 <span className="inline-flex h-7 w-full items-center justify-end text-xs tabular-nums text-muted-foreground">
-                  {methodLabel}
+                  {a.method === "PERCENT" ? "—" : "1"}
                 </span>
               </div>
               <div className={LAB_GRID_NUM_BORDERED}>
+                <InlinePlaceholderCell />
+              </div>
+              <div className={LAB_GRID_NUM_BORDERED}>
                 {editing ? (
-                  <div className={DESC_STACK}>
+                  <div className={MONEY_CELL}>
+                    <select
+                      className={cn(LAB_MONEY_PREFIX, LAB_INPUT_FLAT, "text-[10px]")}
+                      value={a.method}
+                      onChange={(e) =>
+                        commitAdjustment(a, item.adjKind, { method: e.target.value as AdjustMethod })
+                      }
+                      aria-label="Fee method"
+                    >
+                      <option value="FIXED">$</option>
+                      <option value="PERCENT">%</option>
+                    </select>
                     <Input
                       type="text"
                       inputMode="decimal"
@@ -1256,15 +1228,22 @@ export function EstimateLabServiceItemsGrid({
                         commitAdjustment(a, item.adjKind, { amount: cents });
                         clearFieldDraft(amountKey);
                       }}
-                      className={cn(LAB_INPUT_FLAT, "w-full text-right")}
+                      className={cn(MONEY_INPUT, "min-w-0 flex-1")}
                     />
-                    <span className="text-[9px] text-muted-foreground/60">
-                      {a.method === "PERCENT" ? "% rate" : "$ amount"}
-                    </span>
                   </div>
+                ) : a.method === "PERCENT" ? (
+                  <span className="inline-flex h-7 w-full items-center justify-end text-xs font-medium tabular-nums">
+                    {a.amount / 100}%
+                  </span>
                 ) : (
-                  <LineDiscountStub editing={false} />
+                  <ReadOnlyMoney cents={a.amount} className="font-medium" />
                 )}
+              </div>
+              <div className={LAB_GRID_NUM_BORDERED}>
+                <ReadOnlyMoney cents={total} className="font-medium" />
+              </div>
+              <div className={LAB_GRID_NUM_BORDERED}>
+                <LineDiscountStub editing={editing} />
               </div>
               <div className={LAB_GRID_NUM_BORDERED}>
                 <span
@@ -1325,7 +1304,7 @@ export function EstimateLabServiceItemsGrid({
               <EstimateLineTypeMenu
                 value={item.lineType}
                 scope="part"
-                typeOptions={[...PART_FAMILY_LINE_TYPES, "fee", "discount"]}
+                typeOptions={SERVICE_LINE_TYPE_OPTIONS}
                 editing={editing}
                 onChange={(t) => onTypeChange(index, t)}
                 handlers={typeGuideHandlers}
