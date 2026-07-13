@@ -5,7 +5,7 @@ import type { AiFeature } from "@/generated/prisma";
 export type AiProvider = "gemini" | "anthropic";
 
 const ANTHROPIC_DEFAULT = "claude-haiku-4-5";
-const GEMINI_DEFAULT = "gemini-2.0-flash";
+const GEMINI_DEFAULT = "gemini-flash-latest";
 
 const FEATURE_MODEL_ENV: Record<AiFeature, readonly string[]> = {
   REVIEW_REPLY: ["REVIEW_REPLY_AI_MODEL", "AI_DEFAULT_MODEL", "SUPPORT_AI_MODEL"],
