@@ -50,6 +50,8 @@ import {
 
 import { getShopId } from "@/lib/shop";
 
+import { motorEnabledForShop } from "@/server/labor-entitlement";
+
 import {
 
   getMotorApplicationsForSubGroup,
@@ -524,11 +526,9 @@ export async function getLaborBookMotorApplications(
 
   if (denied) return { ok: false, error: denied.error };
 
-
+  const motorOn = await motorEnabledForShop(loaded.shopId);
 
   const laborVehicle = toLaborServiceVehicle(loaded.vehicle);
-
-
 
   try {
 
@@ -536,7 +536,7 @@ export async function getLaborBookMotorApplications(
 
       // MOTOR is the primary source: when the sandbox overlay is on, serve MOTOR
       // (BOOK) applications first and only fall back to shop cache when MOTOR misses.
-      if (allowSandboxMotorDbCache() && baseVehicleId) {
+      if (motorOn && allowSandboxMotorDbCache() && baseVehicleId) {
 
         let apps = await getMotorApplicationsForSubGroup(baseVehicleId, motorSubGroupId);
 
@@ -582,6 +582,12 @@ export async function getLaborBookMotorApplications(
     }
 
 
+
+    if (!motorOn) {
+      const cacheRows = await getReferenceLaborOperations(laborVehicle, motorSubGroupId);
+      if (cacheRows.length) return { ok: true, rows: cacheRows };
+      return { ok: true, rows: [] };
+    }
 
     let apps = await getMotorApplicationsForSubGroup(baseVehicleId, motorSubGroupId);
 
@@ -646,9 +652,10 @@ export async function getLaborBookMotorInit(vehicleId: string): Promise<LaborBoo
 
 
   try {
-    // MOTOR is the primary labor source. When no MOTOR data is available (no license
-    // and sandbox overlay off) fall back to the shop taxonomy/AI reference guide.
-    if (!motorCatalogDataAvailable()) {
+    const motorOn = await motorEnabledForShop(loaded.shopId);
+
+    // Core shops and shops without MOTOR entitlement use the shop reference guide.
+    if (!motorCatalogDataAvailable() || !motorOn) {
       return referenceTaxonomyInit(null);
     }
 

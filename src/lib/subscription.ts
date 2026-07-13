@@ -44,7 +44,9 @@ export type SubscriptionFeature =
   | "ai_campaign_drafting"
   | "ai_seo_content"
   | "ai_customer_insights"
-  | "ai_receptionist";
+  | "ai_receptionist"
+  /** Parts/labor markup matrices — Pro+ only. */
+  | "markupMatrices";
 
 const FEATURE_MAP: Record<SubscriptionFeature, PlanFeature | null> = {
   coreCrm: null, // always on
@@ -70,6 +72,7 @@ const FEATURE_MAP: Record<SubscriptionFeature, PlanFeature | null> = {
   ai_seo_content: "aiSeoContent",
   ai_customer_insights: "aiCustomerInsights",
   ai_receptionist: "aiReceptionist",
+  markupMatrices: "markupMatrices",
 };
 
 /** Map subscription features that require a phased release flag. */
