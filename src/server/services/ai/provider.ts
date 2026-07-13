@@ -5,14 +5,15 @@ import type { AiFeature } from "@/generated/prisma";
 export type AiProvider = "gemini" | "anthropic";
 
 const ANTHROPIC_DEFAULT = "claude-haiku-4-5";
-/** Stable pinned model — avoid `gemini-flash-latest` alias (frequent 503 under load). */
-const GEMINI_DEFAULT = "gemini-2.5-flash";
+/** Stable default for new Google AI Studio keys (2.x models return 404 for new users). */
+const GEMINI_DEFAULT = "gemini-3.1-flash-lite";
 
-/** Ordered fallbacks when primary Gemini model returns 503/429. Override: GEMINI_MODEL_FALLBACKS=a,b,c */
+/** Ordered fallbacks when primary Gemini model returns 503/429 or 404 (deprecated for new keys). */
 const GEMINI_MODEL_FALLBACKS_DEFAULT = [
-  "gemini-2.5-flash",
-  "gemini-2.0-flash",
-  "gemini-2.0-flash-lite",
+  "gemini-3.1-flash-lite",
+  "gemini-3-flash-preview",
+  "gemini-flash-lite-latest",
+  "gemini-3.5-flash",
 ] as const;
 
 const FEATURE_MODEL_ENV: Record<AiFeature, readonly string[]> = {
