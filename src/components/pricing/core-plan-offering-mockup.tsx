@@ -57,7 +57,7 @@ function GroupCard({ group }: { group: CoreOfferingGroup }) {
   );
 }
 
-/** Review-only mockup — not live /pricing until you approve. */
+/** Review page — deep Core breakdown (also on /pricing#core-whats-included). */
 export function CorePlanOfferingMockup() {
   const m = CORE_OFFERING_MOCK;
   const totalFeatures = m.groups.reduce((n, g) => n + g.items.length, 0);
@@ -274,18 +274,15 @@ export function CorePlanOfferingMockup() {
             </div>
 
             <div className="flex flex-col justify-center rounded-2xl border border-brand-navy/15 bg-brand-navy/[0.03] p-6">
-              <h3 className="text-lg font-semibold text-brand-navy">Approval checklist</h3>
-              <ol className="mt-4 list-decimal space-y-2 pl-5 text-sm text-slate-600">
-                <li>Edit group names / items in this mock if anything is overstated.</li>
-                <li>Confirm AI Plus stays Core-only at $20/mo.</li>
-                <li>Confirm “Not on Core” list matches sales conversation.</li>
-                <li>
-                  After you say go: wire `proposedCardBullets` + group copy into `plans.ts` /
-                  `/pricing` / Subscription panel system-wide.
-                </li>
-              </ol>
+              <h3 className="text-lg font-semibold text-brand-navy">System-wide status</h3>
+              <ul className="mt-4 space-y-2 text-sm text-slate-600">
+                <li>Card bullets live on `PLANS.STARTER` + Billing / Subscription.</li>
+                <li>Grouped breakdown ships on `/pricing` under What’s included.</li>
+                <li>AI Plus remains Core-only at $20/mo.</li>
+                <li>Edit groups in `core-plan-offering-proposal.ts`; edit card bullets in `plans.ts`.</li>
+              </ul>
               <p className="mt-6 text-xs text-slate-500">
-                Source of truth for this mock:{" "}
+                Groups:{" "}
                 <code className="rounded bg-white px-1.5 py-0.5 text-[11px] text-brand-navy">
                   src/lib/core-plan-offering-proposal.ts
                 </code>

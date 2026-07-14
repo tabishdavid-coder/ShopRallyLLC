@@ -1,10 +1,11 @@
 /**
- * Proposed Core (Ignition) plan offering — MOCK / review only.
- * Not wired into PLANS / /pricing until approved.
+ * Core (Ignition) deep feature groups — used on /pricing “What’s included”
+ * and /core-plan-offering-mock.
  *
- * Built from product shipped on Core (STARTER) + gates in
- * docs/CORE-PLAN-FIDELITY.md and settings-plan-gates.
+ * Compact card bullets: `PLANS.STARTER.pricingCard.bullets` (canonical).
  */
+
+import { PLANS } from "@/lib/plans";
 
 export type CoreOfferingItem = {
   name: string;
@@ -19,6 +20,9 @@ export type CoreOfferingGroup = {
   blurb: string;
   items: CoreOfferingItem[];
 };
+
+/** Compact bullets — sourced from the live plan catalog. */
+export const CORE_PLAN_CARD_BULLETS: readonly string[] = PLANS.STARTER.pricingCard.bullets;
 
 export const CORE_OFFERING_MOCK = {
   planName: "Core",
@@ -182,20 +186,10 @@ export const CORE_OFFERING_MOCK = {
       { name: "ShopRally advisor mobile app" },
     ],
   },
-  /** Short card bullets proposed to replace today’s 10-line dump on /pricing */
-  proposedCardBullets: [
-    "Unlimited users",
-    "Unlimited ROs & estimates",
-    "Job board + full RO workspace",
-    "Canned jobs & shop labor library",
-    "Digital estimates, approvals & invoices (email)",
-    "Digital vehicle inspections",
-    "Live Operations Daily Snapshot",
-    "Appointments",
-    "Payment tracking",
-    "NHTSA VIN decode",
-    "Inventory basics & shop catalog",
-  ],
-} as const;
+  /** Compact card bullets — live catalog (`PLANS.STARTER.pricingCard.bullets`). */
+  get proposedCardBullets() {
+    return CORE_PLAN_CARD_BULLETS;
+  },
+};
 
 export type CoreOfferingMock = typeof CORE_OFFERING_MOCK;
