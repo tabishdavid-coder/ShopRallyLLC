@@ -37,6 +37,7 @@ import { usePartsTechUiEnabled } from "@/lib/shop-capabilities";
 import {
   laborLineTotal,
   partLineTotal,
+  lineNetCents,
   patchLaborLine,
   patchPartLine,
   applyLaborMatrixRow,
@@ -106,6 +107,7 @@ type LaborRow = {
   costCents: number;
   rateCents: number;
   totalCents?: number;
+  discountCents?: number;
   lastField?: "hours" | "rate" | "total";
   useLaborMatrix?: boolean;
   technicianId?: string | null;
@@ -131,6 +133,7 @@ type PartRow = {
   costCents: number;
   retailCents: number;
   totalCents?: number;
+  discountCents?: number;
   lastField?: "qty" | "cost" | "retail" | "total";
   usePartMatrix?: boolean;
   source?: string;
@@ -326,8 +329,15 @@ function parseOptionalCents(s: string): number | null {
 function totals(labor: LaborRow[], parts: PartRow[], taxBps: number) {
   const activeLabor = labor.filter((l) => l.authorized !== false);
   const activeParts = parts.filter((p) => p.authorized !== false);
-  const laborTotal = activeLabor.reduce((s, l) => s + laborLineTotal(l), 0);
-  const partsTotal = activeParts.reduce((s, p) => s + partLineTotal(p), 0);
+  // Customer-facing totals use Net (Amount − line discount).
+  const laborTotal = activeLabor.reduce(
+    (s, l) => s + lineNetCents(l, laborLineTotal(l)),
+    0,
+  );
+  const partsTotal = activeParts.reduce(
+    (s, p) => s + lineNetCents(p, partLineTotal(p)),
+    0,
+  );
   const laborCost = activeLabor.reduce((s, l) => s + l.costCents, 0);
   const partsCost = activeParts.reduce((s, p) => s + p.costCents * p.quantity, 0);
   const subtotal = laborTotal + partsTotal;
@@ -470,6 +480,7 @@ export function EstimateJobCard({
     authorized: l.authorized,
     technicianId: l.technicianId,
     sortOrder: l.sortOrder ?? i,
+    discountCents: "discountCents" in l && typeof l.discountCents === "number" ? l.discountCents : 0,
     useLaborMatrix: inferLaborMatrixMode(
       { hours: l.hours, rateCents: l.rateCents },
       baseRateCents,
@@ -491,6 +502,7 @@ export function EstimateJobCard({
       authorized: p.authorized,
       sortOrder: p.sortOrder ?? i + initialLabor.length,
       lineType: "part",
+      discountCents: "discountCents" in p && typeof p.discountCents === "number" ? p.discountCents : 0,
       usePartMatrix: inferPartMatrixMode(
         { costCents: p.costCents, retailCents: p.retailCents },
         partTiers,
@@ -538,6 +550,7 @@ export function EstimateJobCard({
           costCents: l.costCents,
           rateCents: l.rateCents,
           totalCents: l.totalCents,
+          discountCents: l.discountCents ?? 0,
           lastField: l.lastField,
           authorized: l.authorized,
         })),
@@ -547,6 +560,7 @@ export function EstimateJobCard({
           retailCents: p.retailCents,
           costCents: p.costCents,
           totalCents: p.totalCents,
+          discountCents: p.discountCents ?? 0,
           lastField: p.lastField,
           authorized: p.authorized,
         })),
@@ -730,6 +744,7 @@ export function EstimateJobCard({
           hours: l.hours,
           costCents: l.costCents,
           rateCents: l.rateCents,
+          discountCents: l.discountCents ?? 0,
           technicianId: l.technicianId ?? null,
         })),
         partLines: parts.map((p) => ({
@@ -740,6 +755,7 @@ export function EstimateJobCard({
           quantity: p.quantity,
           costCents: p.costCents,
           retailCents: p.retailCents,
+          discountCents: p.discountCents ?? 0,
         })),
       });
       if (res.ok) {
@@ -772,6 +788,7 @@ export function EstimateJobCard({
           hours: l.hours,
           costCents: l.costCents,
           rateCents: l.rateCents,
+          discountCents: l.discountCents ?? 0,
           technicianId: l.technicianId ?? null,
         })),
         partLines: parts.map((p) => ({
@@ -782,6 +799,7 @@ export function EstimateJobCard({
           quantity: p.quantity,
           costCents: p.costCents,
           retailCents: p.retailCents,
+          discountCents: p.discountCents ?? 0,
         })),
       });
       if (res.ok) {
@@ -1124,7 +1142,15 @@ export function EstimateJobCard({
                 clearFieldDraft={clearFieldDraft}
                 focusFieldDraft={focusFieldDraft}
                 onLaborChange={setLabor}
-                onPartsChange={setParts}
+                onPartsChange={(rows) => {
+                  setParts((prev) =>
+                    rows.map((row, i) => {
+                      const match =
+                        (row.id ? prev.find((p) => p.id === row.id) : undefined) ?? prev[i];
+                      return { ...row, details: match?.details ?? "" };
+                    }),
+                  );
+                }}
                 onAddLine={(type) => {
                   if (type === "labor") {
                     addLaborLine();

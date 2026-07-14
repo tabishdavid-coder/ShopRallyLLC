@@ -32,6 +32,64 @@ export function partLineTotal(p: EditablePartLine): number {
   return p.retailCents * p.quantity;
 }
 
+export type LineWithDiscount = {
+  discountCents?: number;
+};
+
+/** Gross amount before line discount. */
+export function lineGrossCents(kind: "labor" | "part", row: EditableLaborLine | EditablePartLine): number {
+  return kind === "labor"
+    ? laborLineTotal(row as EditableLaborLine)
+    : partLineTotal(row as EditablePartLine);
+}
+
+export function lineDiscountCents(row: LineWithDiscount, grossCents: number): number {
+  const raw = row.discountCents ?? 0;
+  return Math.max(0, Math.min(grossCents, Math.round(raw)));
+}
+
+export function lineNetCents(row: LineWithDiscount, grossCents: number): number {
+  return Math.max(0, grossCents - lineDiscountCents(row, grossCents));
+}
+
+export function lineDiscountPct(discountCents: number, grossCents: number): number {
+  if (grossCents <= 0) return 0;
+  return Math.round((discountCents / grossCents) * 10000) / 100;
+}
+
+/** Apply a fixed $ discount; clamps to [0, gross]. */
+export function patchLineDiscountDollars<T extends LineWithDiscount>(
+  row: T,
+  dollarsCents: number,
+  grossCents: number,
+): T {
+  return {
+    ...row,
+    discountCents: Math.max(0, Math.min(grossCents, Math.round(dollarsCents))),
+  };
+}
+
+/** Apply a % discount of gross (0–100). */
+export function patchLineDiscountPercent<T extends LineWithDiscount>(
+  row: T,
+  percent: number,
+  grossCents: number,
+): T {
+  const pct = Math.max(0, Math.min(100, percent));
+  const dollars = Math.round((grossCents * pct) / 100);
+  return patchLineDiscountDollars(row, dollars, grossCents);
+}
+
+/** Set net amount — back-calculates discount from gross. */
+export function patchLineNet<T extends LineWithDiscount>(
+  row: T,
+  netCents: number,
+  grossCents: number,
+): T {
+  const net = Math.max(0, Math.min(grossCents, Math.round(netCents)));
+  return patchLineDiscountDollars(row, grossCents - net, grossCents);
+}
+
 export function patchLaborLine<T extends EditableLaborLine>(
   row: T,
   field: LaborEditField,

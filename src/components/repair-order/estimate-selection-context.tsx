@@ -35,6 +35,7 @@ export type JobEditDraft = {
     costCents?: number;
     rateCents: number;
     totalCents?: number;
+    discountCents?: number;
     lastField?: "hours" | "rate" | "total";
     authorized?: boolean;
   }[];
@@ -44,6 +45,7 @@ export type JobEditDraft = {
     retailCents: number;
     costCents: number;
     totalCents?: number;
+    discountCents?: number;
     lastField?: "qty" | "cost" | "retail" | "total";
     authorized?: boolean;
   }[];
@@ -185,10 +187,12 @@ export function EstimateSelectionProvider({
                 partsTaxable: j.partsTaxable,
                 laborLines: draft.laborLines.map((l) => ({
                   totalCents: laborLineTotal(l),
+                  discountCents: l.discountCents ?? 0,
                   authorized: l.id ? (selection[j.id]?.labor[l.id] ?? l.authorized !== false) : l.authorized !== false,
                 })),
                 partLines: draft.partLines.map((p) => ({
                   totalCents: partLineTotal(p),
+                  discountCents: p.discountCents ?? 0,
                   authorized: p.id ? (selection[j.id]?.parts[p.id] ?? p.authorized !== false) : p.authorized !== false,
                 })),
               };
@@ -197,8 +201,16 @@ export function EstimateSelectionProvider({
               id: j.id,
               laborTaxable: j.laborTaxable,
               partsTaxable: j.partsTaxable,
-              laborLines: j.laborLines.map((l) => ({ totalCents: l.totalCents, authorized: l.authorized })),
-              partLines: j.partLines.map((p) => ({ totalCents: p.totalCents, authorized: p.authorized })),
+              laborLines: j.laborLines.map((l) => ({
+                totalCents: l.totalCents,
+                discountCents: "discountCents" in l && typeof l.discountCents === "number" ? l.discountCents : 0,
+                authorized: l.authorized,
+              })),
+              partLines: j.partLines.map((p) => ({
+                totalCents: p.totalCents,
+                discountCents: "discountCents" in p && typeof p.discountCents === "number" ? p.discountCents : 0,
+                authorized: p.authorized,
+              })),
             };
           }),
           fees: fees.map((f) => ({

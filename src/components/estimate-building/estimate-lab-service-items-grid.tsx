@@ -33,8 +33,14 @@ import { Textarea } from "@/components/ui/textarea";
 import { formatCents } from "@/lib/format";
 import {
   laborLineTotal,
+  lineDiscountCents,
+  lineDiscountPct,
+  lineNetCents,
   partLineTotal,
   patchLaborLine,
+  patchLineDiscountDollars,
+  patchLineDiscountPercent,
+  patchLineNet,
   patchPartLine,
 } from "@/lib/line-calc";
 import { type LaborTier, type PartTier } from "@/lib/matrix";
@@ -136,6 +142,8 @@ type LaborRow = {
   costCents: number;
   rateCents: number;
   totalCents?: number;
+  /** Line discount in cents — Amount − Discount = Net. */
+  discountCents?: number;
   lastField?: "hours" | "rate" | "total";
   useLaborMatrix?: boolean;
   technicianId?: string | null;
@@ -152,6 +160,8 @@ type PartRow = {
   costCents: number;
   retailCents: number;
   totalCents?: number;
+  /** Line discount in cents — Amount − Discount = Net. */
+  discountCents?: number;
   lastField?: "qty" | "cost" | "retail" | "total";
   usePartMatrix?: boolean;
   source?: string;
@@ -456,12 +466,100 @@ function InlinePlaceholderCell({ placeholder = "—" }: { placeholder?: string }
   );
 }
 
-/** Per-line discount — schema has no line-level discount; Tekmetric column stub. */
-function LineDiscountStub({ editing }: { editing: boolean }) {
+/** Editable line discount — $ and % stay in sync; Net can also back-calculate. */
+function LineDiscountCell({
+  editing,
+  discountCents,
+  grossCents,
+  draftPrefix,
+  fieldDrafts,
+  focusFieldDraft,
+  setFieldDraft,
+  clearFieldDraft,
+  onDiscountCents,
+}: {
+  editing: boolean;
+  discountCents: number;
+  grossCents: number;
+  draftPrefix: string;
+  fieldDrafts: FieldDrafts;
+  focusFieldDraft: (key: string, value: string) => void;
+  setFieldDraft: (key: string, value: string) => void;
+  clearFieldDraft: (key: string) => void;
+  onDiscountCents: (cents: number) => void;
+}) {
+  const clamped = lineDiscountCents({ discountCents }, grossCents);
+  const pct = lineDiscountPct(clamped, grossCents);
+  const dollarsKey = `${draftPrefix}-disc-$`;
+  const pctKey = `${draftPrefix}-disc-%`;
+
+  if (!editing) {
+    return (
+      <div className="flex h-7 w-full min-w-0 items-center justify-end gap-1 text-xs tabular-nums text-muted-foreground">
+        <span>{formatCents(clamped)}</span>
+        <span className="text-muted-foreground/50">·</span>
+        <span className="text-muted-foreground/50">{pct}%</span>
+      </div>
+    );
+  }
+
   return (
-    <div className={cn("flex min-w-0 flex-col gap-0.5", editing ? "" : "items-end")}>
-      <span className="text-[10px] tabular-nums text-muted-foreground/70">$0.00</span>
-      <span className="text-[10px] tabular-nums text-muted-foreground/50">0%</span>
+    <div className="flex h-7 w-full min-w-0 items-center gap-0.5">
+      <div className="relative min-w-0 flex-1">
+        <span className="pointer-events-none absolute left-0 top-1/2 -translate-y-1/2 text-[10px] text-muted-foreground">
+          $
+        </span>
+        <Input
+          type="text"
+          inputMode="decimal"
+          aria-label="Discount dollars"
+          value={draftValue(fieldDrafts, dollarsKey, dollars(clamped))}
+          onFocus={() => focusFieldDraft(dollarsKey, dollars(clamped))}
+          onChange={(e) => {
+            const v = e.target.value;
+            if (!isDecimalInput(v)) return;
+            setFieldDraft(dollarsKey, v);
+            const cents = parseOptionalCents(v);
+            if (cents !== null) onDiscountCents(cents);
+          }}
+          onBlur={(e) => {
+            const cents = parseOptionalCents(e.target.value) ?? 0;
+            onDiscountCents(cents);
+            clearFieldDraft(dollarsKey);
+            clearFieldDraft(pctKey);
+          }}
+          className={cn(LAB_INPUT_FLAT, "min-w-0 w-full pl-3 text-right text-xs tabular-nums")}
+        />
+      </div>
+      <Input
+        type="text"
+        inputMode="decimal"
+        aria-label="Discount percent"
+        title="Percent of amount"
+        value={draftValue(fieldDrafts, pctKey, String(pct))}
+        onFocus={() => focusFieldDraft(pctKey, String(pct))}
+        onChange={(e) => {
+          const v = e.target.value;
+          if (!isDecimalInput(v)) return;
+          setFieldDraft(pctKey, v);
+          const n = parseOptionalFloat(v);
+          if (n !== null) {
+            onDiscountCents(
+              patchLineDiscountPercent({ discountCents: clamped }, n, grossCents).discountCents ?? 0,
+            );
+          }
+        }}
+        onBlur={(e) => {
+          const n = parseOptionalFloat(e.target.value) ?? 0;
+          onDiscountCents(
+            patchLineDiscountPercent({ discountCents: clamped }, n, grossCents).discountCents ?? 0,
+          );
+          clearFieldDraft(pctKey);
+          clearFieldDraft(dollarsKey);
+        }}
+        className={cn(LAB_INPUT_FLAT, "w-11 shrink-0 text-right text-[10px] tabular-nums")}
+      />
+      <span className="shrink-0 text-[10px] text-muted-foreground">%</span>
     </div>
   );
 }
@@ -1080,10 +1178,47 @@ export function EstimateLabServiceItemsGrid({
                 <ReadOnlyMoney cents={amountCents} className={cn("font-medium", lineThrough)} />
               </div>
               <div className={LAB_GRID_NUM_BORDERED}>
-                <LineDiscountStub editing={editing} />
+                <LineDiscountCell
+                  editing={editing}
+                  discountCents={l.discountCents ?? 0}
+                  grossCents={amountCents}
+                  draftPrefix={draftPrefix}
+                  fieldDrafts={fieldDrafts}
+                  focusFieldDraft={focusFieldDraft}
+                  setFieldDraft={setFieldDraft}
+                  clearFieldDraft={clearFieldDraft}
+                  onDiscountCents={(cents) =>
+                    updateAt(index, (m) =>
+                      m.kind === "labor"
+                        ? {
+                            ...m,
+                            row: patchLineDiscountDollars(m.row, cents, laborLineTotal(m.row)),
+                          }
+                        : m,
+                    )
+                  }
+                />
               </div>
               <div className={LAB_GRID_NUM_BORDERED}>
-                <ReadOnlyMoney cents={amountCents} className={cn("font-semibold", lineThrough)} />
+                {editing ? (
+                  <InlineMoneyCell
+                    draftKey={`${draftPrefix}-net`}
+                    valueCents={lineNetCents(l, amountCents)}
+                    fieldDrafts={fieldDrafts}
+                    focusFieldDraft={focusFieldDraft}
+                    setFieldDraft={setFieldDraft}
+                    clearFieldDraft={clearFieldDraft}
+                    onCommitCents={(cents) =>
+                      updateAt(index, (m) =>
+                        m.kind === "labor"
+                          ? { ...m, row: patchLineNet(m.row, cents, laborLineTotal(m.row)) }
+                          : m,
+                      )
+                    }
+                  />
+                ) : (
+                  <ReadOnlyMoney cents={lineNetCents(l, amountCents)} className={lineThrough} />
+                )}
               </div>
               <div className={cn(LAB_GRID_CELL_BORDERED, "justify-center")}>
                 <TaxableCell
@@ -1223,7 +1358,9 @@ export function EstimateLabServiceItemsGrid({
                 <ReadOnlyMoney cents={total} className="font-medium" />
               </div>
               <div className={LAB_GRID_NUM_BORDERED}>
-                <LineDiscountStub editing={editing} />
+                <span className="inline-flex h-7 w-full items-center justify-end text-xs text-muted-foreground/40">
+                  —
+                </span>
               </div>
               <div className={LAB_GRID_NUM_BORDERED}>
                 <span
@@ -1375,10 +1512,47 @@ export function EstimateLabServiceItemsGrid({
               <ReadOnlyMoney cents={amountCents} className={cn("font-medium", lineThrough)} />
             </div>
             <div className={LAB_GRID_NUM_BORDERED}>
-              <LineDiscountStub editing={editing} />
+              <LineDiscountCell
+                editing={editing}
+                discountCents={p.discountCents ?? 0}
+                grossCents={amountCents}
+                draftPrefix={draftPrefix}
+                fieldDrafts={fieldDrafts}
+                focusFieldDraft={focusFieldDraft}
+                setFieldDraft={setFieldDraft}
+                clearFieldDraft={clearFieldDraft}
+                onDiscountCents={(cents) =>
+                  updateAt(index, (m) =>
+                    m.kind === "part"
+                      ? {
+                          ...m,
+                          row: patchLineDiscountDollars(m.row, cents, partLineTotal(m.row)),
+                        }
+                      : m,
+                  )
+                }
+              />
             </div>
             <div className={LAB_GRID_NUM_BORDERED}>
-              <ReadOnlyMoney cents={amountCents} className={cn("font-semibold", lineThrough)} />
+              {editing ? (
+                <InlineMoneyCell
+                  draftKey={`${draftPrefix}-net`}
+                  valueCents={lineNetCents(p, amountCents)}
+                  fieldDrafts={fieldDrafts}
+                  focusFieldDraft={focusFieldDraft}
+                  setFieldDraft={setFieldDraft}
+                  clearFieldDraft={clearFieldDraft}
+                  onCommitCents={(cents) =>
+                    updateAt(index, (m) =>
+                      m.kind === "part"
+                        ? { ...m, row: patchLineNet(m.row, cents, partLineTotal(m.row)) }
+                        : m,
+                    )
+                  }
+                />
+              ) : (
+                <ReadOnlyMoney cents={lineNetCents(p, amountCents)} className={lineThrough} />
+              )}
             </div>
             <div className={cn(LAB_GRID_CELL_BORDERED, "justify-center")}>
               <TaxableCell

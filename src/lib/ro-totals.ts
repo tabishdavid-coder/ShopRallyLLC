@@ -4,8 +4,8 @@ export type RoTotalsJob = {
   id: string;
   laborTaxable: boolean;
   partsTaxable: boolean;
-  laborLines: { totalCents: number; authorized: boolean }[];
-  partLines: { totalCents: number; authorized: boolean }[];
+  laborLines: { totalCents: number; discountCents?: number; authorized: boolean }[];
+  partLines: { totalCents: number; discountCents?: number; authorized: boolean }[];
 };
 
 export type RoTotalsFee = {
@@ -76,8 +76,12 @@ export function computeRoTotals(
   const jobBase = new Map<string, { labor: number; parts: number }>();
 
   for (const j of input.jobs) {
-    const jl = j.laborLines.filter((l) => l.authorized).reduce((x, l) => x + l.totalCents, 0);
-    const jp = j.partLines.filter((p) => p.authorized).reduce((x, p) => x + p.totalCents, 0);
+    const jl = j.laborLines
+      .filter((l) => l.authorized)
+      .reduce((x, l) => x + Math.max(0, l.totalCents - (l.discountCents ?? 0)), 0);
+    const jp = j.partLines
+      .filter((p) => p.authorized)
+      .reduce((x, p) => x + Math.max(0, p.totalCents - (p.discountCents ?? 0)), 0);
     partsCount += j.partLines.filter((p) => p.authorized).length;
     labor += jl;
     parts += jp;

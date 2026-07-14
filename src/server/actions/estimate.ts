@@ -552,6 +552,7 @@ const SaveJobInput = z.object({
         hours: z.number().min(0).max(1000),
         costCents: z.number().int().min(0).optional().default(0),
         rateCents: z.number().int().min(0),
+        discountCents: z.number().int().min(0).optional().default(0),
         technicianId: z.string().nullable().optional(),
       }),
     )
@@ -566,6 +567,7 @@ const SaveJobInput = z.object({
         quantity: z.number().int().min(0).max(9999),
         costCents: z.number().int().min(0),
         retailCents: z.number().int().min(0),
+        discountCents: z.number().int().min(0).optional().default(0),
       }),
     )
     .max(100),
@@ -604,6 +606,7 @@ export async function saveJob(raw: SaveJobInput): Promise<EstimateResult> {
     ...d.laborLines.map((l, i) => {
       const totalCents = Math.round(l.hours * l.rateCents);
       const costCents = l.costCents ?? 0;
+      const discountCents = Math.max(0, Math.min(totalCents, l.discountCents ?? 0));
       return l.id
         ? prisma.laborLine.updateMany({
             where: { id: l.id, jobId: d.jobId, shopId },
@@ -613,6 +616,7 @@ export async function saveJob(raw: SaveJobInput): Promise<EstimateResult> {
               costCents,
               rateCents: l.rateCents,
               totalCents,
+              discountCents,
               technicianId: l.technicianId ?? null,
               sortOrder: i,
             },
@@ -626,6 +630,7 @@ export async function saveJob(raw: SaveJobInput): Promise<EstimateResult> {
               costCents,
               rateCents: l.rateCents,
               totalCents,
+              discountCents,
               technicianId: l.technicianId ?? null,
               sortOrder: i,
             },
@@ -633,6 +638,7 @@ export async function saveJob(raw: SaveJobInput): Promise<EstimateResult> {
     }),
     ...d.partLines.map((p, i) => {
       const totalCents = p.retailCents * p.quantity;
+      const discountCents = Math.max(0, Math.min(totalCents, p.discountCents ?? 0));
       return p.id
         ? prisma.partLine.updateMany({
             where: { id: p.id, jobId: d.jobId, shopId },
@@ -644,6 +650,7 @@ export async function saveJob(raw: SaveJobInput): Promise<EstimateResult> {
               costCents: p.costCents,
               retailCents: p.retailCents,
               totalCents,
+              discountCents,
               sortOrder: i,
             },
           })
@@ -658,6 +665,7 @@ export async function saveJob(raw: SaveJobInput): Promise<EstimateResult> {
               costCents: p.costCents,
               retailCents: p.retailCents,
               totalCents,
+              discountCents,
               sortOrder: i,
             },
           });
