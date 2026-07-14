@@ -1,7 +1,8 @@
 # ShopRally Scale Plan — Core → 200 + AI Instant Quote
 
 > **Updated packaging (2026-07-14):** Ignition is locked at **$49.99/mo** + **AI Plus $20/mo** (mobile included).  
-> Use the new outlook: **[`IGNITION-200-OUTLOOK.md`](./IGNITION-200-OUTLOOK.md)** · screen [`ignition-200-outlook.html`](./ignition-200-outlook.html) · `node scripts/ignition-200-outlook.mjs`  
+> Use the new outlook: **[`IGNITION-200-OUTLOOK.md`](./IGNITION-200-OUTLOOK.md)** · screen [`ignition-200-outlook.html`](./ignition-200-outlook.html) · investor pitch [`ignition-investor-pitch.md`](./ignition-investor-pitch.md) / [`ignition-investor-pitch.html`](./ignition-investor-pitch.html) · `node scripts/ignition-200-outlook.mjs`  
+
 > This document keeps the earlier higher-price Core scenario for comparison.
 
 **Date:** 2026-07-11  

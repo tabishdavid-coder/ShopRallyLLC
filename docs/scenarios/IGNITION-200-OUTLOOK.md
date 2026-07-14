@@ -3,6 +3,7 @@
 **Date:** 2026-07-14
 **Status:** Locked Ignition packaging · planning model
 **Runner:** `node scripts/ignition-200-outlook.mjs`
+**Investor pitch (solo founder, no hires):** [`ignition-investor-pitch.md`](./ignition-investor-pitch.md) · screen [`ignition-investor-pitch.html`](./ignition-investor-pitch.html)
 
 ## Packaging (locked)
 
