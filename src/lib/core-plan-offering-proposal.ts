@@ -192,7 +192,7 @@ export const CORE_OFFERING_MOCK = {
     "Operations Daily Snapshot",
     "Appointments & promise times",
     "Manual payments (cash / check / card)",
-    "NHTSA VIN decode · 100 VIN/plate meters / mo",
+    "NHTSA VIN decode",
     "Inventory basics & shop catalog",
   ],
 } as const;
