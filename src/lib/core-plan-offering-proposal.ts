@@ -191,7 +191,7 @@ export const CORE_OFFERING_MOCK = {
     "Digital estimates, approvals & invoices (email)",
     "Digital vehicle inspections",
     "Operations Daily Snapshot",
-    "Appointments & promise times",
+    "Appointments",
     "Payment tracking",
     "NHTSA VIN decode",
     "Inventory basics & shop catalog",
