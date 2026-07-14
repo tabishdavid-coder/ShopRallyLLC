@@ -189,7 +189,7 @@ export const CORE_OFFERING_MOCK = {
     "Job board + full RO workspace",
     "Canned jobs & shop labor library",
     "Digital estimates, approvals & invoices (email)",
-    "DVIs — MPI, photos, R/Y/G, customer share links",
+    "Digital vehicle inspections",
     "Operations Daily Snapshot",
     "Appointments & promise times",
     "Payment tracking",
