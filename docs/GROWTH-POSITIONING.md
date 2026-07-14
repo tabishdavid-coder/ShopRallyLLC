@@ -20,7 +20,7 @@ Annual rates shown on `/pricing` (list / monthly billing in parentheses):
 
 | Plan | Annual /mo | Monthly /mo | Headline offer |
 |------|------------|-------------|----------------|
-| **Core** | **$109** | $119 | ShopRally CRM suite, unlimited users/ROs & estimates, **email** estimates & invoices, job board, canned jobs, DVIs, Operations Daily Snapshot, **100 VIN & plate decodes / mo** ($10 per extra 100); shop labor library; **no SMS**, **no Stripe Connect**, **no licensed MOTOR** |
+| **Core** | **$44.99** | $49.99 | Unlimited users & ROs, job board + RO workspace, canned jobs & shop labor library, digital estimates/approvals/invoices (email), digital vehicle inspections, **Live Operations Daily Snapshot**, appointments, payment tracking, NHTSA VIN decode, inventory basics; **no SMS**, **no Stripe Connect**, **no licensed MOTOR** |
 | **Pro** | **$239** | $279 | Everything in Core, plus licensed MOTOR, **unlimited** VIN & plate decode, OEM specs & fluid capacities, PartsTech, **two-way SMS**, **Stripe Connect**, online booking, Growth Engine (automations & win-back), Google review management |
 | **Elite** | **$409** | $479 | Everything in Pro, plus AI receptionist + review replies, ShopSite & Local SEO included ($228/mo value), maintenance programs, AI SEO/campaign drafting, dedicated onboarding · migration included |
 

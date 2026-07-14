@@ -73,11 +73,11 @@ export function CorePlanOfferingMockup() {
       <header className="border-b border-brand-navy/10 bg-white/70 backdrop-blur-md">
         <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-3 sm:px-6">
           <div>
-            <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-brand-red">
-              Mockup · not live
+            <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-brand-navy">
+              Live catalog mirror
             </p>
             <p className="text-sm font-semibold text-brand-navy">
-              Core plan offering — feature breakdown review
+              Core plan offering — deep feature breakdown
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-2 text-xs">
@@ -101,9 +101,9 @@ export function CorePlanOfferingMockup() {
       <section className="relative overflow-hidden border-b border-brand-navy/10">
         <div className="mx-auto grid max-w-6xl gap-10 px-4 py-14 sm:px-6 lg:grid-cols-[1.15fr_0.85fr] lg:items-end lg:py-20">
           <div>
-            <div className="inline-flex items-center gap-1.5 rounded-full border border-brand-red/25 bg-brand-red/5 px-3 py-1 text-xs font-semibold text-brand-red">
+            <div className="mb-4 inline-flex items-center gap-1.5 rounded-full border border-brand-navy/20 bg-brand-navy/5 px-3 py-1 text-xs font-semibold text-brand-navy">
               <Sparkles className="size-3.5" aria-hidden />
-              Proposed Core ({m.marketingName}) — {totalFeatures}+ capabilities
+              Live · wired to PLANS.STARTER · {totalFeatures}+ capabilities
             </div>
             <h1 className="mt-5 max-w-xl text-4xl font-semibold tracking-tight text-brand-navy sm:text-5xl sm:leading-[1.08]">
               ShopRally{" "}
@@ -296,8 +296,15 @@ export function CorePlanOfferingMockup() {
       </section>
 
       <footer className="border-t border-brand-navy/10 bg-white py-8 text-center text-xs text-slate-500">
-        Review mock only — live pricing still uses current `PLANS.STARTER` bullets until you approve a
-        system-wide update.
+        Live catalog: card bullets come from{" "}
+        <code className="rounded bg-slate-100 px-1.5 py-0.5 text-[11px] text-brand-navy">
+          PLANS.STARTER.pricingCard.bullets
+        </code>
+        . This page is the deep breakdown also shown on{" "}
+        <a href="/pricing#core-whats-included" className="font-medium text-brand-navy hover:underline">
+          /pricing
+        </a>
+        .
       </footer>
     </div>
   );
