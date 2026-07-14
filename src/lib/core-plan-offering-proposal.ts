@@ -107,7 +107,7 @@ export const CORE_OFFERING_MOCK = {
       title: "Payments & invoicing",
       blurb: "Collect in the shop without Stripe Connect on Core.",
       items: [
-        { name: "Manual payment recording", detail: "Cash, check, card, other — in the CRM", highlight: true },
+        { name: "Payment tracking", detail: "Cash, check, card, other — recorded on the RO", highlight: true },
         { name: "Balance due on the RO", detail: "Paid to date vs remaining" },
         { name: "Email invoice & share link", highlight: true },
         { name: "Public invoice page" },
@@ -191,7 +191,7 @@ export const CORE_OFFERING_MOCK = {
     "DVIs — MPI, photos, R/Y/G, customer share links",
     "Operations Daily Snapshot",
     "Appointments & promise times",
-    "Manual payments (cash / check / card)",
+    "Payment tracking",
     "NHTSA VIN decode",
     "Inventory basics & shop catalog",
   ],
