@@ -22,12 +22,9 @@ export type CrmAccessContext = {
 
 /** Nav hrefs gated by plan entitlement (server filters `allowedNavHrefs`). */
 const HREF_PLAN_FEATURES: Partial<Record<string, SubscriptionFeature>> = {
-  "/messages": "sms",
-  "/payments": "stripePayments",
   "/orders": "parts",
   "/vendors/integrations": "parts",
   "/maintenance-programs/subscribers": "maintenance_programs",
-  "/marketing": "marketing_campaigns",
   "/marketing/payment-account": "marketing_campaigns",
   "/settings/marketing": "marketing_campaigns",
   "/settings/booking": "booking",
@@ -37,7 +34,6 @@ const HREF_PLAN_FEATURES: Partial<Record<string, SubscriptionFeature>> = {
   "/settings/communications/phone-sms": "sms",
   "/settings/payments": "stripePayments",
   "/settings/integrations/stripe": "stripePayments",
-  "/quick-labor": "motorLabor",
 };
 
 type PlanRouteGate = {
@@ -47,12 +43,14 @@ type PlanRouteGate = {
   released?: boolean;
 };
 
+/**
+ * Deep route gates (settings / vendors). Main sidebar destinations
+ * (Labor Book, Messages, Growth, Payments, Catalog) stay visible on Core so
+ * shops see the full CRM IA — Pro features still enforce entitlement in-page.
+ */
 const PLAN_ROUTE_GATES: PlanRouteGate[] = [
-  { prefix: "/payments", feature: "stripePayments" },
-  { prefix: "/messages", feature: "sms" },
   { prefix: "/orders", feature: "parts", released: true },
   { prefix: "/vendors", feature: "parts", released: true },
-  { prefix: "/quick-labor", feature: "motorLabor", released: true },
   { prefix: "/settings/marketing", feature: "marketing_campaigns", released: true },
   { prefix: "/settings/booking", feature: "booking", released: true },
   { prefix: "/settings/markups", feature: "markupMatrices" },
@@ -157,11 +155,8 @@ export async function checkCrmRouteAccess(
   const effective = await getEffectivePermissions(shopId);
 
   if (growthRoute(pathname)) {
-    const features = await growthFeaturesForPath(pathname);
-    for (const feature of features) {
-      const ok = await canUseReleasedFeature(shopId, feature);
-      if (!ok) return { allowed: false, reason: "plan" };
-    }
+    // Grow pages stay reachable so Core shows the full Business → Growth IA;
+    // individual products still use canUseReleasedFeature inside the page.
     const rule = routeRuleForPath(pathname);
     if (rule && !routeAllowedByPermissions(effective, pathname)) {
       return { allowed: false, reason: "permission" };
