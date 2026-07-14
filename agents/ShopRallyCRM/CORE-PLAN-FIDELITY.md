@@ -40,17 +40,19 @@
 
 | Feature | Plan flag | Release module | Current gap |
 |---------|-----------|----------------|-------------|
-| Licensed MOTOR labor | `motorLabor: false` | `motorLabor` | ⚠️ Resolver serves MOTOR when env on — **not shop-gated** |
-| PartsTech punchout | `partsTech: false` | `partsTech` | Audit `/orders`, vendor flows |
-| Stripe Connect / RO payments | `integrations: false` | — | Partial gate (`stripePayments`); audit `/payments` |
+| Licensed MOTOR labor | `motorLabor: false` | `motorLabor` | ⚠️ Resolver may still serve MOTOR when env on — enforce per shop |
+| PartsTech punchout | `partsTech: false` | `partsTech` | Open PR #26 — nav + Vendor Connect + test connection |
+| Stripe Connect / RO payments | `integrations: false` | — | Collect CTA hidden; manual Record path (2026-07-13) |
 | Two-way SMS | `customerSms: false` | `sms` | Shell hides SMS count; audit share + messages |
-| Growth Engine | `marketingCampaigns: false` | `growthEngine` | Growth **section** hidden; audit deep links |
+| Growth Engine | `marketingCampaigns: false` | `growthEngine` | Growth section + settings hidden (2026-07-13) |
 | ShopSite / SEO | `shopSite` / `websiteSeo: false` | `shopSite`, `websiteSeo` | |
 | Maintenance programs | `maintenancePrograms: false` | `growthEngine` | |
-| AI suite (receptionist, review AI, etc.) | all `ai*: false` | `aiSuite` | |
+| AI suite (receptionist, review AI, etc.) | all `ai*: false` | `aiSuite` | Smart Intake = Core + AI Plus only |
 | Markup matrices (Pro) | `markupMatrices: false` | — | Audit Settings → Markups |
 | Multi-location | `multiLocation: false` | — | |
-| VIN/plate decode (optional P0) | metered / OFF per product decision | — | Manual YMM + AI Quote NL |
+| Auto.dev plate decode | `autodevDecoding: false` | — | Manual plate + NHTSA VIN only (2026-07-13) |
+| Customer Finances tab / Credit Memo | — | — | Open PR #29 |
+| Catalog-only YMM | — | — | Open PR #27 — free-type YMM on Core |
 
 ---
 
