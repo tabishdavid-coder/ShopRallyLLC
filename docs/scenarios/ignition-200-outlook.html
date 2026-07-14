@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Ignition 1→200 financial outlook — ShopRally</title>
+  <style>
+    :root {
+      --navy: #16588e;
+      --light: #81c4ff;
+      --red: #e7222e;
+      --ink: #0b1f3b;
+      --slate: #5b7295;
+      --bg: #f4f8fc;
+      --card: #ffffff;
+      --line: #dde5ef;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", system-ui, sans-serif;
+      background:
+        radial-gradient(ellipse at 15% 0%, rgba(129, 196, 255, 0.35), transparent 50%),
+        linear-gradient(180deg, #eef5fc 0%, var(--bg) 40%, #fff 100%);
+      color: var(--ink);
+      line-height: 1.45;
+    }
+    .wrap { max-width: 1100px; margin: 0 auto; padding: 32px 20px 64px; }
+    h1 { font-size: 2rem; margin: 0 0 8px; letter-spacing: -0.02em; }
+    .eyebrow { font-size: 11px; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: var(--red); }
+    .sub { color: var(--slate); max-width: 52rem; }
+    .grid { display: grid; gap: 14px; margin-top: 24px; }
+    @media (min-width: 800px) { .grid.kpis { grid-template-columns: repeat(4, 1fr); } }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 16px 18px;
+      box-shadow: 0 10px 30px -22px rgba(22, 88, 142, 0.45);
+    }
+    .card h3 { margin: 0; font-size: 12px; text-transform: uppercase; letter-spacing: 0.08em; color: var(--slate); }
+    .card .v { margin-top: 6px; font-size: 1.55rem; font-weight: 700; color: var(--navy); font-variant-numeric: tabular-nums; }
+    .card .h { font-size: 12px; color: var(--slate); margin-top: 4px; }
+    table { width: 100%; border-collapse: collapse; font-size: 13px; }
+    th, td { padding: 8px 10px; border-bottom: 1px solid var(--line); text-align: right; font-variant-numeric: tabular-nums; }
+    th:first-child, td:first-child { text-align: left; }
+    th { font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--slate); font-weight: 600; }
+    .pos { color: #137347; }
+    .neg { color: var(--red); }
+    .stack { display: grid; gap: 12px; }
+    @media (min-width: 900px) { .stack { grid-template-columns: 1fr 1fr; } }
+    .bar { height: 8px; background: #e8eef5; border-radius: 999px; overflow: hidden; margin-top: 8px; }
+    .bar > i { display: block; height: 100%; background: linear-gradient(90deg, var(--navy), var(--light)); }
+    ul.clean { margin: 8px 0 0; padding-left: 1.1rem; color: var(--slate); font-size: 14px; }
+    .pill { display: inline-block; padding: 2px 8px; border-radius: 999px; background: rgba(22,88,142,0.08); color: var(--navy); font-size: 11px; font-weight: 600; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <p class="eyebrow">ShopRally · planning model</p>
+    <h1>Ignition financial outlook — 1 → 200 shops</h1>
+    <p class="sub">
+      Locked packaging: <strong>Ignition $49.99/mo</strong> ($44.99 annual) + optional <strong>AI Plus $20/mo</strong>
+      (intake + labor assist + advisor mobile). No MOTOR / SMS / Stripe Connect on Ignition.
+      Run: <code>node scripts/ignition-200-outlook.mjs</code>
+    </p>
+
+    <div class="grid kpis">
+      <div class="card"><h3>@ 200 MRR</h3><div class="v">~$14.3k</div><div class="h">50% AI Plus · ~$71.64 ARPU</div></div>
+      <div class="card"><h3>@ 200 ARR</h3><div class="v">~$172k</div><div class="h">Ignition + AI + soft web attach</div></div>
+      <div class="card"><h3>Vendor @ 200</h3><div class="v">~$1.9k/mo</div><div class="h">~13% of ARR — infra stays cheap</div></div>
+      <div class="card"><h3>After vendors</h3><div class="v">~$12k/mo</div><div class="h">Before payroll — hire carefully</div></div>
+    </div>
+
+    <div class="card" style="margin-top:18px">
+      <h3 style="margin-bottom:10px">Revenue ramp</h3>
+      <table>
+        <thead>
+          <tr><th>Shops</th><th>AI%</th><th>ARPU</th><th>MRR</th><th>ARR</th><th>Vendor/mo</th><th>Contrib/mo</th></tr>
+        </thead>
+        <tbody>
+          <tr><td>1</td><td>0%</td><td>$47.24</td><td>$47</td><td>$567</td><td>$33</td><td>$15</td></tr>
+          <tr><td>10</td><td>28%</td><td>$60.04</td><td>$600</td><td>$7.2k</td><td>$153</td><td>$447</td></tr>
+          <tr><td>25</td><td>35%</td><td>$63.84</td><td>$1.6k</td><td>$19k</td><td>$331</td><td>$1.3k</td></tr>
+          <tr><td>50</td><td>40%</td><td>$67.24</td><td>$3.4k</td><td>$40k</td><td>$457</td><td>$2.9k</td></tr>
+          <tr><td>100</td><td>45%</td><td>$68.24</td><td>$6.8k</td><td>$82k</td><td>$1.0k</td><td>$5.8k</td></tr>
+          <tr><td>200</td><td>50%</td><td>$71.64</td><td>$14.3k</td><td>$172k</td><td>$1.9k</td><td>$12.4k</td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="stack" style="margin-top:18px">
+      <div class="card">
+        <h3>Monthly cost to stay live @ 1 shop</h3>
+        <div class="v">~$33</div>
+        <div class="bar"><i style="width:8%"></i></div>
+        <ul class="clean">
+          <li>Vercel Pro ~$20 · DNS ~$2</li>
+          <li>Neon / Clerk free tiers OK early</li>
+          <li>Mobile store accounts amortized ~$9</li>
+          <li>Stripe on $47 MRR ~$2</li>
+          <li>Security tooling: $0 until you turn on Sentry/uptime</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3>Monthly cost to stay live @ 200 shops</h3>
+        <div class="v">~$1,911</div>
+        <div class="bar"><i style="width:72%"></i></div>
+        <ul class="clean">
+          <li><span class="pill">Infra ~$800</span> Vercel + Neon + Clerk + Inngest + Blob</li>
+          <li><span class="pill">Security ~$120</span> Sentry + uptime (TLS free)</li>
+          <li><span class="pill">AI COGS ~$380</span> Gemini on ~100 AI Plus seats</li>
+          <li><span class="pill">Mobile ~$55</span> Apple / Play / EAS / push</li>
+          <li><span class="pill">Stripe ~$476</span> · Email ~$80 · SMS $0</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="card" style="margin-top:18px">
+      <h3 style="margin-bottom:10px">Go-live one-time (shop #1)</h3>
+      <table>
+        <thead><tr><th>Item</th><th>Low</th><th>High</th></tr></thead>
+        <tbody>
+          <tr><td>Domain + DNS</td><td>$20</td><td>$40</td></tr>
+          <tr><td>Apple Developer (yr 1)</td><td>$99</td><td>$99</td></tr>
+          <tr><td>Google Play</td><td>$25</td><td>$25</td></tr>
+          <tr><td>Legal ToS / Privacy / MSA</td><td>$500</td><td>$2,500</td></tr>
+          <tr><td>Launch ads / waitlist (optional)</td><td>$500</td><td>$3,000</td></tr>
+          <tr><td>Brand polish / first builds (optional)</td><td>$0</td><td>$1,700</td></tr>
+          <tr><td><strong>Total</strong></td><td><strong>~$1.1k</strong></td><td><strong>~$7.4k</strong></td></tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="card" style="margin-top:18px">
+      <h3>What actually matters</h3>
+      <ul class="clean">
+        <li><strong>Infra will not block you</strong> — even at 200 shops vendors are ~13% of ARR.</li>
+        <li><strong>Security spend is small early</strong> — Clerk + TLS + Neon backups; add Sentry/uptime by ~10–25 shops; pen-test/SOC2 projects later (~$6–18k/yr).</li>
+        <li><strong>Mobile is an AI Plus COGS line</strong> (~$9→$55/mo platform) plus Gemini per seat — customers pay $20/mo for the bundle.</li>
+        <li><strong>People cost is the real gate</strong> — full 4‑person payroll on $172k ARR loses money; stay founder-lean until attach/price expand.</li>
+        <li>Detail + founder-draw scenarios: <code>docs/scenarios/IGNITION-200-OUTLOOK.md</code></li>
+      </ul>
+    </div>
+  </div>
+</body>
+</html>

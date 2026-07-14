@@ -1,7 +1,11 @@
 # ShopRally Scale Plan — Core → 200 + AI Instant Quote
 
+> **Updated packaging (2026-07-14):** Ignition is locked at **$49.99/mo** + **AI Plus $20/mo** (mobile included).  
+> Use the new outlook: **[`IGNITION-200-OUTLOOK.md`](./IGNITION-200-OUTLOOK.md)** · screen [`ignition-200-outlook.html`](./ignition-200-outlook.html) · `node scripts/ignition-200-outlook.mjs`  
+> This document keeps the earlier higher-price Core scenario for comparison.
+
 **Date:** 2026-07-11  
-**Status:** Full planning model  
+**Status:** Full planning model (superseded on price by Ignition outlook)  
 **Interactive screen:** [`scale-plan-core-200.html`](./scale-plan-core-200.html) (also `/opt/cursor/artifacts/shoprally-scale-plan-core-200.html`)  
 **Annual P&L scale (Shops × cost lines):** [`CORE-PNL-SCALE.md`](./CORE-PNL-SCALE.md) · `node scripts/core-pnl-scale.mjs`  
 **Runner:** `node scripts/core-to-200-scenario.mjs`  
