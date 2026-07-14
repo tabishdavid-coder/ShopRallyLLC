@@ -1430,6 +1430,8 @@ model LaborLine {
   costCents    Int     @default(0)
   rateCents    Int     @default(0)
   totalCents   Int     @default(0)
+  /// Line discount (cents) — Amount − Discount = Net. Default 0 = no discount.
+  discountCents Int    @default(0)
   authorized   Boolean @default(true) // included in estimate / WIP totals
   technicianId String? // User id
   sortOrder    Int     @default(0)
@@ -1450,6 +1452,8 @@ model PartLine {
   costCents   Int        @default(0)
   retailCents Int        @default(0)
   totalCents  Int        @default(0)
+  /// Line discount (cents) — Amount − Discount = Net. Default 0 = no discount.
+  discountCents Int      @default(0)
   authorized  Boolean    @default(true) // included in estimate / WIP totals
   source      PartSource @default(MANUAL)
   status      PartStatus @default(NEEDED)

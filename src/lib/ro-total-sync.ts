@@ -29,8 +29,8 @@ export async function recomputeRoTotals(roId: string): Promise<void> {
           id: true,
           laborTaxable: true,
           partsTaxable: true,
-          laborLines: { select: { totalCents: true, authorized: true } },
-          partLines: { select: { totalCents: true, authorized: true } },
+          laborLines: { select: { totalCents: true, discountCents: true, authorized: true } },
+          partLines: { select: { totalCents: true, discountCents: true, authorized: true } },
         },
       },
       fees: { select: { jobId: true, method: true, base: true, amount: true, capCents: true, taxable: true } },
@@ -45,8 +45,12 @@ export async function recomputeRoTotals(roId: string): Promise<void> {
   let taxableParts = 0;
   const jobBase = new Map<string, { labor: number; parts: number }>();
   for (const j of ro.jobs) {
-    const jl = j.laborLines.filter((l) => l.authorized).reduce((x, l) => x + l.totalCents, 0);
-    const jp = j.partLines.filter((p) => p.authorized).reduce((x, p) => x + p.totalCents, 0);
+    const jl = j.laborLines
+      .filter((l) => l.authorized)
+      .reduce((x, l) => x + Math.max(0, l.totalCents - (l.discountCents ?? 0)), 0);
+    const jp = j.partLines
+      .filter((p) => p.authorized)
+      .reduce((x, p) => x + Math.max(0, p.totalCents - (p.discountCents ?? 0)), 0);
     labor += jl;
     parts += jp;
     if (j.laborTaxable) taxableLabor += jl;
