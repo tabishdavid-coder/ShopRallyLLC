@@ -190,7 +190,7 @@ export const CORE_OFFERING_MOCK = {
     "Canned jobs & shop labor library",
     "Digital estimates, approvals & invoices (email)",
     "Digital vehicle inspections",
-    "Operations Daily Snapshot",
+    "Live Operations Daily Snapshot",
     "Appointments",
     "Payment tracking",
     "NHTSA VIN decode",
