@@ -20,7 +20,7 @@ Annual rates shown on `/pricing` (list / monthly billing in parentheses):
 
 | Plan | Annual /mo | Monthly /mo | Headline offer |
 |------|------------|-------------|----------------|
-| **Core** | **$109** | $119 | ShopRally CRM suite, unlimited users/ROs & estimates, **email** estimates & invoices, job board, canned jobs, DVIs, Operations Daily Snapshot, **100 VIN & plate decodes / mo** ($10 per extra 100); shop labor library; **no SMS**, **no Stripe Connect**, **no licensed MOTOR** |
+| **Core** | **$109** | $119 | ShopRally CRM suite, unlimited users/ROs & estimates, **email** estimates & invoices, job board, canned jobs, DVIs, Operations Daily Snapshot, **100 VIN & plate decodes / mo** ($10 per extra 100); **shop labor library only** — **no licensed MOTOR** (not sold as a Core add-on), **no SMS**, **no Stripe Connect** |
 | **Pro** | **$239** | $279 | Everything in Core, plus licensed MOTOR, **unlimited** VIN & plate decode, OEM specs & fluid capacities, PartsTech, **two-way SMS**, **Stripe Connect**, online booking, Growth Engine (automations & win-back), Google review management |
 | **Elite** | **$409** | $479 | Everything in Pro, plus AI receptionist + review replies, ShopSite & Local SEO included ($228/mo value), maintenance programs, AI SEO/campaign drafting, dedicated onboarding · migration included |
 
@@ -138,7 +138,7 @@ Annual rates shown on `/pricing` (list / monthly billing in parentheses):
 | "We already use Tekmetric." | ShopRally Pro includes Growth Engine (booking, SMS, win-back, reviews) Tekmetric charges as Marketing — plus platform onboarding if you operate multiple locations. |
 | "AutoLeap has better estimate UX." | Sprint 1 merges our Estimate Building Lab to production; you get inline editing **and** matrix depth, month-to-month. |
 | "Shopmonkey Work Request is great." | Forms Hub Sprint 2 matches work-request → Estimate; plus native campaigns without CRM Essentials pricing. |
-| "We need MOTOR labor times." | Licensed MOTOR is included on Pro & Elite. |
+| "We need MOTOR labor times." | Licensed MOTOR is included on Pro & Elite only — not available as a Core add-on. Upgrade to Pro. |
 | "Is PartsTech live?" | UI ready; live when partner credentials configured — don't claim until env flipped. |
 
 ---

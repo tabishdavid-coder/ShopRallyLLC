@@ -1,12 +1,13 @@
 # Dev 3031 — build state (ShopRallyCRM)
 
-Last updated: 2026-07-09 (MOTOR-first labor pivot — AI parked)
+Last updated: 2026-07-12 (Core gatekeeping — no MOTOR add-on)
 
 > **Canonical dev:** **`ShopRally/`** folder only — `npm run dev` → :3031. See `docs/SHOPRALLY-DEV.md`.
 > Do **not** develop shop CRM in the sibling `karvio/` folder (legacy platform fork).
 
 ## Done
 
+- [x] **Core plan gatekeeping — no MOTOR add-on (2026-07-12)** — `motorLabor` remains false on Core; Labor Book init/applications + labor cache lookup fail closed without `motorEnabledForShop`. Marketing/FAQ/GROWTH-POSITIONING/unit-economics: MOTOR is Pro/Elite only (removed Core +$50 attach from economics canvas). Upgrade path = Pro, not a Core add-on.
 - [x] **Maintenance Schedule hidden (2026-07-09)** — removed product UI entries from the estimate launcher and Labor Book job-card toolbar; no customer/shop-facing Maintenance Schedule stub remains.
 - [x] **MOTOR-first labor pivot — AI parked (2026-07-09)** — reversed the no-license direction: **MOTOR sandbox/licensed catalog is now the primary Labor Book experience; AI first-principles generation is parked (default OFF)**. Changes:
   - **Env flags:** `MOTOR_SANDBOX_CACHE=true` serves locally-loaded MOTOR test data without live keys; `LABOR_AI_ENABLED` (new, default **false**) gates the AI-DRAFT generation path + "Estimate with AI" CTAs. New `isLaborAiEnabled()` / `motorCatalogDataAvailable()` in `labor-catalog-mode.ts`.

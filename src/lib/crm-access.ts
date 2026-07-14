@@ -125,6 +125,53 @@ export function buildAllowedSectionIds(
   return ids.filter((id) => sectionNavAllowed(effective, id, { growthPlanOk }));
 }
 
+/**
+ * Autopilot shell section ids (`operations` / `admin`) plus CRM header aliases
+ * (`dashboard` / `settings`). Always include both so either shell can filter.
+ * Growth is omitted when `growthPlanOk` is false — including for admins.
+ */
+export function buildAllowedShellSectionIds(
+  effective: EffectivePermissions,
+  growthPlanOk: boolean,
+): string[] {
+  const crmIds = buildAllowedSectionIds(effective, growthPlanOk);
+  const apIds: string[] = [];
+  if (sectionNavAllowed(effective, "dashboard")) apIds.push("operations");
+  if (sectionNavAllowed(effective, "customers")) apIds.push("customers");
+  if (sectionNavAllowed(effective, "schedule")) apIds.push("schedule");
+  if (sectionNavAllowed(effective, "catalog")) apIds.push("catalog");
+  if (growthPlanOk) apIds.push("growth");
+  if (sectionNavAllowed(effective, "settings")) apIds.push("admin");
+  return [...new Set([...crmIds, ...apIds])];
+}
+
+/** Stripe Connect settings under /marketing — keep reachable on Core (own upgrade wall). */
+export function isGrowthNavExemptHref(href: string): boolean {
+  return href === "/marketing/payment-account" || href.startsWith("/marketing/payment-account/");
+}
+
+/**
+ * Hide whole modules from daily chrome when plan/release is off.
+ * Does not hide payment-account (Stripe wall) or Core settings like Lead Sources.
+ */
+export function isPlanHiddenNavHref(
+  href: string,
+  flags: { growth: boolean; maintenancePrograms: boolean; sms: boolean },
+): boolean {
+  if (isGrowthNavExemptHref(href)) return false;
+  if (!flags.growth && (href === "/marketing" || href.startsWith("/marketing/"))) {
+    return true;
+  }
+  if (
+    !flags.maintenancePrograms &&
+    (href === "/maintenance-programs" || href.startsWith("/maintenance-programs/"))
+  ) {
+    return true;
+  }
+  if (!flags.sms && href === "/messages") return true;
+  return false;
+}
+
 /** Longest-prefix route guard rules (server mirrors this list). */
 export type CrmRouteRule = {
   prefix: string;
@@ -182,6 +229,7 @@ export const CRM_ACCESS_EXEMPT_PREFIXES = [
   "/support",
   "/home",
   "/repair-orders/new",
+  "/plan-required",
 ] as const;
 
 export function isCrmAccessExemptPath(pathname: string): boolean {

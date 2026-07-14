@@ -37,9 +37,11 @@ import {
   type ApNavLink,
 } from "@/lib/autopilot3030/nav";
 import { apSidebarLinkClass, apSidebarSectionClass } from "@/lib/autopilot3030/nav-active";
+import { isPlanHiddenNavHref } from "@/lib/crm-access";
 import { isClerkConfigured } from "@/lib/clerk-auth-client";
 import { syncClerkActiveOrg } from "@/lib/clerk-org-client";
 import type { Shop } from "@/lib/shop";
+import { useShopCapabilities } from "@/lib/shop-capabilities";
 import { cn } from "@/lib/utils";
 import { switchShop } from "@/server/actions/platform";
 
@@ -65,10 +67,17 @@ function navHrefAllowed(href: string, allowed: Set<string>): boolean {
   return false;
 }
 
-function filterItems(items: ApNavLink[], allowedNavHrefs?: string[]): ApNavLink[] {
-  if (!allowedNavHrefs) return items;
-  const allowed = new Set(allowedNavHrefs);
-  return items.filter((item) => item.stub || navHrefAllowed(item.href, allowed));
+function filterItems(
+  items: ApNavLink[],
+  allowedNavHrefs: string[] | undefined,
+  planFlags: { growth: boolean; maintenancePrograms: boolean; sms: boolean },
+): ApNavLink[] {
+  return items.filter((item) => {
+    if (isPlanHiddenNavHref(item.href, planFlags)) return false;
+    if (!allowedNavHrefs) return true;
+    const allowed = new Set(allowedNavHrefs);
+    return item.stub || navHrefAllowed(item.href, allowed);
+  });
 }
 
 function shopInitials(name: string, code?: string): string {
@@ -352,6 +361,12 @@ export function ApSidebar({
   allowedNavHrefs?: string[];
 }) {
   const pathname = usePathname();
+  const caps = useShopCapabilities();
+  const planFlags = {
+    growth: caps.growth,
+    maintenancePrograms: caps.maintenancePrograms,
+    sms: caps.sms,
+  };
   const [collapsed, setCollapsed] = useState(false);
 
   useEffect(() => {
@@ -401,7 +416,7 @@ export function ApSidebar({
         )}
       >
         {AP_SIDEBAR_NAV_GROUPS.map((group) => {
-          const filtered = filterItems(group.items, allowedNavHrefs);
+          const filtered = filterItems(group.items, allowedNavHrefs, planFlags);
           if (filtered.length === 0) return null;
           return (
             <div key={group.id} className="pb-3">

@@ -33,6 +33,7 @@ import {
 } from "@/components/repair-order/approval-signature-panel";
 import { formatCents } from "@/lib/format";
 import { jobAuthState } from "@/lib/ro-totals";
+import { useShopCapabilities } from "@/lib/shop-capabilities";
 import {
   laborLineTotal,
   partLineTotal,
@@ -410,6 +411,7 @@ export function EstimateJobCard({
 }) {
   const router = useRouter();
   const { toast } = useEstimateActionToast();
+  const { partsTech } = useShopCapabilities();
   const laborGuide = useEstimateLabLaborOptional();
   const [quickPending, startQuick] = useTransition();
 
@@ -661,6 +663,10 @@ export function EstimateJobCard({
 
   function addPartLookup() {
     if (!canEdit) return;
+    if (!partsTech) {
+      toast("error", "PartsTech is on Pro+. Add parts manually or upgrade your plan.");
+      return;
+    }
     if (onOpenParts) {
       onOpenParts("lookup");
       return;
@@ -1809,9 +1815,13 @@ export function EstimateJobCard({
                 size="sm"
                 className={FOOTER_ACTION_BUTTON}
                 onClick={addPartLookup}
-                title="PartsTech — search catalogs and import parts"
+                title={
+                  partsTech
+                    ? "PartsTech — search catalogs and import parts"
+                    : "PartsTech catalog is included on Pro and Elite"
+                }
               >
-                <ShoppingCart className="size-4" /> PartsTech
+                <ShoppingCart className="size-4" /> {partsTech ? "PartsTech" : "PartsTech (Pro+)"}
               </Button>
             </div>
           ) : null}

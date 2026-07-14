@@ -14,7 +14,8 @@ import { KeyedChildren } from "@/lib/keyed-children";
 import { prisma } from "@/db/client";
 import { isPlatformAdmin } from "@/lib/platform";
 import { getCurrentShop, getShopId, listShops, ShopAccessError, DEMO_SHOP_ID } from "@/lib/shop";
-import { canUseFeature } from "@/lib/subscription";
+import type { ShopCapabilities } from "@/lib/shop-capabilities";
+import { canUseFeature, canUseReleasedFeature } from "@/lib/subscription";
 import { checkCrmRouteAccess, getCrmAccessContext } from "@/server/crm-access";
 import { getNotifications } from "@/server/notifications";
 import { countUnreadMessages } from "@/server/messages-inbox";
@@ -68,22 +69,57 @@ export default async function AppLayout({
   if (dbSeeded && crmAccess && !isPlatformRoute && pathname !== "/shop-access") {
     const routeAccess = await checkCrmRouteAccess(pathname, activeShopId);
     if (!routeAccess.allowed) {
-      redirect("/dashboard/snapshot?access=denied");
+      if (routeAccess.reason === "plan") {
+        // Redirect to dedicated soft-land so gated pages do not run (notFound/redirect).
+        const q = new URLSearchParams();
+        q.set("feature", routeAccess.featureLabel ?? "This feature");
+        if (routeAccess.description) q.set("description", routeAccess.description);
+        if (routeAccess.notAvailableYet) q.set("pending", "1");
+        redirect(`/plan-required?${q.toString()}`);
+      } else {
+        redirect("/dashboard/snapshot?access=denied");
+      }
     }
   }
 
-  const [activeShop, customerCount, notificationData, unreadSmsCount, intakeConfig, smsOnPlan, stripeOnPlan] =
-    dbSeeded
-      ? await Promise.all([
-          getCurrentShop(),
-          prisma.customer.count({ where: { shopId: activeShopId } }),
-          getNotifications(activeShopId),
-          countUnreadMessages(activeShopId),
-          loadRoIntakeConfig(activeShopId),
-          canUseFeature(activeShopId, "sms"),
-          canUseFeature(activeShopId, "stripePayments"),
-        ])
-      : [null, 0, { notifications: [], unreadCount: 0 }, 0, null, false, false];
+  const [
+    activeShop,
+    customerCount,
+    notificationData,
+    unreadSmsCount,
+    intakeConfig,
+    smsOnPlan,
+    stripeOnPlan,
+    partsTechOn,
+    motorLaborOn,
+    shopSiteOn,
+    websiteSeoOn,
+  ] = dbSeeded
+    ? await Promise.all([
+        getCurrentShop(),
+        prisma.customer.count({ where: { shopId: activeShopId } }),
+        getNotifications(activeShopId),
+        countUnreadMessages(activeShopId),
+        loadRoIntakeConfig(activeShopId),
+        canUseReleasedFeature(activeShopId, "sms"),
+        canUseFeature(activeShopId, "stripePayments"),
+        canUseReleasedFeature(activeShopId, "parts"),
+        canUseReleasedFeature(activeShopId, "motorLabor"),
+        canUseReleasedFeature(activeShopId, "shop_site"),
+        canUseReleasedFeature(activeShopId, "website_seo"),
+      ])
+    : [null, 0, { notifications: [], unreadCount: 0 }, 0, null, false, false, false, false, false, false];
+
+  const capabilities: ShopCapabilities = {
+    sms: Boolean(smsOnPlan),
+    stripePayments: Boolean(stripeOnPlan),
+    growth: Boolean(crmAccess?.growthPlanOk),
+    maintenancePrograms: Boolean(crmAccess?.maintenanceOk),
+    partsTech: Boolean(partsTechOn),
+    motorLabor: Boolean(motorLaborOn),
+    shopSite: Boolean(shopSiteOn),
+    websiteSeo: Boolean(websiteSeoOn),
+  };
 
   const showPlatformShopContext = platformAdmin && activeShop && !isPlatformRoute;
 
@@ -122,7 +158,7 @@ export default async function AppLayout({
         allowedNavHrefs={crmAccess?.allowedNavHrefs}
         allowedSectionIds={crmAccess?.allowedSectionIds}
         intakeConfig={intakeConfig}
-        capabilities={{ sms: smsOnPlan, stripePayments: stripeOnPlan }}
+        capabilities={capabilities}
         banner={
           !dbSeeded ? (
             <EmptyDatabaseBanner />

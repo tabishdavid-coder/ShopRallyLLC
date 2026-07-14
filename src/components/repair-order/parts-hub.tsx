@@ -22,6 +22,7 @@ import { useEstimateActionToast } from "@/components/repair-order/estimate-actio
 import { formatCents } from "@/lib/format";
 import { subnavTabTopClass } from "@/lib/subnav-styles";
 import { partRetail, type PartTier } from "@/lib/matrix";
+import { useShopCapabilities } from "@/lib/shop-capabilities";
 import { cn } from "@/lib/utils";
 import {
   searchPartsTech,
@@ -79,6 +80,7 @@ export function PartsHub({
 }) {
   const router = useRouter();
   const { toast } = useEstimateActionToast();
+  const { partsTech } = useShopCapabilities();
   const [open, setOpen] = useState(false);
   const [view, setView] = useState<"home" | "catalog" | "mapping" | "phone">("home");
   const [tab, setTab] = useState<Status>("NEEDED");
@@ -114,6 +116,10 @@ export function PartsHub({
   }
 
   function launchPartsTech(jobId?: string | null) {
+    if (!partsTech) {
+      toast("error", "PartsTech is on Pro+. Add parts manually or upgrade your plan.");
+      return;
+    }
     setError(null);
     resetCatalog();
     if (jobId) setTarget(jobId);
@@ -343,9 +349,22 @@ export function PartsHub({
             <>
               {/* Launch actions */}
               <div className="flex items-center gap-2 border-b px-5 py-3">
-                <Button onClick={() => launchPartsTech()} className="gap-1.5">
-                  <ShoppingCart className="size-4" /> PartsTech
-                </Button>
+                {partsTech ? (
+                  <Button onClick={() => launchPartsTech()} className="gap-1.5">
+                    <ShoppingCart className="size-4" /> PartsTech
+                  </Button>
+                ) : (
+                  <Button
+                    variant="outline"
+                    className="gap-1.5"
+                    title="PartsTech catalog is included on Pro and Elite"
+                    onClick={() =>
+                      toast("error", "PartsTech is on Pro+. Add parts manually or upgrade your plan.")
+                    }
+                  >
+                    <ShoppingCart className="size-4" /> PartsTech (Pro+)
+                  </Button>
+                )}
                 <Button variant="outline" onClick={() => { setError(null); setView("phone"); }} className="gap-1.5">
                   <Phone className="size-4" /> Enter Phone Order
                 </Button>

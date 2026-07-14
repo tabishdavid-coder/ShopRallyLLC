@@ -115,7 +115,7 @@ export const LABOR_PLAN_COPY = {
   billingMomentum: "Licensed MOTOR labor data",
   featuresIgnition: "Licensed MOTOR on Pro+",
   faqAnswer:
-    "Licensed MOTOR labor data is included on Pro and Elite — flat-rate guides and procedures in the estimate. Core uses the shop labor library. Core includes 100 VIN & plate decodes per month ($10 per additional 100); Pro and Elite are unlimited, plus OEM specs and fluid capacities.",
+    "Licensed MOTOR labor data is included on Pro and Elite — flat-rate guides and procedures in the estimate. Core uses the shop labor library only and does not offer MOTOR as an add-on — upgrade to Pro for licensed MOTOR. Core includes 100 VIN & plate decodes per month ($10 per additional 100); Pro and Elite are unlimited, plus OEM specs and fluid capacities.",
 } as const;
 
 /** Shared VIN + plate decode meter — Core allowance + overage packs. */
@@ -218,9 +218,9 @@ export const PLATFORM_MODULES = [
     id: "labor",
     name: "Labor Book",
     description:
-      "Licensed MOTOR labor data is included on Pro and Elite. Core uses the shop labor library. Core includes 100 VIN & plate decodes / mo ($10 per extra 100); Pro and Elite are unlimited, with OEM specs and fluid capacities on Pro+.",
+      "Licensed MOTOR labor data is included on Pro and Elite. Core uses the shop labor library only — MOTOR is not sold as a Core add-on. Core includes 100 VIN & plate decodes / mo ($10 per extra 100); Pro and Elite are unlimited, with OEM specs and fluid capacities on Pro+.",
     icon: "wrench" as const,
-    pricingNote: "Licensed MOTOR on Pro+",
+    pricingNote: "Licensed MOTOR on Pro+ (not a Core add-on)",
   },
   {
     id: "insights",
@@ -584,11 +584,12 @@ export const PLANS: Record<ShopPlan, PlanDefinition> = {
         "Unlimited repair orders & estimates",
         "Digital estimates & invoices via email",
         "Job board",
-        "Canned jobs",
+        "Canned jobs & shop labor library",
         "Digital vehicle inspections",
         "Operations Daily Snapshot",
         "100 VIN & plate decodes / mo · $10 per extra 100",
         "Email estimates & invoices (SMS on Pro+)",
+        "No licensed MOTOR (upgrade to Pro)",
       ],
     },
     features: starterFeatures,
@@ -687,7 +688,7 @@ export function buildPriceComparisonRows(annual: boolean): PriceComparisonRow[] 
       crmLabel: `$${starter}/mo`,
       marketingLabel: "—",
       stackTotal: starter,
-      note: "Core CRM · DVIs · Daily Snapshot · 100 VIN/plate decodes · shop labor library · no Stripe Connect",
+      note: "Core CRM · DVIs · Daily Snapshot · 100 VIN/plate · shop labor library · no MOTOR · no Stripe Connect",
       repairPilot: true,
     },
     {
@@ -1008,7 +1009,7 @@ export const INTEGRATION_PARTNERS = [
 export const PRICING_FAQ = [
   {
     q: "Which plan should I choose?",
-    a: "Core for a lean single-bay shop getting off paper — ShopRally CRM suite, DVIs, emails, job board, Operations Daily Snapshot, shop labor library, and 100 VIN & plate decodes per month ($10 per additional 100). Core does not include Stripe Connect or licensed MOTOR. Pro when you want licensed MOTOR included, unlimited VIN/plate decoding, OEM specs & fluids, PartsTech, Stripe Connect, SMS, booking, Growth Engine, and Google review management. Elite when you want AI receptionist, ShopSite, Local SEO, and maintenance programs in one bill.",
+    a: "Core for a lean single-bay shop getting off paper — ShopRally CRM suite, DVIs, emails, job board, Operations Daily Snapshot, shop labor library, and 100 VIN & plate decodes per month ($10 per additional 100). Core does not include Stripe Connect or licensed MOTOR (MOTOR is not sold as a Core add-on — upgrade to Pro). Pro when you want licensed MOTOR included, unlimited VIN/plate decoding, OEM specs & fluids, PartsTech, Stripe Connect, SMS, booking, Growth Engine, and Google review management. Elite when you want AI receptionist, ShopSite, Local SEO, and maintenance programs in one bill.",
   },
   {
     q: "How does ShopSite and SEO pricing work?",
@@ -1044,7 +1045,7 @@ export const PRICING_FAQ = [
   },
   {
     q: "What are MOTOR labor guides?",
-    a: "MOTOR labor data is licensed flat-rate guides and procedures in the estimate. It is included on Pro and Elite. Core uses the shop labor library.",
+    a: "MOTOR labor data is licensed flat-rate guides and procedures in the estimate. It is included on Pro and Elite only — not sold as a Core add-on. Core uses the shop labor library; upgrade to Pro for licensed MOTOR.",
   },
   {
     q: "Do you integrate with PartsTech and QuickBooks?",

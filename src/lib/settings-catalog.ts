@@ -47,7 +47,22 @@ export type SettingsChild = {
   label: string;
   href: string;
   keywords?: string[];
+  /**
+   * Plan/release capability required to show this child.
+   * `sms` → locked row for owners when off; others hide when off.
+   */
+  requires?: SettingsPlanGate;
 };
+
+/** Capability keys aligned with ShopCapabilities / subscription features. */
+export type SettingsPlanGate =
+  | "sms"
+  | "stripePayments"
+  | "growth"
+  | "maintenancePrograms"
+  | "partsTech"
+  | "shopSite"
+  | "websiteSeo";
 
 export type SettingsSection = {
   id: string;
@@ -59,6 +74,13 @@ export type SettingsSection = {
   description: string;
   keywords: string[];
   children?: SettingsChild[];
+  /** When set, section is hidden (or locked for sms) unless capability is on. */
+  requires?: SettingsPlanGate;
+  /**
+   * `hide` (default) — omit from catalog when not entitled.
+   * `lock` — keep visible with upgrade affordance (owner discoverability).
+   */
+  whenDenied?: "hide" | "lock";
 };
 
 export const SETTINGS_SECTIONS: SettingsSection[] = [
@@ -177,7 +199,7 @@ export const SETTINGS_SECTIONS: SettingsSection[] = [
   {
     id: "communications",
     label: "Communications",
-    href: "/settings/communications/phone-sms",
+    href: "/settings/communications/email",
     group: "communications",
     icon: MessagesSquare,
     description: "Phone & SMS, email sending, and customer notifications.",
@@ -188,6 +210,7 @@ export const SETTINGS_SECTIONS: SettingsSection[] = [
         label: "Phone & SMS",
         href: "/settings/communications/phone-sms",
         keywords: ["twilio", "text", "number", "messaging"],
+        requires: "sms",
       },
       { id: "email", label: "Email", href: "/settings/communications/email", keywords: ["resend", "sender", "smtp"] },
       {
@@ -235,6 +258,49 @@ export function groupedSettingsSections(): {
   return SETTINGS_GROUPS.map((group) => ({
     group,
     sections: SETTINGS_SECTIONS.filter((s) => s.group === group.id),
+  })).filter((g) => g.sections.length > 0);
+}
+
+export type SettingsCapabilityFlags = Partial<Record<SettingsPlanGate, boolean>>;
+
+export function settingsCapabilityAllowed(
+  requires: SettingsPlanGate | undefined,
+  caps: SettingsCapabilityFlags,
+): boolean {
+  if (!requires) return true;
+  return Boolean(caps[requires]);
+}
+
+/** Filter catalog for nav/overview/search — hide gated sections; SMS child stays for lock UX. */
+export function filterSettingsSectionsForPlan(
+  sections: SettingsSection[],
+  caps: SettingsCapabilityFlags,
+): SettingsSection[] {
+  return sections
+    .map((section) => {
+      if (section.requires && !settingsCapabilityAllowed(section.requires, caps)) {
+        if (section.whenDenied === "lock") return section;
+        return null;
+      }
+      const children = section.children?.filter((child) => {
+        if (!child.requires) return true;
+        // SMS: keep visible for owner discoverability (page shows upgrade wall).
+        if (child.requires === "sms") return true;
+        return settingsCapabilityAllowed(child.requires, caps);
+      });
+      return children ? { ...section, children } : section;
+    })
+    .filter((s): s is SettingsSection => s != null);
+}
+
+export function groupedSettingsSectionsForPlan(caps: SettingsCapabilityFlags): {
+  group: SettingsGroup;
+  sections: SettingsSection[];
+}[] {
+  const filtered = filterSettingsSectionsForPlan(SETTINGS_SECTIONS, caps);
+  return SETTINGS_GROUPS.map((group) => ({
+    group,
+    sections: filtered.filter((s) => s.group === group.id),
   })).filter((g) => g.sections.length > 0);
 }
 
@@ -363,4 +429,19 @@ export function searchSettings(query: string, limit = 8): SettingsSearchEntry[] 
 
 function escapeRegExp(s: string): string {
   return s.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+export function searchSettingsForPlan(
+  query: string,
+  caps: SettingsCapabilityFlags,
+  limit = 8,
+): SettingsSearchEntry[] {
+  const allowed = new Set(
+    filterSettingsSectionsForPlan(SETTINGS_SECTIONS, caps).flatMap((s) => {
+      const keys = [s.id];
+      for (const c of s.children ?? []) keys.push(`${s.id}:${c.id}`);
+      return keys;
+    }),
+  );
+  return searchSettings(query, limit).filter((e) => allowed.has(e.key));
 }

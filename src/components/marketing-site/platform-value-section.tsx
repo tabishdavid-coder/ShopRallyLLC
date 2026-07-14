@@ -20,7 +20,7 @@ const VALUE_PILLARS = [
     icon: BookOpen,
     title: "Labor & vehicle data",
     description:
-      "Licensed MOTOR on Pro and Elite. Core includes 100 VIN & plate decodes / mo ($10 per extra 100); Pro and Elite are unlimited, with OEM specs and fluid capacities on Pro+.",
+      "Licensed MOTOR on Pro and Elite only (not a Core add-on). Core includes 100 VIN & plate decodes / mo ($10 per extra 100); Pro and Elite are unlimited, with OEM specs and fluid capacities on Pro+.",
     tiers: LABOR_PLAN_COPY.featuresIgnition,
   },
   {

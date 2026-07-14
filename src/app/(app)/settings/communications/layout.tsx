@@ -1,7 +1,7 @@
 import { MessagesSquare } from "lucide-react";
 
-import { SettingsSubnav, COMMUNICATIONS_SUBNAV } from "@/components/settings/settings-subnav";
 import { SettingsHero } from "@/components/settings/settings-hero";
+import { CommunicationsSubnav } from "@/components/settings/communications-subnav";
 
 export default function CommunicationsSettingsLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -11,9 +11,7 @@ export default function CommunicationsSettingsLayout({ children }: { children: R
         title="Communications"
         description="Phone & SMS, email sending, and customer/staff notifications — how ShopRally talks to your customers."
       />
-      <SettingsSubnav items={COMMUNICATIONS_SUBNAV} ariaLabel="Communications settings">
-        {children}
-      </SettingsSubnav>
+      <CommunicationsSubnav>{children}</CommunicationsSubnav>
     </div>
   );
 }

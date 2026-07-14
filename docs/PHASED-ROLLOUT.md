@@ -112,6 +112,13 @@ See [`docs/MIGRATION-EXPAND-CONTRACT.md`](./MIGRATION-EXPAND-CONTRACT.md). Summa
 
 Cursor rule: `.cursor/rules/phased-rollout.mdc`.
 
+### Shop UX (hide vs lock)
+
+- **Hide** whole modules from daily chrome when plan or release is off (Growth, Care Plans, Messages/SMS, ShopSite hub).
+- **Soft-land** deep links with `PlanUpgradePanel` (upgrade CTA) — not silent `/dashboard?access=denied`.
+- **Lock** owner discoverability surfaces (Subscription, Stripe Connect wall, optional SMS row under Communications).
+- Release OFF → “not available yet” (do not upsell unreleased modules). See gating canvas + `src/server/crm-access.ts`.
+
 ---
 
 ## P0 Core CRM go-live checklist

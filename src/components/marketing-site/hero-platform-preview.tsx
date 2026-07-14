@@ -261,7 +261,7 @@ export function HeroPlatformPreview({ className }: { className?: string }) {
         {/* Bottom strip */}
         <div className="flex flex-wrap items-center justify-between gap-2 border-t border-brand-navy/10 bg-brand-navy px-4 py-2.5 text-[11px] text-white/90">
           <span className="font-medium">
-            CRM · Operations Daily Snapshot · job board · DVIs · estimates · MOTOR · PartsTech · SMS · booking ·
+            CRM · Operations Daily Snapshot · job board · DVIs · estimates · shop labor library ·
             Growth Engine · payments · ShopSite · SEO · AI
           </span>
           <span className="rounded-full bg-brand-light px-2.5 py-0.5 text-[10px] font-bold text-brand-navy">

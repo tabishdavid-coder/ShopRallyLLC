@@ -10,9 +10,30 @@ export type ShopCapabilities = {
   sms: boolean;
   /** Stripe Connect / online RO checkout — Pro+ only. */
   stripePayments: boolean;
+  /** Growth Engine campaigns / automations / booking hub. */
+  growth: boolean;
+  /** Care / maintenance programs hub. */
+  maintenancePrograms: boolean;
+  /** PartsTech punchout / live catalog. */
+  partsTech: boolean;
+  /** Licensed MOTOR labor (shop library stays on Core). */
+  motorLabor: boolean;
+  /** ShopSite editor / public site. */
+  shopSite: boolean;
+  /** Local SEO / Growth Engine SEO. */
+  websiteSeo: boolean;
 };
 
-const DEFAULT: ShopCapabilities = { sms: false, stripePayments: false };
+const DEFAULT: ShopCapabilities = {
+  sms: false,
+  stripePayments: false,
+  growth: false,
+  maintenancePrograms: false,
+  partsTech: false,
+  motorLabor: false,
+  shopSite: false,
+  websiteSeo: false,
+};
 
 const ShopCapabilitiesContext = createContext<ShopCapabilities>(DEFAULT);
 

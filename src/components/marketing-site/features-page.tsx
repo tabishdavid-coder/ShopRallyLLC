@@ -33,9 +33,9 @@ const MODULES = [
     icon: Zap,
     title: "Payments & vehicle data",
     description:
-      "Licensed MOTOR on Pro+, Core includes 100 VIN & plate decodes / mo ($10 per extra 100; unlimited on Pro+), OEM specs on Pro+, and Stripe Connect payouts on Pro+.",
+      "Licensed MOTOR on Pro+ only (not a Core add-on). Core includes 100 VIN & plate decodes / mo ($10 per extra 100; unlimited on Pro+), OEM specs on Pro+, and Stripe Connect payouts on Pro+.",
     items: [
-      "Licensed MOTOR on Pro+",
+      "Licensed MOTOR on Pro+ only",
       "VIN & plate decode — 100/mo on Core · unlimited on Pro+",
       "OEM specs & fluid capacities on Pro+",
       LABOR_PLAN_COPY.featuresIgnition,

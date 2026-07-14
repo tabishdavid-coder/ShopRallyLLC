@@ -2,13 +2,28 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutGrid } from "lucide-react";
+import { LayoutGrid, Lock } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import {
-  groupedSettingsSections,
+  groupedSettingsSectionsForPlan,
   settingsSectionIsActive,
+  type SettingsCapabilityFlags,
 } from "@/lib/settings-catalog";
+import { useShopCapabilities } from "@/lib/shop-capabilities";
+
+function capsFromShop(): SettingsCapabilityFlags {
+  const c = useShopCapabilities();
+  return {
+    sms: c.sms,
+    stripePayments: c.stripePayments,
+    growth: c.growth,
+    maintenancePrograms: c.maintenancePrograms,
+    partsTech: c.partsTech,
+    shopSite: c.shopSite,
+    websiteSeo: c.websiteSeo,
+  };
+}
 
 /**
  * Grouped left index rail for Admin / Settings. A pinned "Overview" link back
@@ -19,8 +34,10 @@ import {
  */
 export function SettingsIndexNav({ className }: { className?: string }) {
   const pathname = usePathname();
-  const groups = groupedSettingsSections();
+  const caps = capsFromShop();
+  const groups = groupedSettingsSectionsForPlan(caps);
   const onOverview = pathname === "/settings";
+  const smsOn = Boolean(caps.sms);
 
   return (
     <nav className={cn("flex flex-col gap-5", className)} aria-label="Settings sections">
@@ -54,6 +71,10 @@ export function SettingsIndexNav({ className }: { className?: string }) {
             {sections.map((section) => {
               const active = settingsSectionIsActive(pathname, section);
               const Icon = section.icon;
+              const smsLocked =
+                section.id === "communications" &&
+                !smsOn &&
+                pathname.startsWith("/settings/communications/phone-sms");
               return (
                 <li key={section.id}>
                   <Link
@@ -74,6 +95,9 @@ export function SettingsIndexNav({ className }: { className?: string }) {
                       aria-hidden
                     />
                     <span className="truncate">{section.label}</span>
+                    {smsLocked ? (
+                      <Lock className="ml-auto size-3.5 shrink-0 text-muted-foreground" aria-hidden />
+                    ) : null}
                   </Link>
                 </li>
               );

@@ -15,12 +15,21 @@ import {
   type ApNavLink,
 } from "@/lib/autopilot3030/nav";
 import { apContextNavClass } from "@/lib/autopilot3030/nav-active";
+import { isPlanHiddenNavHref } from "@/lib/crm-access";
+import { useShopCapabilities } from "@/lib/shop-capabilities";
 import { cn } from "@/lib/utils";
 
-function filterItems(items: ApNavLink[], allowedNavHrefs?: string[]): ApNavLink[] {
-  if (!allowedNavHrefs) return items;
-  const allowed = new Set(allowedNavHrefs);
-  return items.filter((item) => allowed.has(item.href) || item.stub);
+function filterItems(
+  items: ApNavLink[],
+  allowedNavHrefs: string[] | undefined,
+  planFlags: { growth: boolean; maintenancePrograms: boolean; sms: boolean },
+): ApNavLink[] {
+  return items.filter((item) => {
+    if (isPlanHiddenNavHref(item.href, planFlags)) return false;
+    if (!allowedNavHrefs) return true;
+    const allowed = new Set(allowedNavHrefs);
+    return allowed.has(item.href) || item.stub;
+  });
 }
 
 function ContextNavLink({
@@ -76,6 +85,12 @@ export function ApContextPanel({
   allowedNavHrefs?: string[];
 }) {
   const pathname = usePathname();
+  const caps = useShopCapabilities();
+  const planFlags = {
+    growth: caps.growth,
+    maintenancePrograms: caps.maintenancePrograms,
+    sms: caps.sms,
+  };
   const section = apSectionForPath(pathname);
   const showOps = apShowOperationsPanel(pathname);
   const isSettings =
@@ -83,7 +98,7 @@ export function ApContextPanel({
     pathname === "/employees" ||
     pathname.startsWith("/support");
 
-  const sectionItems = filterItems(section.items, allowedNavHrefs);
+  const sectionItems = filterItems(section.items, allowedNavHrefs, planFlags);
 
   return (
     <aside className="ap-context-panel hidden shrink-0 flex-col md:flex">
@@ -102,7 +117,7 @@ export function ApContextPanel({
         {isSettings ? (
           <nav className="space-y-4" aria-label="Shop configuration">
             {apSettingsGroupsForBuild().map((group) => {
-              const items = filterItems(group.items, allowedNavHrefs);
+              const items = filterItems(group.items, allowedNavHrefs, planFlags);
               if (items.length === 0) return null;
               return (
                 <div key={group.id}>
@@ -147,7 +162,7 @@ export function ApContextPanel({
           </nav>
         ) : showOps ? (
           <nav className="space-y-0.5" aria-label="Operations">
-            {filterItems(AP_OPERATIONS_NAV_ITEMS, allowedNavHrefs).map((item) => (
+            {filterItems(AP_OPERATIONS_NAV_ITEMS, allowedNavHrefs, planFlags).map((item) => (
               <ContextNavLink
                 key={item.href}
                 item={item}

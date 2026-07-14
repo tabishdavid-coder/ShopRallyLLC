@@ -314,12 +314,11 @@ export async function lookupLaborSuggestion(
   const queryKey = normalize(request);
   const lookupKeys = vehicleKeysForLookup(vehicle);
 
-  // Skip MOTOR BaseVehicleID resolution unless licensed/sandbox AND shop is entitled+released.
-  let mayUseMotor =
-    isLicensedMotorCatalog() || allowSandboxMotorDbCache();
-  if (mayUseMotor && options.shopId) {
-    mayUseMotor = await motorEnabledForShop(options.shopId);
-  }
+  // Fail closed: MOTOR BOOK only when shopId is known and plan+release allow it.
+  // Never serve licensed/sandbox MOTOR without a shop (would leak BOOK to Core).
+  const mayUseMotor = options.shopId
+    ? await motorEnabledForShop(options.shopId)
+    : false;
   const baseVehicleId = mayUseMotor
     ? (options.baseVehicleId ?? (await resolveMotorBaseVehicleId(vehicle)) ?? undefined)
     : (options.baseVehicleId ?? undefined);

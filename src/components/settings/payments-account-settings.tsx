@@ -1,7 +1,6 @@
 import { TransactionFeesCard } from "@/components/payments/transaction-fees-card";
+import { PlanUpgradePanel } from "@/components/billing/plan-upgrade-panel";
 import { StripeConnectPanel } from "@/components/settings/stripe-connect-panel";
-import { Button } from "@/components/ui/button";
-import Link from "next/link";
 import { getShopId } from "@/lib/shop";
 import { canUseFeature } from "@/lib/subscription";
 import { AgreementType } from "@/generated/prisma";
@@ -25,16 +24,12 @@ export async function PaymentsAccountSettings({
   const stripeOnPlan = await canUseFeature(shopId, "stripePayments");
   if (!stripeOnPlan) {
     return (
-      <div className="rounded-lg border border-amber-200 bg-amber-50 p-6 text-sm text-amber-950">
-        <p className="font-semibold">Stripe Connect is on Pro &amp; Elite</p>
-        <p className="mt-2 text-amber-900/90">
-          Core includes manual payment capture (cash, check, card terminal recorded in-shop). Online
-          Stripe Checkout and Connect payouts require Pro or Elite.
-        </p>
-        <Button asChild className="mt-4 bg-brand-navy" size="sm">
-          <Link href="/settings/subscription">View plans</Link>
-        </Button>
-      </div>
+      <PlanUpgradePanel
+        featureLabel="Stripe Connect"
+        description="Core includes manual payment capture (cash, check, card terminal recorded in-shop). Online Stripe Checkout and Connect payouts require Pro or Elite."
+        secondaryHref="/dashboard/snapshot"
+        secondaryLabel="Back to dashboard"
+      />
     );
   }
 

@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 
-/** Default Communications section — Phone & SMS first (Tekmetric-style). */
+/** Default Communications — Email (Core-safe); Phone & SMS is Pro+ with a locked wall. */
 export default function CommunicationsSettingsPage() {
-  redirect("/settings/communications/phone-sms");
+  redirect("/settings/communications/email");
 }

@@ -15,9 +15,10 @@ function withDevPoolParams(url: string): string {
   if (process.env.NODE_ENV !== "development") return url;
   try {
     const parsed = new URL(url);
-    parsed.searchParams.set("connection_limit", "10");
-    parsed.searchParams.set("pool_timeout", "60");
-    parsed.searchParams.set("connect_timeout", "30");
+    // Neon free/dev caps are low; extra browser tabs + HMR blow past 10 fast.
+    parsed.searchParams.set("connection_limit", "3");
+    parsed.searchParams.set("pool_timeout", "20");
+    parsed.searchParams.set("connect_timeout", "15");
     return parsed.toString();
   } catch {
     return url;

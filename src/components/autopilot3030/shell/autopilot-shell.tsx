@@ -59,7 +59,16 @@ export function AutopilotShell({
   allowedNavHrefs,
   allowedSectionIds,
   intakeConfig = null,
-  capabilities = { sms: false, stripePayments: false },
+  capabilities = {
+    sms: false,
+    stripePayments: false,
+    growth: false,
+    maintenancePrograms: false,
+    partsTech: false,
+    motorLabor: false,
+    shopSite: false,
+    websiteSeo: false,
+  },
   children,
 }: AutopilotShellProps) {
   const fullBleed = pathname === "/workflow";

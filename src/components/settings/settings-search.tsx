@@ -6,10 +6,11 @@ import { CornerDownLeft, Search, X } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import {
-  groupedSettingsSections,
-  searchSettings,
+  groupedSettingsSectionsForPlan,
+  searchSettingsForPlan,
   type SettingsSearchEntry,
 } from "@/lib/settings-catalog";
+import { useShopCapabilities } from "@/lib/shop-capabilities";
 
 /**
  * Settings command search. Typeahead over every section + deep-linkable
@@ -22,15 +23,35 @@ export function SettingsSearch() {
   const inputRef = useRef<HTMLInputElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const listId = useId();
+  const c = useShopCapabilities();
+  const caps = useMemo(
+    () => ({
+      sms: c.sms,
+      stripePayments: c.stripePayments,
+      growth: c.growth,
+      maintenancePrograms: c.maintenancePrograms,
+      partsTech: c.partsTech,
+      shopSite: c.shopSite,
+      websiteSeo: c.websiteSeo,
+    }),
+    [
+      c.sms,
+      c.stripePayments,
+      c.growth,
+      c.maintenancePrograms,
+      c.partsTech,
+      c.shopSite,
+      c.websiteSeo,
+    ],
+  );
 
   const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
   const [active, setActive] = useState(0);
 
   const results = useMemo<SettingsSearchEntry[]>(() => {
-    if (query.trim()) return searchSettings(query, 8);
-    // Empty state: flatten the grouped catalog into a browsable list.
-    return groupedSettingsSections().flatMap(({ group, sections }) =>
+    if (query.trim()) return searchSettingsForPlan(query, caps, 8);
+    return groupedSettingsSectionsForPlan(caps).flatMap(({ group, sections }) =>
       sections.map((s) => ({
         key: s.id,
         label: s.label,
@@ -43,7 +64,7 @@ export function SettingsSearch() {
         isChild: false,
       })),
     );
-  }, [query]);
+  }, [query, caps]);
 
   useEffect(() => setActive(0), [query]);
 
