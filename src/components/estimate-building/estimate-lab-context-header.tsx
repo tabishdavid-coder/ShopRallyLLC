@@ -214,19 +214,11 @@ export function EstimateLabContextHeader({
             />
 
             <EstimateLabServiceAdvisorSelect
-
               roId={roId}
-
               serviceWriterId={serviceWriterId}
-
               serviceWriters={serviceWriters}
-
               canEdit={canEdit}
-
-              compact
-
               className="shrink-0"
-
             />
 
           </div>
