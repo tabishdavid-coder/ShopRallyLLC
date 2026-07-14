@@ -6,6 +6,8 @@ import {
   PLANS,
   PLAN_ORDER,
   billingStatusLabel,
+  formatPriceFromCents,
+  planMarketingDisplayName,
   resolvePlanFeatures,
   type PlanFeature,
 } from "@/lib/plans";
@@ -67,9 +69,9 @@ export function SubscriptionPanel({
 
         <p className="mt-4 text-sm text-muted-foreground">
           <span className="text-2xl font-bold tabular-nums text-foreground">
-            ${(def.annualMonthlyCents / 100).toFixed(0)}
+            {formatPriceFromCents(def.annualMonthlyCents)}
           </span>
-          /mo per location (annual) · ${(def.monthlyCents / 100).toFixed(0)}/mo monthly
+          /mo per location (annual) · {formatPriceFromCents(def.monthlyCents)}/mo monthly
         </p>
 
         <p className="mt-3 text-xs text-muted-foreground">
@@ -214,8 +216,8 @@ function PlanComparison({ current }: { current: ShopPlan }) {
               key={id}
               className={`rounded-md border p-3 text-sm ${isCurrent ? "border-brand-navy bg-brand-navy/5" : ""}`}
             >
-              <p className="font-semibold">{p.name}</p>
-              <p className="text-xs text-muted-foreground">${(p.monthlyCents / 100).toFixed(0)}/mo</p>
+              <p className="font-semibold">{planMarketingDisplayName(p)}</p>
+              <p className="text-xs text-muted-foreground">{formatPriceFromCents(p.monthlyCents)}/mo</p>
               {isCurrent ? (
                 <span className="mt-1 inline-block text-[10px] font-semibold uppercase text-brand-navy">
                   Current

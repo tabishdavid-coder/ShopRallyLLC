@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Core CRM changes — ShopRally</title>
+<style>
+:root{--navy:#16588e;--light:#81c4ff;--red:#e7222e;--ink:#0b1f3b;--slate:#5b7295;--line:#dde5ef;--bg:#f4f8fc}
+*{box-sizing:border-box}body{margin:0;font-family:"Segoe UI",system-ui,sans-serif;background:linear-gradient(180deg,#eef5fc,#fff);color:var(--ink);line-height:1.45}
+.wrap{max-width:980px;margin:0 auto;padding:32px 20px 64px}
+.eyebrow{font-size:11px;font-weight:700;letter-spacing:.16em;text-transform:uppercase;color:var(--red)}
+h1{font-size:2rem;letter-spacing:-.02em;margin:8px 0}h2{font-size:1.1rem;color:var(--navy);border-bottom:1px solid var(--line);padding-bottom:8px}
+.sub{color:var(--slate);max-width:46rem}.card{background:#fff;border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin:14px 0;box-shadow:0 10px 30px -22px rgba(22,88,142,.4)}
+table{width:100%;border-collapse:collapse;font-size:13px}th,td{padding:8px 10px;border-bottom:1px solid var(--line);text-align:left;vertical-align:top}
+th{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--slate)}
+.pill{display:inline-block;padding:2px 8px;border-radius:999px;background:rgba(22,88,142,.08);color:var(--navy);font-size:11px;font-weight:600}
+a{color:var(--navy)}ul{margin:8px 0 0;padding-left:1.15rem;color:var(--slate)}
+.grid{display:grid;gap:12px}@media(min-width:800px){.grid{grid-template-columns:1fr 1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<p class="eyebrow">ShopRally · Core CRM</p>
+<h1>Core CRM changes (review board)</h1>
+<p class="sub">Live packaging + open Core gatekeeping / estimate UX PRs. Demo shop <strong>Eastside Auto Care</strong> is on <span class="pill">Core (STARTER)</span>. In &amp; Out AutoHaus remains <span class="pill">Elite (ENTERPRISE)</span>.</p>
+
+<div class="card">
+<h2>Live Core commercial (plans.ts)</h2>
+<ul>
+<li>Plan name: <strong>Core</strong> (internal <code>STARTER</code>)</li>
+<li>CRM suite, unlimited users/ROs, DVI, job board, canned jobs, Daily Snapshot</li>
+<li>100 VIN &amp; plate / mo · email estimates (SMS on Pro+)</li>
+<li><strong>Not on Core:</strong> MOTOR, PartsTech, Stripe Connect, two-way SMS, Growth Engine</li>
+</ul>
+<p><a href="http://localhost:3031/pricing" target="_blank">Open /pricing</a> ·
+<a href="http://localhost:3031/settings/subscription" target="_blank">Open subscription settings</a> ·
+<a href="http://localhost:3031/platform/shops/shop_eastside" target="_blank">Eastside shop (Core)</a></p>
+</div>
+
+<div class="card">
+<h2>Core gatekeeping &amp; CRM UX PRs</h2>
+<table>
+<thead><tr><th>PR</th><th>Change</th></tr></thead>
+<tbody>
+<tr><td><a href="https://github.com/tabishdavid-coder/ShopRallyLLC/pull/39">#39</a></td><td>Ship approved Core / Ignition offering system-wide</td></tr>
+<tr><td><a href="https://github.com/tabishdavid-coder/ShopRallyLLC/pull/38">#38</a></td><td>Track Core plan gatekeeping PRs (docs)</td></tr>
+<tr><td><a href="https://github.com/tabishdavid-coder/ShopRallyLLC/pull/29">#29</a></td><td>Hide Finances tab in customer context drawer (Core)</td></tr>
+<tr><td><a href="https://github.com/tabishdavid-coder/ShopRallyLLC/pull/27">#27</a></td><td>Free-type Year/Make/Model/Trim on vehicle form</td></tr>
+<tr><td><a href="https://github.com/tabishdavid-coder/ShopRallyLLC/pull/26">#26</a></td><td>Keep PartsTech fully gated off Core</td></tr>
+<tr><td><a href="https://github.com/tabishdavid-coder/ShopRallyLLC/pull/37">#37</a></td><td>Technician Unassigned → inline dropdown</td></tr>
+<tr><td><a href="https://github.com/tabishdavid-coder/ShopRallyLLC/pull/36">#36</a></td><td>Show Service advisor label</td></tr>
+<tr><td><a href="https://github.com/tabishdavid-coder/ShopRallyLLC/pull/35">#35</a></td><td>Editable line Discount + Net Amount</td></tr>
+<tr><td><a href="https://github.com/tabishdavid-coder/ShopRallyLLC/pull/34">#34</a></td><td>Remove Parts pipeline from Status rail</td></tr>
+<tr><td><a href="https://github.com/tabishdavid-coder/ShopRallyLLC/pull/33">#33</a></td><td>Editable part Cost + matrix markup</td></tr>
+<tr><td><a href="https://github.com/tabishdavid-coder/ShopRallyLLC/pull/32">#32</a></td><td>Auth status rail redesign</td></tr>
+<tr><td><a href="https://github.com/tabishdavid-coder/ShopRallyLLC/pull/1">#1</a></td><td>Ignition 1→200 outlook + investor pitch</td></tr>
+</tbody>
+</table>
+</div>
+
+<div class="grid">
+<div class="card">
+<h2>Try Core CRM (Eastside)</h2>
+<ul>
+<li><a href="http://localhost:3031/platform/shops/shop_eastside">Master → Eastside</a> then <strong>Open shop CRM</strong></li>
+<li>Or set cookie <code>rp_active_shop=shop_eastside</code> and open <a href="http://localhost:3031/dashboard/snapshot">Dashboard</a></li>
+<li>Core: Labor Book / PartsTech should stay gated vs Pro+</li>
+</ul>
+</div>
+<div class="card">
+<h2>Quick links</h2>
+<ul>
+<li><a href="http://localhost:3031/pricing">Pricing (Core · Pro · Elite)</a></li>
+<li><a href="http://localhost:3031/platform">Master CRM</a></li>
+<li><a href="http://localhost:3031/dashboard/snapshot">Current shop CRM</a></li>
+</ul>
+</div>
+</div>
+</div>
+</body>
+</html>

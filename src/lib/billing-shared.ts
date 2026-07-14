@@ -77,21 +77,21 @@ export const BILLING_PLAN_FEATURES: Record<
 > = {
   STARTER: {
     items: [
-      "ShopRally CRM suite",
       "Unlimited users",
-      "Unlimited repair orders & estimates",
-      "Digital estimates & invoices via email",
-      "Job board",
-      "Canned jobs",
+      "Unlimited ROs & estimates",
+      "Job board + full RO workspace",
+      "Canned jobs & shop labor library",
+      "Digital estimates, approvals & invoices (email)",
       "Digital vehicle inspections",
-      "Operations Daily Snapshot",
-      "100 VIN & plate decodes / mo · $10 per extra 100",
-      "Email estimates & invoices (SMS on Pro+)",
-      "Manual payments (cash / check / card) — no Stripe Connect",
+      "Live Operations Daily Snapshot",
+      "Appointments",
+      "Payment tracking",
+      "NHTSA VIN decode",
+      "Inventory basics & shop catalog",
     ],
   },
   PROFESSIONAL: {
-    intro: "Everything in Core, plus:",
+    intro: "Everything in Ignition, plus:",
     items: [
       "Licensed MOTOR labor data",
       "Unlimited VIN & plate decoding",

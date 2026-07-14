@@ -2,10 +2,10 @@ import type { ShopPlan } from "@/generated/prisma";
 import { stripReleaseFromPlanFeatures } from "@/lib/release-flags";
 
 /**
- * Public pricing strategy (2026 Q3): premium positioning between legacy desktop CRM
- * and budget cloud + bolt-on stacks (Garage360, Torque360, Tekmetric add-ons).
- * Display tiers: Core · Pro · Elite (internal enums: STARTER / PROFESSIONAL / ENTERPRISE).
- * ShopSite & Local SEO are separate monthly add-ons on Core & Pro; included on Elite.
+ * Public pricing strategy (2026 Q3): phase-one launch sells a single plan (**Ignition**).
+ * Pro & Elite stay in the catalog for platform ops — hidden from public marketing until phase two.
+ * Internal enums: STARTER / PROFESSIONAL / ENTERPRISE (STARTER displays as **Core** in CRM;
+ * public marketing may use `marketingName` e.g. Ignition).
  */
 export type PlanFeature =
   | "cannedJobs"
@@ -31,7 +31,11 @@ export type PlanFeature =
   | "aiCampaignDrafting"
   | "aiSeoContent"
   | "aiCustomerInsights"
-  | "aiReceptionist";
+  | "aiReceptionist"
+  /** Auto.dev plate→VIN + rich VIN decode — Pro+ only. Core uses free NHTSA VIN + manual entry. */
+  | "autodevDecoding"
+  /** Smart / freeform AI repair-order intake — Core-only AI Plus $20/mo add-on (not Pro/Elite). */
+  | "freeformRoIntake";
 
 export type PlanLimits = {
   /** null = unlimited */
@@ -87,6 +91,8 @@ export type PlanPricingCard = {
 export type PlanDefinition = {
   id: ShopPlan;
   name: string;
+  /** Public GTM label when different from in-app plan name (e.g. Ignition on /pricing). */
+  marketingName?: string;
   /** Short label on pricing cards (e.g. "Core shop"). */
   subtitle: string;
   /** One sentence under bestFor — kept short for card layout. */
@@ -115,7 +121,7 @@ export const LABOR_PLAN_COPY = {
   billingMomentum: "Licensed MOTOR labor data",
   featuresIgnition: "Licensed MOTOR on Pro+",
   faqAnswer:
-    "Licensed MOTOR labor data is included on Pro and Elite — flat-rate guides and procedures in the estimate. Core uses the shop labor library. Core includes 100 VIN & plate decodes per month ($10 per additional 100); Pro and Elite are unlimited, plus OEM specs and fluid capacities.",
+    "Licensed MOTOR labor data is included on Pro and Elite — flat-rate guides and procedures in the estimate. Ignition uses the shop labor library. Ignition includes 100 VIN & plate decodes per month ($10 per additional 100); Pro and Elite are unlimited, plus OEM specs and fluid capacities.",
 } as const;
 
 /** Shared VIN + plate decode meter — Core allowance + overage packs. */
@@ -130,25 +136,25 @@ export const VIN_PLATE_DECODE_PLAN_COPY = {
   billingCore: "100 VIN & plate decodes / mo · $10 per extra 100",
   billingProPlus: "Unlimited VIN & plate decoding",
   faqAnswer:
-    "Core includes 100 successful VIN or plate decodes per calendar month (shared meter). Additional packs are $10 per 100 — usage is metered and shown in Settings → Subscription; overage is billed manually until Stripe Billing. Pro and Elite include unlimited decoding.",
+    "Ignition includes 100 successful VIN or plate decodes per calendar month (shared meter). Additional packs are $10 per 100 — usage is metered and shown in Settings → Subscription; overage is billed manually until Stripe Billing. Pro and Elite include unlimited decoding.",
 } as const;
 
 /** Operations Daily Snapshot — included on every plan tier. */
 export const DASHBOARD_PLAN_COPY = {
-  planHighlight: "Operations Daily Snapshot — today's & upcoming activity",
-  billingItem: "Operations Daily Snapshot — today's & upcoming activity",
-  dailyOutlineLabel: "Operations Daily Snapshot",
+  planHighlight: "Live Operations Daily Snapshot — today's & upcoming activity",
+  billingItem: "Live Operations Daily Snapshot — today's & upcoming activity",
+  dailyOutlineLabel: "Live Operations Daily Snapshot",
   dailyOutlineDescription:
     "Your shop-day snapshot — today's and upcoming ROs, appointments, and activity.",
   dailyProfitableReports: "Daily profitable reports",
-  featuresAllTiers: "Operations Daily Snapshot on every plan",
+  featuresAllTiers: "Live Operations Daily Snapshot on every plan",
   comparisonAllTiers: {
     STARTER: true,
     PROFESSIONAL: true,
     ENTERPRISE: true,
   } satisfies Record<ShopPlan, boolean>,
   faqAnswer:
-    "Every plan includes Operations Daily Snapshot — a clear view of today's and upcoming shop activity so owners and advisors stay ahead of the day without digging through reports.",
+    "Every plan includes Live Operations Daily Snapshot — a clear view of today's and upcoming shop activity so owners and advisors stay ahead of the day without digging through reports.",
 } as const;
 
 /** Digital vehicle inspections (DVIs) — included on every plan tier. */
@@ -218,7 +224,7 @@ export const PLATFORM_MODULES = [
     id: "labor",
     name: "Labor Book",
     description:
-      "Licensed MOTOR labor data is included on Pro and Elite. Core uses the shop labor library. Core includes 100 VIN & plate decodes / mo ($10 per extra 100); Pro and Elite are unlimited, with OEM specs and fluid capacities on Pro+.",
+      "Licensed MOTOR labor data is included on Pro and Elite. Ignition uses the shop labor library. Ignition includes 100 VIN & plate decodes / mo ($10 per extra 100); Pro and Elite are unlimited, with OEM specs and fluid capacities on Pro+.",
     icon: "wrench" as const,
     pricingNote: "Licensed MOTOR on Pro+",
   },
@@ -428,11 +434,43 @@ export type PlanAddOn = {
   priceLabel: string;
   description: string;
   vsIndustry?: string;
-  tiers: "all" | "starter+" | "professional+" | "premier";
+  tiers: "all" | "starter+" | "professional+" | "premier" | "core-only";
+  /** Featured on public pricing during phase-one launch. */
+  phaseOne?: boolean;
 };
 
-/** Optional monthly add-ons — stack on any tier where noted. */
+/** Phase 1 GTM: one public plan; higher tiers ship behind the scenes for platform ops. */
+export const PHASE_ONE_LAUNCH = true;
+
+/** Plans on /pricing, signup, and shop subscription compare UI. */
+export const PUBLIC_PLAN_ORDER: ShopPlan[] = PHASE_ONE_LAUNCH
+  ? ["STARTER"]
+  : ["STARTER", "PROFESSIONAL", "ENTERPRISE"];
+
+/** Full tier catalog — platform admin & future multi-tier launch. */
+export const PLATFORM_PLAN_ORDER: ShopPlan[] = ["STARTER", "PROFESSIONAL", "ENTERPRISE"];
+
+export const PHASE_ONE_COPY = {
+  headline: "One plan. Everything to run your shop.",
+  subhead:
+    "Ignition is ShopRally's launch plan — unlimited users & ROs, job board, digital estimates & approvals, DVIs, appointments, payment tracking, and Live Operations Daily Snapshot. No tier maze.",
+  addonHeadline: "AI Plus — optional",
+  addonSubhead:
+    "Core plan only — add freeform AI repair-order intake, labor-hour assist, and the ShopRally advisor app for $20/mo.",
+} as const;
+
+/** Optional monthly add-ons — stack on eligible tiers only. */
 export const PLAN_ADDONS: PlanAddOn[] = [
+  {
+    id: "ai-plus",
+    name: "AI Plus",
+    priceLabel: "$20/mo",
+    description:
+      "Freeform AI repair-order intake, labor-hour assist, and the ShopRally advisor mobile app. Core plan add-on only.",
+    vsIndustry: "Competitor AI receptionist add-ons often list at $59–99/mo.",
+    tiers: "core-only",
+    phaseOne: true,
+  },
   {
     id: "ai-receptionist",
     name: "AI receptionist",
@@ -503,6 +541,8 @@ const starterFeatures: PlanFeatureSet = {
   aiSeoContent: false,
   aiCustomerInsights: false,
   aiReceptionist: false,
+  autodevDecoding: false,
+  freeformRoIntake: false,
 };
 
 const professionalFeatures: PlanFeatureSet = {
@@ -533,6 +573,8 @@ const professionalFeatures: PlanFeatureSet = {
   aiSeoContent: false,
   aiCustomerInsights: false,
   aiReceptionist: false,
+  autodevDecoding: true,
+  freeformRoIntake: false,
 };
 
 const EliteFeatures: PlanFeatureSet = {
@@ -563,6 +605,8 @@ const EliteFeatures: PlanFeatureSet = {
   aiSeoContent: true,
   aiCustomerInsights: true,
   aiReceptionist: true,
+  autodevDecoding: true,
+  freeformRoIntake: false,
 };
 
 /** Canonical plan catalog — premium tiers vs legacy & budget stacks. */
@@ -570,25 +614,27 @@ export const PLANS: Record<ShopPlan, PlanDefinition> = {
   STARTER: {
     id: "STARTER",
     name: "Core",
-    subtitle: "Essentials",
-    tagline: "Core shop CRM — job board, DVIs, estimates & Operations Daily Snapshot.",
-    monthlyCents: 11900,
-    annualMonthlyCents: 10900,
-    valueNote: "Core CRM · DVIs · Operations Daily Snapshot",
-    savingsNote: "Core CRM · DVIs · Operations Daily Snapshot",
+    marketingName: "Ignition",
+    subtitle: "Shop plan",
+    tagline: "Everything to run your shop — job board, DVIs, estimates, appointments & live ops.",
+    monthlyCents: 4999,
+    annualMonthlyCents: 4499,
+    valueNote: "Full shop CRM · DVIs · Live Operations Daily Snapshot · payment tracking",
+    savingsNote: "Full shop CRM · DVIs · Live Operations Daily Snapshot · payment tracking",
     pricingCard: {
-      bestFor: "Single-bay shops going cloud-first",
+      bestFor: "Independent shops going cloud-first — one plan, one price",
       bullets: [
-        "ShopRally CRM suite",
         "Unlimited users",
-        "Unlimited repair orders & estimates",
-        "Digital estimates & invoices via email",
-        "Job board",
-        "Canned jobs",
+        "Unlimited ROs & estimates",
+        "Job board + full RO workspace",
+        "Canned jobs & shop labor library",
+        "Digital estimates, approvals & invoices (email)",
         "Digital vehicle inspections",
-        "Operations Daily Snapshot",
-        "100 VIN & plate decodes / mo · $10 per extra 100",
-        "Email estimates & invoices (SMS on Pro+)",
+        "Live Operations Daily Snapshot",
+        "Appointments",
+        "Payment tracking",
+        "NHTSA VIN decode",
+        "Inventory basics & shop catalog",
       ],
     },
     features: starterFeatures,
@@ -645,7 +691,44 @@ export const PLANS: Record<ShopPlan, PlanDefinition> = {
   },
 };
 
-export const PLAN_ORDER: ShopPlan[] = ["STARTER", "PROFESSIONAL", "ENTERPRISE"];
+/** @deprecated Prefer PUBLIC_PLAN_ORDER (marketing) or PLATFORM_PLAN_ORDER (admin). */
+export const PLAN_ORDER: ShopPlan[] = PLATFORM_PLAN_ORDER;
+
+export function publicPlanAddons(): PlanAddOn[] {
+  if (PHASE_ONE_LAUNCH) {
+    return PLAN_ADDONS.filter((addon) => addon.phaseOne);
+  }
+  return PLAN_ADDONS;
+}
+
+/** Whether a billable add-on can be purchased on the given shop plan. */
+export function planAddonEligible(plan: ShopPlan, addon: PlanAddOn): boolean {
+  switch (addon.tiers) {
+    case "core-only":
+      return plan === "STARTER";
+    case "all":
+      return true;
+    case "starter+":
+      return plan === "STARTER" || plan === "PROFESSIONAL" || plan === "ENTERPRISE";
+    case "professional+":
+      return plan === "PROFESSIONAL" || plan === "ENTERPRISE";
+    case "premier":
+      return plan === "ENTERPRISE";
+    default:
+      return false;
+  }
+}
+
+/** Core (STARTER) is the only tier that can buy AI Plus / Smart RO Intake. */
+export function isCorePlan(plan: ShopPlan): boolean {
+  return plan === "STARTER";
+}
+
+/** Format cents as a price string — preserves .99 when present. */
+export function formatPriceFromCents(cents: number): string {
+  const amount = cents / 100;
+  return cents % 100 === 0 ? `$${amount.toFixed(0)}` : `$${amount.toFixed(2)}`;
+}
 
 /** Row shape for the public pricing comparison table. */
 export type PriceComparisonRow = {
@@ -687,7 +770,7 @@ export function buildPriceComparisonRows(annual: boolean): PriceComparisonRow[] 
       crmLabel: `$${starter}/mo`,
       marketingLabel: "—",
       stackTotal: starter,
-      note: "Core CRM · DVIs · Daily Snapshot · 100 VIN/plate decodes · shop labor library · no Stripe Connect",
+      note: "Ignition CRM · DVIs · Live Operations Daily Snapshot · appointments · payment tracking · NHTSA VIN · shop catalog",
       repairPilot: true,
     },
     {
@@ -696,7 +779,7 @@ export function buildPriceComparisonRows(annual: boolean): PriceComparisonRow[] 
       crmLabel: "Bundled",
       marketingLabel: "Included",
       stackTotal: professional,
-      note: "Everything in Core + licensed MOTOR, unlimited VIN/plate, Stripe Connect, Growth Engine & reviews",
+      note: "Everything in Ignition + licensed MOTOR, unlimited VIN/plate, Stripe Connect, Growth Engine & reviews",
       repairPilot: true,
     },
     {
@@ -947,12 +1030,18 @@ export type ShopPlanContext = {
   planFeatures?: unknown;
 };
 
-/** Merge plan defaults with optional per-shop JSON overrides (ignores `_release`). */
+/** Merge plan defaults with optional per-shop JSON overrides (ignores `_release`).
+ * Core never gets PartsTech — overrides cannot re-enable (Pro+ only). */
 export function resolvePlanFeatures(shop: ShopPlanContext): PlanFeatureSet {
   const base = PLANS[shop.plan].features;
   const overrides = stripReleaseFromPlanFeatures(shop.planFeatures);
-  if (!overrides) return base;
-  return { ...base, ...(overrides as Partial<PlanFeatureSet>) };
+  const merged: PlanFeatureSet = overrides
+    ? { ...base, ...(overrides as Partial<PlanFeatureSet>) }
+    : { ...base };
+  if (shop.plan === "STARTER") {
+    merged.partsTech = false;
+  }
+  return merged;
 }
 
 export function shopHasFeature(shop: ShopPlanContext, feature: PlanFeature): boolean {
@@ -970,12 +1059,22 @@ export function formatPlanPrice(cents: number | null, annual: boolean): string {
 
 export function planDisplayPrice(plan: PlanDefinition, annual: boolean): string {
   const cents = annual ? plan.annualMonthlyCents : plan.monthlyCents;
-  return `$${(cents / 100).toFixed(0)}`;
+  return formatPriceFromCents(cents);
+}
+
+/** In-app / CRM plan label (e.g. Core on Settings → Subscription). */
+export function planAppDisplayName(plan: PlanDefinition): string {
+  return plan.name;
+}
+
+/** Public marketing plan label (e.g. Ignition on /pricing when `marketingName` is set). */
+export function planMarketingDisplayName(plan: PlanDefinition): string {
+  return plan.marketingName ?? plan.name;
 }
 
 /** List (monthly) price — shown struck-through when annual billing is selected. */
 export function planListPrice(plan: PlanDefinition): string {
-  return `$${(plan.monthlyCents / 100).toFixed(0)}`;
+  return formatPriceFromCents(plan.monthlyCents);
 }
 
 /** Bullets for pricing cards and signup — includes tier-upgrade header when set. */
@@ -1008,7 +1107,9 @@ export const INTEGRATION_PARTNERS = [
 export const PRICING_FAQ = [
   {
     q: "Which plan should I choose?",
-    a: "Core for a lean single-bay shop getting off paper — ShopRally CRM suite, DVIs, emails, job board, Operations Daily Snapshot, shop labor library, and 100 VIN & plate decodes per month ($10 per additional 100). Core does not include Stripe Connect or licensed MOTOR. Pro when you want licensed MOTOR included, unlimited VIN/plate decoding, OEM specs & fluids, PartsTech, Stripe Connect, SMS, booking, Growth Engine, and Google review management. Elite when you want AI receptionist, ShopSite, Local SEO, and maintenance programs in one bill.",
+    a: PHASE_ONE_LAUNCH
+      ? "Phase one is simple: Ignition ($49.99/mo) is the only plan we sell publicly — unlimited users & ROs, job board, full RO workspace, canned jobs & shop labor library, digital estimates/approvals/invoices (email), digital vehicle inspections, Live Operations Daily Snapshot, appointments, payment tracking, NHTSA VIN decode, and inventory basics. Add AI Plus ($20/mo) for freeform AI repair-order intake, labor assist, and the advisor mobile app. Pro and Elite tiers are coming later for licensed MOTOR, Growth Engine, Stripe Connect, SMS, and white-glove onboarding."
+      : "Ignition for a lean single-bay shop getting off paper — unlimited users & ROs, job board, DVIs, email estimates & approvals, Live Operations Daily Snapshot, appointments, payment tracking, and shop catalog. Ignition does not include Stripe Connect or licensed MOTOR. Pro when you want licensed MOTOR included, unlimited VIN/plate decoding, OEM specs & fluids, PartsTech, Stripe Connect, SMS, booking, Growth Engine, and Google review management. Elite when you want AI receptionist, ShopSite, Local SEO, and maintenance programs in one bill.",
   },
   {
     q: "How does ShopSite and SEO pricing work?",
@@ -1044,11 +1145,11 @@ export const PRICING_FAQ = [
   },
   {
     q: "What are MOTOR labor guides?",
-    a: "MOTOR labor data is licensed flat-rate guides and procedures in the estimate. It is included on Pro and Elite. Core uses the shop labor library.",
+    a: "MOTOR labor data is licensed flat-rate guides and procedures in the estimate. It is included on Pro and Elite. Ignition uses the shop labor library.",
   },
   {
     q: "Do you integrate with PartsTech and QuickBooks?",
-    a: "PartsTech and Stripe Connect are on Pro and Elite (not Core). QuickBooks integration is on our roadmap — contact us for timeline.",
+    a: "PartsTech and Stripe Connect are on Pro and Elite (not Ignition). QuickBooks integration is on our roadmap — contact us for timeline.",
   },
   {
     q: "How does additional locations work?",
@@ -1060,7 +1161,7 @@ export const PRICING_FAQ = [
   },
   {
     q: "Is training included?",
-    a: "Elite includes a dedicated onboarding specialist and migration. Core and Pro are self-serve with product training resources — book a demo if you want a guided go-live.",
+    a: "Elite includes a dedicated onboarding specialist and migration. Ignition and Pro are self-serve with product training resources — book a demo if you want a guided go-live.",
   },
   {
     q: "Can I switch from another shop system?",
