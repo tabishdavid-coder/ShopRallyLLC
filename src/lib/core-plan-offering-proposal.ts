@@ -184,7 +184,8 @@ export const CORE_OFFERING_MOCK = {
   },
   /** Short card bullets proposed to replace today’s 10-line dump on /pricing */
   proposedCardBullets: [
-    "Unlimited users, ROs & estimates",
+    "Unlimited users",
+    "Unlimited ROs & estimates",
     "Job board + full RO workspace",
     "Canned jobs & shop labor library",
     "Digital estimates, approvals & invoices (email)",
