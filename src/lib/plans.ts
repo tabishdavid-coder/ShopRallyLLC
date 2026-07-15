@@ -141,20 +141,20 @@ export const VIN_PLATE_DECODE_PLAN_COPY = {
 
 /** Operations Daily Snapshot — included on every plan tier. */
 export const DASHBOARD_PLAN_COPY = {
-  planHighlight: "Operations Daily Snapshot — today's & upcoming activity",
-  billingItem: "Operations Daily Snapshot — today's & upcoming activity",
-  dailyOutlineLabel: "Operations Daily Snapshot",
+  planHighlight: "Live Operations Daily Snapshot — today's & upcoming activity",
+  billingItem: "Live Operations Daily Snapshot — today's & upcoming activity",
+  dailyOutlineLabel: "Live Operations Daily Snapshot",
   dailyOutlineDescription:
     "Your shop-day snapshot — today's and upcoming ROs, appointments, and activity.",
   dailyProfitableReports: "Daily profitable reports",
-  featuresAllTiers: "Operations Daily Snapshot on every plan",
+  featuresAllTiers: "Live Operations Daily Snapshot on every plan",
   comparisonAllTiers: {
     STARTER: true,
     PROFESSIONAL: true,
     ENTERPRISE: true,
   } satisfies Record<ShopPlan, boolean>,
   faqAnswer:
-    "Every plan includes Operations Daily Snapshot — a clear view of today's and upcoming shop activity so owners and advisors stay ahead of the day without digging through reports.",
+    "Every plan includes Live Operations Daily Snapshot — a clear view of today's and upcoming shop activity so owners and advisors stay ahead of the day without digging through reports.",
 } as const;
 
 /** Digital vehicle inspections (DVIs) — included on every plan tier. */
@@ -453,7 +453,7 @@ export const PLATFORM_PLAN_ORDER: ShopPlan[] = ["STARTER", "PROFESSIONAL", "ENTE
 export const PHASE_ONE_COPY = {
   headline: "One plan. Everything to run your shop.",
   subhead:
-    "Ignition is ShopRally's launch plan — job board, repair orders, DVIs, estimates, and your daily shop snapshot. No tier maze.",
+    "Ignition is ShopRally's launch plan — unlimited users & ROs, job board, digital estimates & approvals, DVIs, appointments, payment tracking, and Live Operations Daily Snapshot. No tier maze.",
   addonHeadline: "AI Plus — optional",
   addonSubhead:
     "Core plan only — add freeform AI repair-order intake, labor-hour assist, and the ShopRally advisor app for $20/mo.",
@@ -616,24 +616,25 @@ export const PLANS: Record<ShopPlan, PlanDefinition> = {
     name: "Core",
     marketingName: "Ignition",
     subtitle: "Shop plan",
-    tagline: "Everything to run your shop — job board, DVIs, estimates & Operations Daily Snapshot.",
+    tagline: "Everything to run your shop — job board, DVIs, estimates, appointments & live ops.",
     monthlyCents: 4999,
     annualMonthlyCents: 4499,
-    valueNote: "Full shop CRM · DVIs · Operations Daily Snapshot",
-    savingsNote: "Full shop CRM · DVIs · Operations Daily Snapshot",
+    valueNote: "Full shop CRM · DVIs · Live Operations Daily Snapshot · payment tracking",
+    savingsNote: "Full shop CRM · DVIs · Live Operations Daily Snapshot · payment tracking",
     pricingCard: {
       bestFor: "Independent shops going cloud-first — one plan, one price",
       bullets: [
-        "ShopRally CRM suite",
         "Unlimited users",
-        "Unlimited repair orders & estimates",
-        "Digital estimates & invoices via email",
-        "Job board & workflow board",
+        "Unlimited ROs & estimates",
+        "Job board + full RO workspace",
         "Canned jobs & shop labor library",
-        "Digital vehicle inspections (DVIs)",
-        "Operations Daily Snapshot",
-        "100 VIN & plate decodes / mo · $10 per extra 100",
-        "Manual payments (cash / check / card)",
+        "Digital estimates, approvals & invoices (email)",
+        "Digital vehicle inspections",
+        "Live Operations Daily Snapshot",
+        "Appointments",
+        "Payment tracking",
+        "NHTSA VIN decode",
+        "Inventory basics & shop catalog",
       ],
     },
     features: starterFeatures,
@@ -769,7 +770,7 @@ export function buildPriceComparisonRows(annual: boolean): PriceComparisonRow[] 
       crmLabel: `$${starter}/mo`,
       marketingLabel: "—",
       stackTotal: starter,
-      note: "Ignition CRM · DVIs · Daily Snapshot · 100 VIN/plate decodes · shop labor library · no Stripe Connect",
+      note: "Ignition CRM · DVIs · Live Operations Daily Snapshot · appointments · payment tracking · NHTSA VIN · shop catalog",
       repairPilot: true,
     },
     {
@@ -1107,8 +1108,8 @@ export const PRICING_FAQ = [
   {
     q: "Which plan should I choose?",
     a: PHASE_ONE_LAUNCH
-      ? "Phase one is simple: Ignition ($49.99/mo) is the only plan we sell publicly — ShopRally CRM suite, DVIs, email estimates, job board, Operations Daily Snapshot, shop labor library, and 100 VIN & plate decodes per month ($10 per additional 100). Add AI Plus ($20/mo) for freeform AI repair-order intake, labor assist, and the advisor mobile app. Pro and Elite tiers are coming later for licensed MOTOR, Growth Engine, payments, and white-glove onboarding."
-      : "Ignition for a lean single-bay shop getting off paper — ShopRally CRM suite, DVIs, emails, job board, Operations Daily Snapshot, shop labor library, and 100 VIN & plate decodes per month ($10 per additional 100). Ignition does not include Stripe Connect or licensed MOTOR. Pro when you want licensed MOTOR included, unlimited VIN/plate decoding, OEM specs & fluids, PartsTech, Stripe Connect, SMS, booking, Growth Engine, and Google review management. Elite when you want AI receptionist, ShopSite, Local SEO, and maintenance programs in one bill.",
+      ? "Phase one is simple: Ignition ($49.99/mo) is the only plan we sell publicly — unlimited users & ROs, job board, full RO workspace, canned jobs & shop labor library, digital estimates/approvals/invoices (email), digital vehicle inspections, Live Operations Daily Snapshot, appointments, payment tracking, NHTSA VIN decode, and inventory basics. Add AI Plus ($20/mo) for freeform AI repair-order intake, labor assist, and the advisor mobile app. Pro and Elite tiers are coming later for licensed MOTOR, Growth Engine, Stripe Connect, SMS, and white-glove onboarding."
+      : "Ignition for a lean single-bay shop getting off paper — unlimited users & ROs, job board, DVIs, email estimates & approvals, Live Operations Daily Snapshot, appointments, payment tracking, and shop catalog. Ignition does not include Stripe Connect or licensed MOTOR. Pro when you want licensed MOTOR included, unlimited VIN/plate decoding, OEM specs & fluids, PartsTech, Stripe Connect, SMS, booking, Growth Engine, and Google review management. Elite when you want AI receptionist, ShopSite, Local SEO, and maintenance programs in one bill.",
   },
   {
     q: "How does ShopSite and SEO pricing work?",

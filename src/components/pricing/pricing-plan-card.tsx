@@ -19,6 +19,7 @@ type PricingPlanCardProps = {
   annual: boolean;
   preLaunch: boolean;
   onCompareFeatures?: () => void;
+  compareLabel?: string;
 };
 
 export function PricingPlanCard({
@@ -27,6 +28,7 @@ export function PricingPlanCard({
   annual,
   preLaunch,
   onCompareFeatures,
+  compareLabel = "Compare all features",
 }: PricingPlanCardProps) {
   const price = planDisplayPrice(plan, annual);
   const listPrice = planListPrice(plan);
@@ -156,7 +158,7 @@ export function PricingPlanCard({
               onClick={onCompareFeatures}
               className="w-full text-left text-xs font-medium text-slate-500 underline-offset-2 transition hover:text-brand-navy hover:underline"
             >
-              Compare all features
+              {compareLabel}
             </button>
           ) : null}
         </div>

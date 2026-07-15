@@ -28,6 +28,11 @@ import {
 import { WebPresenceLaunchSetupDetails, WebPresenceSetupLine } from "@/components/marketing-site/web-presence-launch-setup-details";
 import { PricingBillingToggle } from "@/components/pricing/pricing-billing-toggle";
 import { PricingPlanCard } from "@/components/pricing/pricing-plan-card";
+import { CorePlanWhatsIncluded } from "@/components/pricing/core-plan-whats-included";
+
+function openCoreWhatsIncluded() {
+  document.getElementById("core-whats-included")?.scrollIntoView({ behavior: "smooth", block: "start" });
+}
 
 function openFeatureComparison(setFeaturesOpen: (v: boolean | ((o: boolean) => boolean)) => void) {
   setFeaturesOpen(true);
@@ -144,7 +149,12 @@ export function PricingPageContent({ foundingSpotsClaimed = 0 }: { foundingSpots
                 plan={PLANS[planId]}
                 annual={annual}
                 preLaunch={preLaunch}
-                onCompareFeatures={() => openFeatureComparison(setFeaturesOpen)}
+                compareLabel={PHASE_ONE_LAUNCH ? "See everything included" : "Compare all features"}
+                onCompareFeatures={
+                  PHASE_ONE_LAUNCH
+                    ? openCoreWhatsIncluded
+                    : () => openFeatureComparison(setFeaturesOpen)
+                }
               />
             ))}
           </div>
@@ -188,6 +198,8 @@ export function PricingPageContent({ foundingSpotsClaimed = 0 }: { foundingSpots
           ) : null}
         </div>
       </section>
+
+      {PHASE_ONE_LAUNCH ? <CorePlanWhatsIncluded /> : null}
 
       {/* Web presence — de-emphasized in phase one */}
       {!PHASE_ONE_LAUNCH ? (
