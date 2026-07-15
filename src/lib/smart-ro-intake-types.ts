@@ -24,6 +24,8 @@ export type SmartRoLaborLine = {
   description: string;
   estimated_hours: number;
   confidence_score: number;
+  /** Staging-only — user (or AI low-confidence) marked the line for review. */
+  flagged?: boolean;
 };
 
 /** Exact Gemini response shape — persisted only after user confirms staging. */
