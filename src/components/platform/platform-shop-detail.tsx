@@ -12,7 +12,6 @@ import { PlatformShopReleaseFlags } from "@/components/platform/platform-shop-re
 import { PlatformShopPlanAddons } from "@/components/platform/platform-shop-plan-addons";
 import type { OnboardingStep } from "@/server/platform/onboarding";
 import type { PlatformShopDetail } from "@/server/platform/shop-detail";
-import type { PlanFeatureSet } from "@/lib/plans";
 
 function fmtDate(d: Date | null) {
   if (!d) return "—";
@@ -112,11 +111,7 @@ export function PlatformShopDetailView({
         releaseFlagsDefaultOpen={shop.releaseFlagsDefaultOpen}
       />
 
-      <PlatformShopPlanAddons
-        shopId={shop.id}
-        shopPlan={shop.plan}
-        resolvedFeatures={shop.resolvedFeatures}
-      />
+      <PlatformShopPlanAddons shopId={shop.id} resolvedFeatures={shop.resolvedFeatures} />
 
       <div className="grid gap-6 lg:grid-cols-2">
         <section className="rounded-xl border bg-card p-5 shadow-sm">

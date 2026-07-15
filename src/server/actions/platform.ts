@@ -15,13 +15,15 @@ import {
 import { provisionPlatformShop } from "@/server/platform/provision-shop";
 import { ShopStatus, ShopPlan, BillingStatus, ShopProvisionMethod, type Prisma } from "@/generated/prisma";
 import {
+  mergePlanFeatureOverride,
+  type PlanFeature,
+} from "@/lib/plans";
+import {
   mergeReleaseFlagsIntoPlanFeatures,
   RELEASE_MODULES,
   type ReleaseFlagMap,
   type ReleaseModule,
 } from "@/lib/release-flags";
-import { mergePlanFeatureOverride, TOGGLEABLE_PLAN_FEATURES } from "@/lib/plan-feature-overrides";
-import type { PlanFeature } from "@/lib/plans";
 
 const LegacyCreateShopInput = z.object({
   name: z.string().trim().min(1).max(120),
@@ -210,7 +212,21 @@ export async function updateShopReleaseFlags(
   return { ok: true };
 }
 
-/** Platform admin: toggle billable plan add-ons per shop (e.g. AI Plus / Smart RO Intake). */
+const PLAN_FEATURE_KEYS = new Set<PlanFeature>([
+  "freeformRoIntake",
+  "aiReceptionist",
+  "aiReviewReplies",
+  "aiCampaignDrafting",
+  "aiSeoContent",
+  "aiCustomerInsights",
+  "customerSms",
+  "motorLabor",
+  "partsTech",
+  "shopSite",
+  "websiteSeo",
+]);
+
+/** Platform admin: enable/disable billable plan-feature add-ons per shop. */
 export async function updateShopPlanFeatureOverride(
   shopId: string,
   feature: PlanFeature,
@@ -223,18 +239,15 @@ export async function updateShopPlanFeatureOverride(
   }
 
   if (!shopId.trim()) return { ok: false, error: "Shop is required." };
-  if (!TOGGLEABLE_PLAN_FEATURES.has(feature)) {
+  if (!PLAN_FEATURE_KEYS.has(feature)) {
     return { ok: false, error: "This feature cannot be toggled here." };
   }
 
   const shop = await prisma.shop.findUnique({
     where: { id: shopId },
-    select: { planFeatures: true, plan: true },
+    select: { planFeatures: true },
   });
   if (!shop) return { ok: false, error: "Shop not found." };
-  if (feature === "freeformRoIntake" && shop.plan !== "STARTER") {
-    return { ok: false, error: "AI Plus (Smart AI Intake) is only available on Core plan shops." };
-  }
 
   await prisma.shop.update({
     where: { id: shopId },

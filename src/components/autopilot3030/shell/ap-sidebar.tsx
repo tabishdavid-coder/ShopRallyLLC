@@ -4,17 +4,26 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
 import {
+  CalendarPlus,
   Check,
+  ChevronDown,
   ChevronLeft,
   ChevronRight,
+  FileText,
   Loader2,
+  Lock,
   MoreVertical,
   Plus,
+  Sparkles,
+  UserPlus,
 } from "lucide-react";
 import { useClerk } from "@clerk/nextjs";
 
 import { ShopRallyLogo } from "@/components/brand/shoprally-logo";
 import { useRoIntakeOptional } from "@/components/repair-order/ro-intake-context";
+import { FreeformRoDialog } from "@/components/repair-order/freeform-ro-dialog";
+import { FREEFORM_RO_ADDON_LABEL } from "@/lib/freeform-ro-types";
+import { useFreeformRoIntakeEnabled } from "@/lib/shop-capabilities";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -32,11 +41,9 @@ import {
   type ApNavLink,
 } from "@/lib/autopilot3030/nav";
 import { apSidebarLinkClass, apSidebarSectionClass } from "@/lib/autopilot3030/nav-active";
-import { isPlanHiddenNavHref } from "@/lib/crm-access";
 import { isClerkConfigured } from "@/lib/clerk-auth-client";
 import { syncClerkActiveOrg } from "@/lib/clerk-org-client";
 import type { Shop } from "@/lib/shop";
-import { useShopCapabilities } from "@/lib/shop-capabilities";
 import { cn } from "@/lib/utils";
 import { switchShop } from "@/server/actions/platform";
 
@@ -62,17 +69,10 @@ function navHrefAllowed(href: string, allowed: Set<string>): boolean {
   return false;
 }
 
-function filterItems(
-  items: ApNavLink[],
-  allowedNavHrefs: string[] | undefined,
-  planFlags: { growth: boolean; maintenancePrograms: boolean; sms: boolean },
-): ApNavLink[] {
-  return items.filter((item) => {
-    if (isPlanHiddenNavHref(item.href, planFlags)) return false;
-    if (!allowedNavHrefs) return true;
-    const allowed = new Set(allowedNavHrefs);
-    return item.stub || navHrefAllowed(item.href, allowed);
-  });
+function filterItems(items: ApNavLink[], allowedNavHrefs?: string[]): ApNavLink[] {
+  if (!allowedNavHrefs) return items;
+  const allowed = new Set(allowedNavHrefs);
+  return items.filter((item) => item.stub || navHrefAllowed(item.href, allowed));
 }
 
 function shopInitials(name: string, code?: string): string {
@@ -153,34 +153,87 @@ function SidebarLink({
 }
 
 function SidebarCreateButton({ collapsed }: { collapsed?: boolean }) {
+  const router = useRouter();
   const { openIntake, config } = useRoIntakeOptional();
+  const freeformEnabled = useFreeformRoIntakeEnabled();
+  const [freeformOpen, setFreeformOpen] = useState(false);
 
-  const className = cn(
-    "w-full gap-1.5 bg-brand-orange font-semibold text-white shadow-md hover:bg-brand-orange/90 active:bg-brand-orange/85",
-    collapsed ? "h-10 px-0 justify-center" : "h-10 justify-start rounded-lg px-3",
-  );
-
-  if (config) {
-    return (
-      <Button
-        type="button"
-        className={className}
-        aria-label="Repair Order"
-        onClick={() => openIntake()}
-      >
-        <Plus className="size-4 shrink-0" aria-hidden />
-        {collapsed ? null : <span>Repair Order</span>}
-      </Button>
-    );
+  function openManualIntake() {
+    if (config) {
+      openIntake();
+      return;
+    }
+    router.push("/repair-orders/new");
   }
 
   return (
-    <Button type="button" className={className} aria-label="Repair Order" asChild>
-      <Link href="/repair-orders/new">
-        <Plus className="size-4 shrink-0" aria-hidden />
-        {collapsed ? null : <span>Repair Order</span>}
-      </Link>
-    </Button>
+    <>
+      <DropdownMenu>
+        <DropdownMenuTrigger asChild>
+          <Button
+            type="button"
+            className={cn(
+              "w-full gap-1.5 bg-brand-orange font-semibold text-white shadow-md hover:bg-brand-orange/90 active:bg-brand-orange/85",
+              collapsed ? "h-10 px-0" : "h-10 justify-between rounded-lg px-3",
+            )}
+            aria-label="Repair order"
+          >
+            {collapsed ? (
+              <Plus className="size-4" aria-hidden />
+            ) : (
+              <>
+                <span className="inline-flex items-center gap-1.5">
+                  <Plus className="size-4 shrink-0" aria-hidden />
+                  Repair Order
+                </span>
+                <ChevronDown className="size-3.5 shrink-0 opacity-80" aria-hidden />
+              </>
+            )}
+          </Button>
+        </DropdownMenuTrigger>
+        <DropdownMenuContent align="start" className="w-60" side="right">
+          <DropdownMenuLabel>Repair order</DropdownMenuLabel>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem
+            disabled={!freeformEnabled}
+            onClick={() => freeformEnabled && setFreeformOpen(true)}
+            className="items-start gap-2"
+          >
+            {freeformEnabled ? (
+              <Sparkles className="mr-2 size-4 shrink-0 text-brand-orange" />
+            ) : (
+              <Lock className="mr-2 size-4 shrink-0 text-muted-foreground" />
+            )}
+            <span className="flex flex-col gap-0.5">
+              <span>Freeform (AI)</span>
+              {!freeformEnabled ? (
+                <span className="text-xs font-normal text-muted-foreground">
+                  {FREEFORM_RO_ADDON_LABEL}
+                </span>
+              ) : null}
+            </span>
+          </DropdownMenuItem>
+          <DropdownMenuItem onClick={openManualIntake}>
+            <FileText className="mr-2 size-4" />
+            Create manually
+          </DropdownMenuItem>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem asChild>
+            <Link href="/appointments">
+              <CalendarPlus className="mr-2 size-4" />
+              New appointment
+            </Link>
+          </DropdownMenuItem>
+          <DropdownMenuItem asChild>
+            <Link href="/customers?add=1">
+              <UserPlus className="mr-2 size-4" />
+              New customer
+            </Link>
+          </DropdownMenuItem>
+        </DropdownMenuContent>
+      </DropdownMenu>
+      <FreeformRoDialog open={freeformOpen} onOpenChange={setFreeformOpen} />
+    </>
   );
 }
 
@@ -322,12 +375,6 @@ export function ApSidebar({
   allowedNavHrefs?: string[];
 }) {
   const pathname = usePathname();
-  const caps = useShopCapabilities();
-  const planFlags = {
-    growth: caps.growth,
-    maintenancePrograms: caps.maintenancePrograms,
-    sms: caps.sms,
-  };
   const [collapsed, setCollapsed] = useState(false);
 
   useEffect(() => {
@@ -377,7 +424,7 @@ export function ApSidebar({
         )}
       >
         {AP_SIDEBAR_NAV_GROUPS.map((group) => {
-          const filtered = filterItems(group.items, allowedNavHrefs, planFlags);
+          const filtered = filterItems(group.items, allowedNavHrefs);
           if (filtered.length === 0) return null;
           return (
             <div key={group.id} className="pb-3">

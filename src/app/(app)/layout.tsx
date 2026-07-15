@@ -14,9 +14,7 @@ import { KeyedChildren } from "@/lib/keyed-children";
 import { prisma } from "@/db/client";
 import { isPlatformAdmin } from "@/lib/platform";
 import { getCurrentShop, getShopId, listShops, ShopAccessError, DEMO_SHOP_ID } from "@/lib/shop";
-import { settingsRouteDenied } from "@/lib/settings-plan-gates";
-import { canUseFeature, canUseReleasedFeature, canUseSmartRoIntake, getShopSubscription, resolvePlanFeatures } from "@/lib/subscription";
-import { isCorePlan } from "@/lib/plans";
+import { canUseFeature } from "@/lib/subscription";
 import { checkCrmRouteAccess, getCrmAccessContext } from "@/server/crm-access";
 import { getNotifications } from "@/server/notifications";
 import { countUnreadMessages } from "@/server/messages-inbox";
@@ -70,18 +68,11 @@ export default async function AppLayout({
   if (dbSeeded && crmAccess && !isPlatformRoute && pathname !== "/shop-access") {
     const routeAccess = await checkCrmRouteAccess(pathname, activeShopId);
     if (!routeAccess.allowed) {
-      if (routeAccess.reason === "plan" && (pathname.startsWith("/settings") || pathname.startsWith("/vendors"))) {
-        const sub = await getShopSubscription(activeShopId);
-        const denied = settingsRouteDenied(pathname, sub.features);
-        if (denied) {
-          redirect(`/settings/subscription?upgrade=${denied}`);
-        }
-      }
       redirect("/dashboard/snapshot?access=denied");
     }
   }
 
-  const [activeShop, customerCount, notificationData, unreadSmsCount, intakeConfig, smsOnPlan, stripeOnPlan, motorLaborOnPlan, partsTechOnPlan, marketingOnPlan, autodevDecodingOnPlan, smartRoIntakeOnPlan, shopSubscription] =
+  const [activeShop, customerCount, notificationData, unreadSmsCount, intakeConfig, smsOnPlan, stripeOnPlan, freeformRoOnPlan] =
     dbSeeded
       ? await Promise.all([
           getCurrentShop(),
@@ -91,17 +82,9 @@ export default async function AppLayout({
           loadRoIntakeConfig(activeShopId),
           canUseFeature(activeShopId, "sms"),
           canUseFeature(activeShopId, "stripePayments"),
-          canUseReleasedFeature(activeShopId, "motorLabor"),
-          canUseReleasedFeature(activeShopId, "parts"),
-          canUseReleasedFeature(activeShopId, "marketing_campaigns"),
-          canUseFeature(activeShopId, "autodevDecoding"),
-          canUseSmartRoIntake(activeShopId),
-          getShopSubscription(activeShopId),
+          canUseReleasedFeature(activeShopId, "freeform_ro_intake"),
         ])
-      : [null, 0, { notifications: [], unreadCount: 0 }, 0, null, false, false, false, false, false, false, false, null];
-
-  const vehicleSpecsOnPlan = shopSubscription ? shopSubscription.plan !== "STARTER" : false;
-  const corePlanShop = shopSubscription ? isCorePlan(shopSubscription.plan) : false;
+      : [null, 0, { notifications: [], unreadCount: 0 }, 0, null, false, false, false];
 
   const showPlatformShopContext = platformAdmin && activeShop && !isPlatformRoute;
 
@@ -140,18 +123,7 @@ export default async function AppLayout({
         allowedNavHrefs={crmAccess?.allowedNavHrefs}
         allowedSectionIds={crmAccess?.allowedSectionIds}
         intakeConfig={intakeConfig}
-        capabilities={{
-          sms: smsOnPlan,
-          stripePayments: stripeOnPlan,
-          motorLabor: motorLaborOnPlan,
-          partsTech: partsTechOnPlan,
-          marketingCampaigns: marketingOnPlan,
-          vehicleSpecs: vehicleSpecsOnPlan,
-          autodevDecoding: autodevDecodingOnPlan,
-          freeformRoIntake: smartRoIntakeOnPlan,
-          corePlan: corePlanShop,
-          planFeatures: shopSubscription?.features ?? resolvePlanFeatures({ plan: "STARTER" }),
-        }}
+        capabilities={{ sms: smsOnPlan, stripePayments: stripeOnPlan, freeformRoIntake: freeformRoOnPlan }}
         banner={
           !dbSeeded ? (
             <EmptyDatabaseBanner />
