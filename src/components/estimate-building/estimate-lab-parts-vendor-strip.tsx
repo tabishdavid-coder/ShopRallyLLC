@@ -3,6 +3,7 @@
 import { Phone, ShoppingCart, Truck, Wrench } from "lucide-react";
 
 import type { IntegrationConnectionState } from "@/lib/integrations";
+import { usePartsTechUiEnabled } from "@/lib/shop-capabilities";
 import { cn } from "@/lib/utils";
 
 type VendorTile = {
@@ -80,6 +81,7 @@ export function EstimateLabPartsVendorStrip({
   onWholesaleStub?: () => void;
   onTireStub?: () => void;
 }) {
+  const partsTechOk = usePartsTechUiEnabled();
   const tiles: VendorTile[] = [
     {
       id: "manual",
@@ -89,14 +91,18 @@ export function EstimateLabPartsVendorStrip({
       disabled: !canEdit,
       onClick: onManualOrder,
     },
-    {
-      id: "partstech",
-      label: "Parts lookup",
-      state: partstechState,
-      icon: ShoppingCart,
-      disabled: !canEdit || partstechState === "inactive",
-      onClick: onPartsLookup,
-    },
+    ...(partsTechOk
+      ? [
+          {
+            id: "partstech",
+            label: "Parts lookup",
+            state: partstechState,
+            icon: ShoppingCart,
+            disabled: !canEdit || partstechState === "inactive",
+            onClick: onPartsLookup,
+          } satisfies VendorTile,
+        ]
+      : []),
     {
       id: "wholesale",
       label: "Wholesale",

@@ -6,6 +6,7 @@ import { EstimateJobsList } from "@/components/repair-order/estimate-jobs-list";
 import { useEstimateLabParts } from "@/components/estimate-building/estimate-lab-parts-provider";
 import type { EstimateJobsLayout } from "@/generated/prisma";
 import { estimateJobsLayoutToVariant } from "@/lib/estimate-jobs-layout";
+import { usePartsTechUiEnabled } from "@/lib/shop-capabilities";
 
 type ListProps = Omit<
   ComponentProps<typeof EstimateJobsList>,
@@ -19,6 +20,7 @@ export function EstimateLabJobsList(
   },
 ) {
   const { openPartsMenu } = useEstimateLabParts();
+  const partsTechOk = usePartsTechUiEnabled();
   const cardVariant = estimateJobsLayoutToVariant(props.jobsLayout ?? "INLINE");
   const { jobsLayout: _jobsLayout, ...listProps } = props;
 
@@ -28,7 +30,9 @@ export function EstimateLabJobsList(
       variant={cardVariant}
       jobsLayout={props.jobsLayout ?? "INLINE"}
       onJobOpenParts={
-        cardVariant === "lab" ? (jobId, mode) => openPartsMenu({ jobId, mode }) : undefined
+        cardVariant === "lab" && partsTechOk
+          ? (jobId, mode) => openPartsMenu({ jobId, mode })
+          : undefined
       }
     />
   );

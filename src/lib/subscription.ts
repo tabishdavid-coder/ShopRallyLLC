@@ -5,7 +5,10 @@ import type { BillingStatus, ShopPlan, ShopStatus } from "@/generated/prisma";
 import {
   PLANS,
   PLAN_ORDER,
+  PHASE_ONE_LAUNCH,
+  PUBLIC_PLAN_ORDER,
   billingStatusLabel,
+  isCorePlan,
   resolvePlanFeatures,
   shopHasFeature,
   type PlanFeature,
@@ -44,7 +47,13 @@ export type SubscriptionFeature =
   | "ai_campaign_drafting"
   | "ai_seo_content"
   | "ai_customer_insights"
-  | "ai_receptionist";
+  | "ai_receptionist"
+  /** Parts/labor markup matrices — Pro+ only. */
+  | "markupMatrices"
+  /** Auto.dev plate→VIN + rich VIN decode — Pro+ only. */
+  | "autodevDecoding"
+  /** Smart AI repair-order intake — Core-only AI Plus add-on. */
+  | "freeform_ro_intake";
 
 const FEATURE_MAP: Record<SubscriptionFeature, PlanFeature | null> = {
   coreCrm: null, // always on
@@ -70,6 +79,9 @@ const FEATURE_MAP: Record<SubscriptionFeature, PlanFeature | null> = {
   ai_seo_content: "aiSeoContent",
   ai_customer_insights: "aiCustomerInsights",
   ai_receptionist: "aiReceptionist",
+  markupMatrices: "markupMatrices",
+  autodevDecoding: "autodevDecoding",
+  freeform_ro_intake: "freeformRoIntake",
 };
 
 /** Map subscription features that require a phased release flag. */
@@ -87,6 +99,7 @@ const FEATURE_RELEASE_MODULE: Partial<Record<SubscriptionFeature, ReleaseModule>
   ai_seo_content: "aiSuite",
   ai_customer_insights: "aiSuite",
   ai_receptionist: "aiSuite",
+  freeform_ro_intake: "aiSuite",
 };
 
 export type ShopSubscription = {
@@ -159,6 +172,11 @@ export async function canUseFeature(
   const mapped = FEATURE_MAP[feature];
   if (mapped === null) return true;
 
+  if (feature === "freeform_ro_intake") {
+    const sub = await getShopSubscription(shopId);
+    if (!isCorePlan(sub.plan)) return false;
+  }
+
   return shopHasFeature(sub, mapped);
 }
 
@@ -180,6 +198,9 @@ export async function canUseReleasedFeature(
   shopId: string,
   feature: SubscriptionFeature,
 ): Promise<boolean> {
+  if (feature === "freeform_ro_intake") {
+    return canUseSmartRoIntake(shopId);
+  }
   const entitled = await canUseFeature(shopId, feature);
   if (!entitled) return false;
   const module = FEATURE_RELEASE_MODULE[feature];
@@ -200,10 +221,50 @@ export async function releasedFeatureDenied(
   shopId: string,
   feature: SubscriptionFeature,
 ): Promise<string | null> {
+  if (feature === "freeform_ro_intake") {
+    return smartRoIntakeDenied(shopId);
+  }
   if (!(await canUseFeature(shopId, feature))) {
     return "This feature is not included in your plan.";
   }
   const module = FEATURE_RELEASE_MODULE[feature];
+  if (module && !(await isReleased(shopId, module))) {
+    return releaseDeniedMessage(module);
+  }
+  return null;
+}
+
+/**
+ * Smart AI RO Intake — Core plan only, requires AI Plus add-on + aiSuite release.
+ * Pro/Elite shops cannot purchase or use this feature (even with planFeatures override).
+ */
+export async function canUseSmartRoIntake(shopId: string): Promise<boolean> {
+  const sub = await getShopSubscription(shopId);
+
+  if (!isCorePlan(sub.plan)) return false;
+  if (sub.billingStatus === "CANCELED") return false;
+
+  if (!sub.features.freeformRoIntake) return false;
+
+  const module = FEATURE_RELEASE_MODULE.freeform_ro_intake;
+  if (module && !(await isReleased(shopId, module))) return false;
+
+  return true;
+}
+
+export async function smartRoIntakeDenied(shopId: string): Promise<string | null> {
+  const sub = await getShopSubscription(shopId);
+
+  if (!isCorePlan(sub.plan)) {
+    return "Smart AI Intake is a Core-only add-on (AI Plus). It is not available on Pro or Elite plans.";
+  }
+  if (sub.billingStatus === "CANCELED") {
+    return "Reactivate your Core subscription to use Smart AI Intake.";
+  }
+  if (!sub.features.freeformRoIntake) {
+    return "Add AI Plus ($20/mo) on Core to unlock Smart AI repair-order intake.";
+  }
+  const module = FEATURE_RELEASE_MODULE.freeform_ro_intake;
   if (module && !(await isReleased(shopId, module))) {
     return releaseDeniedMessage(module);
   }
@@ -235,6 +296,7 @@ export function defaultSignupSubscription(): {
 
 /** Next upgrade tier, or null if already on highest. */
 export function nextPlanTier(current: ShopPlan): ShopPlan | null {
+  if (PHASE_ONE_LAUNCH) return null;
   const idx = PLAN_ORDER.indexOf(current);
   if (idx < 0 || idx >= PLAN_ORDER.length - 1) return null;
   return PLAN_ORDER[idx + 1] ?? null;

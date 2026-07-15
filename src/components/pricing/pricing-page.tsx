@@ -14,12 +14,14 @@ import {
   COMPARISON_ROWS,
   COMPETITOR_BENCHMARK,
   INTEGRATION_PARTNERS,
-  PLAN_ORDER,
+  PHASE_ONE_COPY,
+  PHASE_ONE_LAUNCH,
   PLANS,
   PRICING_FAQ,
+  PUBLIC_PLAN_ORDER,
   WEB_PRESENCE_SERVICES,
-  repairPilotAllInMonthly,
-  repairPilotOverdriveMonthly,
+  planMarketingDisplayName,
+  publicPlanAddons,
   repairPilotStarterMonthly,
   webPresenceAlaCarteMonthlyCents,
 } from "@/lib/plans";
@@ -40,80 +42,61 @@ export function PricingPageContent({ foundingSpotsClaimed = 0 }: { foundingSpots
   const preLaunch = MARKETING_LAUNCH.preLaunch;
   const foundingRemaining = foundingSpotsRemaining(foundingSpotsClaimed);
   const foundingMessaging = getFoundingSpotMessaging(foundingSpotsClaimed);
-  const starterPrice = repairPilotStarterMonthly(annual);
-  const momentumPrice = repairPilotAllInMonthly(annual);
-  const overdrivePrice = repairPilotOverdriveMonthly(annual);
+  const ignitionPrice = repairPilotStarterMonthly(annual);
+  const ignitionPlan = PLANS.STARTER;
+  const ignitionMarketingName = planMarketingDisplayName(ignitionPlan);
+  const phaseOneAddons = publicPlanAddons();
   const legacyStack = COMPETITOR_BENCHMARK.legacy.typicalMonthly;
   const budgetStack = COMPETITOR_BENCHMARK.typicalStackMonthly;
-  const budgetGrowth = COMPETITOR_BENCHMARK.budgetGrowthStackMonthly;
+  const entryCrm = COMPETITOR_BENCHMARK.entryCrmMonthly;
 
   return (
     <div>
-      {/* Hero — premium positioning */}
+      {/* Hero — phase-one single plan */}
       <section className="border-b border-brand-navy/10 bg-gradient-to-b from-brand-light/15 to-white">
         <div className="mx-auto max-w-4xl px-4 py-14 text-center sm:px-6 sm:py-16">
           <div className="mb-4 inline-flex items-center gap-1.5 rounded-full border border-brand-red/30 bg-brand-red/5 px-3 py-1 text-xs font-semibold text-brand-red">
             <Sparkles className="size-3.5" />
-            {preLaunch ? foundingMessaging.primary : "Premium all-in-one · Growth Engine on Pro"}
+            {preLaunch ? foundingMessaging.primary : "Phase one · one plan"}
           </div>
           <h1 className="text-3xl font-bold tracking-tight text-brand-navy sm:text-4xl lg:text-5xl">
-            Premium shop software.
+            {PHASE_ONE_COPY.headline}
             <span className="mt-2 block pb-1 leading-[1.15] bg-gradient-to-r from-brand-navy to-brand-light bg-clip-text text-transparent">
-              Not legacy. Not piecemeal.
+              {ignitionMarketingName} — ${ignitionPrice}/mo
             </span>
           </h1>
           <p className="mt-4 text-base leading-relaxed text-slate-600 sm:text-lg">
-            {PLANS.STARTER.name} is the ShopRally CRM suite — ROs, job board, DVIs, email estimates (no SMS), shop
-            labor library (no licensed MOTOR), 100 VIN & plate decodes / mo ($10 per extra 100), and Operations Daily
-            Snapshot (no Stripe Connect). {PLANS.PROFESSIONAL.name} adds licensed MOTOR (not a Core add-on), unlimited
-            VIN/plate, OEM data, PartsTech, SMS, Stripe Connect, booking, Growth Engine, and Google review management.{" "}
-            {PLANS.ENTERPRISE.name} adds AI, ShopSite, Local SEO, and white-glove onboarding.
+            {PHASE_ONE_COPY.subhead}
           </p>
 
-          <div className="mx-auto mt-10 grid max-w-5xl gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <div className="mx-auto mt-10 grid max-w-3xl gap-4 sm:grid-cols-3">
             <div className="rounded-xl border border-slate-200 bg-slate-50 p-4 text-left">
               <p className="text-xs font-semibold uppercase tracking-wide text-slate-500">Legacy stack</p>
               <p className="mt-2 text-2xl font-bold tabular-nums text-slate-500">~${legacyStack}/mo</p>
               <p className="mt-1 text-[11px] text-slate-500">{COMPETITOR_BENCHMARK.legacy.examples}</p>
             </div>
             <div className="rounded-xl border border-amber-200/80 bg-amber-50/60 p-4 text-left">
-              <p className="text-xs font-semibold uppercase tracking-wide text-amber-900">Budget + bolt-ons</p>
+              <p className="text-xs font-semibold uppercase tracking-wide text-amber-900">Budget CRM + bolt-ons</p>
               <p className="mt-2 text-2xl font-bold tabular-nums text-amber-900 line-through decoration-brand-red/35">
-                ~${budgetGrowth}–{budgetStack}/mo
+                ~${budgetStack}/mo
               </p>
               <p className="mt-1 text-[11px] text-amber-900/80">Garage360 / Torque360 + marketing extras</p>
             </div>
             <div className="rounded-xl border-2 border-brand-navy/20 bg-brand-navy/5 p-4 text-left ring-1 ring-brand-navy/10">
               <p className="text-xs font-semibold uppercase tracking-wide text-brand-navy">
-                {PLANS.PROFESSIONAL.name}
-                <span className="ml-1 rounded bg-brand-red px-1.5 py-0.5 text-[9px] font-bold text-white">
-                  Flagship
-                </span>
+                ShopRally {ignitionMarketingName}
               </p>
-              <p className="mt-2 text-2xl font-bold tabular-nums text-brand-navy">${momentumPrice}/mo</p>
-              <p className="mt-1 text-[11px] text-slate-600">Licensed MOTOR + Growth Engine + reviews</p>
-            </div>
-            <div className="rounded-xl border-2 border-brand-red/25 bg-brand-red/5 p-4 text-left">
-              <p className="text-xs font-semibold uppercase tracking-wide text-brand-red">
-                {PLANS.ENTERPRISE.name}
-              </p>
-              <p className="mt-2 text-2xl font-bold tabular-nums text-brand-navy">${overdrivePrice}/mo</p>
-              <p className="mt-1 text-[11px] text-slate-600">AI + web + SEO + dedicated specialist</p>
+              <p className="mt-2 text-2xl font-bold tabular-nums text-brand-navy">${ignitionPrice}/mo</p>
+              <p className="mt-1 text-[11px] text-slate-600">vs ~${entryCrm}/mo entry DVI-class CRMs</p>
             </div>
           </div>
-
-          <p className="mt-6 text-sm text-slate-500">
-            {PLANS.STARTER.name} from{" "}
-            <span className="font-semibold text-brand-navy">${starterPrice}/mo</span>
-            {annual ? " (annual billing)" : " (monthly billing)"} — premium core CRM for focused shops
-          </p>
 
           <ul className="mt-6 flex flex-wrap justify-center gap-x-5 gap-y-2 text-xs text-slate-600 sm:text-sm">
             {[
               "No CRM setup fees",
               "Cancel anytime",
-              "Founding rates on annual",
-              "MOTOR on Pro & Elite only — not a Core add-on",
+              "AI Plus optional +$20/mo",
+              "Pro & Elite tiers coming later",
             ].map((t) => (
               <li key={t} className="flex items-center gap-1.5">
                 <Check className="size-3.5 text-brand-navy" />
@@ -126,33 +109,24 @@ export function PricingPageContent({ foundingSpotsClaimed = 0 }: { foundingSpots
 
       <MarketPositioningSection />
 
-      {/* Plan cards */}
+      {/* Plan card — single plan centered */}
       <section className="relative overflow-hidden px-4 py-16 sm:px-6 sm:py-24">
         <div
           className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_50%_0%,oklch(0.798_0.108_247_/_0.22),transparent_55%),linear-gradient(180deg,#f8fbff_0%,#ffffff_45%,#f4f8fc_100%)]"
           aria-hidden
         />
-        <div
-          className="pointer-events-none absolute inset-0 opacity-[0.35] [background-image:linear-gradient(to_right,oklch(0.449_0.109_249_/_0.06)_1px,transparent_1px),linear-gradient(to_bottom,oklch(0.449_0.109_249_/_0.06)_1px,transparent_1px)] [background-size:48px_48px] [mask-image:radial-gradient(ellipse_at_center,black_20%,transparent_75%)]"
-          aria-hidden
-        />
-        <div
-          className="pointer-events-none absolute left-1/2 top-[42%] h-[28rem] w-[28rem] -translate-x-1/2 rounded-full bg-brand-light/30 blur-3xl"
-          aria-hidden
-        />
-
         <div className="relative mx-auto max-w-6xl">
           <div className="mx-auto max-w-2xl text-center">
             <p className="text-xs font-semibold uppercase tracking-[0.16em] text-brand-red">
-              Plans
+              {ignitionMarketingName}
             </p>
             <h2 className="mt-3 text-3xl font-bold tracking-tight text-brand-navy sm:text-5xl">
-              Pick your tier
+              Your shop plan
             </h2>
             <p className="mt-4 text-sm leading-relaxed text-slate-600 sm:text-base">
               {preLaunch
                 ? `${foundingRemaining} founding spots · ${foundingMessaging.secondary}`
-                : "Per location · training included on every plan · no CRM setup fees"}
+                : "Per location · no CRM setup fees · month-to-month"}
             </p>
           </div>
 
@@ -162,8 +136,8 @@ export function PricingPageContent({ foundingSpotsClaimed = 0 }: { foundingSpots
             className="mt-10"
           />
 
-          <div className="mt-12 grid items-stretch gap-5 lg:grid-cols-3 lg:gap-6">
-            {PLAN_ORDER.map((planId) => (
+          <div className="mx-auto mt-12 max-w-md">
+            {PUBLIC_PLAN_ORDER.map((planId) => (
               <PricingPlanCard
                 key={planId}
                 planId={planId}
@@ -174,56 +148,74 @@ export function PricingPageContent({ foundingSpotsClaimed = 0 }: { foundingSpots
               />
             ))}
           </div>
+
+          {/* AI Plus add-on */}
+          {phaseOneAddons.length > 0 ? (
+            <div className="mx-auto mt-14 max-w-2xl">
+              <div className="text-center">
+                <p className="text-xs font-semibold uppercase tracking-[0.16em] text-brand-red">
+                  {PHASE_ONE_COPY.addonHeadline}
+                </p>
+                <h3 className="mt-2 text-2xl font-bold text-brand-navy">Stack AI when you&apos;re ready</h3>
+                <p className="mt-2 text-sm text-slate-600">{PHASE_ONE_COPY.addonSubhead}</p>
+              </div>
+              <div className="mt-8 grid gap-4">
+                {phaseOneAddons.map((addon) => (
+                  <div
+                    key={addon.id}
+                    className="flex flex-col gap-3 rounded-2xl border border-brand-navy/15 bg-white p-6 shadow-sm sm:flex-row sm:items-center sm:justify-between"
+                  >
+                    <div>
+                      <h4 className="text-lg font-bold text-brand-navy">{addon.name}</h4>
+                      <p className="mt-1 text-2xl font-bold tabular-nums text-brand-navy">{addon.priceLabel}</p>
+                      <p className="mt-2 text-sm leading-relaxed text-slate-600">{addon.description}</p>
+                      {addon.vsIndustry ? (
+                        <p className="mt-2 text-xs font-medium text-brand-navy/70">{addon.vsIndustry}</p>
+                      ) : null}
+                    </div>
+                    <Button variant="outline" className="shrink-0 border-brand-navy text-brand-navy" asChild>
+                      <Link href={preLaunch ? MARKETING_LAUNCH.primaryHref : "/signup"}>
+                        {preLaunch ? "Join waitlist" : "Add with trial"}
+                      </Link>
+                    </Button>
+                  </div>
+                ))}
+              </div>
+              <p className="mt-4 text-center text-xs text-slate-500">
+                Total with AI Plus: ${(ignitionPrice + 20).toFixed(2)}/mo{annual ? " (annual billing on base plan)" : ""}
+              </p>
+            </div>
+          ) : null}
         </div>
       </section>
 
-      {/* Web presence — separate monthly subscriptions */}
-      <section className="border-y border-brand-navy/8 bg-white px-4 py-14 sm:px-6">
-        <div className="mx-auto max-w-4xl text-center">
-          <p className="text-xs font-semibold uppercase tracking-wider text-brand-red">Web presence</p>
-          <h2 className="mt-2 text-2xl font-bold text-brand-navy sm:text-3xl">
-            ShopSite and Local SEO — always monthly
-          </h2>
-          <p className="mt-3 text-sm text-slate-600 sm:text-base">
-            Your CRM plan covers the shop floor. Add a hosted website and local SEO as separate monthly
-            subscriptions — or get both on {PLANS.ENTERPRISE.name} (launch setup included).
-          </p>
-        </div>
-        <div className="mx-auto mt-10 grid max-w-5xl gap-6 md:grid-cols-3">
-          {WEB_PRESENCE_SERVICES.map((service) => {
-            const isBundle = service.id === "web-seo-bundle-monthly";
-            return (
-              <div
-                key={service.id}
-                className={cn(
-                  "flex flex-col rounded-xl border bg-white p-6 shadow-sm",
-                  isBundle ? "border-brand-red/30 ring-1 ring-brand-red/20" : "border-brand-navy/12",
-                )}
-              >
-                {isBundle ? (
-                  <span className="mb-3 inline-flex w-fit rounded-full bg-brand-red/10 px-2.5 py-0.5 text-xs font-semibold text-brand-red">
-                    Best value
-                  </span>
-                ) : null}
+      {/* Web presence — de-emphasized in phase one */}
+      {!PHASE_ONE_LAUNCH ? (
+        <section className="border-y border-brand-navy/8 bg-white px-4 py-14 sm:px-6">
+          <div className="mx-auto max-w-4xl text-center">
+            <p className="text-xs font-semibold uppercase tracking-wider text-brand-red">Web presence</p>
+            <h2 className="mt-2 text-2xl font-bold text-brand-navy sm:text-3xl">
+              ShopSite and Local SEO — always monthly
+            </h2>
+          </div>
+          <div className="mx-auto mt-10 grid max-w-5xl gap-6 md:grid-cols-3">
+            {WEB_PRESENCE_SERVICES.map((service) => (
+              <div key={service.id} className="flex flex-col rounded-xl border bg-white p-6 shadow-sm">
                 <h3 className="text-lg font-bold text-brand-navy">{service.name}</h3>
                 <p className="mt-1 text-2xl font-bold text-brand-navy">{service.priceLabel}</p>
                 <WebPresenceSetupLine setupCents={service.setupCents} />
                 <p className="mt-3 flex-1 text-sm leading-relaxed text-slate-600">{service.description}</p>
-                {service.savingsNote ? (
-                  <p className="mt-3 text-xs font-medium text-brand-navy/80">{service.savingsNote}</p>
-                ) : null}
               </div>
-            );
-          })}
-        </div>
-        <p className="mx-auto mt-6 max-w-2xl text-center text-xs text-slate-500">
-          À la carte total ${(webPresenceAlaCarteMonthlyCents() / 100).toFixed(0)}/mo · billed separately from
-          your CRM tier · cancel either subscription anytime
-        </p>
-        <div className="mx-auto mt-6 max-w-2xl">
-          <WebPresenceLaunchSetupDetails />
-        </div>
-      </section>
+            ))}
+          </div>
+          <p className="mx-auto mt-6 max-w-2xl text-center text-xs text-slate-500">
+            À la carte total ${(webPresenceAlaCarteMonthlyCents() / 100).toFixed(0)}/mo · billed separately
+          </p>
+          <div className="mx-auto mt-6 max-w-2xl">
+            <WebPresenceLaunchSetupDetails />
+          </div>
+        </section>
+      ) : null}
 
       {/* Single product preview */}
       <section className="border-y border-brand-navy/8 bg-slate-50/80 px-4 py-14 sm:px-6">
@@ -233,7 +225,7 @@ export function PricingPageContent({ foundingSpotsClaimed = 0 }: { foundingSpots
             Job board to invoice — one screen
           </h2>
           <p className="mt-3 text-sm text-slate-600">
-            Repair orders, inspections, payments, and Growth Engine marketing share the same customer record.
+            Repair orders, inspections, and customer history share the same record from day one.
           </p>
         </div>
         <div className="mx-auto mt-10 max-w-5xl">
@@ -257,25 +249,30 @@ export function PricingPageContent({ foundingSpotsClaimed = 0 }: { foundingSpots
             </span>
           ))}
         </div>
+        {PHASE_ONE_LAUNCH ? (
+          <p className="mt-4 text-xs text-slate-500">
+            PartsTech, Stripe Connect, and Growth Engine ship on Pro & Elite — coming in a later phase.
+          </p>
+        ) : null}
       </section>
 
-      {/* Feature comparison — opt-in */}
+      {/* Feature comparison — Ignition only in phase one */}
       <section id="feature-comparison" className="mx-auto max-w-6xl scroll-mt-8 px-4 pb-14 sm:px-6">
         <button
           type="button"
           onClick={() => setFeaturesOpen((o) => !o)}
           className="mx-auto flex w-full max-w-md items-center justify-center gap-2 rounded-full border border-brand-navy/15 bg-white px-6 py-3 text-sm font-semibold text-brand-navy shadow-sm hover:bg-brand-light/10"
         >
-          {featuresOpen ? "Hide" : "View"} full feature comparison
+          {featuresOpen ? "Hide" : "View"} {planMarketingDisplayName(ignitionPlan)} feature list
           <ChevronDown className={cn("size-4 transition", featuresOpen && "rotate-180")} />
         </button>
         {featuresOpen ? (
           <div className="mt-8 overflow-x-auto rounded-xl border bg-card shadow-sm">
-            <table className="w-full min-w-[640px] text-sm">
+            <table className="w-full min-w-[480px] text-sm">
               <thead>
                 <tr className="border-b bg-muted/40">
                   <th className="px-4 py-3 text-left font-semibold">Feature</th>
-                  {PLAN_ORDER.map((id) => (
+                  {PUBLIC_PLAN_ORDER.map((id) => (
                     <th key={id} className="px-4 py-3 text-center font-semibold">
                       {PLANS[id].name}
                     </th>
@@ -291,7 +288,7 @@ export function PricingPageContent({ foundingSpotsClaimed = 0 }: { foundingSpots
                       {showCategory ? (
                         <tr className="bg-brand-light/10">
                           <td
-                            colSpan={PLAN_ORDER.length + 1}
+                            colSpan={PUBLIC_PLAN_ORDER.length + 1}
                             className="px-4 py-2 text-xs font-semibold uppercase tracking-wide text-brand-navy"
                           >
                             {row.category}
@@ -300,7 +297,7 @@ export function PricingPageContent({ foundingSpotsClaimed = 0 }: { foundingSpots
                       ) : null}
                       <tr className="border-b border-border/60 last:border-0">
                         <td className="px-4 py-2.5 text-muted-foreground">{row.label}</td>
-                        {PLAN_ORDER.map((id) => (
+                        {PUBLIC_PLAN_ORDER.map((id) => (
                           <td key={id} className="px-4 py-2.5 text-center">
                             <CellValue value={row.values[id]} />
                           </td>
@@ -350,7 +347,10 @@ export function PricingPageContent({ foundingSpotsClaimed = 0 }: { foundingSpots
             </>
           ) : (
             <>
-              <p className="text-xl font-bold text-brand-navy">Try {PLANS.PROFESSIONAL.name} free for 14 days</p>
+              <p className="text-xl font-bold text-brand-navy">
+                Start {ignitionMarketingName} — ${ignitionPrice}/mo
+              </p>
+              <p className="mt-2 text-sm text-slate-600">14-day trial · add AI Plus anytime for $20/mo</p>
               <Button className="mt-6 bg-brand-navy" asChild>
                 <Link href="/signup">Start trial</Link>
               </Button>

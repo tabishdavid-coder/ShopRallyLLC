@@ -343,6 +343,49 @@ async function main() {
     },
   });
 
+  /** Core plan QA tenant — Macuto Auto Repair (platform admin + Core fidelity). */
+  const macuto = await prisma.shop.create({
+    data: {
+      id: "shop_macuto",
+      platformId: platform.id,
+      name: "Macuto Auto Repair",
+      code: "MAC",
+      masterId: "RP-MAC-104827",
+      masterIdCreatedAt: new Date(),
+      phone: "(718) 555-0199",
+      email: "service@macutoautorepair.com",
+      address: "450 Grand Concourse",
+      city: "Bronx",
+      state: "NY",
+      zip: "10451",
+      laborRateCents: dollars(125),
+      taxRateBps: TAX_BPS,
+      apptDayStart: "08:00",
+      apptDayEnd: "18:00",
+      apptDefaultDurationMins: 60,
+      plan: "STARTER",
+      billingStatus: "ACTIVE",
+      legalEntityName: "Macuto Auto Repair",
+      legalEntityState: "NY",
+      estimateTermsHtml: DEFAULT_ESTIMATE_TERMS_HTML,
+      invoiceTermsHtml: DEFAULT_INVOICE_TERMS_HTML,
+      estimateTermsVersion: "1.0",
+      estimateTermsUpdatedAt: new Date(),
+      planFeatures: {
+        freeformRoIntake: true,
+        _release: { aiSuite: true },
+      },
+    },
+  });
+
+  await prisma.leadSource.createMany({
+    data: LEAD_SOURCES.map((name, i) => ({
+      shopId: macuto.id,
+      name,
+      sortOrder: i,
+    })),
+  });
+
   // ── Users + memberships ────────────────────────────────
   const platformAdmin = await prisma.user.create({
     data: {
@@ -385,6 +428,8 @@ async function main() {
         permissionGroup: "Service Advisor",
         permissionMode: "GROUP",
       },
+      { shopId: macuto.id, userId: owner.id, role: Role.OWNER },
+      { shopId: macuto.id, userId: platformAdmin.id, role: Role.OWNER },
     ],
   });
 
@@ -415,7 +460,137 @@ async function main() {
         },
       },
     });
+    await prisma.legalAcceptance.create({
+      data: {
+        shopId: macuto.id,
+        userId: owner.id,
+        agreementType: doc.type,
+        agreementVersion: doc.version,
+        contentHash: doc.contentHash,
+        signerName: "David Tabish",
+        signerTitle: "Owner",
+        signerEmail: owner.email,
+        acceptanceMethod: "clickwrap_checkbox",
+        metadata: {
+          legalEntityName: macuto.name,
+          legalEntityState: "NY",
+          seeded: true,
+        },
+      },
+    });
   }
+
+  // ── Macuto (Core) — estimate demo RO ───────────────────
+  const macutoCustomer = await prisma.customer.create({
+    data: {
+      id: "cust_macuto_maria",
+      shopId: macuto.id,
+      firstName: "Maria",
+      lastName: "Cortes",
+      phone: "(718) 555-0144",
+      phoneDigits: phoneDigitsKey("(718) 555-0144"),
+      email: "maria.cortes@example.com",
+    },
+  });
+
+  const macutoVehicle = await prisma.vehicle.create({
+    data: {
+      id: "veh_macuto_accord",
+      shopId: macuto.id,
+      customerId: macutoCustomer.id,
+      year: 2014,
+      make: "Honda",
+      model: "Accord",
+      trim: "EX-L",
+      engine: "3.5L V6",
+      transmission: "6-Speed Automatic",
+      drivetrain: "FWD",
+      plate: "MAC-1041",
+      plateState: "NY",
+      color: "Modern Steel Metallic",
+    },
+  });
+
+  await prisma.cannedJob.create({
+    data: {
+      shopId: macuto.id,
+      name: "Front brake pads & rotors",
+      category: "Brakes",
+      description: "Replace front brake pads and rotors",
+      sortOrder: 0,
+      usageCount: 3,
+      createdById: owner.id,
+    },
+  });
+
+  const macutoLabor = dollars(187.5);
+  const macutoParts = dollars(89) + dollars(178);
+  const macutoSupplies = dollars(6);
+  const macutoTax = Math.round(((macutoLabor + macutoParts + macutoSupplies) * TAX_BPS) / 10000);
+
+  await prisma.repairOrder.create({
+    data: {
+      id: "ro_macuto_1001",
+      shopId: macuto.id,
+      number: 1001,
+      customerId: macutoCustomer.id,
+      vehicleId: macutoVehicle.id,
+      status: ROStatus.ESTIMATE,
+      serviceWriterId: owner.id,
+      mileageIn: 87420,
+      laborRateCents: dollars(125),
+      concerns: ["Front brakes grinding", "Steering wheel vibration when braking"],
+      laborSubtotalCents: macutoLabor,
+      partsSubtotalCents: macutoParts,
+      shopSuppliesCents: macutoSupplies,
+      taxCents: macutoTax,
+      totalCents: macutoLabor + macutoParts + macutoSupplies + macutoTax,
+      jobs: {
+        create: [
+          {
+            shopId: macuto.id,
+            name: "Front brake pads & rotors",
+            authorized: false,
+            laborLines: {
+              create: [
+                {
+                  shopId: macuto.id,
+                  description: "R&R front brake pads and rotors",
+                  hours: 1.5,
+                  rateCents: dollars(125),
+                  totalCents: macutoLabor,
+                },
+              ],
+            },
+            partLines: {
+              create: [
+                {
+                  shopId: macuto.id,
+                  description: "Front brake pad set",
+                  partNumber: "BP-HA14F",
+                  brand: "Akebono",
+                  quantity: 1,
+                  costCents: dollars(52),
+                  retailCents: dollars(89),
+                  totalCents: dollars(89),
+                },
+                {
+                  shopId: macuto.id,
+                  description: "Front brake rotor",
+                  partNumber: "RT-HA14F",
+                  brand: "Bosch",
+                  quantity: 2,
+                  costCents: dollars(78),
+                  retailCents: dollars(89),
+                  totalCents: dollars(178),
+                },
+              ],
+            },
+          },
+        ],
+      },
+    },
+  });
 
   // Demo login history for the owner (Employees → History tab).
   const ua = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36";
@@ -1611,6 +1786,9 @@ async function main() {
   }
   console.log(
     `Public maintenance plans: http://localhost:3000/plans/${DEMO_PLANS_SLUG} (also /plans/io)`,
+  );
+  console.log(
+    `Macuto Core estimate: http://localhost:3031/platform/enter?shop=shop_macuto&next=%2Frepair-orders%2Fro_macuto_1001%2Festimate`,
   );
 }
 

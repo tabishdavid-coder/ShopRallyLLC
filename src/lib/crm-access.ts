@@ -35,6 +35,8 @@ export const CRM_NAV_HREF_PERMISSIONS: Record<string, readonly string[]> = {
   "/employees": ["employees.manage"],
   "/settings": ["employees.manage"],
   "/settings/subscription": ["finance.account", "employees.manage"],
+  "/settings/marketing": ["employees.manage"],
+  "/settings/booking": ["employees.manage"],
   "/marketing": [],
   "/marketing/payment-account": ["finance.account", "employees.manage"],
   "/billing": ["finance.account", "employees.manage"],
@@ -97,8 +99,9 @@ export function sectionNavAllowed(
   sectionId: string,
   opts?: { growthPlanOk?: boolean },
 ): boolean {
-  if (sectionId === "growth") return opts?.growthPlanOk ?? false;
-
+  // Growth section stays in the IA for all shops; plan entitlement is enforced in-route / CTAs.
+  if (sectionId === "growth") return true;
+  void opts;
   const keys = CRM_SECTION_PERMISSIONS[sectionId];
   if (sectionId === "dashboard") {
     return CRM_DASHBOARD_NAV_HREFS.some((href) => navHrefAllowed(effective, href));

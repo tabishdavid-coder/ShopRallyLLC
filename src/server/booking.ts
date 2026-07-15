@@ -14,6 +14,7 @@ import {
   isSlotAvailable,
   upcomingBookableDates,
 } from "@/lib/booking-slots";
+import { canUseFeature } from "@/lib/subscription";
 
 export type PublicBookingShop = {
   id: string;
@@ -32,6 +33,8 @@ export type PublicBookingShop = {
   fieldConfig: BookingFieldConfig;
   confirmationMessage?: string;
   notifyEmails: string[];
+  /** Pro+ Auto.dev plate→VIN decode on public booking. */
+  plateLookupEnabled: boolean;
 };
 
 /** Resolve a shop by public booking slug or short code. */
@@ -72,6 +75,7 @@ export async function getShopByBookingSlug(
     dayStart: shop.apptDayStart,
     dayEnd: shop.apptDayEnd,
   });
+  const plateLookupEnabled = await canUseFeature(shop.id, "autodevDecoding");
 
   return {
     id: shop.id,
@@ -90,6 +94,7 @@ export async function getShopByBookingSlug(
     fieldConfig: bookingSettings.fieldConfig,
     confirmationMessage: bookingSettings.confirmationMessage,
     notifyEmails: bookingSettings.notifyEmails ?? [],
+    plateLookupEnabled,
   };
 }
 

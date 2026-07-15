@@ -14,6 +14,8 @@ import {
   Wrench,
 } from "lucide-react";
 
+import type { PlanFeatureSet } from "@/lib/plans";
+import { isSettingsChildVisible } from "@/lib/settings-plan-gates";
 import { subnavVerticalClass } from "@/lib/subnav-styles";
 import { cn } from "@/lib/utils";
 
@@ -25,19 +27,19 @@ export type SettingsSubnavItem = {
   href?: string;
 };
 
-/** Communications — Phone & SMS / Email / Notifications */
+/** Communications — Email / Phone & SMS / Notifications (plan-filtered) */
 export const COMMUNICATIONS_SUBNAV: SettingsSubnavItem[] = [
-  {
-    id: "phone-sms",
-    label: "Phone & SMS",
-    icon: MessageSquare,
-    href: "/settings/communications/phone-sms",
-  },
   {
     id: "email",
     label: "Email",
     icon: Mail,
     href: "/settings/communications/email",
+  },
+  {
+    id: "phone-sms",
+    label: "Phone & SMS",
+    icon: MessageSquare,
+    href: "/settings/communications/phone-sms",
   },
   {
     id: "notifications",
@@ -46,6 +48,10 @@ export const COMMUNICATIONS_SUBNAV: SettingsSubnavItem[] = [
     href: "/settings/communications/notifications",
   },
 ];
+
+export function communicationsSubnavForPlan(features: PlanFeatureSet): SettingsSubnavItem[] {
+  return COMMUNICATIONS_SUBNAV.filter((item) => isSettingsChildVisible(item.id, features));
+}
 
 /** Markups — Parts / Labor matrices */
 export const MARKUPS_SUBNAV: SettingsSubnavItem[] = [

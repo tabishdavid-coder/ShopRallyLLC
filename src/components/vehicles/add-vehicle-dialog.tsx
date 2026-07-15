@@ -25,6 +25,14 @@ import {
 } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { parseYmmSearch } from "@/lib/parse-ymm-search";
+import { useAutodevDecodingUiEnabled } from "@/lib/shop-capabilities";
+import {
+  CORE_PLATE_MANUAL_HINT,
+  CORE_VEHICLE_SEARCH_HELPER,
+  CORE_VEHICLE_SEARCH_PLACEHOLDER,
+  CORE_VIN_DECODE_LABEL,
+  PRO_VEHICLE_SEARCH_PLACEHOLDER,
+} from "@/lib/core-vehicle-decode";
 import { decodeVin, lookupPlate, createVehicle } from "@/server/actions/vehicles";
 
 export function AddVehicleDialog({
@@ -66,6 +74,7 @@ export function AddVehicleDialog({
   const [error, setError] = useState<string | null>(null);
   const [saving, startSave] = useTransition();
   const [searching, startSearch] = useTransition();
+  const autodevDecodingOk = useAutodevDecodingUiEnabled();
 
   const years = useMemo(() => {
     const max = new Date().getFullYear() + 1;
@@ -101,6 +110,18 @@ export function AddVehicleDialog({
       }
 
       if (/^[A-Z0-9]{2,8}$/i.test(v)) {
+        if (!autodevDecodingOk) {
+          setVehicleForm((prev) => ({
+            ...prev,
+            plate: v.toUpperCase(),
+            plateState: state,
+          }));
+          setSearchQuery(v.toUpperCase());
+          setLookupNote(
+            `Plate saved — use ${CORE_VIN_DECODE_LABEL} above, or fill in year / make / model below.`,
+          );
+          return;
+        }
         const res = await lookupPlate(state, v);
         if (res.ok) {
           applyLookupResult(
@@ -134,7 +155,9 @@ export function AddVehicleDialog({
       }
 
       setLookupNote(
-        "Enter a 17-character VIN or a license plate. Use Year / Make / Model below only if VIN or plate is unavailable.",
+        autodevDecodingOk
+          ? "Enter a 17-character VIN or a license plate. Use Year / Make / Model below only if VIN or plate is unavailable."
+          : `Enter a 17-character VIN for ${CORE_VIN_DECODE_LABEL}. Use Year / Make / Model below, or enter the plate in the form.`,
       );
     });
   }
@@ -219,8 +242,12 @@ export function AddVehicleDialog({
   }
 
   const subtitle = customerName
-    ? `For ${customerName} — search by VIN or license plate first, then confirm vehicle details.`
-    : "Search by VIN or license plate first, then confirm vehicle details.";
+    ? autodevDecodingOk
+      ? `For ${customerName} — search by VIN or license plate first, then confirm vehicle details.`
+      : `For ${customerName} — ${CORE_VIN_DECODE_LABEL}, or enter year / make / model; add the plate manually.`
+    : autodevDecodingOk
+      ? "Search by VIN or license plate first, then confirm vehicle details."
+      : `${CORE_VIN_DECODE_LABEL}, or enter year / make / model; add the plate manually.`;
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -259,10 +286,10 @@ export function AddVehicleDialog({
           </div>
         </div>
 
-        {/* Primary search — VIN or plate */}
+        {/* Primary search — VIN (Core) or VIN / plate (Pro+) */}
         <div className="shrink-0 border-b border-[#eaecf0] bg-[#f9fafb] px-6 py-4">
           <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-brand-orange">
-            Primary search
+            {autodevDecodingOk ? "Primary search" : "VIN decode"}
           </p>
           <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
             <div className="w-full shrink-0 sm:w-[140px]">
@@ -294,7 +321,9 @@ export function AddVehicleDialog({
                     runSearch();
                   }
                 }}
-                placeholder="VIN (17 characters) or license plate"
+                placeholder={
+                  autodevDecodingOk ? PRO_VEHICLE_SEARCH_PLACEHOLDER : CORE_VEHICLE_SEARCH_PLACEHOLDER
+                }
                 autoFocus
                 className={cn(fieldClass, "pl-9 font-mono uppercase")}
               />
@@ -310,12 +339,13 @@ export function AddVehicleDialog({
               ) : (
                 <Search className="size-4" />
               )}
-              Decode / Search
+              {autodevDecodingOk ? "Decode / Search" : "Decode VIN"}
             </Button>
           </div>
           <p className="mt-2 text-xs text-muted-foreground">
-            VIN decode preferred. Plate uses the registration state on the left. Year / make / model
-            below is for manual entry when VIN or plate is unavailable.
+            {autodevDecodingOk
+              ? "VIN decode preferred. Plate uses the registration state on the left. Year / make / model below is for manual entry when VIN or plate is unavailable."
+              : CORE_VEHICLE_SEARCH_HELPER}
           </p>
         </div>
 

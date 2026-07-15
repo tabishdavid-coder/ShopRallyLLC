@@ -20,6 +20,8 @@ import {
   type ReleaseFlagMap,
   type ReleaseModule,
 } from "@/lib/release-flags";
+import { mergePlanFeatureOverride, TOGGLEABLE_PLAN_FEATURES } from "@/lib/plan-feature-overrides";
+import type { PlanFeature } from "@/lib/plans";
 
 const LegacyCreateShopInput = z.object({
   name: z.string().trim().min(1).max(120),
@@ -199,6 +201,45 @@ export async function updateShopReleaseFlags(
         shop.planFeatures,
         cleaned,
       ) as Prisma.InputJsonValue,
+    },
+  });
+
+  revalidatePath("/platform/shops");
+  revalidatePath(`/platform/shops/${shopId}`);
+  revalidatePath("/", "layout");
+  return { ok: true };
+}
+
+/** Platform admin: toggle billable plan add-ons per shop (e.g. AI Plus / Smart RO Intake). */
+export async function updateShopPlanFeatureOverride(
+  shopId: string,
+  feature: PlanFeature,
+  enabled: boolean,
+): Promise<ActionResult> {
+  try {
+    await requirePlatformAdmin();
+  } catch {
+    return { ok: false, error: "Platform admin access required." };
+  }
+
+  if (!shopId.trim()) return { ok: false, error: "Shop is required." };
+  if (!TOGGLEABLE_PLAN_FEATURES.has(feature)) {
+    return { ok: false, error: "This feature cannot be toggled here." };
+  }
+
+  const shop = await prisma.shop.findUnique({
+    where: { id: shopId },
+    select: { planFeatures: true, plan: true },
+  });
+  if (!shop) return { ok: false, error: "Shop not found." };
+  if (feature === "freeformRoIntake" && shop.plan !== "STARTER") {
+    return { ok: false, error: "AI Plus (Smart AI Intake) is only available on Core plan shops." };
+  }
+
+  await prisma.shop.update({
+    where: { id: shopId },
+    data: {
+      planFeatures: mergePlanFeatureOverride(shop.planFeatures, feature, enabled) as Prisma.InputJsonValue,
     },
   });
 

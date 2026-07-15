@@ -2,8 +2,7 @@
 
 import {
   PLANS,
-  repairPilotAllInMonthly,
-  repairPilotOverdriveMonthly,
+  PHASE_ONE_LAUNCH,
   repairPilotStarterMonthly,
 } from "@/lib/plans";
 
@@ -46,10 +45,9 @@ Quick snapshot of why shops are switching to ShopRally:
 
 • Job board + estimates + Operations Daily Snapshot in one CRM
 • Digital vehicle inspections on every plan
-• ${PLANS.STARTER.name} ($${repairPilotStarterMonthly(true)}/mo annual): CRM suite · shop labor library
-• ${PLANS.PROFESSIONAL.name} ($${repairPilotAllInMonthly(true)}/mo annual): licensed MOTOR + Growth Engine + reviews
-• ${PLANS.ENTERPRISE.name} ($${repairPilotOverdriveMonthly(true)}/mo annual): AI, ShopSite, Local SEO, maintenance programs
-• Optional ShopSite ($99/mo) + Local SEO ($129/mo) — included on ${PLANS.ENTERPRISE.name}
+• ${PLANS.STARTER.name} ($${repairPilotStarterMonthly(true)}/mo annual): full shop CRM · DVIs · daily snapshot
+• AI Plus (+$20/mo): freeform AI intake, labor assist & advisor app
+${PHASE_ONE_LAUNCH ? "• Pro & Elite tiers — licensed MOTOR, Growth Engine, payments — coming in phase two" : `• ${PLANS.PROFESSIONAL.name}: licensed MOTOR + Growth Engine + reviews\n• ${PLANS.ENTERPRISE.name}: AI, ShopSite, Local SEO, maintenance programs`}
 
 Founding spots are limited. Compare plans: https://getshoprally.com/pricing
 

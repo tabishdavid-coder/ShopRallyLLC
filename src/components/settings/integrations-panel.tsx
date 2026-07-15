@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 
 import { SettingsHero } from "@/components/settings/settings-hero";
+import { PLANS } from "@/lib/plans";
 
 export type IntegrationState = "connected" | "mock" | "inactive";
 
@@ -29,7 +30,15 @@ const STATE_META: Record<IntegrationState, { label: string; cls: string; icon: L
   inactive: { label: "Not configured", cls: "bg-slate-100 text-slate-600", icon: CircleDashed },
 };
 
-export function IntegrationsPanel({ statuses }: { statuses: IntegrationStatus[] }) {
+export function IntegrationsPanel({
+  statuses,
+  planName,
+  isCore,
+}: {
+  statuses: IntegrationStatus[];
+  planName?: string;
+  isCore?: boolean;
+}) {
   const connectedCount = statuses.filter((s) => s.state === "connected").length;
 
   return (
@@ -37,7 +46,11 @@ export function IntegrationsPanel({ statuses }: { statuses: IntegrationStatus[] 
       <SettingsHero
         icon={Blocks}
         title="Integrations"
-        description="Connected services that power VIN decode, parts, payments, messaging, and auth."
+        description={
+          isCore
+            ? "Core includes free NHTSA VIN decode and email — Pro adds plate lookup, PartsTech, SMS, and Stripe."
+            : "Connected services that power VIN decode, parts, payments, messaging, and auth."
+        }
         meta={
           <span className="rounded-full bg-white/15 px-2 py-0.5 font-medium">
             {connectedCount} of {statuses.length} connected
@@ -46,8 +59,17 @@ export function IntegrationsPanel({ statuses }: { statuses: IntegrationStatus[] 
       />
 
       <p className="text-sm text-muted-foreground">
-        Each service runs in a safe mock/fallback mode until its credentials are set in the environment, so the
-        app stays functional while you onboard providers.{" "}
+        {isCore ? (
+          <>
+            Your {planName ?? "Core"} plan shows integrations included with your subscription. Upgrade to{" "}
+            {PLANS.PROFESSIONAL.name} for PartsTech, two-way SMS, and online payments.{" "}
+          </>
+        ) : (
+          <>
+            Each service runs in a safe mock/fallback mode until its credentials are set in the environment, so the
+            app stays functional while you onboard providers.{" "}
+          </>
+        )}
         <a href="/vendors/integrations" className="link-subtle font-medium">
           Vendor integrations hub →
         </a>

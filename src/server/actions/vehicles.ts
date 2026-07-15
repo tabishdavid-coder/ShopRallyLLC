@@ -13,7 +13,7 @@ import {
   type UpdateVehicleInput,
   type UpdateVehicleResult,
 } from "@/lib/vehicle-schemas";
-import { vinService, isValidVin, type DecodedVin } from "@/server/services/vin";
+import { isValidVin, type DecodedVin, decodeVinForShop } from "@/server/services/vin";
 import { lookupPlateService } from "@/server/services/plate-lookup";
 import {
   decodeOverageNotice,
@@ -21,6 +21,7 @@ import {
   recordDecodeUsage,
 } from "@/server/services/decode-usage";
 import { gates } from "@/server/permission-gates";
+import { canUseFeature } from "@/lib/subscription";
 
 type DecodeVinResult =
   | { ok: true; decoded: DecodedVin; usageNotice?: string }
@@ -48,18 +49,18 @@ async function afterSuccessfulDecode(
   return decodeOverageNotice(summary) ?? undefined;
 }
 
-/** Decode a VIN (Auto.dev primary, NHTSA fallback). Counts toward Core shared meter on success. */
+/** Decode a VIN (NHTSA on Core; Auto.dev + NHTSA fallback on Pro+). Counts toward Core meter on success. */
 export async function decodeVin(vin: string): Promise<DecodeVinResult> {
   const v = vin.trim().toUpperCase();
   if (!isValidVin(v)) {
     return { ok: false, error: "Enter a valid 17-character VIN." };
   }
   try {
-    const decoded = await vinService.decode(v);
+    const shopId = await getShopId();
+    const decoded = await decodeVinForShop(shopId, v);
     if (!decoded || (!decoded.make && !decoded.model && !decoded.year)) {
       return { ok: false, error: "Couldn't decode that VIN. Check it and try again." };
     }
-    const shopId = await getShopId();
     const usageNotice = await afterSuccessfulDecode(shopId, "VIN");
     return { ok: true, decoded, usageNotice };
   } catch {
@@ -67,11 +68,18 @@ export async function decodeVin(vin: string): Promise<DecodeVinResult> {
   }
 }
 
-/** Look up a US license plate → vehicle (mock in dev, Auto.dev when configured). Counts on success. */
+/** Look up a US license plate → vehicle (Auto.dev when configured). Pro+ only — Core enters plate manually. */
 export async function lookupPlate(state: string, plate: string): Promise<MeteredPlateResult> {
+  const shopId = await getShopId();
+  if (!(await canUseFeature(shopId, "autodevDecoding"))) {
+    return {
+      ok: false,
+      error:
+        "Plate lookup is not included on Core. Enter the plate manually, decode a 17-character VIN (free NHTSA), or fill in year/make/model.",
+    };
+  }
   const result = await lookupPlateService(plate, state);
   if (!result.ok) return result;
-  const shopId = await getShopId();
   const usageNotice = await afterSuccessfulDecode(shopId, "PLATE");
   return { ...result, usageNotice };
 }

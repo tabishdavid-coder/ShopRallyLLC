@@ -461,8 +461,7 @@ export async function EstimateBuildingLabPanel({
                       No jobs on this estimate yet
                     </p>
                     <p className="mt-1 text-sm text-muted-foreground">
-                      Use the toolbar to search jobs & templates, open the Labor Book, or add a
-                      blank job.
+                      Search canned jobs above, or add a blank job to build the estimate.
                     </p>
                     {canEdit ? (
                       <div className="mt-5 flex justify-center">

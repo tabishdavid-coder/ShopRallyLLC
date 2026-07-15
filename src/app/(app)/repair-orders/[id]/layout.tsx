@@ -3,8 +3,7 @@ import { headers } from "next/headers";
 
 import { getRoSidebarOptions } from "@/server/ro-sidebar-options";
 import { getCustomerTagNames } from "@/server/actions/customer-settings";
-import { getRepairOrder } from "@/server/repair-order";
-import { getShopId } from "@/lib/shop";
+import { requireRepairOrder } from "@/server/repair-order-access";
 import { vehicleSpecsView } from "@/lib/vehicle-specs-view";
 import { buildAllowedRoTabSegments, roTabSegmentFromPathname } from "@/lib/crm-access";
 import { isRoEstimateLikeWorkspacePath, defaultRoOpenHref } from "@/lib/ro-workspace";
@@ -33,9 +32,7 @@ export default async function RepairOrderLayout({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const shopId = await getShopId();
-  const ro = await getRepairOrder({ shopId, id });
-  if (!ro) notFound();
+  const { shopId, ro } = await requireRepairOrder(id);
 
   const pathname = (await headers()).get("x-pathname") ?? "";
   const basePath = `/repair-orders/${id}`;

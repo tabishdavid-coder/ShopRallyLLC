@@ -7,6 +7,7 @@ import { isClerkConfigured } from "@/lib/clerk-auth";
 import { getCurrentUser } from "@/lib/platform";
 import {
   ACTIVE_SHOP_COOKIE,
+  CORE_QA_SHOP_ID,
   DEMO_SHOP_ID,
 } from "@/lib/shop-constants";
 import { getClerkSessionContext, shopIdForClerkOrg } from "@/server/clerk-org";
@@ -19,7 +20,7 @@ export type Shop = {
   status?: string;
 };
 
-export { ACTIVE_SHOP_COOKIE, DEMO_SHOP_ID } from "@/lib/shop-constants";
+export { ACTIVE_SHOP_COOKIE, CORE_QA_SHOP_ID, DEMO_SHOP_ID } from "@/lib/shop-constants";
 
 export class ShopAccessError extends Error {
   constructor(message = "You don't have access to this shop.") {
@@ -77,7 +78,6 @@ export async function getShopId(): Promise<string> {
         where: { id: cookieShop },
         select: { id: true },
       });
-      // Honor explicit switcher / "Open shop CRM" selection, including empty tenants.
       if (shop) return shop.id;
     } else {
       const membership = await prisma.membership.findFirst({
@@ -89,6 +89,12 @@ export async function getShopId(): Promise<string> {
   }
 
   if (isOperator) {
+    const coreQa = await prisma.shop.findUnique({
+      where: { id: CORE_QA_SHOP_ID },
+      select: { id: true, _count: { select: { customers: true } } },
+    });
+    if (coreQa && coreQa._count.customers > 0) return coreQa.id;
+
     const demo = await prisma.shop.findUnique({
       where: { id: DEMO_SHOP_ID },
       select: { id: true },
@@ -112,6 +118,12 @@ export async function getShopId(): Promise<string> {
   if (!user.isPlatformAdmin && user.id !== "stub-platform-admin") {
     throw new ShopAccessError();
   }
+
+  const coreQa = await prisma.shop.findUnique({
+    where: { id: CORE_QA_SHOP_ID },
+    select: { id: true },
+  });
+  if (coreQa) return coreQa.id;
 
   const demo = await prisma.shop.findUnique({
     where: { id: DEMO_SHOP_ID },
@@ -140,11 +152,14 @@ export async function listShops(): Promise<Shop[]> {
       orderBy: { name: "asc" },
       select: { id: true, name: true, code: true, status: true },
     });
-    // Keep the seeded demo shop first so platform admins land on data-rich context.
-    const demoIdx = shops.findIndex((s) => s.id === DEMO_SHOP_ID);
-    if (demoIdx > 0) {
-      const [demo] = shops.splice(demoIdx, 1);
-      shops.unshift(demo);
+    // Core QA shop first, then seeded demo — platform admins land on Macuto Core by default.
+    const priority = [CORE_QA_SHOP_ID, DEMO_SHOP_ID];
+    for (const id of priority) {
+      const idx = shops.findIndex((s) => s.id === id);
+      if (idx > 0) {
+        const [shop] = shops.splice(idx, 1);
+        shops.unshift(shop);
+      }
     }
     return shops;
   }

@@ -3,6 +3,7 @@
 import { useCallback, useState, useTransition } from "react";
 
 import { decodeVin, lookupPlate } from "@/server/actions/vehicles";
+import { useAutodevDecodingUiEnabled } from "@/lib/shop-capabilities";
 import type { DecodedVin } from "@/server/services/vin";
 
 export type VehicleLookupFields = {
@@ -52,6 +53,7 @@ export function usePlateVinLookup() {
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [note, setNote] = useState<string | null>(null);
+  const autodevDecodingOk = useAutodevDecodingUiEnabled();
 
   const clearMessages = useCallback(() => {
     setError(null);
@@ -71,6 +73,12 @@ export function usePlateVinLookup() {
         setError("Enter a license plate.");
         return;
       }
+      if (!autodevDecodingOk) {
+        setError(
+          "Plate lookup is not included on Core. Enter the plate manually or decode a 17-character VIN.",
+        );
+        return;
+      }
       setError(null);
       setNote(null);
       startTransition(async () => {
@@ -87,7 +95,7 @@ export function usePlateVinLookup() {
         }
       });
     },
-    [],
+    [autodevDecodingOk],
   );
 
   const lookupByVin = useCallback(
@@ -106,16 +114,16 @@ export function usePlateVinLookup() {
         if (res.ok) {
           const fields = mergeDecodedFields(current, res.decoded, v, opts);
           onSuccess({ vin: v, fields });
-          setNote(
+          const ymm =
             [fields.year, fields.make, fields.model, fields.trim].filter(Boolean).join(" ") ||
-              "VIN decoded",
-          );
+            "VIN decoded";
+          setNote(autodevDecodingOk ? ymm : `${ymm} · NHTSA vPIC`);
         } else {
           setError(res.error);
         }
       });
     },
-    [],
+    [autodevDecodingOk],
   );
 
   return { pending, error, note, clearMessages, lookupByPlate, lookupByVin };

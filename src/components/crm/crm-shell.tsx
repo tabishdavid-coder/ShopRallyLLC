@@ -16,6 +16,7 @@ import { RoIntakeProvider } from "@/components/repair-order/ro-intake-context";
 import { SupportWidget } from "@/components/support/support-widget";
 import type { RoIntakeConfig } from "@/lib/ro-intake-types";
 import type { Shop } from "@/lib/shop";
+import { resolvePlanFeatures } from "@/lib/plans";
 import {
   ShopCapabilitiesProvider,
   type ShopCapabilities,
@@ -64,12 +65,14 @@ export function CrmShell({
   capabilities = {
     sms: false,
     stripePayments: false,
-    growth: false,
-    maintenancePrograms: false,
-    partsTech: false,
     motorLabor: false,
-    shopSite: false,
-    websiteSeo: false,
+    partsTech: false,
+    marketingCampaigns: false,
+    vehicleSpecs: false,
+    autodevDecoding: false,
+    freeformRoIntake: false,
+    corePlan: false,
+    planFeatures: resolvePlanFeatures({ plan: "STARTER" }),
   },
   children,
 }: CrmShellProps) {

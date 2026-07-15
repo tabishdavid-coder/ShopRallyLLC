@@ -37,7 +37,6 @@ import {
 } from "@/lib/labor-catalog-mode";
 
 import { MOTOR_LABOR_SYSTEMS } from "@/lib/labor-motor-tree-static";
-import { motorEnabledForShop } from "@/server/labor-entitlement";
 
 import type { LaborGridRow } from "@/lib/labor-book-v4-helpers";
 
@@ -50,6 +49,8 @@ import {
 } from "@/lib/labor-vehicle-key";
 
 import { getShopId } from "@/lib/shop";
+
+import { motorEnabledForShop } from "@/server/labor-entitlement";
 
 import {
 
@@ -250,23 +251,6 @@ async function countMotorCatalogForVehicle(baseVehicleId: number): Promise<{
 }
 
 
-
-/** Reference taxonomy for Core / non-MOTOR shops — no BOOK branding. */
-function coreShopLaborInit(
-  baseVehicleId: number | null,
-): Extract<LaborBookMotorInitResult, { ok: true }> {
-  return {
-    ok: true,
-    baseVehicleId,
-    source: "reference",
-    catalogMode: "reference",
-    motorAvailable: false,
-    aiEnabled: isLaborAiEnabled(),
-    tree: mapMotorLaborSystemsToSidebar(MOTOR_LABOR_SYSTEMS),
-    syncBanner:
-      "Shop labor library — licensed MOTOR is included on Pro and Elite (not a Core add-on).",
-  };
-}
 
 /** Reference taxonomy init — static MOTOR-shaped tree, no MotorCatalogNode required. */
 
@@ -542,20 +526,9 @@ export async function getLaborBookMotorApplications(
 
   if (denied) return { ok: false, error: denied.error };
 
-  const laborVehicle = toLaborServiceVehicle(loaded.vehicle);
+  const motorOn = await motorEnabledForShop(loaded.shopId);
 
-  // Core / unreleased shops: shop cache only — never BOOK / MOTOR applications.
-  if (!(await motorEnabledForShop(loaded.shopId))) {
-    try {
-      const cacheRows = await getReferenceLaborOperations(laborVehicle, motorSubGroupId);
-      return { ok: true, rows: cacheRows };
-    } catch (e) {
-      return {
-        ok: false,
-        error: e instanceof Error ? e.message : "Failed to load labor applications.",
-      };
-    }
-  }
+  const laborVehicle = toLaborServiceVehicle(loaded.vehicle);
 
   try {
 
@@ -563,7 +536,7 @@ export async function getLaborBookMotorApplications(
 
       // MOTOR is the primary source: when the sandbox overlay is on, serve MOTOR
       // (BOOK) applications first and only fall back to shop cache when MOTOR misses.
-      if (allowSandboxMotorDbCache() && baseVehicleId) {
+      if (motorOn && allowSandboxMotorDbCache() && baseVehicleId) {
 
         let apps = await getMotorApplicationsForSubGroup(baseVehicleId, motorSubGroupId);
 
@@ -609,6 +582,12 @@ export async function getLaborBookMotorApplications(
     }
 
 
+
+    if (!motorOn) {
+      const cacheRows = await getReferenceLaborOperations(laborVehicle, motorSubGroupId);
+      if (cacheRows.length) return { ok: true, rows: cacheRows };
+      return { ok: true, rows: [] };
+    }
 
     let apps = await getMotorApplicationsForSubGroup(baseVehicleId, motorSubGroupId);
 
@@ -670,15 +649,13 @@ export async function getLaborBookMotorInit(vehicleId: string): Promise<LaborBoo
 
   if (denied) return { ok: false, error: denied.error };
 
-  try {
-    // Plan gate: Core never gets MOTOR BOOK (not sold as a Core add-on).
-    if (!(await motorEnabledForShop(loaded.shopId))) {
-      return coreShopLaborInit(null);
-    }
 
-    // MOTOR is the primary labor source. When no MOTOR data is available (no license
-    // and sandbox overlay off) fall back to the shop taxonomy/AI reference guide.
-    if (!motorCatalogDataAvailable()) {
+
+  try {
+    const motorOn = await motorEnabledForShop(loaded.shopId);
+
+    // Core shops and shops without MOTOR entitlement use the shop reference guide.
+    if (!motorCatalogDataAvailable() || !motorOn) {
       return referenceTaxonomyInit(null);
     }
 

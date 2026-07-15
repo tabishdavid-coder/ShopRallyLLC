@@ -34,6 +34,7 @@ export default async function BookPage({
           defaultDurationMins={shop.apptDefaultDurationMins}
           dropOffEnabled={dropOff?.enabled ?? true}
           dropOffLabel={dropOff?.label ?? "I will drop-off my vehicle"}
+          plateLookupEnabled={shop.plateLookupEnabled}
         />
 
         <PoweredByShopRally className="shrink-0 px-4 py-3 text-center sm:mt-4 sm:py-0" />

@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { MARKETING_LAUNCH } from "@/lib/marketing-launch";
-import { PLAN_ORDER, PLANS, annualSavingsDollars, planCardBullets, planDisplayPrice, planListPrice } from "@/lib/plans";
+import { PUBLIC_PLAN_ORDER, PLANS, annualSavingsDollars, planCardBullets, planDisplayPrice, planListPrice } from "@/lib/plans";
 import { PricingBillingToggle } from "@/components/pricing/pricing-billing-toggle";
 import type { ShopPlan } from "@/generated/prisma";
 import { submitTrialSignup } from "@/server/actions/marketing-leads";
@@ -17,7 +17,7 @@ import { cn } from "@/lib/utils";
 const TRIAL_DAYS = 14;
 
 export function SignupPageContent() {
-  const [plan, setPlan] = useState<ShopPlan>("PROFESSIONAL");
+  const [plan, setPlan] = useState<ShopPlan>("STARTER");
   const [annual, setAnnual] = useState(true);
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -82,8 +82,8 @@ export function SignupPageContent() {
         </h1>
         <p className="mt-3 text-slate-600">
           {MARKETING_LAUNCH.preLaunch
-            ? "Pick your plan interest and tell us about your shop. Founding shops get priority onboarding and locked pricing."
-            : "Pick a plan, tell us about your shop, and we'll get you set up. No credit card required."}
+            ? "Tell us about your shop. Founding shops get priority onboarding and locked Ignition pricing."
+            : "Start on Ignition — add AI Plus anytime for $20/mo. No credit card required for trial request."}
         </p>
       </div>
 
@@ -93,8 +93,8 @@ export function SignupPageContent() {
         className="mt-10"
       />
 
-      <div className="mt-8 grid gap-4 lg:grid-cols-3">
-        {PLAN_ORDER.map((planId) => {
+      <div className="mt-8 grid gap-4 lg:mx-auto lg:max-w-md">
+        {PUBLIC_PLAN_ORDER.map((planId) => {
           const p = PLANS[planId];
           const selected = plan === planId;
           return (

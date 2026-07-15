@@ -1,13 +1,30 @@
 # Dev 3031 — build state (ShopRallyCRM)
 
-Last updated: 2026-07-12 (Core gatekeeping — no MOTOR add-on)
+Last updated: 2026-07-13 (Core plan merged to **main**)
 
 > **Canonical dev:** **`ShopRally/`** folder only — `npm run dev` → :3031. See `docs/SHOPRALLY-DEV.md`.
 > Do **not** develop shop CRM in the sibling `karvio/` folder (legacy platform fork).
 
+## Active session — Macuto Core QA (on `main`)
+
+**Branch:** `main` (Core plan work merged 2026-07-13)  
+**QA shop:** **Macuto Auto Repair** (`shop_macuto`, code **MAC**) — platform admin default tenant  
+**Plan:** Core (`STARTER`) @ $49.99/mo · optional AI Plus +$20/mo  
+**Merged:** phase-one rebrand, core-settings-prune, core-plan-fidelity, estimate-toolbar gates, autodev plate gates  
+**Track:** `docs/CORE-PLAN-FIDELITY.md` · `src/lib/settings-plan-gates.ts`
+
+### Quick open
+
+```bash
+git checkout main && git pull
+npm run dev
+# → http://localhost:3031 (Macuto Auto Repair)
+```
+
+
+
 ## Done
 
-- [x] **Core plan gatekeeping — no MOTOR add-on (2026-07-12)** — `motorLabor` remains false on Core; Labor Book init/applications + labor cache lookup fail closed without `motorEnabledForShop`. Marketing/FAQ/GROWTH-POSITIONING/unit-economics: MOTOR is Pro/Elite only (removed Core +$50 attach from economics canvas). Upgrade path = Pro, not a Core add-on.
 - [x] **Maintenance Schedule hidden (2026-07-09)** — removed product UI entries from the estimate launcher and Labor Book job-card toolbar; no customer/shop-facing Maintenance Schedule stub remains.
 - [x] **MOTOR-first labor pivot — AI parked (2026-07-09)** — reversed the no-license direction: **MOTOR sandbox/licensed catalog is now the primary Labor Book experience; AI first-principles generation is parked (default OFF)**. Changes:
   - **Env flags:** `MOTOR_SANDBOX_CACHE=true` serves locally-loaded MOTOR test data without live keys; `LABOR_AI_ENABLED` (new, default **false**) gates the AI-DRAFT generation path + "Estimate with AI" CTAs. New `isLaborAiEnabled()` / `motorCatalogDataAvailable()` in `labor-catalog-mode.ts`.

@@ -18,6 +18,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { updateVehicle } from "@/server/actions/vehicles";
+import { useAutodevDecodingUiEnabled } from "@/lib/shop-capabilities";
+import { CORE_EDIT_VEHICLE_IDENTITY_DESC } from "@/lib/core-vehicle-decode";
 import {
   usePlateVinLookup,
   type VehicleLookupFields,
@@ -85,6 +87,7 @@ export function EditVehicleDialog({
   const [saving, startSave] = useTransition();
   const { pending: lookupPending, error: lookupError, note: lookupNote, clearMessages, lookupByPlate, lookupByVin } =
     usePlateVinLookup();
+  const autodevDecodingOk = useAutodevDecodingUiEnabled();
 
   function currentFields(): VehicleLookupFields {
     return {
@@ -204,7 +207,13 @@ export function EditVehicleDialog({
       }
     >
       <div className="space-y-4">
-        <CrmFormSection title="Identity" description="Decode by VIN or plate lookup" accent="navy">
+        <CrmFormSection
+          title="Identity"
+          description={
+            autodevDecodingOk ? "Decode by VIN or plate lookup" : CORE_EDIT_VEHICLE_IDENTITY_DESC
+          }
+          accent="navy"
+        >
           <CrmFormField label="VIN">
             <div className="flex gap-2">
               <Input
@@ -257,7 +266,7 @@ export function EditVehicleDialog({
             </CrmFormField>
           </div>
 
-          {plate.trim() ? (
+          {plate.trim() && autodevDecodingOk ? (
             <Button
               type="button"
               variant="secondary"
@@ -269,6 +278,12 @@ export function EditVehicleDialog({
               {lookupPending ? <Loader2 className="size-4 animate-spin" /> : <Search className="size-4" />}
               Look up VIN
             </Button>
+          ) : null}
+
+          {plate.trim() && !autodevDecodingOk ? (
+            <p className="mt-2 text-xs text-muted-foreground">
+              Plate is saved manually on Core. Decode a 17-character VIN above or edit year / make / model.
+            </p>
           ) : null}
 
           {lookupNote ? <p className="mt-2 text-xs text-emerald-700">{lookupNote}</p> : null}

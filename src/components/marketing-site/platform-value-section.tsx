@@ -1,6 +1,6 @@
 import { Bot, BookOpen, BarChart3, ClipboardCheck, Globe, GraduationCap, MessageSquare, Repeat, Wrench, Zap } from "lucide-react";
 
-import { DASHBOARD_PLAN_COPY, DVI_PLAN_COPY, LABOR_PLAN_COPY, PLANS } from "@/lib/plans";
+import { DASHBOARD_PLAN_COPY, DVI_PLAN_COPY, LABOR_PLAN_COPY, PHASE_ONE_LAUNCH, PLANS } from "@/lib/plans";
 
 const VALUE_PILLARS = [
   {
@@ -20,7 +20,7 @@ const VALUE_PILLARS = [
     icon: BookOpen,
     title: "Labor & vehicle data",
     description:
-      "Licensed MOTOR on Pro and Elite only (not a Core add-on). Core includes 100 VIN & plate decodes / mo ($10 per extra 100); Pro and Elite are unlimited, with OEM specs and fluid capacities on Pro+.",
+      "Licensed MOTOR on Pro and Elite (coming). Ignition includes 100 VIN & plate decodes / mo ($10 per extra 100); Pro and Elite will be unlimited, with OEM specs and fluid capacities on Pro+.",
     tiers: LABOR_PLAN_COPY.featuresIgnition,
   },
   {
@@ -58,7 +58,7 @@ const VALUE_PILLARS = [
     icon: GraduationCap,
     title: "White-glove onboarding",
     description:
-      "Dedicated onboarding specialist and migration included on Elite — Core and Pro are self-serve with demo support.",
+      "Dedicated onboarding specialist and migration included on Elite — Ignition is self-serve with demo support.",
     tiers: PLANS.ENTERPRISE.name,
   },
   {
@@ -76,7 +76,7 @@ export function PlatformValueSection() {
         <div className="mx-auto max-w-2xl text-center">
           <p className="text-xs font-semibold uppercase tracking-wider text-brand-red">What you get</p>
           <h2 className="mt-3 text-3xl font-bold text-brand-navy sm:text-4xl">
-            Premium platform — pick your tier
+            {PHASE_ONE_LAUNCH ? "One plan to start — room to grow" : "Premium platform — pick your tier"}
           </h2>
           <p className="mt-4 text-slate-600">
             CRM, marketing, payments, and AI — with live training included from day one, not sold as an

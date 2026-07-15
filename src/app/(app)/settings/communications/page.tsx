@@ -1,6 +1,14 @@
 import { redirect } from "next/navigation";
 
-/** Default Communications — Email (Core-safe); Phone & SMS is Pro+ with a locked wall. */
-export default function CommunicationsSettingsPage() {
+import { getShopId } from "@/lib/shop";
+import { getShopSubscription } from "@/lib/subscription";
+
+/** Default Communications section — email first on Core; Phone & SMS on Pro+. */
+export default async function CommunicationsSettingsPage() {
+  const shopId = await getShopId();
+  const sub = await getShopSubscription(shopId);
+  if (sub.features.customerSms) {
+    redirect("/settings/communications/phone-sms");
+  }
   redirect("/settings/communications/email");
 }

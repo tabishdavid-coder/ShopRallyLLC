@@ -21,6 +21,11 @@ import { EstimateLabMessagesHost } from "@/components/estimate-building/estimate
 import { useEstimateLabContextDrawerOptional } from "@/components/estimate-building/estimate-lab-context-drawer-provider";
 import { EstimateLabVehicleSpecsSection } from "@/components/estimate-building/estimate-lab-vehicle-specs-section";
 import { useEstimateLabPartsOptional } from "@/components/estimate-building/estimate-lab-parts-provider";
+import {
+  usePartsTechUiEnabled,
+  useStripePaymentsUiEnabled,
+  useVehicleSpecsUiEnabled,
+} from "@/lib/shop-capabilities";
 
 import { EstimateDepositRequestDialog } from "@/components/estimate-building/estimate-deposit-request-dialog";
 import {
@@ -267,6 +272,7 @@ function MoneyCard({
   depositAmountCents?: number;
 }) {
   const { paymentPreview } = useEstimateLabDisplay();
+  const stripeOnPlan = useStripePaymentsUiEnabled();
   const displayPaid = allowPreview
     ? effectiveLabPaidCents(paymentPreview, paidCents, totalCents)
     : paidCents;
@@ -358,12 +364,20 @@ function MoneyCard({
           className="h-9 w-full rounded-none border-0 bg-[var(--jb-orange,#e86a10)] text-[12px] font-bold uppercase tracking-[0.06em] text-white shadow-none hover:bg-[var(--jb-orange,#e86a10)]/90 focus-visible:ring-2 focus-visible:ring-[var(--jb-orange,#e86a10)]/40"
         >
           <Link href={roEstimateActionHref(roId, "payment")}>
-            <CreditCard className="size-3.5 shrink-0" aria-hidden />
+            {stripeOnPlan ? (
+              <CreditCard className="size-3.5 shrink-0" aria-hidden />
+            ) : (
+              <Wallet className="size-3.5 shrink-0" aria-hidden />
+            )}
             {displayRemaining > 0
-              ? `Collect ${formatCents(displayRemaining)}`
+              ? stripeOnPlan
+                ? `Collect ${formatCents(displayRemaining)}`
+                : `Record ${formatCents(displayRemaining)}`
               : totalCents > 0
                 ? "View payment"
-                : "Collect payment"}
+                : stripeOnPlan
+                  ? "Collect payment"
+                  : "Record payment"}
           </Link>
         </Button>
 
@@ -511,6 +525,7 @@ function StatusCard({
   const [authorizeOpen, setAuthorizeOpen] = useState(false);
   const [techOpen, setTechOpen] = useState(false);
   const partsCtx = useEstimateLabPartsOptional();
+  const partsTechOk = usePartsTechUiEnabled();
   const saveSidebar = useRoSidebarSave(roId);
   const [roAge, setRoAge] = useState("—");
 
@@ -701,7 +716,7 @@ function StatusCard({
                     },
                   ] as const
                 ).map((pill) => {
-                  const clickable = Boolean(partsCtx);
+                  const clickable = Boolean(partsCtx) && partsTechOk;
                   const cellClass = cn(
                     "flex min-h-9 w-full min-w-0 items-center justify-center gap-1.5 rounded-none border px-1.5 py-1.5 text-[12.5px] leading-tight tabular-nums",
                     pill.tone,
@@ -931,9 +946,10 @@ function VehicleSpecsRailSection({
   canEdit: boolean;
 }) {
   const ctx = useEstimateLabContextDrawerOptional();
+  const vehicleSpecsOk = useVehicleSpecsUiEnabled();
 
   useEffect(() => {
-    if (!ctx) return;
+    if (!ctx || !vehicleSpecsOk) return;
     ctx.registerOpenVehicleSpecs(() => {
       requestAnimationFrame(() => {
         document.getElementById("estimate-lab-vehicle-specs")?.scrollIntoView({
@@ -943,7 +959,9 @@ function VehicleSpecsRailSection({
       });
     });
     return () => ctx.registerOpenVehicleSpecs(null);
-  }, [ctx]);
+  }, [ctx, vehicleSpecsOk]);
+
+  if (!vehicleSpecsOk) return null;
 
   return (
     <div id="estimate-lab-vehicle-specs" className={cn(RAIL_CARD, "overflow-hidden")}>

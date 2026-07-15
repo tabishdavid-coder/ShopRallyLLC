@@ -10,9 +10,9 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { cn } from "@/lib/utils";
-
 import { LAB_INPUT_FLAT } from "@/components/estimate-building/estimate-lab-job-card-shell";
+import { useMotorLaborUiEnabled, usePartsTechUiEnabled } from "@/lib/shop-capabilities";
+import { cn } from "@/lib/utils";
 
 export type InlineLineType =
   | "labor"
@@ -100,13 +100,20 @@ export function EstimateLineTypeMenu({
   const label = INLINE_LINE_TYPE_OPTIONS.find((o) => o.value === value)?.label ?? value;
   const h = handlers ?? {};
   const menuScope = resolveScope(value, scope);
-  const showLaborActions = menuScope === "labor" || menuScope === "all";
-  const showPartActions = menuScope === "part" || menuScope === "all";
+  const motorLaborOk = useMotorLaborUiEnabled();
+  const partsTechOk = usePartsTechUiEnabled();
+  const laborScope = menuScope === "labor" || menuScope === "all";
+  const partScope = menuScope === "part" || menuScope === "all";
+  const showLaborGuide = laborScope && motorLaborOk;
+  const showLaborCustom = laborScope && Boolean(h.onCustomLabor);
+  const showPartGuide = partScope && partsTechOk && Boolean(h.onPartFromGuide);
+  const showPartCustom = partScope && Boolean(h.onCustomPart);
 
   const hasGuideMenu = Boolean(
-    (showLaborActions &&
-      (h.onLaborFromGuide || h.onCustomLabor || h.onLaborFromCatalog)) ||
-      (showPartActions && (h.onPartFromGuide || h.onCustomPart)),
+    (showLaborGuide && (h.onLaborFromGuide || h.onLaborFromCatalog)) ||
+      showLaborCustom ||
+      showPartGuide ||
+      showPartCustom,
   );
 
   const resolvedTypeOptions: InlineLineType[] = typeOptions ?? defaultTypeOptions(menuScope);
@@ -115,14 +122,14 @@ export function EstimateLineTypeMenu({
 
   if (!editing) {
     return (
-      <span className="text-[10px] font-semibold uppercase tracking-wide text-brand-navy">{label}</span>
+      <span className="text-[11px] font-semibold text-brand-navy">{label}</span>
     );
   }
 
-  /** Labor Book / Part type — matched size + subtle weight. Fee/discount "all" stays bordered. */
+  /** Labor Book / Part type — matched size; normal case so labels stay readable in the Type column. */
   const triggerClass = useMatchedTypeTrigger
     ? cn(
-        "inline-flex h-7 w-full min-w-0 items-center gap-2 rounded-md border border-brand-navy/15 bg-brand-navy/[0.03] px-2 text-xs font-semibold uppercase tracking-wide text-brand-navy",
+        "inline-flex h-7 w-full min-w-0 items-center gap-1 rounded-md border border-brand-navy/15 bg-brand-navy/[0.03] px-1.5 text-[11px] font-semibold text-brand-navy",
         "hover:border-brand-navy/25 hover:bg-brand-light/10 hover:text-brand-navy",
       )
     : size === "table"
@@ -174,22 +181,22 @@ export function EstimateLineTypeMenu({
       ) : null}
       <DropdownMenu>
         <DropdownMenuTrigger asChild>
-          <button type="button" className={triggerClass} aria-label={ariaLabel}>
+          <button type="button" className={triggerClass} aria-label={ariaLabel} title={label}>
             {menuScope === "labor" ? (
               <>
-                <ListTree className="size-3.5 shrink-0" aria-hidden />
-                <span className="min-w-0 flex-1 truncate text-left">Labor Book</span>
+                <Wrench className="size-3 shrink-0" aria-hidden />
+                <span className="min-w-0 flex-1 whitespace-nowrap text-left">{label}</span>
                 <ChevronDown className="size-3 shrink-0 opacity-60" aria-hidden />
               </>
             ) : menuScope === "part" ? (
               <>
-                <Package className="size-3.5 shrink-0" aria-hidden />
-                <span className="min-w-0 flex-1 truncate text-left">{label}</span>
+                <Package className="size-3 shrink-0" aria-hidden />
+                <span className="min-w-0 flex-1 whitespace-nowrap text-left">{label}</span>
                 <ChevronDown className="size-3 shrink-0 opacity-60" aria-hidden />
               </>
             ) : (
               <>
-                <span className="min-w-0 flex-1 truncate text-left">{label}</span>
+                <span className="min-w-0 flex-1 whitespace-nowrap text-left">{label}</span>
                 <ChevronDown className="size-3 shrink-0 opacity-60" aria-hidden />
               </>
             )}
@@ -212,59 +219,67 @@ export function EstimateLineTypeMenu({
             );
           })}
 
-          {showLaborActions ? (
+          {showLaborGuide || showLaborCustom ? (
             <>
               <DropdownMenuSeparator />
-              <DropdownMenuLabel className="text-[10px] font-normal text-muted-foreground">
-                Labor Book
-              </DropdownMenuLabel>
-              {openLaborGuide ? (
+              {showLaborGuide ? (
                 <>
-                  <DropdownMenuItem className="gap-2 text-xs" onSelect={openLaborGuide}>
-                    <ListTree className="size-3.5 shrink-0 text-brand-navy" aria-hidden />
-                    Add labor from catalog
-                  </DropdownMenuItem>
-                  <DropdownMenuItem className="gap-2 text-xs" onSelect={openLaborGuide}>
-                    <ListTree className="size-3.5 shrink-0 text-brand-navy" aria-hidden />
-                    Add labor from Labor Book
-                  </DropdownMenuItem>
+                  <DropdownMenuLabel className="text-[10px] font-normal text-muted-foreground">
+                    Labor Book
+                  </DropdownMenuLabel>
+                  {openLaborGuide ? (
+                    <>
+                      <DropdownMenuItem className="gap-2 text-xs" onSelect={openLaborGuide}>
+                        <ListTree className="size-3.5 shrink-0 text-brand-navy" aria-hidden />
+                        Add labor from catalog
+                      </DropdownMenuItem>
+                      <DropdownMenuItem className="gap-2 text-xs" onSelect={openLaborGuide}>
+                        <ListTree className="size-3.5 shrink-0 text-brand-navy" aria-hidden />
+                        Add labor from Labor Book
+                      </DropdownMenuItem>
+                    </>
+                  ) : null}
                 </>
               ) : null}
-              {h.onCustomLabor ? (
+              {showLaborCustom ? (
                 <DropdownMenuItem className="gap-2 text-xs" onSelect={h.onCustomLabor}>
                   <Wrench className="size-3.5 shrink-0 text-brand-navy" aria-hidden />
                   Add custom labor
                 </DropdownMenuItem>
               ) : null}
-              <DropdownMenuItem disabled className="gap-2 text-xs opacity-60">
-                <Package className="size-3.5 shrink-0" aria-hidden />
-                Add labor from kit
-                <span className="ml-auto text-[9px]">Soon</span>
-              </DropdownMenuItem>
+              {showLaborGuide ? (
+                <DropdownMenuItem disabled className="gap-2 text-xs opacity-60">
+                  <Package className="size-3.5 shrink-0" aria-hidden />
+                  Add labor from kit
+                  <span className="ml-auto text-[9px]">Soon</span>
+                </DropdownMenuItem>
+              ) : null}
             </>
           ) : null}
 
-          {showPartActions ? (
+          {showPartGuide || showPartCustom ? (
             <>
               <DropdownMenuSeparator />
               <DropdownMenuLabel className="text-[10px] font-normal text-muted-foreground">
                 Parts
               </DropdownMenuLabel>
-              {h.onPartFromGuide ? (
+              {showPartGuide ? (
                 <DropdownMenuItem className="gap-2 text-xs" onSelect={h.onPartFromGuide}>
                   <BookOpen className="size-3.5 shrink-0 text-brand-navy" aria-hidden />
                   Add part from catalog
                 </DropdownMenuItem>
               ) : null}
-              {h.onCustomPart ? (
+              {showPartCustom ? (
                 <DropdownMenuItem className="gap-2 text-xs" onSelect={h.onCustomPart}>
                   <Wrench className="size-3.5 shrink-0 text-brand-navy" aria-hidden />
                   Add custom part
                 </DropdownMenuItem>
               ) : null}
-              <p className="px-2 py-1 text-[9px] leading-snug text-muted-foreground">
-                Part lines use catalog lookup until MOTOR parts bridge ships.
-              </p>
+              {showPartGuide ? (
+                <p className="px-2 py-1 text-[9px] leading-snug text-muted-foreground">
+                  Part lines use catalog lookup until MOTOR parts bridge ships.
+                </p>
+              ) : null}
             </>
           ) : null}
         </DropdownMenuContent>

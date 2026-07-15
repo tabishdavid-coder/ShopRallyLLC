@@ -19,6 +19,7 @@ import {
   ShopCapabilitiesProvider,
   type ShopCapabilities,
 } from "@/lib/shop-capabilities";
+import { resolvePlanFeatures } from "@/lib/plans";
 import type { AppNotification } from "@/server/notifications";
 import { cn } from "@/lib/utils";
 
@@ -62,12 +63,14 @@ export function AutopilotShell({
   capabilities = {
     sms: false,
     stripePayments: false,
-    growth: false,
-    maintenancePrograms: false,
-    partsTech: false,
     motorLabor: false,
-    shopSite: false,
-    websiteSeo: false,
+    partsTech: false,
+    marketingCampaigns: false,
+    vehicleSpecs: false,
+    autodevDecoding: false,
+    freeformRoIntake: false,
+    corePlan: false,
+    planFeatures: resolvePlanFeatures({ plan: "STARTER" }),
   },
   children,
 }: AutopilotShellProps) {

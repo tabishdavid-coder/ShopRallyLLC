@@ -10,7 +10,9 @@ import {
 } from "react";
 
 import type { RoIntakeConfig, RoIntakeOpenOptions } from "@/lib/ro-intake-types";
+import { RoIntakeChooserDialog } from "@/components/repair-order/ro-intake-chooser-dialog";
 import { RoIntakeDialog } from "@/components/repair-order/ro-intake-dialog";
+import { SmartRoIntakeDialog } from "@/components/repair-order/smart-ro-intake-dialog";
 
 type RoIntakeContextValue = {
   openIntake: (opts?: RoIntakeOpenOptions) => void;
@@ -26,14 +28,23 @@ export function RoIntakeProvider({
   config: RoIntakeConfig | null;
   children: ReactNode;
 }) {
-  const [open, setOpen] = useState(false);
+  const [chooserOpen, setChooserOpen] = useState(false);
+  const [manualOpen, setManualOpen] = useState(false);
+  const [smartOpen, setSmartOpen] = useState(false);
   const [initial, setInitial] = useState<RoIntakeOpenOptions>({});
 
-  const openIntake = useCallback((opts?: RoIntakeOpenOptions) => {
-    if (!config) return;
-    setInitial(opts ?? {});
-    setOpen(true);
-  }, [config]);
+  const openIntake = useCallback(
+    (opts?: RoIntakeOpenOptions) => {
+      if (!config) return;
+      setInitial(opts ?? {});
+      if (opts?.customerId) {
+        setManualOpen(true);
+        return;
+      }
+      setChooserOpen(true);
+    },
+    [config],
+  );
 
   const value = useMemo(
     () => ({ openIntake, config }),
@@ -44,13 +55,26 @@ export function RoIntakeProvider({
     <RoIntakeContext.Provider value={value}>
       {children}
       {config ? (
-        <RoIntakeDialog
-          open={open}
-          onOpenChange={setOpen}
-          config={config}
-          initialCustomerId={initial.customerId}
-          initialVehicleId={initial.vehicleId}
-        />
+        <>
+          <RoIntakeChooserDialog
+            open={chooserOpen}
+            onOpenChange={setChooserOpen}
+            onSmart={() => setSmartOpen(true)}
+            onManual={() => setManualOpen(true)}
+          />
+          <SmartRoIntakeDialog
+            open={smartOpen}
+            onOpenChange={setSmartOpen}
+            config={config}
+          />
+          <RoIntakeDialog
+            open={manualOpen}
+            onOpenChange={setManualOpen}
+            config={config}
+            initialCustomerId={initial.customerId}
+            initialVehicleId={initial.vehicleId}
+          />
+        </>
       ) : null}
     </RoIntakeContext.Provider>
   );

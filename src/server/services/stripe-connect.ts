@@ -250,7 +250,7 @@ export async function getCheckoutStripeContext(shopId: string): Promise<
     return {
       canCheckout: false,
       error:
-        "Stripe Connect payments are not included on Core. Upgrade to Pro or Elite, or record a manual payment.",
+        "Stripe Connect payments are not included on Ignition. Upgrade to Pro or Elite, or record a manual payment.",
     };
   }
   const status = await getShopStripeStatus(shopId);
@@ -429,7 +429,7 @@ export async function createConnectAccountLink(shopId: string): Promise<ConnectA
     return {
       ok: false,
       error:
-        "Stripe Connect is not included on Core. Upgrade to Pro or Elite to accept online payments.",
+        "Stripe Connect is not included on Ignition. Upgrade to Pro or Elite to accept online payments.",
     };
   }
 

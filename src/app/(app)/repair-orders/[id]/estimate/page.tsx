@@ -1,8 +1,7 @@
 import { notFound } from "next/navigation";
 
 import { EstimateBuildingLabPanel } from "@/components/estimate-building/estimate-building-lab-panel";
-import { getShopId } from "@/lib/shop";
-import { getRepairOrder } from "@/server/repair-order";
+import { requireRepairOrder } from "@/server/repair-order-access";
 
 /** Production estimate tab — merged Estimate Building Lab UX (Batch 7). */
 export default async function EstimatePage({
@@ -11,9 +10,7 @@ export default async function EstimatePage({
   params: Promise<{ id: string }>;
 }) {
   const { id } = await params;
-  const shopId = await getShopId();
-  const ro = await getRepairOrder({ shopId, id });
-  if (!ro) notFound();
+  const { shopId } = await requireRepairOrder(id);
 
   return (
     <EstimateBuildingLabPanel roId={id} shopId={shopId} variant="production" />

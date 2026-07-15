@@ -335,6 +335,7 @@ enum AiFeature {
   VOICE_RECEPTIONIST
   SUPPORT_FAQ
   LABOR_GUIDE
+  FREEFORM_RO_INTAKE
 }
 
 // Marketing → SEO Autopilot (managed properties + scheduled audits).

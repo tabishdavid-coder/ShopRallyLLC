@@ -2,40 +2,107 @@ import "server-only";
 
 import {
   buildAllowedNavHrefs,
-  buildAllowedShellSectionIds,
+  buildAllowedSectionIds,
+  CRM_NAV_HREF_PERMISSIONS,
   isCrmAccessExemptPath,
   roTabSegmentAllowed,
   routeAllowedByPermissions,
   routeRuleForPath,
   type EffectivePermissions,
 } from "@/lib/crm-access";
-import { GROWTH_ENGINE, GROWTH_PRODUCTS } from "@/lib/growth-engine-brand";
 import { canUseFeature, canUseReleasedFeature, type SubscriptionFeature } from "@/lib/subscription";
 import { getEffectivePermissions } from "@/server/permissions";
 
 export type CrmAccessContext = {
   effective: EffectivePermissions;
-  /** RBAC-only; `undefined` = unrestricted. Plan gates use `allowedSectionIds` + capabilities. */
   allowedNavHrefs?: string[];
-  /** Always set — includes Autopilot + CRM section ids; Growth omitted when not entitled. */
-  allowedSectionIds: string[];
+  allowedSectionIds?: string[];
   growthPlanOk: boolean;
-  maintenanceOk: boolean;
-  smsOk: boolean;
 };
+
+/** Nav hrefs gated by plan entitlement (server filters `allowedNavHrefs`). */
+const HREF_PLAN_FEATURES: Partial<Record<string, SubscriptionFeature>> = {
+  "/orders": "parts",
+  "/vendors/integrations": "parts",
+  "/maintenance-programs/subscribers": "maintenance_programs",
+  "/marketing/payment-account": "marketing_campaigns",
+  "/settings/marketing": "marketing_campaigns",
+  "/settings/booking": "booking",
+  "/settings/markups": "markupMatrices",
+  "/settings/markups/parts": "markupMatrices",
+  "/settings/markups/labor": "markupMatrices",
+  "/settings/communications/phone-sms": "sms",
+  "/settings/payments": "stripePayments",
+  "/settings/integrations/stripe": "stripePayments",
+};
+
+type PlanRouteGate = {
+  prefix: string;
+  feature: SubscriptionFeature;
+  /** When true, also requires phased release flag. */
+  released?: boolean;
+};
+
+/**
+ * Deep route gates (settings / vendors). Main sidebar destinations
+ * (Labor Book, Messages, Growth, Payments, Catalog) stay visible on Core so
+ * shops see the full CRM IA — Pro features still enforce entitlement in-page.
+ */
+const PLAN_ROUTE_GATES: PlanRouteGate[] = [
+  { prefix: "/orders", feature: "parts", released: true },
+  { prefix: "/vendors", feature: "parts", released: true },
+  { prefix: "/settings/marketing", feature: "marketing_campaigns", released: true },
+  { prefix: "/settings/booking", feature: "booking", released: true },
+  { prefix: "/settings/markups", feature: "markupMatrices" },
+  { prefix: "/settings/communications/phone-sms", feature: "sms" },
+  { prefix: "/settings/payments", feature: "stripePayments" },
+  { prefix: "/settings/integrations/stripe", feature: "stripePayments" },
+];
+
+const RELEASED_FEATURES = new Set<SubscriptionFeature>([
+  "parts",
+  "maintenance_programs",
+  "marketing_campaigns",
+  "booking",
+  "motorLabor",
+  "sms",
+]);
+
+async function planAllowsFeature(
+  shopId: string,
+  feature: SubscriptionFeature,
+  released?: boolean,
+): Promise<boolean> {
+  if (released || RELEASED_FEATURES.has(feature)) {
+    return canUseReleasedFeature(shopId, feature);
+  }
+  return canUseFeature(shopId, feature);
+}
+
+async function filterNavHrefsByPlan(shopId: string, hrefs: string[]): Promise<string[]> {
+  const results = await Promise.all(
+    hrefs.map(async (href) => {
+      const feature = HREF_PLAN_FEATURES[href];
+      if (!feature) return { href, ok: true as const };
+      const ok = await planAllowsFeature(shopId, feature, RELEASED_FEATURES.has(feature));
+      return { href, ok };
+    }),
+  );
+  return results.filter((r) => r.ok).map((r) => r.href);
+}
+
+async function planAllowsPath(shopId: string, pathname: string): Promise<boolean> {
+  const sorted = [...PLAN_ROUTE_GATES].sort((a, b) => b.prefix.length - a.prefix.length);
+  const rule = sorted.find(
+    (r) => pathname === r.prefix || pathname.startsWith(`${r.prefix}/`),
+  );
+  if (!rule) return true;
+  return planAllowsFeature(shopId, rule.feature, rule.released);
+}
 
 const GROWTH_ROUTE_PREFIXES = ["/marketing", "/maintenance-programs"];
 
-/** Stripe Connect settings live under /marketing but are Core-reachable (own wall). */
-function isGrowthExemptPath(pathname: string): boolean {
-  return (
-    pathname === "/marketing/payment-account" ||
-    pathname.startsWith("/marketing/payment-account/")
-  );
-}
-
 function growthRoute(pathname: string): boolean {
-  if (isGrowthExemptPath(pathname)) return false;
   return GROWTH_ROUTE_PREFIXES.some(
     (p) => pathname === p || pathname.startsWith(`${p}/`),
   );
@@ -44,17 +111,8 @@ function growthRoute(pathname: string): boolean {
 async function growthFeaturesForPath(pathname: string): Promise<SubscriptionFeature[]> {
   if (pathname.startsWith("/maintenance-programs")) return ["maintenance_programs"];
   if (pathname.startsWith("/marketing")) {
-    if (pathname.includes("/website") || pathname.includes("shop-site")) {
-      return ["shop_site"];
-    }
-    if (pathname.includes("seo") || pathname.includes("seo-automation")) {
-      return ["website_seo"];
-    }
     if (pathname.includes("online-booking") || pathname.includes("booking")) {
       return ["marketing_campaigns", "booking"];
-    }
-    if (pathname.includes("maintenance")) {
-      return ["maintenance_programs"];
     }
     return ["marketing_campaigns"];
   }
@@ -63,111 +121,42 @@ async function growthFeaturesForPath(pathname: string): Promise<SubscriptionFeat
 
 export async function getCrmAccessContext(shopId: string): Promise<CrmAccessContext> {
   const effective = await getEffectivePermissions(shopId);
-  const [growthPlanOk, maintenanceOk, smsOk] = await Promise.all([
-    canUseReleasedFeature(shopId, "marketing_campaigns"),
-    canUseReleasedFeature(shopId, "maintenance_programs"),
-    canUseReleasedFeature(shopId, "sms"),
-  ]);
+  const growthPlanOk = await canUseReleasedFeature(shopId, "marketing_campaigns");
 
-  // Always set section ids so admins on Core still lose the Growth chrome.
-  const allowedSectionIds = buildAllowedShellSectionIds(effective, growthPlanOk);
+  const permissionHrefs =
+    effective === "all"
+      ? Object.keys(CRM_NAV_HREF_PERMISSIONS)
+      : buildAllowedNavHrefs(effective);
+  const allowedNavHrefs = await filterNavHrefsByPlan(shopId, permissionHrefs);
+  const allowedSectionIds = buildAllowedSectionIds(effective, growthPlanOk);
 
   if (effective === "all") {
-    return {
-      effective,
-      allowedSectionIds,
-      growthPlanOk,
-      maintenanceOk,
-      smsOk,
-    };
+    return { effective, allowedNavHrefs, allowedSectionIds, growthPlanOk };
   }
 
   return {
     effective,
-    allowedNavHrefs: buildAllowedNavHrefs(effective),
+    allowedNavHrefs,
     allowedSectionIds,
     growthPlanOk,
-    maintenanceOk,
-    smsOk,
   };
-}
-
-export type CrmRouteAccessResult =
-  | { allowed: true }
-  | {
-      allowed: false;
-      reason: "permission" | "plan";
-      feature?: SubscriptionFeature;
-      featureLabel?: string;
-      description?: string;
-      notAvailableYet?: boolean;
-    };
-
-function featureMeta(feature: SubscriptionFeature): {
-  featureLabel: string;
-  description: string;
-} {
-  switch (feature) {
-    case "marketing_campaigns":
-    case "booking":
-      return {
-        featureLabel: GROWTH_ENGINE.name,
-        description: GROWTH_ENGINE.upgradeHint,
-      };
-    case "maintenance_programs":
-      return {
-        featureLabel: GROWTH_PRODUCTS.bayCare.label,
-        description: `${GROWTH_PRODUCTS.bayCare.label} is part of Growth Engine on Pro and Elite.`,
-      };
-    case "shop_site":
-      return {
-        featureLabel: GROWTH_PRODUCTS.shopSite.label,
-        description: GROWTH_ENGINE.overdriveHint,
-      };
-    case "website_seo":
-      return {
-        featureLabel: GROWTH_PRODUCTS.seoAutopilot.label,
-        description: GROWTH_ENGINE.overdriveHint,
-      };
-    case "sms":
-      return {
-        featureLabel: "Two-way SMS",
-        description: "Two-way SMS is included on Pro and Elite.",
-      };
-    default:
-      return {
-        featureLabel: "This feature",
-        description: "This feature is not included in your current plan.",
-      };
-  }
 }
 
 export async function checkCrmRouteAccess(
   pathname: string,
   shopId: string,
-): Promise<CrmRouteAccessResult> {
+): Promise<{ allowed: boolean; reason?: "permission" | "plan" }> {
   if (isCrmAccessExemptPath(pathname)) return { allowed: true };
+
+  if (!(await planAllowsPath(shopId, pathname))) {
+    return { allowed: false, reason: "plan" };
+  }
 
   const effective = await getEffectivePermissions(shopId);
 
   if (growthRoute(pathname)) {
-    const features = await growthFeaturesForPath(pathname);
-    for (const feature of features) {
-      const entitled = await canUseFeature(shopId, feature);
-      if (!entitled) {
-        return { allowed: false, reason: "plan", feature, ...featureMeta(feature) };
-      }
-      const released = await canUseReleasedFeature(shopId, feature);
-      if (!released) {
-        return {
-          allowed: false,
-          reason: "plan",
-          feature,
-          ...featureMeta(feature),
-          notAvailableYet: true,
-        };
-      }
-    }
+    // Grow pages stay reachable so Core shows the full Business → Growth IA;
+    // individual products still use canUseReleasedFeature inside the page.
     const rule = routeRuleForPath(pathname);
     if (rule && !routeAllowedByPermissions(effective, pathname)) {
       return { allowed: false, reason: "permission" };

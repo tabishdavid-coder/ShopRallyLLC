@@ -27,6 +27,7 @@ import {
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 
 import { formatCents, customerDisplayName } from "@/lib/format";
+import { useSmsUiEnabled, useStripePaymentsUiEnabled } from "@/lib/shop-capabilities";
 import { parseApprovalSignature } from "@/lib/approval-signature";
 import type { VehicleSpecsView } from "@/lib/vehicle-specs-view";
 import { RoVehicleSpecsPanel } from "@/components/repair-order/ro-vehicle-specs-panel";
@@ -55,7 +56,6 @@ import {
   smsPhoneHref,
   splitVinForDisplay,
 } from "@/lib/ro-context-display";
-import { useSmsUiEnabled } from "@/lib/shop-capabilities";
 import { cn } from "@/lib/utils";
 import { ROStatus } from "@/generated/prisma";
 import { RoMessages } from "@/components/repair-order/ro-messages";
@@ -210,6 +210,7 @@ export function RoContextDeck({
   vehicleSpecs: VehicleSpecsView;
 }) {
   const smsEnabled = useSmsUiEnabled();
+  const stripeOnPlan = useStripePaymentsUiEnabled();
   const v = ro.vehicle;
   const c = ro.customer;
   const save = useRoSidebarSave(ro.id);
@@ -399,12 +400,22 @@ export function RoContextDeck({
           size="sm"
           className="h-8 shrink-0 gap-1 border-brand-navy/25 px-2 text-[11px] font-semibold text-brand-navy"
           asChild
-          title={balanceDueCents && balanceDueCents > 0 ? "Collect payment" : "Payment & invoice"}
+          title={
+            balanceDueCents && balanceDueCents > 0
+              ? stripeOnPlan
+                ? "Collect payment"
+                : "Record payment"
+              : "Payment & invoice"
+          }
         >
           <Link href={roEstimateActionHref(ro.id, "payment")}>
             <CreditCard className="size-3.5" />
             <span className="hidden sm:inline">
-              {balanceDueCents && balanceDueCents > 0 ? `Pay ${formatCents(balanceDueCents)}` : "Payment"}
+              {balanceDueCents && balanceDueCents > 0
+                ? stripeOnPlan
+                  ? `Pay ${formatCents(balanceDueCents)}`
+                  : `Record ${formatCents(balanceDueCents)}`
+                : "Payment"}
             </span>
           </Link>
         </Button>
