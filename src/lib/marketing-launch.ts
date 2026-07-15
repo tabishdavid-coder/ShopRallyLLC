@@ -96,15 +96,15 @@ export const MARKET_POSITIONING = {
         : "Pro flagship · licensed MOTOR + Growth Engine · Elite full stack",
       points: PHASE_ONE_LAUNCH
         ? [
-            "Ignition: ShopRally CRM suite, DVIs, email estimates, job board & Operations Daily Snapshot",
-            "Ignition: 100 VIN & plate decodes / mo · $10 per extra 100 · manual payments",
+            "Ignition: unlimited users & ROs, job board, DVIs, email estimates & approvals",
+            "Ignition: Live Operations Daily Snapshot, appointments & payment tracking",
             "AI Plus (+$20/mo): freeform AI intake, labor assist & advisor mobile app",
             "Pro & Elite coming later — licensed MOTOR, Growth Engine, Stripe Connect & AI receptionist",
             "One customer record from job board to invoice",
           ]
         : [
-            "Ignition: ShopRally CRM suite, DVIs, email estimates, job board & Operations Daily Snapshot",
-            "Ignition: 100 VIN & plate decodes / mo · $10 per extra 100 · email only (no SMS / no Stripe Connect)",
+            "Ignition: unlimited users & ROs, job board, DVIs, email estimates & approvals",
+            "Ignition: Live Operations Daily Snapshot, appointments & payment tracking",
             "Licensed MOTOR labor data included on Pro & Elite",
             "Pro: unlimited VIN/plate, OEM specs & fluids, PartsTech, SMS, Stripe Connect, booking, Growth Engine",
             "Google review management on Pro · AI review replies on Elite",

@@ -54,13 +54,14 @@ const starterFeatures: PlanFeatureSet = {
 | Dashboard / Operations Daily Snapshot | ✅ | Permission-based | ⬜ verify |
 | Customers, vehicles, ROs, job board | ✅ | Permission-based | ⬜ verify |
 | Catalog (canned jobs, inspections, labor guide) | ✅ | Permission-based | ⬜ verify |
-| **Shop Growth** top section | ❌ | `growthPlanOk` hides section | ⬜ verify |
-| `/marketing/**` routes | ❌ | `checkCrmRouteAccess` + release | ⬜ verify |
+| **Shop Growth** top section | ❌ | `growthPlanOk` hides section | 🟡 gated 2026-07-13 |
+| `/marketing/**` routes | ❌ | `checkCrmRouteAccess` + release | 🟡 gated 2026-07-13 |
 | `/maintenance-programs/**` | ❌ | Same | ⬜ verify |
 | Messages / SMS inbox prominence | ❌ | `capabilities.sms` in shell | ⬜ verify |
-| Payments nav / Stripe Connect | ❌ | `capabilities.stripePayments` partial | ⚠️ audit `/payments` route |
+| Payments nav / Stripe Connect | ❌ | Manual Record path; Stripe Collect hidden | 🟡 gated 2026-07-13 |
+| Customer drawer Finances / Credit Memo | ❌ | Drawer tab + stub removed (PR #29) | 🟡 open PR |
 | Reports (basic) | ✅ | `reports: true` | ⬜ verify |
-| Settings → Subscription | ✅ | Shows Core plan | ⬜ verify |
+| Settings → Subscription | ✅ | Shows Core plan; blocked settings redirect | 🟡 gated 2026-07-13 |
 
 ---
 
@@ -69,10 +70,13 @@ const starterFeatures: PlanFeatureSet = {
 | Behavior | Core | Target |
 |----------|:----:|--------|
 | Shop labor library / canned jobs | ✅ | Primary estimate path |
-| Licensed MOTOR (BOOK) hours | ❌ | Hidden + server blocked |
-| AI labor drafts | TBD | Product decision (Instant Quote vs in-estimate AI) |
+| Licensed MOTOR (BOOK) hours | ❌ | Hidden + server blocked (`motorEnabledForShop`) |
+| Labor Book nav / toolbar lookup | ❌ | Hidden on Core (2026-07-13) |
+| AI labor drafts / Smart intake | Core + AI Plus add-on only | Gated 2026-07-13 |
+| Free-type YMM (no catalog required) | ✅ | Open PR #27 |
 | Markup matrices auto-apply | ❌ | `markupMatrices: false` |
-| PartsTech ordering | ❌ | `partsTech: false` |
+| PartsTech ordering / Vendor Connect | ❌ | `partsTech: false` — keep gate (open PR #26) |
+| Auto.dev plate→VIN | ❌ | Manual plate + NHTSA VIN only |
 
 **Known gap (2026-07-12):** `motorEnabledForShop` exists but resolver may still serve MOTOR when platform env is on — **must enforce per shop**.
 
@@ -113,6 +117,15 @@ Assigning **Core** on `/platform/shops`:
 
 ## 7. Merge policy
 
-- All Core fidelity work stays on `cursor/core-plan-fidelity-5e7c`
+- All Core fidelity **tracking docs** stay on `cursor/core-plan-fidelity-5e7c`
+- Product gates land as small focused PRs (log each in `CORE-PLAN-FIDELITY-CHANGELOG.md`)
 - Scenario / P&L docs stay on `cursor/core-to-200-shops-scenario-5e7c`
-- Merge fidelity branch → `main` when checklist green for P0 Core
+- Merge fidelity tracking → `main` when checklist green for P0 Core
+
+### Open Core gatekeeping PRs (2026-07-14)
+
+| PR | Intent |
+|----|--------|
+| [#26](https://github.com/tabishdavid-coder/ShopRallyLLC/pull/26) | PartsTech stays fully gated off Core |
+| [#27](https://github.com/tabishdavid-coder/ShopRallyLLC/pull/27) | Free-type YMM + VIN header cleanup |
+| [#29](https://github.com/tabishdavid-coder/ShopRallyLLC/pull/29) | Hide Finances tab / Credit Memo on Core |

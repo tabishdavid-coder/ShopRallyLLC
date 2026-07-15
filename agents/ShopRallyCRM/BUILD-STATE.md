@@ -1,17 +1,18 @@
 # Dev 3031 — build state (ShopRallyCRM)
 
-Last updated: 2026-07-13 (Core plan merged to **main**)
+Last updated: 2026-07-14 (Core gatekeeping tracking)
 
 > **Canonical dev:** **`ShopRally/`** folder only — `npm run dev` → :3031. See `docs/SHOPRALLY-DEV.md`.
 > Do **not** develop shop CRM in the sibling `karvio/` folder (legacy platform fork).
 
-## Active session — Macuto Core QA (on `main`)
+## Active session — Macuto Core QA
 
-**Branch:** `main` (Core plan work merged 2026-07-13)  
+**Tracking branch:** `cursor/core-plan-fidelity-5e7c` (docs + changelog; product gates land via focused PRs)  
 **QA shop:** **Macuto Auto Repair** (`shop_macuto`, code **MAC**) — platform admin default tenant  
-**Plan:** Core (`STARTER`) @ $49.99/mo · optional AI Plus +$20/mo  
-**Merged:** phase-one rebrand, core-settings-prune, core-plan-fidelity, estimate-toolbar gates, autodev plate gates  
-**Track:** `docs/CORE-PLAN-FIDELITY.md` · `src/lib/settings-plan-gates.ts`
+**Plan:** Core (`STARTER`) @ $49.99/mo · optional AI Plus add-on  
+**On `main`:** phase-one rebrand, settings prune, estimate-toolbar / growth / Labor Book / payments / Auto.dev plate gates  
+**Open Core gate PRs:** [#26](https://github.com/tabishdavid-coder/ShopRallyLLC/pull/26) PartsTech · [#27](https://github.com/tabishdavid-coder/ShopRallyLLC/pull/27) free-type YMM · [#29](https://github.com/tabishdavid-coder/ShopRallyLLC/pull/29) Finances tab  
+**Track:** `docs/CORE-PLAN-FIDELITY.md` · `agents/ShopRallyCRM/CORE-PLAN-FIDELITY-CHANGELOG.md` · `src/lib/settings-plan-gates.ts`
 
 ### Quick open
 
