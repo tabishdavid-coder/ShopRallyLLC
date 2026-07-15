@@ -35,7 +35,7 @@ import { AP_TERMS } from "@/lib/autopilot3030/terminology";
 import { GROWTH_PRODUCTS, type GrowthProductId } from "@/lib/growth-engine-brand";
 import { SEO_AUTOPILOT_TABS } from "@/lib/seo-autopilot-nav";
 import type { PlanFeatureSet } from "@/lib/plans";
-import { isApSettingsLinkVisible } from "@/lib/settings-plan-gates";
+import { isApSettingsLinkVisible, isCatalogNavHrefVisible } from "@/lib/settings-plan-gates";
 
 export type ApNavLink = {
   title: string;
@@ -483,6 +483,16 @@ export const AP_CATALOG_MODULE_NAV_ITEMS: ApNavLink[] = [
   ...(AP_NAV_SECTIONS.find((s) => s.id === "catalog")?.items ?? []),
   ...AP_MARKUPS_NAV_ITEMS,
 ];
+
+/**
+ * Catalog chips filtered by plan — Vendor Connect (PartsTech) is Pro+ only.
+ * Uses the same gate as settings redirects so Core never sees PartsTech chips.
+ */
+export function apCatalogNavItemsForPlan(features: PlanFeatureSet): ApNavLink[] {
+  return AP_CATALOG_MODULE_NAV_ITEMS.filter((item) =>
+    isCatalogNavHrefVisible(item.href, features),
+  );
+}
 
 /** In-page chip subnav for Dashboard routes (not shown in the operations sidebar). */
 export const AP_DASHBOARD_MODULE_NAV_ITEMS: ApNavLink[] = [

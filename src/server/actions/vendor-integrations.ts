@@ -155,6 +155,8 @@ export async function testVendorConnection(
 
   switch (vendorKey) {
     case "partstech": {
+      const featureDenied = await releasedFeatureDenied(shopId, "parts");
+      if (featureDenied) return { ok: false, error: featureDenied };
       const { testPartsTechConnection } = await import("@/server/services/partstech");
       const result = await testPartsTechConnection(shopId);
       if (result.ok) return { ok: true, message: result.message };

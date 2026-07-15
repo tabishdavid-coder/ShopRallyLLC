@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import {
   Activity,
   ClipboardList,
@@ -13,6 +13,7 @@ import {
 import { ApSubnavTabs, type ApSubnavTabItem } from "@/components/autopilot3030/shell/ap-subnav-tabs";
 import { apSubnavTabClass } from "@/lib/autopilot3030/nav-active";
 import { isAutopilot3030Shell } from "@/lib/autopilot3030/shell-variant";
+import { usePartsTechUiEnabled } from "@/lib/shop-capabilities";
 import { cn } from "@/lib/utils";
 
 export type EstimateLabWorkTabId =
@@ -46,9 +47,17 @@ export function EstimateLabWorkTabs({
   servicesFooter,
   onTabChange,
 }: Props) {
-  const [active, setActive] = useState<EstimateLabWorkTabId>(defaultTab);
+  const partsTechOk = usePartsTechUiEnabled();
+  const visibleTabs = useMemo(
+    () => TABS.filter((t) => t.id !== "parts" || partsTechOk),
+    [partsTechOk],
+  );
+  const initial =
+    defaultTab === "parts" && !partsTechOk ? "services" : defaultTab;
+  const [active, setActive] = useState<EstimateLabWorkTabId>(initial);
 
   function selectTab(id: EstimateLabWorkTabId) {
+    if (id === "parts" && !partsTechOk) return;
     setActive(id);
     onTabChange?.(id);
   }
@@ -59,7 +68,7 @@ export function EstimateLabWorkTabs({
     <div className="flex min-h-0 min-w-0 flex-1 flex-col">
       {apShell ? (
         <ApSubnavTabs
-          items={TABS}
+          items={visibleTabs}
           activeId={active}
           onSelect={(id) => selectTab(id as EstimateLabWorkTabId)}
           ariaLabel="Estimate workspace"
@@ -70,7 +79,7 @@ export function EstimateLabWorkTabs({
           role="tablist"
           aria-label="Estimate workspace"
         >
-          {TABS.map(({ id, label, shortLabel, icon: Icon }) => {
+          {visibleTabs.map(({ id, label, shortLabel, icon: Icon }) => {
             const selected = active === id;
             return (
               <button
@@ -91,21 +100,21 @@ export function EstimateLabWorkTabs({
       )}
 
       <div className="relative flex min-h-0 min-w-0 flex-1 flex-col">
-        {TABS.map(({ id }) => {
+        {visibleTabs.map(({ id }) => {
           const tabId = id as EstimateLabWorkTabId;
           return (
-          <div
-            key={tabId}
-            role="tabpanel"
-            hidden={active !== tabId}
-            aria-hidden={active !== tabId}
-            className={cn(
-              "min-h-0 min-w-0 flex-1 flex-col",
-              active === tabId ? "flex" : "hidden",
-            )}
-          >
-            {panels[tabId]}
-          </div>
+            <div
+              key={tabId}
+              role="tabpanel"
+              hidden={active !== tabId}
+              aria-hidden={active !== tabId}
+              className={cn(
+                "min-h-0 min-w-0 flex-1 flex-col",
+                active === tabId ? "flex" : "hidden",
+              )}
+            >
+              {panels[tabId]}
+            </div>
           );
         })}
         {active === "services" && servicesFooter ? servicesFooter : null}

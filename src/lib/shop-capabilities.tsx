@@ -76,7 +76,7 @@ export function useMotorLaborUiEnabled(): boolean {
   return useShopCapabilities().motorLabor;
 }
 
-/** PartsTech / vendor parts lookup UI — Pro+. */
+/** PartsTech / vendor parts lookup UI — Pro+ only (never Core). */
 export function usePartsTechUiEnabled(): boolean {
   return useShopCapabilities().partsTech;
 }
