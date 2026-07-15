@@ -24,8 +24,7 @@ import { GripVertical, Plus, X } from "lucide-react";
 import { EstimateLabLineAddSplit } from "@/components/estimate-building/estimate-lab-line-add-split";
 import {
   EstimateLineTypeMenu,
-  LABOR_LINE_TYPES,
-  PART_FAMILY_LINE_TYPES,
+  SERVICE_LINE_TYPE_OPTIONS,
   type EstimateLineTypeMenuHandlers,
   type InlineLineType,
 } from "@/components/estimate-building/estimate-line-type-menu";
@@ -66,13 +65,17 @@ import {
   LAB_DESCRIPTION_SELECT_CLASS,
   LAB_DESCRIPTION_TEXTAREA_CLASS,
   LAB_INPUT_FLAT,
-  LAB_LINE_GRID,
-  LAB_LINE_GRID_HEAD,
+  LAB_LINE_GRID_BASE,
+  LAB_LINE_GRID_HEAD_BASE,
   LAB_LINE_GRID_MIN_W,
+  LAB_MONEY_PREFIX,
   LAB_TABLE_HEAD,
 } from "@/components/estimate-building/estimate-lab-job-card-shell";
-
-const DESC_STACK = "flex min-w-0 flex-col gap-0.5 overflow-hidden";
+import {
+  LabNameDescCells,
+  LabNameDescResizeHandle,
+  useLabNameDescSplit,
+} from "@/components/estimate-building/estimate-lab-name-desc-split";
 
 function LabDescriptionTextarea({
   value = "",
@@ -579,6 +582,7 @@ function SortableRow({
   id,
   children,
   disabled,
+  gridTemplateColumns,
 }: {
   id: string;
   children: (handle: {
@@ -587,6 +591,7 @@ function SortableRow({
     isDragging: boolean;
   }) => ReactNode;
   disabled?: boolean;
+  gridTemplateColumns: string;
 }) {
   const { setNodeRef, transform, transition, isDragging, attributes, listeners } = useSortable({
     id,
@@ -595,9 +600,9 @@ function SortableRow({
   return (
     <div
       ref={setNodeRef}
-      style={{ transform: CSS.Transform.toString(transform), transition }}
+      style={{ transform: CSS.Transform.toString(transform), transition, gridTemplateColumns }}
       className={cn(
-        LAB_LINE_GRID,
+        LAB_LINE_GRID_BASE,
         "border-b border-border/60 last:border-0",
         isDragging && "relative z-10 bg-white shadow-md ring-1 ring-brand-navy/20",
       )}
@@ -606,8 +611,6 @@ function SortableRow({
     </div>
   );
 }
-
-const ADJ_SELECT = cn(LAB_DESCRIPTION_SELECT_CLASS);
 
 export function EstimateLabServiceItemsGrid({
   labor,
@@ -672,6 +675,8 @@ export function EstimateLabServiceItemsGrid({
 }) {
   const router = useRouter();
   const [, startAdj] = useTransition();
+  const { ratio, setLive: setNameDescRatio, persist: persistNameDescRatio, gridTemplateColumns } =
+    useLabNameDescSplit();
   const calcOpts = { baseRateCents, laborTiers };
   const [addType, setAddType] = useState<InlineLineType>("labor");
   const [dndReady, setDndReady] = useState(false);
@@ -948,7 +953,7 @@ export function EstimateLabServiceItemsGrid({
       const amountCents = laborLineTotal(l);
 
       return (
-        <SortableRow key={item.key} id={item.key} disabled={!editing || !dndReady}>
+        <SortableRow key={item.key} id={item.key} disabled={!editing || !dndReady} gridTemplateColumns={gridTemplateColumns}>
           {({ listeners, attributes, isDragging }) => (
             <>
               <div className={cn(LAB_GRID_CELL_BORDERED, "justify-center")}>
@@ -961,49 +966,51 @@ export function EstimateLabServiceItemsGrid({
               <div className={LAB_GRID_CELL_BORDERED}>
                 <EstimateLineTypeMenu
                   value="labor"
-                  scope="labor"
-                  typeOptions={LABOR_LINE_TYPES}
+                  typeOptions={SERVICE_LINE_TYPE_OPTIONS}
                   editing={editing}
                   onChange={(t) => onTypeChange(index, t)}
                   handlers={typeGuideHandlers}
                 />
               </div>
-              <div className={LAB_GRID_CELL_BORDERED}>
-                {editing ? (
-                  <Input
-                    value={laborName}
-                    onChange={(e) =>
-                      updateAt(index, (m) =>
-                        m.kind === "labor"
-                          ? { ...m, row: { ...m.row, description: joinLaborDesc(e.target.value, laborDetail) } }
-                          : m,
-                      )
-                    }
-                    className={cn(LAB_INPUT_FLAT, "w-full")}
-                    placeholder="Enter name*"
-                  />
-                ) : (
-                  <p className={cn("min-w-0 truncate text-xs text-brand-navy", lineThrough)}>{laborName || "—"}</p>
-                )}
-              </div>
-              <div className={LAB_GRID_CELL_BORDERED}>
-                {editing ? (
-                  <LabDescriptionTextarea
-                    value={laborDetail}
-                    onChange={(e) =>
-                      updateAt(index, (m) =>
-                        m.kind === "labor"
-                          ? { ...m, row: { ...m.row, description: joinLaborDesc(laborName, e.target.value) } }
-                          : m,
-                      )
-                    }
-                  />
-                ) : (
-                  <p className={cn("line-clamp-2 min-w-0 text-[10px] leading-snug text-muted-foreground", lineThrough)}>
-                    {laborDetail || "—"}
-                  </p>
-                )}
-              </div>
+              <LabNameDescCells
+                name={
+                  editing ? (
+                    <LabDescriptionTextarea
+                      value={laborName}
+                      placeholder="Enter name*"
+                      onChange={(e) =>
+                        updateAt(index, (m) =>
+                          m.kind === "labor"
+                            ? { ...m, row: { ...m.row, description: joinLaborDesc(e.target.value, laborDetail) } }
+                            : m,
+                        )
+                      }
+                    />
+                  ) : (
+                    <p className={cn("min-w-0 line-clamp-2 text-xs text-brand-navy", lineThrough)}>
+                      {laborName || "—"}
+                    </p>
+                  )
+                }
+                description={
+                  editing ? (
+                    <LabDescriptionTextarea
+                      value={laborDetail}
+                      onChange={(e) =>
+                        updateAt(index, (m) =>
+                          m.kind === "labor"
+                            ? { ...m, row: { ...m.row, description: joinLaborDesc(laborName, e.target.value) } }
+                            : m,
+                        )
+                      }
+                    />
+                  ) : (
+                    <p className={cn("line-clamp-2 min-w-0 text-[10px] leading-snug text-muted-foreground", lineThrough)}>
+                      {laborDetail || "—"}
+                    </p>
+                  )
+                }
+              />
               <div className={LAB_GRID_NUM_BORDERED}>
                 {editing ? (
                   <InlineQtyCell
@@ -1106,15 +1113,13 @@ export function EstimateLabServiceItemsGrid({
     if (item.kind === "adjustment") {
       const a = item.row;
       const isFee = item.adjKind === "fee";
-      const templates = isFee ? feeTemplates : discountTemplates;
       const total = calcAdjustmentTotal(a, laborCents, partsCents);
       const amountKey = `${draftPrefix}-amount`;
-      const methodLabel = a.method === "PERCENT" ? `${a.amount / 100}%` : formatCents(a.amount);
       const baseLabel =
         a.base === "LABOR_PARTS" ? "Labor + parts" : a.base === "LABOR" ? "Labor" : "Parts";
 
       return (
-        <SortableRow key={item.key} id={item.key} disabled>
+        <SortableRow key={item.key} id={item.key} disabled gridTemplateColumns={gridTemplateColumns}>
           {() => (
             <>
               <div className={cn(LAB_GRID_CELL_BORDERED, "justify-center")}>
@@ -1123,103 +1128,70 @@ export function EstimateLabServiceItemsGrid({
               <div className={LAB_GRID_CELL_BORDERED}>
                 <EstimateLineTypeMenu
                   value={item.adjKind}
+                  typeOptions={SERVICE_LINE_TYPE_OPTIONS}
                   editing={editing}
                   onChange={(t) => onTypeChange(index, t)}
                   handlers={typeGuideHandlers}
                 />
               </div>
-              <div className={LAB_GRID_CELL_BORDERED}>
-                {editing ? (
-                  <div className="flex min-w-0 items-center gap-0.5">
-                    {templates.length > 0 ? (
-                      <select
-                        className={cn(ADJ_SELECT, "max-w-[4.5rem] shrink-0")}
-                        value=""
-                        onChange={(e) => {
-                          const t = templates.find((x) => x.name === e.target.value);
-                          if (!t) return;
-                          commitAdjustment(a, item.adjKind, {
-                            name: t.name,
-                            method: t.method,
-                            base: t.base,
-                            amount: t.amount,
-                            ...(isFee ? { taxable: t.taxable ?? false } : {}),
-                          });
-                        }}
-                        aria-label={`Saved ${isFee ? "fee" : "discount"} preset`}
-                      >
-                        <option value="">Preset…</option>
-                        {templates.map((t) => (
-                          <option key={t.name} value={t.name}>
-                            {t.name}
-                          </option>
-                        ))}
-                      </select>
-                    ) : null}
+              <LabNameDescCells
+                name={
+                  editing ? (
                     <Input
                       defaultValue={a.name}
                       key={`${a.id}-${a.name}`}
                       onBlur={(e) => commitAdjustment(a, item.adjKind, { name: e.target.value })}
-                      className={cn(LAB_INPUT_FLAT, "min-w-0 flex-1")}
+                      className={cn(LAB_INPUT_FLAT, "w-full")}
                       placeholder={isFee ? "Fee name" : "Discount name"}
                     />
-                  </div>
-                ) : (
-                  <p className="min-w-0 truncate text-xs text-brand-navy">{a.name}</p>
-                )}
-              </div>
-              <div className={LAB_GRID_CELL_BORDERED}>
-                {editing ? (
-                  <div className={DESC_STACK}>
-                    <select
-                      data-lab-description
-                      value={a.method}
-                      onChange={(e) =>
-                        commitAdjustment(a, item.adjKind, { method: e.target.value as AdjustMethod })
-                      }
-                      className={ADJ_SELECT}
-                      aria-label="Method"
-                    >
-                      <option value="FIXED">Fixed $</option>
-                      <option value="PERCENT">Percent %</option>
-                    </select>
+                  ) : (
+                    <p className="min-w-0 line-clamp-2 text-xs text-brand-navy">{a.name || "—"}</p>
+                  )
+                }
+                description={
+                  editing ? (
                     <select
                       data-lab-description
                       value={a.base}
                       onChange={(e) =>
                         commitAdjustment(a, item.adjKind, { base: e.target.value as AdjustBase })
                       }
-                      className={ADJ_SELECT}
+                      className={LAB_DESCRIPTION_SELECT_CLASS}
                       aria-label="Calculate on"
                     >
                       <option value="LABOR_PARTS">Labor + parts</option>
                       <option value="LABOR">Labor</option>
                       <option value="PARTS">Parts</option>
                     </select>
-                  </div>
-                ) : (
-                  <p className="text-[10px] leading-snug text-muted-foreground">
-                    {a.method === "PERCENT" ? "Percent" : "Fixed"} on {baseLabel}
-                  </p>
-                )}
-              </div>
-              <div className={LAB_GRID_NUM_BORDERED}>
-                <InlinePlaceholderCell />
-              </div>
-              <div className={LAB_GRID_NUM_BORDERED}>
-                <InlinePlaceholderCell />
-              </div>
-              <div className={LAB_GRID_NUM_BORDERED}>
-                <InlinePlaceholderCell />
-              </div>
+                  ) : (
+                    <p className="line-clamp-2 min-w-0 text-[10px] leading-snug text-muted-foreground">
+                      {baseLabel}
+                    </p>
+                  )
+                }
+              />
               <div className={LAB_GRID_NUM_BORDERED}>
                 <span className="inline-flex h-7 w-full items-center justify-end text-xs tabular-nums text-muted-foreground">
-                  {methodLabel}
+                  {a.method === "PERCENT" ? "—" : "1"}
                 </span>
               </div>
               <div className={LAB_GRID_NUM_BORDERED}>
+                <InlinePlaceholderCell />
+              </div>
+              <div className={LAB_GRID_NUM_BORDERED}>
                 {editing ? (
-                  <div className={DESC_STACK}>
+                  <div className={MONEY_CELL}>
+                    <select
+                      className={cn(LAB_MONEY_PREFIX, LAB_INPUT_FLAT, "text-[10px]")}
+                      value={a.method}
+                      onChange={(e) =>
+                        commitAdjustment(a, item.adjKind, { method: e.target.value as AdjustMethod })
+                      }
+                      aria-label="Fee method"
+                    >
+                      <option value="FIXED">$</option>
+                      <option value="PERCENT">%</option>
+                    </select>
                     <Input
                       type="text"
                       inputMode="decimal"
@@ -1236,15 +1208,22 @@ export function EstimateLabServiceItemsGrid({
                         commitAdjustment(a, item.adjKind, { amount: cents });
                         clearFieldDraft(amountKey);
                       }}
-                      className={cn(LAB_INPUT_FLAT, "w-full text-right")}
+                      className={cn(MONEY_INPUT, "min-w-0 flex-1")}
                     />
-                    <span className="text-[9px] text-muted-foreground/60">
-                      {a.method === "PERCENT" ? "% rate" : "$ amount"}
-                    </span>
                   </div>
+                ) : a.method === "PERCENT" ? (
+                  <span className="inline-flex h-7 w-full items-center justify-end text-xs font-medium tabular-nums">
+                    {a.amount / 100}%
+                  </span>
                 ) : (
-                  <LineDiscountStub editing={false} />
+                  <ReadOnlyMoney cents={a.amount} className="font-medium" />
                 )}
+              </div>
+              <div className={LAB_GRID_NUM_BORDERED}>
+                <ReadOnlyMoney cents={total} className="font-medium" />
+              </div>
+              <div className={LAB_GRID_NUM_BORDERED}>
+                <LineDiscountStub editing={editing} />
               </div>
               <div className={LAB_GRID_NUM_BORDERED}>
                 <span
@@ -1291,7 +1270,7 @@ export function EstimateLabServiceItemsGrid({
     const amountCents = partLineTotal(p);
 
     return (
-      <SortableRow key={item.key} id={item.key} disabled={!editing || !dndReady}>
+      <SortableRow key={item.key} id={item.key} disabled={!editing || !dndReady} gridTemplateColumns={gridTemplateColumns}>
         {({ listeners, attributes, isDragging }) => (
           <>
             <div className={cn(LAB_GRID_CELL_BORDERED, "justify-center")}>
@@ -1304,47 +1283,49 @@ export function EstimateLabServiceItemsGrid({
             <div className={LAB_GRID_CELL_BORDERED}>
               <EstimateLineTypeMenu
                 value={item.lineType}
-                scope="part"
-                typeOptions={[...PART_FAMILY_LINE_TYPES, "fee", "discount"]}
+                typeOptions={SERVICE_LINE_TYPE_OPTIONS}
                 editing={editing}
                 onChange={(t) => onTypeChange(index, t)}
                 handlers={typeGuideHandlers}
               />
             </div>
-            <div className={LAB_GRID_CELL_BORDERED}>
-              {editing ? (
-                <Input
-                  value={p.description}
-                  onChange={(e) =>
-                    updateAt(index, (m) =>
-                      m.kind === "part" ? { ...m, row: { ...m.row, description: e.target.value } } : m,
-                    )
-                  }
-                  className={cn(LAB_INPUT_FLAT, "w-full")}
-                  placeholder="Enter name*"
-                />
-              ) : (
-                <p className={cn("min-w-0 truncate text-xs", lineThrough)}>{p.description || "—"}</p>
-              )}
-            </div>
-            <div className={LAB_GRID_CELL_BORDERED}>
-              {editing ? (
-                <LabDescriptionTextarea
-                  value={partDetail}
-                  placeholder="Part # · brand"
-                  onChange={(e) => {
-                    const { partNumber, brand } = parsePartDetail(e.target.value);
-                    updateAt(index, (m) =>
-                      m.kind === "part" ? { ...m, row: { ...m.row, partNumber, brand } } : m,
-                    );
-                  }}
-                />
-              ) : (
-                <p className={cn("line-clamp-2 min-w-0 text-[10px] leading-snug text-muted-foreground", lineThrough)}>
-                  {partDetail || "—"}
-                </p>
-              )}
-            </div>
+            <LabNameDescCells
+              name={
+                editing ? (
+                  <LabDescriptionTextarea
+                    value={p.description}
+                    placeholder="Enter name*"
+                    onChange={(e) =>
+                      updateAt(index, (m) =>
+                        m.kind === "part" ? { ...m, row: { ...m.row, description: e.target.value } } : m,
+                      )
+                    }
+                  />
+                ) : (
+                  <p className={cn("min-w-0 line-clamp-2 text-xs", lineThrough)}>
+                    {p.description || "—"}
+                  </p>
+                )
+              }
+              description={
+                editing ? (
+                  <LabDescriptionTextarea
+                    value={partDetail}
+                    placeholder="Part # · brand"
+                    onChange={(e) => {
+                      const { partNumber, brand } = parsePartDetail(e.target.value);
+                      updateAt(index, (m) =>
+                        m.kind === "part" ? { ...m, row: { ...m.row, partNumber, brand } } : m,
+                      );
+                    }}
+                  />
+                ) : (
+                  <p className={cn("line-clamp-2 min-w-0 text-[10px] leading-snug text-muted-foreground", lineThrough)}>
+                    {partDetail || "—"}
+                  </p>
+                )
+              }
+            />
             <div className={LAB_GRID_NUM_BORDERED}>
               {editing ? (
                 <InlineQtyCell
@@ -1442,10 +1423,21 @@ export function EstimateLabServiceItemsGrid({
       <div className="overflow-x-auto">
         <div className={LAB_LINE_GRID_MIN_W}>
           {showHeaders ? (
-            <div className={cn(LAB_TABLE_HEAD, LAB_LINE_GRID_HEAD, "sticky top-0 z-[1] border-b py-0.5")}>
+            <div
+              data-lab-name-desc-header
+              style={{ gridTemplateColumns }}
+              className={cn(LAB_TABLE_HEAD, LAB_LINE_GRID_HEAD_BASE, "sticky top-0 z-[1] border-b py-0.5")}
+            >
               <span className={cn(LAB_GRID_BORDER, "min-h-7")} />
               <span className={cn(LAB_GRID_BORDER, "px-1 text-left")}>Type</span>
-              <span className={cn(LAB_GRID_BORDER, "px-1 text-left")}>Name</span>
+              <span className={cn(LAB_GRID_BORDER, "relative px-1 text-left")}>
+                Name
+                <LabNameDescResizeHandle
+                  ratio={ratio}
+                  onRatioChange={setNameDescRatio}
+                  onRatioCommit={persistNameDescRatio}
+                />
+              </span>
               <span className={cn(LAB_GRID_BORDER, "px-1 text-left")}>Description</span>
               <span className={cn(LAB_GRID_BORDER, "px-1.5 text-right")}>Qty / Hrs</span>
               <span className={cn(LAB_GRID_BORDER, "px-1.5 text-right")}>Cost</span>
@@ -1461,12 +1453,15 @@ export function EstimateLabServiceItemsGrid({
           {listBody}
 
           {editing && (onAddLine || onLaborManual || onLaborLookup || onPartManual || onPartLookup || roId) ? (
-            <div className={cn(LAB_LINE_GRID, "border-t border-dashed border-border/70 bg-muted/10")}>
+            <div
+              style={{ gridTemplateColumns }}
+              className={cn(LAB_LINE_GRID_BASE, "border-t border-dashed border-border/70 bg-muted/10")}
+            >
               <span className={cn(LAB_GRID_BORDER, "min-h-7")} />
               <div className={LAB_GRID_CELL_BORDERED}>
                 <EstimateLineTypeMenu
                   value={addType}
-                  scope={addType === "labor" ? "labor" : addType === "fee" || addType === "discount" ? "all" : "part"}
+                  typeOptions={SERVICE_LINE_TYPE_OPTIONS}
                   editing
                   onChange={setAddType}
                   handlers={typeGuideHandlers}

@@ -15,6 +15,9 @@ import {
   VENDOR_DEFINITIONS,
   type VendorKey,
 } from "@/lib/integrations";
+import { getShopId } from "@/lib/shop";
+import { getShopSubscription } from "@/lib/subscription";
+import { isIntegrationCardVisible } from "@/lib/settings-plan-gates";
 import { getAllIntegrationStatuses } from "@/server/integrations";
 
 export const metadata = { title: "Vendor Integrations — ShopRally" };
@@ -29,7 +32,15 @@ const VENDOR_ICONS: Record<VendorKey, typeof Package> = {
   "google-reviews": Star,
 };
 
+const VENDOR_CARD_NAME: Partial<Record<VendorKey, string>> = {
+  partstech: "PartsTech",
+  carfax: "Carfax",
+  stripe: "Stripe",
+};
+
 export default async function VendorIntegrationsPage() {
+  const shopId = await getShopId();
+  const sub = await getShopSubscription(shopId);
   const statuses = await getAllIntegrationStatuses();
   const byKey = new Map(statuses.map((s) => [s.key, s]));
 
@@ -55,7 +66,15 @@ export default async function VendorIntegrationsPage() {
       </div>
 
       {VENDOR_CATEGORIES.map((cat) => {
-        const vendors = VENDOR_DEFINITIONS.filter((v) => v.category === cat.key);
+        const vendors = VENDOR_DEFINITIONS.filter((v) => {
+          if (v.category !== cat.key) return false;
+          const cardName = VENDOR_CARD_NAME[v.key];
+          if (cardName && !isIntegrationCardVisible(cardName, sub.features, sub.plan)) {
+            return false;
+          }
+          return true;
+        });
+        if (vendors.length === 0) return null;
         return (
           <section key={cat.key} className="space-y-3">
             <h2 className="text-sm font-semibold uppercase tracking-wide text-muted-foreground">{cat.label}</h2>

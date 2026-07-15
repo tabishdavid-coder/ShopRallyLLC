@@ -4,17 +4,12 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState, useTransition } from "react";
 import {
-  CalendarPlus,
   Check,
-  ChevronDown,
   ChevronLeft,
   ChevronRight,
-  FileText,
   Loader2,
   MoreVertical,
   Plus,
-  Receipt,
-  UserPlus,
 } from "lucide-react";
 import { useClerk } from "@clerk/nextjs";
 
@@ -160,66 +155,32 @@ function SidebarLink({
 function SidebarCreateButton({ collapsed }: { collapsed?: boolean }) {
   const { openIntake, config } = useRoIntakeOptional();
 
+  const className = cn(
+    "w-full gap-1.5 bg-brand-orange font-semibold text-white shadow-md hover:bg-brand-orange/90 active:bg-brand-orange/85",
+    collapsed ? "h-10 px-0 justify-center" : "h-10 justify-start rounded-lg px-3",
+  );
+
+  if (config) {
+    return (
+      <Button
+        type="button"
+        className={className}
+        aria-label="Repair Order"
+        onClick={() => openIntake()}
+      >
+        <Plus className="size-4 shrink-0" aria-hidden />
+        {collapsed ? null : <span>Repair Order</span>}
+      </Button>
+    );
+  }
+
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button
-          type="button"
-          className={cn(
-            "w-full gap-1.5 bg-brand-orange font-semibold text-white shadow-md hover:bg-brand-orange/90 active:bg-brand-orange/85",
-            collapsed ? "h-10 px-0" : "h-10 justify-between rounded-lg px-3",
-          )}
-          aria-label="Create"
-        >
-          {collapsed ? (
-            <Plus className="size-4" aria-hidden />
-          ) : (
-            <>
-              <span className="inline-flex items-center gap-1.5">
-                <Plus className="size-4 shrink-0" aria-hidden />
-                Create
-              </span>
-              <ChevronDown className="size-3.5 shrink-0 opacity-80" aria-hidden />
-            </>
-          )}
-        </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="start" className="w-56" side="right">
-        <DropdownMenuLabel>Create</DropdownMenuLabel>
-        <DropdownMenuSeparator />
-        {config ? (
-          <DropdownMenuItem onClick={() => openIntake()}>
-            <FileText className="mr-2 size-4" />
-            New repair order
-          </DropdownMenuItem>
-        ) : (
-          <DropdownMenuItem asChild>
-            <Link href="/repair-orders/new">
-              <FileText className="mr-2 size-4" />
-              New repair order
-            </Link>
-          </DropdownMenuItem>
-        )}
-        <DropdownMenuItem asChild>
-          <Link href="/repair-orders/new">
-            <Receipt className="mr-2 size-4" />
-            New estimate
-          </Link>
-        </DropdownMenuItem>
-        <DropdownMenuItem asChild>
-          <Link href="/appointments">
-            <CalendarPlus className="mr-2 size-4" />
-            New appointment
-          </Link>
-        </DropdownMenuItem>
-        <DropdownMenuItem asChild>
-          <Link href="/customers?add=1">
-            <UserPlus className="mr-2 size-4" />
-            New customer
-          </Link>
-        </DropdownMenuItem>
-      </DropdownMenuContent>
-    </DropdownMenu>
+    <Button type="button" className={className} aria-label="Repair Order" asChild>
+      <Link href="/repair-orders/new">
+        <Plus className="size-4 shrink-0" aria-hidden />
+        {collapsed ? null : <span>Repair Order</span>}
+      </Link>
+    </Button>
   );
 }
 

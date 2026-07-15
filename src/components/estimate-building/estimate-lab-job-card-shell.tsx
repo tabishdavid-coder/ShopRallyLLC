@@ -75,12 +75,17 @@ export const LAB_MONEY_PREFIX = "flex w-9 shrink-0 items-center justify-center";
  * Tekmetric-style service items grid — shared numeric tracks across labor + parts:
  * drag | type | name | description | qty/hrs | cost | rate/price | amount | discount | net | taxable | remove
  *
- * Type column fits full labels; money tracks fit $X,XXX.XX without clipping.
+ * Name/Description flex split is user-resizable (see estimate-lab-name-desc-split.tsx).
  */
+export const LAB_LINE_GRID_BASE = "grid items-stretch gap-0";
+export const LAB_LINE_GRID_HEAD_BASE = "grid items-center gap-0";
+
+/** @deprecated Prefer labLineGridTemplate() + inline gridTemplateColumns for resizable name/desc. */
 export const LAB_LINE_GRID =
-  "grid grid-cols-[24px_128px_minmax(68px,0.45fr)_minmax(88px,0.95fr)_72px_84px_84px_96px_80px_96px_52px_28px] items-stretch gap-0";
+  "grid grid-cols-[24px_128px_minmax(120px,0.62fr)_minmax(100px,0.38fr)_72px_84px_84px_96px_80px_96px_52px_28px] items-stretch gap-0";
+/** @deprecated Prefer labLineGridTemplate() + inline gridTemplateColumns for resizable name/desc. */
 export const LAB_LINE_GRID_HEAD =
-  "grid grid-cols-[24px_128px_minmax(68px,0.45fr)_minmax(88px,0.95fr)_72px_84px_84px_96px_80px_96px_52px_28px] items-center gap-0";
+  "grid grid-cols-[24px_128px_minmax(120px,0.62fr)_minmax(100px,0.38fr)_72px_84px_84px_96px_80px_96px_52px_28px] items-center gap-0";
 
 /** Minimum width before horizontal scroll kicks in. */
 export const LAB_LINE_GRID_MIN_W = "min-w-[1112px]";

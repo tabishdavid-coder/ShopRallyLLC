@@ -86,6 +86,16 @@ export function isApSettingsLinkVisible(
   return planFeatureEnabled(features, req);
 }
 
+/** Catalog top chips / Vendor Connect — plan-gated. */
+export function isCatalogNavHrefVisible(
+  href: string,
+  features: PlanFeatureSet,
+): boolean {
+  const base = href.split("?")[0]!;
+  const req = CATALOG_NAV_HREF_REQUIREMENTS[href] ?? CATALOG_NAV_HREF_REQUIREMENTS[base];
+  return planFeatureEnabled(features, req);
+}
+
 export function isIntegrationCardVisible(
   name: string,
   features: PlanFeatureSet,
@@ -109,7 +119,13 @@ export const SETTINGS_UPGRADE_ROUTES: { prefix: string; feature: PlanFeature }[]
   { prefix: "/settings/quickbooks", feature: "integrations" },
   { prefix: "/settings/payments", feature: "integrations" },
   { prefix: "/settings/integrations/stripe", feature: "integrations" },
+  { prefix: "/vendors/integrations/partstech", feature: "partsTech" },
 ];
+
+/** Catalog module chips — hide vendor PartsTech / connect on Core. */
+export const CATALOG_NAV_HREF_REQUIREMENTS: Partial<Record<string, PlanFeature>> = {
+  "/vendors/integrations": "partsTech",
+};
 
 export function settingsRouteDenied(
   pathname: string,

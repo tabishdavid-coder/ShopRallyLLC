@@ -24,6 +24,7 @@ import { subnavTabTopClass } from "@/lib/subnav-styles";
 import { partRetail, type PartTier } from "@/lib/matrix";
 import { useShopCapabilities } from "@/lib/shop-capabilities";
 import { cn } from "@/lib/utils";
+import { usePartsTechUiEnabled } from "@/lib/shop-capabilities";
 import {
   searchPartsTech,
   startPunchout,
@@ -78,6 +79,7 @@ export function PartsHub({
   partTiers?: PartTier[];
   variant?: "default" | "hero";
 }) {
+  const partsTechOk = usePartsTechUiEnabled();
   const router = useRouter();
   const { toast } = useEstimateActionToast();
   const { partsTech } = useShopCapabilities();
@@ -135,13 +137,14 @@ export function PartsHub({
 
   /** Job-card PartsTech button (and other surfaces) open the same catalog flow. */
   useEffect(() => {
+    if (!partsTechOk) return;
     function onOpenPartsTech(e: Event) {
       const detail = (e as CustomEvent<{ jobId?: string }>).detail;
       launchPartsTech(detail?.jobId ?? null);
     }
     window.addEventListener("shoprally:open-parts-tech", onOpenPartsTech);
     return () => window.removeEventListener("shoprally:open-parts-tech", onOpenPartsTech);
-  }, [roId]);
+  }, [roId, partsTechOk]);
 
   // Close + refresh when a live punchout posts its cart back for mapping.
   useEffect(() => {
@@ -300,6 +303,8 @@ export function PartsHub({
   };
   const tabParts = parts.filter((p) => p.status === tab);
   const showRowActions = tab !== "ORDERED";
+
+  if (!partsTechOk) return null;
 
   return (
     <>
