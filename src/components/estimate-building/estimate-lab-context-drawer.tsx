@@ -52,9 +52,8 @@ import type { EstimateLabVehicleSpecsBundle } from "@/lib/estimate-lab-vehicle-s
 import type { PaymentFinanceData } from "@/components/repair-order/payment-finance-panel";
 
 import { customerDisplayName, customerInitials, formatCents } from "@/lib/format";
-
+import { useCorePlanShop } from "@/lib/shop-capabilities";
 import { cn } from "@/lib/utils";
-
 
 
 export type ContextDrawerTab =
@@ -67,7 +66,6 @@ export type ContextDrawerTab =
   | "finances";
 
 export type CustomerDrawerSource = "estimate" | "customers";
-
 
 
 function ActiveStatusBadge({
@@ -224,6 +222,11 @@ export function EstimateLabContextDrawer({
 }) {
 
   const router = useRouter();
+  const corePlan = useCorePlanShop();
+  const drawerTabs = useMemo(
+    () => (corePlan ? DRAWER_TABS.filter((t) => t.id !== "finances") : DRAWER_TABS),
+    [corePlan],
+  );
 
   const [data, setData] = useState<EstimateContextDrawerData | null>(initialData);
 
@@ -321,7 +324,9 @@ export function EstimateLabContextDrawer({
 
   const creditCents = data?.availableCreditCents ?? 0;
 
-
+  useEffect(() => {
+    if (corePlan && tab === "finances") onTabChange("payment");
+  }, [corePlan, tab, onTabChange]);
 
   const subtitle = hasRoContext && roNumber != null
 
@@ -395,10 +400,12 @@ export function EstimateLabContextDrawer({
               </div>
 
               <div className="flex flex-wrap items-center gap-4 sm:gap-6">
-                <p className="text-sm text-[#0B1F3B]">
-                  Available credit:{" "}
-                  <span className="font-semibold tabular-nums">{formatCents(creditCents)}</span>
-                </p>
+                {!corePlan ? (
+                  <p className="text-sm text-[#0B1F3B]">
+                    Available credit:{" "}
+                    <span className="font-semibold tabular-nums">{formatCents(creditCents)}</span>
+                  </p>
+                ) : null}
                 <ActiveStatusBadge active={activeCustomer} onChange={setActiveCustomer} />
                 <button
                   type="button"
@@ -422,7 +429,7 @@ export function EstimateLabContextDrawer({
               aria-label="Customer record"
               className="flex min-w-0 flex-1 items-end overflow-x-auto scrollbar-none"
             >
-              {DRAWER_TABS.map((t) => (
+              {drawerTabs.map((t) => (
                 <button
                   key={t.id}
                   type="button"
@@ -580,7 +587,7 @@ export function EstimateLabContextDrawer({
 
                   ) : null}
 
-                  {tab === "finances" ? (
+                  {tab === "finances" && !corePlan ? (
 
                     <DrawerFinancesTab availableCreditCents={data.availableCreditCents} />
 
