@@ -7,8 +7,9 @@ import { Package, Loader2, Sparkles } from "lucide-react";
 import { updateShopPlanFeatureOverride } from "@/server/actions/platform";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
-import { FREEFORM_RO_ADDON_LABEL } from "@/lib/freeform-ro-types";
-import type { PlanFeature } from "@/lib/plans";
+import { SMART_RO_ADDON_LABEL } from "@/lib/smart-ro-intake-types";
+import { isCorePlan, PLANS, type PlanFeature, type PlanFeatureSet } from "@/lib/plans";
+import type { ShopPlan } from "@/generated/prisma";
 
 type AddonRow = {
   feature: PlanFeature;
@@ -20,21 +21,24 @@ type AddonRow = {
 const TOGGLEABLE_ADDONS: AddonRow[] = [
   {
     feature: "freeformRoIntake",
-    name: "Freeform RO intake",
-    priceLabel: FREEFORM_RO_ADDON_LABEL,
+    name: "Smart AI RO Intake (AI Plus)",
+    priceLabel: SMART_RO_ADDON_LABEL,
     description:
-      "AI-powered repair order intake from plain English — vehicle, concerns, and labor hours.",
+      "Core plan add-on — free-form text → Gemini parse → staging review → estimate with labor jobs.",
   },
 ];
 
 export function PlatformShopPlanAddons({
   shopId,
+  shopPlan,
   resolvedFeatures,
 }: {
   shopId: string;
-  resolvedFeatures: Record<PlanFeature, boolean>;
+  shopPlan: ShopPlan;
+  resolvedFeatures: PlanFeatureSet;
 }) {
   const router = useRouter();
+  const coreOnly = isCorePlan(shopPlan);
   const [pending, startTransition] = useTransition();
   const [busyFeature, setBusyFeature] = useState<PlanFeature | null>(null);
   const [local, setLocal] = useState(resolvedFeatures);
@@ -64,6 +68,26 @@ export function PlatformShopPlanAddons({
     });
   }
 
+  if (!coreOnly) {
+    return (
+      <section className="rounded-xl border bg-muted/20 p-5 shadow-sm">
+        <div className="flex items-start gap-3">
+          <div className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-muted">
+            <Package className="size-4 text-muted-foreground" />
+          </div>
+          <div>
+            <h3 className="font-semibold text-brand-navy">Plan add-ons</h3>
+            <p className="mt-1 text-sm text-muted-foreground">
+              AI Plus (Smart AI RO Intake) is a <strong className="text-foreground">Core-only</strong>{" "}
+              add-on ({SMART_RO_ADDON_LABEL}). This shop is on {PLANS[shopPlan].name} — add-ons for
+              higher tiers are managed separately when those plans launch.
+            </p>
+          </div>
+        </div>
+      </section>
+    );
+  }
+
   return (
     <section className="rounded-xl border bg-card p-5 shadow-sm">
       <div className="flex items-start gap-3">
@@ -71,10 +95,10 @@ export function PlatformShopPlanAddons({
           <Package className="size-4 text-brand-orange" />
         </div>
         <div className="min-w-0 flex-1">
-          <h3 className="font-semibold text-brand-navy">Plan add-ons</h3>
+          <h3 className="font-semibold text-brand-navy">Plan add-ons (Core)</h3>
           <p className="mt-0.5 text-sm text-muted-foreground">
-            Billable extras — override plan defaults per shop. Also ensure AI suite is released
-            under Release flags when enabling Freeform.
+            Billable extras for Core shops. Also enable AI suite under Release flags when turning on
+            Smart Intake.
           </p>
         </div>
       </div>
@@ -120,7 +144,7 @@ export function PlatformShopPlanAddons({
         <p
           className={
             message.kind === "ok"
-              ? "mt-3 text-sm text-green-700"
+              ? "mt-3 text-sm text-emerald-700"
               : "mt-3 text-sm text-destructive"
           }
         >

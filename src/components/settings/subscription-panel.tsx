@@ -4,36 +4,46 @@ import { ExternalLink, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
   PLANS,
-  PLAN_ORDER,
+  PHASE_ONE_LAUNCH,
+  PUBLIC_PLAN_ORDER,
   billingStatusLabel,
+  formatPriceFromCents,
   resolvePlanFeatures,
   type PlanFeature,
 } from "@/lib/plans";
+import { subscriptionFeatureLabelsForPlan, settingsUpgradeLabel } from "@/lib/settings-plan-gates";
 import { BILLING_PLAN_FEATURES } from "@/lib/billing-shared";
 import { nextPlanTier } from "@/lib/subscription";
 import type { BillingStatus, ShopPlan } from "@/generated/prisma";
 
-const FEATURE_LABELS: { key: PlanFeature; label: string }[] = [
-  { key: "cannedJobs", label: "Canned jobs" },
-  { key: "markupMatrices", label: "Markup matrices" },
-  { key: "partsTech", label: "PartsTech catalog" },
-  { key: "laborGuide", label: "Licensed MOTOR labor" },
-  { key: "customerEmail", label: "Customer email" },
-  { key: "customerSms", label: "Two-way SMS" },
-  { key: "digitalInspections", label: "Digital vehicle inspections" },
-  { key: "appointments", label: "Appointments" },
-  { key: "reports", label: "Operations Daily Snapshot" },
-  { key: "integrations", label: "Integrations" },
-  { key: "shopSite", label: "ShopSite (hosted website)" },
-  { key: "websiteSeo", label: "Local SEO · Growth Engine SEO" },
-  { key: "aiReviewReplies", label: "AI Google Review drafts" },
-  { key: "aiCampaignDrafting", label: "AI campaign drafting" },
-  { key: "aiSeoContent", label: "Growth Engine SEO content" },
-  { key: "aiCustomerInsights", label: "AI customer insights" },
-  { key: "aiReceptionist", label: "AI receptionist (SMS + voice after-hours)" },
-  { key: "freeformRoIntake", label: "Freeform RO intake (AI) — $20/mo add-on" },
-  { key: "advancedReports", label: "Advanced reporting" },
-];
+const FEATURE_LABELS: Record<PlanFeature, string> = {
+  cannedJobs: "Canned jobs",
+  markupMatrices: "Markup matrices",
+  partsTech: "PartsTech catalog",
+  laborGuide: "Labor guide & estimate tooling",
+  customerEmail: "Customer email",
+  customerSms: "Two-way SMS",
+  digitalInspections: "Digital vehicle inspections",
+  appointments: "Appointments",
+  reports: "Operations Daily Snapshot",
+  integrations: "Integrations (Stripe, QuickBooks sync)",
+  multiLocation: "Multi-location",
+  approvalLinks: "Text-to-approve links",
+  invoiceSharing: "Digital invoicing",
+  advancedReports: "Advanced reporting",
+  shopSite: "ShopSite (hosted website)",
+  websiteSeo: "Local SEO · Growth Engine SEO",
+  marketingCampaigns: "SMS & email campaigns",
+  maintenancePrograms: "Maintenance programs",
+  aiReviewReplies: "AI Google Review drafts",
+  aiCampaignDrafting: "AI campaign drafting",
+  aiSeoContent: "Growth Engine SEO content",
+  aiCustomerInsights: "AI customer insights",
+  aiReceptionist: "AI receptionist (SMS + voice after-hours)",
+  motorLabor: "Licensed MOTOR labor data",
+  autodevDecoding: "Auto.dev plate lookup",
+  freeformRoIntake: "Smart AI repair-order intake",
+};
 
 export function SubscriptionPanel({
   plan,
@@ -41,19 +51,34 @@ export function SubscriptionPanel({
   trialEndsAt,
   planName,
   planTagline,
+  upgradeFeature,
 }: {
   plan: ShopPlan;
   billingStatus: BillingStatus;
   trialEndsAt: string | null;
   planName: string;
   planTagline: string;
+  upgradeFeature?: PlanFeature | null;
 }) {
   const features = resolvePlanFeatures({ plan });
   const def = PLANS[plan];
   const upgrade = nextPlanTier(plan);
+  const includedFeatureKeys = subscriptionFeatureLabelsForPlan(plan);
+  const isCore = plan === "STARTER";
 
   return (
     <div className="max-w-2xl space-y-6">
+      {upgradeFeature ? (
+        <div className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-950">
+          <p className="font-medium">
+            {settingsUpgradeLabel(upgradeFeature)} is on {PLANS.PROFESSIONAL.name} and above
+          </p>
+          <p className="mt-1 text-amber-900/85">
+            Upgrade your plan to unlock this settings section, or contact support to add it to your shop.
+          </p>
+        </div>
+      ) : null}
+
       <div className="rounded-lg border bg-card p-5 shadow-sm">
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
@@ -68,9 +93,9 @@ export function SubscriptionPanel({
 
         <p className="mt-4 text-sm text-muted-foreground">
           <span className="text-2xl font-bold tabular-nums text-foreground">
-            ${(def.annualMonthlyCents / 100).toFixed(0)}
+            {formatPriceFromCents(def.annualMonthlyCents)}
           </span>
-          /mo per location (annual) · ${(def.monthlyCents / 100).toFixed(0)}/mo monthly
+          /mo per location (annual) · {formatPriceFromCents(def.monthlyCents)}/mo monthly
         </p>
 
         <p className="mt-3 text-xs text-muted-foreground">
@@ -123,9 +148,11 @@ export function SubscriptionPanel({
             </li>
           ))}
         </ul>
-        <h4 className="mt-6 text-sm font-semibold text-muted-foreground">Feature gates</h4>
+        <h4 className="mt-6 text-sm font-semibold text-muted-foreground">
+          {isCore ? "Included on Core" : "Feature gates"}
+        </h4>
         <ul className="mt-3 grid gap-2 sm:grid-cols-2">
-          {FEATURE_LABELS.map(({ key, label }) => (
+          {(isCore ? includedFeatureKeys : (Object.keys(FEATURE_LABELS) as PlanFeature[])).map((key) => (
             <li
               key={key}
               className={`flex items-center gap-2 text-sm ${
@@ -135,38 +162,74 @@ export function SubscriptionPanel({
               <span
                 className={`size-1.5 rounded-full ${features[key] ? "bg-brand-navy" : "bg-muted-foreground/40"}`}
               />
-              {label}
+              {FEATURE_LABELS[key]}
             </li>
           ))}
         </ul>
       </div>
 
-      <div className="rounded-lg border border-brand-light/40 bg-brand-light/5 p-5 shadow-sm">
+      <div className="rounded-lg border bg-card p-5 shadow-sm">
         <h3 className="font-semibold">Add-on services</h3>
-        <div className="mt-3 flex flex-wrap items-start justify-between gap-3">
-          <div>
-            <p className="text-sm font-medium">ShopSite + Local SEO</p>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Monthly: ShopSite $99, Local SEO $129, or bundle $199. One-time launch setup when you start
-              ($349 / $299 / $549 bundle). Included on {PLANS.ENTERPRISE.name} (monthly + setup).
-            </p>
+        {isCore ? (
+          <div className="mt-3 flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <p className="text-sm font-medium">AI Plus</p>
+              <p className="mt-1 text-sm text-muted-foreground">
+                Core-only add-on — Smart AI repair-order intake, labor-hour assist, and the ShopRally
+                advisor mobile app — $20/mo.
+              </p>
+            </div>
+            <Button variant="outline" size="sm" disabled title="Add-on checkout — coming soon">
+              Add AI Plus
+            </Button>
           </div>
-          <Button variant="outline" size="sm" asChild>
-            <Link href="/marketing/website">ShopSite</Link>
-          </Button>
-        </div>
-        <div className="mt-3 flex flex-wrap items-start justify-between gap-3 border-t pt-3">
-          <div>
-            <p className="text-sm font-medium">Local SEO subscription</p>
-            <p className="mt-1 text-sm text-muted-foreground">
-              Included on {PLANS.ENTERPRISE.name}; $129/mo add-on on other tiers. Audits, Search Console, and
-              monthly reports.
+        ) : (
+          <p className="mt-2 text-sm text-muted-foreground">
+            AI Plus (Smart AI Intake) is available only on the Core plan. This shop is on{" "}
+            {PLANS[plan].name}.
+          </p>
+        )}
+        {!isCore ? (
+          <>
+            <div className="mt-3 flex flex-wrap items-start justify-between gap-3 border-t pt-3">
+              <div>
+                <p className="text-sm font-medium">ShopSite + Local SEO</p>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Monthly: ShopSite $99, Local SEO $129, or bundle $199. One-time launch setup when you start
+                  ($349 / $299 / $549 bundle). Included on {PLANS.ENTERPRISE.name} (monthly + setup).
+                </p>
+              </div>
+              <Button variant="outline" size="sm" asChild>
+                <Link href="/marketing/website">ShopSite</Link>
+              </Button>
+            </div>
+            <div className="mt-3 flex flex-wrap items-start justify-between gap-3 border-t pt-3">
+              <div>
+                <p className="text-sm font-medium">Local SEO subscription</p>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  Included on {PLANS.ENTERPRISE.name}; $129/mo add-on on other tiers. Audits, Search Console, and
+                  monthly reports.
+                </p>
+              </div>
+              <Button variant="outline" size="sm" asChild>
+                <Link href="/marketing/seo-automation">Open Growth Engine SEO</Link>
+              </Button>
+            </div>
+          </>
+        ) : (
+          <div className="mt-3 border-t pt-3 text-sm text-muted-foreground">
+            <p className="font-medium text-foreground">Need Pro features?</p>
+            <p className="mt-1">
+              Markup matrices, two-way SMS, PartsTech, Stripe payments, and Growth Engine tools are on{" "}
+              {PLANS.PROFESSIONAL.name} and above.
             </p>
+            {upgrade ? (
+              <Button size="sm" className="mt-3 bg-brand-navy" disabled title="Stripe Billing checkout — coming soon">
+                Upgrade to {PLANS[upgrade].name}
+              </Button>
+            ) : null}
           </div>
-          <Button variant="outline" size="sm" asChild>
-            <Link href="/marketing/seo-automation">Open Growth Engine SEO</Link>
-          </Button>
-        </div>
+        )}
       </div>
 
       <div className="flex flex-wrap gap-2">
@@ -175,7 +238,7 @@ export function SubscriptionPanel({
         </Button>
         <Button variant="outline" size="sm" className="gap-1.5" asChild>
           <Link href="/pricing" target="_blank">
-            View all plans
+            {PHASE_ONE_LAUNCH ? "View pricing" : "View all plans"}
             <ExternalLink className="size-3.5" />
           </Link>
         </Button>
@@ -197,7 +260,7 @@ export function SubscriptionPanel({
         </p>
       </div>
 
-      <PlanComparison current={plan} />
+      {PHASE_ONE_LAUNCH ? null : <PlanComparison current={plan} />}
     </div>
   );
 }
@@ -207,7 +270,7 @@ function PlanComparison({ current }: { current: ShopPlan }) {
     <div className="rounded-lg border bg-card p-5 shadow-sm">
       <h3 className="font-semibold">Compare plans</h3>
       <div className="mt-3 grid gap-2 sm:grid-cols-3">
-        {PLAN_ORDER.map((id) => {
+        {PUBLIC_PLAN_ORDER.map((id) => {
           const p = PLANS[id];
           const isCurrent = id === current;
           return (
@@ -216,7 +279,7 @@ function PlanComparison({ current }: { current: ShopPlan }) {
               className={`rounded-md border p-3 text-sm ${isCurrent ? "border-brand-navy bg-brand-navy/5" : ""}`}
             >
               <p className="font-semibold">{p.name}</p>
-              <p className="text-xs text-muted-foreground">${(p.monthlyCents / 100).toFixed(0)}/mo</p>
+              <p className="text-xs text-muted-foreground">{formatPriceFromCents(p.monthlyCents)}/mo</p>
               {isCurrent ? (
                 <span className="mt-1 inline-block text-[10px] font-semibold uppercase text-brand-navy">
                   Current

@@ -3,6 +3,7 @@
 import { createContext, useContext, type ReactNode } from "react";
 
 import { SMS_ENABLED } from "@/lib/features";
+import type { PlanFeatureSet } from "@/lib/plans";
 
 /** Per-shop plan capabilities for client UI (server still enforces). */
 export type ShopCapabilities = {
@@ -10,11 +11,36 @@ export type ShopCapabilities = {
   sms: boolean;
   /** Stripe Connect / online RO checkout — Pro+ only. */
   stripePayments: boolean;
-  /** Freeform AI repair-order intake — $20/mo add-on. */
+  /** Licensed MOTOR Labor Book — Pro+ only. */
+  motorLabor: boolean;
+  /** PartsTech / vendor parts lookup — Pro+ only. */
+  partsTech: boolean;
+  /** Growth Engine / marketing campaigns — Pro+ only. */
+  marketingCampaigns: boolean;
+  /** VIN/vPIC vehicle specs rail — Pro+ only (Core uses manual YMM). */
+  vehicleSpecs: boolean;
+  /** Auto.dev plate→VIN lookup — Pro+ only (Core: manual plate + free NHTSA VIN). */
+  autodevDecoding: boolean;
+  /** Smart AI repair-order intake — Core-only AI Plus add-on. */
   freeformRoIntake: boolean;
+  /** Shop is on Core (STARTER) — Smart intake option only shown for Core. */
+  corePlan: boolean;
+  /** Resolved plan features — drives settings nav pruning on Core. */
+  planFeatures: PlanFeatureSet;
 };
 
-const DEFAULT: ShopCapabilities = { sms: false, stripePayments: false, freeformRoIntake: false };
+const DEFAULT: ShopCapabilities = {
+  sms: false,
+  stripePayments: false,
+  motorLabor: false,
+  partsTech: false,
+  marketingCampaigns: false,
+  vehicleSpecs: false,
+  autodevDecoding: false,
+  freeformRoIntake: false,
+  corePlan: false,
+  planFeatures: {} as PlanFeatureSet,
+};
 
 const ShopCapabilitiesContext = createContext<ShopCapabilities>(DEFAULT);
 
@@ -40,7 +66,47 @@ export function useSmsUiEnabled(): boolean {
   return SMS_ENABLED && caps.sms;
 }
 
-/** Freeform AI repair-order intake — $20/mo add-on (server still enforces). */
-export function useFreeformRoIntakeEnabled(): boolean {
+/** Plan features for settings / admin UI gates. */
+export function usePlanFeatures(): PlanFeatureSet {
+  return useShopCapabilities().planFeatures;
+}
+
+/** Licensed MOTOR Labor Book UI — Pro+. */
+export function useMotorLaborUiEnabled(): boolean {
+  return useShopCapabilities().motorLabor;
+}
+
+/** PartsTech / vendor parts lookup UI — Pro+ only (never Core). */
+export function usePartsTechUiEnabled(): boolean {
+  return useShopCapabilities().partsTech;
+}
+
+/** Growth Engine / marketing campaigns UI — Pro+. */
+export function useMarketingCampaignsUiEnabled(): boolean {
+  return useShopCapabilities().marketingCampaigns;
+}
+
+/** VIN/vPIC vehicle specs rail — Pro+. */
+export function useVehicleSpecsUiEnabled(): boolean {
+  return useShopCapabilities().vehicleSpecs;
+}
+
+/** Stripe Connect / online checkout UI — Pro+. Core is manual payments only. */
+export function useStripePaymentsUiEnabled(): boolean {
+  return useShopCapabilities().stripePayments;
+}
+
+/** Auto.dev plate→VIN lookup UI — Pro+. */
+export function useAutodevDecodingUiEnabled(): boolean {
+  return useShopCapabilities().autodevDecoding;
+}
+
+/** Smart AI repair-order intake — Core-only AI Plus add-on. */
+export function useSmartRoIntakeEnabled(): boolean {
   return useShopCapabilities().freeformRoIntake;
+}
+
+/** True when active shop is on Core (STARTER) — Smart intake card is Core-only. */
+export function useCorePlanShop(): boolean {
+  return useShopCapabilities().corePlan;
 }

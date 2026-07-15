@@ -19,6 +19,7 @@ import {
   ShopCapabilitiesProvider,
   type ShopCapabilities,
 } from "@/lib/shop-capabilities";
+import { resolvePlanFeatures } from "@/lib/plans";
 import type { AppNotification } from "@/server/notifications";
 import { cn } from "@/lib/utils";
 
@@ -59,7 +60,18 @@ export function AutopilotShell({
   allowedNavHrefs,
   allowedSectionIds,
   intakeConfig = null,
-  capabilities = { sms: false, stripePayments: false, freeformRoIntake: false },
+  capabilities = {
+    sms: false,
+    stripePayments: false,
+    motorLabor: false,
+    partsTech: false,
+    marketingCampaigns: false,
+    vehicleSpecs: false,
+    autodevDecoding: false,
+    freeformRoIntake: false,
+    corePlan: false,
+    planFeatures: resolvePlanFeatures({ plan: "STARTER" }),
+  },
   children,
 }: AutopilotShellProps) {
   const fullBleed = pathname === "/workflow";

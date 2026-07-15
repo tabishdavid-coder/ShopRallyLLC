@@ -24,7 +24,7 @@ export type PlatformShopDetail = PlatformShopRow & {
   releaseFlags: ReleaseFlagMap;
   /** Env/default: open in local/preview, closed in production. */
   releaseFlagsDefaultOpen: boolean;
-  /** Merged plan defaults + per-shop overrides. */
+  /** Merged plan + per-shop overrides — for add-on toggles. */
   resolvedFeatures: PlanFeatureSet;
 };
 
