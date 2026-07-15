@@ -17,6 +17,7 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useCorePlanShop } from "@/lib/shop-capabilities";
 import { cn } from "@/lib/utils";
 import { CAR_MAKES } from "@/lib/vehicle-makes";
 import { getCarModels, getCarTrims } from "@/server/actions/vehicle-catalog";
@@ -242,11 +243,13 @@ export function CreateVehicleForm({
   lookupNote?: string | null;
   className?: string;
 }) {
+  const corePlan = useCorePlanShop();
   const [displayNameTouched, setDisplayNameTouched] = useState(false);
   const [models, setModels] = useState<string[]>([]);
   const [trims, setTrims] = useState<string[]>([]);
   const [modelsLoading, setModelsLoading] = useState(false);
   const [trimsLoading, setTrimsLoading] = useState(false);
+  const yearsListId = useId();
   const makesListId = useId();
   const modelsListId = useId();
   const trimsListId = useId();
@@ -263,6 +266,12 @@ export function CreateVehicleForm({
   }, [form.year, form.make, form.model, form.trim, displayNameTouched]);
 
   useEffect(() => {
+    // Core: free-type YMM only — no EPA catalog drill-down.
+    if (corePlan) {
+      setModels([]);
+      setModelsLoading(false);
+      return;
+    }
     const make = form.make.trim();
     if (!make || !form.year) {
       setModels([]);
@@ -279,19 +288,25 @@ export function CreateVehicleForm({
     return () => {
       cancelled = true;
     };
-  }, [form.make, form.year]);
+  }, [form.make, form.year, corePlan]);
 
   // Soft-match typed/decoded model onto catalog spelling when possible (keeps free text otherwise).
   useEffect(() => {
+    if (corePlan) return;
     if (!form.model.trim() || models.length === 0) return;
     const matched = matchCatalogOption(form.model, models);
     if (matched && matched !== form.model) {
       onChange({ ...form, model: matched });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- only remap when catalog or decoded model changes
-  }, [models, form.model]);
+  }, [models, form.model, corePlan]);
 
   useEffect(() => {
+    if (corePlan) {
+      setTrims([]);
+      setTrimsLoading(false);
+      return;
+    }
     const make = form.make.trim();
     const model = form.model.trim();
     if (!make || !form.year || !model) {
@@ -310,16 +325,17 @@ export function CreateVehicleForm({
     return () => {
       cancelled = true;
     };
-  }, [form.make, form.year, form.model, models]);
+  }, [form.make, form.year, form.model, models, corePlan]);
 
   useEffect(() => {
+    if (corePlan) return;
     if (!form.trim.trim() || trims.length === 0) return;
     const matched = matchCatalogOption(form.trim, trims);
     if (matched && matched !== form.trim) {
       onChange({ ...form, trim: matched });
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps -- only remap when catalog or decoded trim changes
-  }, [trims, form.trim]);
+  }, [trims, form.trim, corePlan]);
 
   const notesCount = form.notes.length;
   const mileageSuffix = form.mileageUnits === "km" ? "km" : "mi";
@@ -333,27 +349,27 @@ export function CreateVehicleForm({
 
   const ymmReady = Boolean(form.year && form.make.trim() && form.model.trim());
   const modelCatalogMatch = useMemo(() => {
-    if (!form.model.trim() || models.length === 0) return null;
+    if (corePlan || !form.model.trim() || models.length === 0) return null;
     return matchCatalogOption(form.model, models);
-  }, [form.model, models]);
+  }, [form.model, models, corePlan]);
   const trimCatalogMatch = useMemo(() => {
-    if (!form.trim.trim() || trims.length === 0) return null;
+    if (corePlan || !form.trim.trim() || trims.length === 0) return null;
     return matchCatalogOption(form.trim, trims);
-  }, [form.trim, trims]);
+  }, [form.trim, trims, corePlan]);
   const hasVin = form.vin.trim().length >= 10;
   const catalogStatus = useMemo(() => {
-    if (!ymmReady) return null;
+    if (corePlan || !ymmReady) return null;
     if (modelsLoading || trimsLoading) return "loading" as const;
     if (modelCatalogMatch) return "matched" as const;
     if (models.length === 0) return "no-catalog" as const;
     return "unmatched" as const;
-  }, [ymmReady, modelsLoading, trimsLoading, modelCatalogMatch, models.length]);
+  }, [corePlan, ymmReady, modelsLoading, trimsLoading, modelCatalogMatch, models.length]);
 
   const suggestedTrims = useMemo(() => {
-    if (trims.length === 0) return [];
+    if (corePlan || trims.length === 0) return [];
     // Prefer unused suggestions; keep current trim visible via the input.
     return trims.slice(0, 8);
-  }, [trims]);
+  }, [corePlan, trims]);
 
   return (
     <div className={cn("space-y-5", className)}>
@@ -367,23 +383,31 @@ export function CreateVehicleForm({
         <div className="grid grid-cols-2 gap-x-3 gap-y-4 sm:grid-cols-4">
           <div>
             <FieldLabel label="Year" required />
-            <select
+            <input
+              type="text"
+              inputMode="numeric"
+              autoComplete="off"
+              list={corePlan ? undefined : yearsListId}
               value={form.year ?? ""}
-              onChange={(e) => patch({ year: e.target.value ? Number(e.target.value) : null })}
+              onChange={(e) => {
+                const raw = e.target.value.replace(/\D/g, "").slice(0, 4);
+                patch({ year: raw ? Number(raw) : null });
+              }}
+              placeholder="2014"
               className={fieldClass}
-            >
-              <option value="">Select…</option>
-              {years.map((y) => (
-                <option key={y} value={y}>
-                  {y}
-                </option>
-              ))}
-            </select>
+            />
+            {!corePlan ? (
+              <datalist id={yearsListId}>
+                {years.map((y) => (
+                  <option key={y} value={y} />
+                ))}
+              </datalist>
+            ) : null}
           </div>
           <div>
             <FieldLabel label="Make" required />
             <input
-              list={makesListId}
+              list={corePlan ? undefined : makesListId}
               value={form.make}
               onChange={(e) => {
                 const nextMake = e.target.value;
@@ -398,16 +422,18 @@ export function CreateVehicleForm({
               placeholder="Honda"
               className={fieldClass}
             />
-            <datalist id={makesListId}>
-              {CAR_MAKES.map((m) => (
-                <option key={m} value={m} />
-              ))}
-            </datalist>
+            {!corePlan ? (
+              <datalist id={makesListId}>
+                {CAR_MAKES.map((m) => (
+                  <option key={m} value={m} />
+                ))}
+              </datalist>
+            ) : null}
           </div>
           <div>
             <FieldLabel label="Model" required />
             <input
-              list={modelsListId}
+              list={corePlan ? undefined : modelsListId}
               value={form.model}
               onChange={(e) => {
                 const nextModel = e.target.value;
@@ -418,26 +444,30 @@ export function CreateVehicleForm({
               placeholder="Accord"
               className={fieldClass}
             />
-            <datalist id={modelsListId}>
-              {models.map((m) => (
-                <option key={m} value={m} />
-              ))}
-            </datalist>
+            {!corePlan ? (
+              <datalist id={modelsListId}>
+                {models.map((m) => (
+                  <option key={m} value={m} />
+                ))}
+              </datalist>
+            ) : null}
           </div>
           <div>
             <FieldLabel label="Trim" />
             <input
-              list={trimsListId}
+              list={corePlan ? undefined : trimsListId}
               value={form.trim}
               onChange={(e) => patch({ trim: e.target.value })}
               placeholder="EX-L"
               className={fieldClass}
             />
-            <datalist id={trimsListId}>
-              {trims.map((t) => (
-                <option key={t} value={t} />
-              ))}
-            </datalist>
+            {!corePlan ? (
+              <datalist id={trimsListId}>
+                {trims.map((t) => (
+                  <option key={t} value={t} />
+                ))}
+              </datalist>
+            ) : null}
           </div>
         </div>
 
