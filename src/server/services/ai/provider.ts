@@ -5,7 +5,15 @@ import type { AiFeature } from "@/generated/prisma";
 export type AiProvider = "gemini" | "anthropic";
 
 const ANTHROPIC_DEFAULT = "claude-haiku-4-5";
-const GEMINI_DEFAULT = "gemini-flash-latest";
+/** Stable pinned model — avoid `gemini-flash-latest` alias (frequent 503 under load). */
+const GEMINI_DEFAULT = "gemini-2.5-flash";
+
+/** Ordered fallbacks when primary Gemini model returns 503/429. Override: GEMINI_MODEL_FALLBACKS=a,b,c */
+const GEMINI_MODEL_FALLBACKS_DEFAULT = [
+  "gemini-2.5-flash",
+  "gemini-2.0-flash",
+  "gemini-2.0-flash-lite",
+] as const;
 
 const FEATURE_MODEL_ENV: Record<AiFeature, readonly string[]> = {
   REVIEW_REPLY: ["REVIEW_REPLY_AI_MODEL", "AI_DEFAULT_MODEL", "SUPPORT_AI_MODEL"],
@@ -79,4 +87,26 @@ export function resolveAiModel(feature: AiFeature, provider: AiProvider): string
   if (fromEnv && isAnthropicModelName(fromEnv)) return fromEnv;
   if (fromEnv && !isGeminiModelName(fromEnv)) return fromEnv;
   return ANTHROPIC_DEFAULT;
+}
+
+function parseGeminiFallbackList(): string[] {
+  const raw = process.env.GEMINI_MODEL_FALLBACKS?.trim();
+  if (!raw) return [...GEMINI_MODEL_FALLBACKS_DEFAULT];
+  return raw
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
+
+/** Primary + fallback Gemini models for retry (deduped, Gemini names only). */
+export function geminiModelCandidates(feature: AiFeature): string[] {
+  const primary = resolveAiModel(feature, "gemini");
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const m of [primary, ...parseGeminiFallbackList()]) {
+    if (!m.startsWith("gemini") || seen.has(m)) continue;
+    seen.add(m);
+    out.push(m);
+  }
+  return out.length > 0 ? out : [GEMINI_DEFAULT];
 }
