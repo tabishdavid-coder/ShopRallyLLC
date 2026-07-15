@@ -32,7 +32,12 @@ export async function GET(request: Request) {
     maxAge: 60 * 60 * 24 * 365,
   });
 
-  await recordShopCrmEntered(shopId, "enterRoute");
+  // Audit must not block CRM entry (missing shop / FK races still set cookie).
+  try {
+    await recordShopCrmEntered(shopId, "enterRoute");
+  } catch (err) {
+    console.error("[platform/enter] recordShopCrmEntered failed", shopId, err);
+  }
 
   const dest = enterShopCrmPath(shopId, next ?? undefined);
   return NextResponse.redirect(new URL(dest, url.origin));

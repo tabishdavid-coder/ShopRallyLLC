@@ -412,7 +412,6 @@ async function main() {
   await prisma.membership.createMany({
     data: [
       { shopId: demo.id, userId: owner.id, role: Role.OWNER },
-      { shopId: macuto.id, userId: owner.id, role: Role.OWNER },
       {
         shopId: demo.id,
         userId: carlos.id,
