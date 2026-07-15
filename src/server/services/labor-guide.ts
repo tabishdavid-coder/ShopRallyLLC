@@ -1,7 +1,5 @@
 import "server-only";
 
-import Anthropic from "@anthropic-ai/sdk";
-import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
 import { z } from "zod";
 
 import {
@@ -11,16 +9,15 @@ import {
 } from "@/lib/labor-guide-prompt";
 import { applyLaborHoursFloor } from "@/lib/labor-hours-calibration";
 import type { MotorRagExample } from "@/server/services/motor/motor-ai-context";
+import { createAiJsonMessage } from "@/server/services/ai/client";
 
 /**
  * AI Smart Labor Guide — given a VIN-decoded vehicle and a requested repair,
- * Claude returns the standard labor operation and an estimated flat-rate hours
- * value derived from first principles (not commercial guide recall).
+ * returns the standard labor operation and an estimated flat-rate hours value
+ * (Gemini or Claude via shared AI client).
  *
- * Model defaults to claude-sonnet-4-6; override with LABOR_GUIDE_MODEL.
+ * Model: GEMINI_DEFAULT_MODEL / LABOR_GUIDE_MODEL, or claude-sonnet on Anthropic.
  */
-
-const MODEL = process.env.LABOR_GUIDE_MODEL || "claude-sonnet-4-6";
 
 export const LaborSuggestionSchema = z.object({
   jobName: z.string().describe("Short job title, e.g. 'Strut assembly replacement'"),
@@ -166,15 +163,18 @@ async function callLaborModel(
   system: string,
   userContent: string,
 ): Promise<LaborSuggestion | null> {
-  const client = new Anthropic();
-  const response = await client.messages.parse({
-    model: MODEL,
-    max_tokens: 1024,
-    system,
-    messages: [{ role: "user", content: userContent }],
-    output_config: { format: zodOutputFormat(LaborSuggestionSchema) },
-  });
-  return response.parsed_output ?? null;
+  try {
+    const { data } = await createAiJsonMessage({
+      feature: "LABOR_GUIDE",
+      system,
+      userContent,
+      schema: LaborSuggestionSchema,
+      maxTokens: 1024,
+    });
+    return data;
+  } catch {
+    return null;
+  }
 }
 
 export async function suggestLaborJob(

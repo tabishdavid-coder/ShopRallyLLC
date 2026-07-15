@@ -161,7 +161,7 @@ export function PlatformHome({ data }: { data: PlatformDashboard }) {
               {PLANS.ENTERPRISE.name} AI usage
             </h3>
             <p className="mt-1 text-xs text-muted-foreground">
-              Anthropic calls logged per shop — last 30 days · {ai.last24Hours} in the last 24h
+              AI calls logged per shop — last 30 days · {ai.last24Hours} in the last 24h
             </p>
           </div>
           <p className="text-sm tabular-nums text-muted-foreground">

@@ -49,7 +49,7 @@
  *   BUCKET_SIZE=5 npm run db:build-labor-ny           # 5-year buckets (default)
  *   FORCE=1 LIMIT=10 npm run db:build-labor-ny        # regenerate 10 existing rows
  *
- * Requires: DATABASE_URL, ANTHROPIC_API_KEY (unless DRY_RUN=1)
+ * Requires: DATABASE_URL, GEMINI_API_KEY or ANTHROPIC_API_KEY (unless DRY_RUN=1)
  * Model: LABOR_GUIDE_MODEL (default claude-sonnet-4-6)
  */
 import { prisma } from "../src/db/client";
@@ -210,8 +210,8 @@ async function main() {
     return;
   }
 
-  if (!process.env.ANTHROPIC_API_KEY) {
-    console.error("ANTHROPIC_API_KEY is required (or use DRY_RUN=1).");
+  if (!process.env.GEMINI_API_KEY?.trim() && !process.env.ANTHROPIC_API_KEY?.trim()) {
+    console.error("GEMINI_API_KEY or ANTHROPIC_API_KEY is required (or use DRY_RUN=1).");
     process.exit(1);
   }
 

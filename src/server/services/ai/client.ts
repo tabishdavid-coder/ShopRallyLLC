@@ -2,20 +2,18 @@ import "server-only";
 
 import Anthropic from "@anthropic-ai/sdk";
 import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
-import type { ResponseSchema } from "@google/generative-ai";
 import type { z } from "zod";
 
 import { prisma } from "@/db/client";
 import type { AiFeature } from "@/generated/prisma";
+import { geminiGenerateText } from "@/server/services/ai/gemini";
 import {
   anthropicApiKey,
-  geminiModelCandidates,
   isAnyAiProviderConfigured,
   resolveAiModel,
   resolveAiProvider,
   type AiProvider,
 } from "@/server/services/ai/provider";
-import { friendlyGeminiError, geminiGenerateText, type GeminiGenerateResult } from "@/server/services/ai/gemini";
 
 export type { AiFeature };
 export type { AiProvider };
@@ -140,47 +138,36 @@ export async function createAiMessage(input: CreateAiMessageInput): Promise<Crea
 
   const model = resolveAiModel(input.feature, provider);
 
-  try {
-    const result =
-      provider === "gemini"
-        ? await geminiGenerateText({
-            model,
-            models: geminiModelCandidates(input.feature),
-            system: input.system,
-            user: input.userContent,
-            maxTokens: input.maxTokens,
-          })
-        : await callAnthropicText(input, model);
+  const result =
+    provider === "gemini"
+      ? await geminiGenerateText({
+          model,
+          system: input.system,
+          user: input.userContent,
+          maxTokens: input.maxTokens,
+        })
+      : await callAnthropicText(input, model);
 
-    const usedModel =
-      provider === "gemini" ? (result as GeminiGenerateResult).model : model;
+  await logAiUsage({
+    shopId: input.shopId ?? null,
+    feature: input.feature,
+    model,
+    provider,
+    inputTokens: result.inputTokens,
+    outputTokens: result.outputTokens,
+  });
 
-    await logAiUsage({
-      shopId: input.shopId ?? null,
-      feature: input.feature,
-      model: usedModel,
-      provider,
-      inputTokens: result.inputTokens,
-      outputTokens: result.outputTokens,
-    });
-
-    return {
-      text: result.text,
-      model: usedModel,
-      provider,
-      inputTokens: result.inputTokens,
-      outputTokens: result.outputTokens,
-    };
-  } catch (err) {
-    if (provider === "gemini") throw new Error(friendlyGeminiError(err));
-    throw err;
-  }
+  return {
+    text: result.text,
+    model,
+    provider,
+    inputTokens: result.inputTokens,
+    outputTokens: result.outputTokens,
+  };
 }
 
 export type CreateAiJsonMessageInput<T extends z.ZodType> = CreateAiMessageInput & {
   schema: T;
-  /** Gemini structured output — enforces JSON shape (recommended for Zod-validated calls). */
-  responseSchema?: ResponseSchema;
 };
 
 /** Structured JSON output — Zod-validated; uses native JSON mode on Gemini. */
@@ -199,35 +186,28 @@ export async function createAiJsonMessage<T extends z.ZodType>(
   const model = resolveAiModel(input.feature, provider);
 
   if (provider === "gemini") {
-    try {
-      const gemini = await geminiGenerateText({
-        model,
-        models: geminiModelCandidates(input.feature),
-        system: `${input.system}\n\nRespond with valid JSON only. No markdown.`,
-        user: input.userContent,
-        maxTokens: input.maxTokens ?? 2048,
-        json: true,
-        responseSchema: input.responseSchema,
-      });
+    const gemini = await geminiGenerateText({
+      model,
+      system: `${input.system}\n\nRespond with valid JSON only. No markdown.`,
+      user: input.userContent,
+      maxTokens: input.maxTokens ?? 2048,
+      json: true,
+    });
 
-      await logAiUsage({
-        shopId: input.shopId ?? null,
-        feature: input.feature,
-        model: gemini.model ?? model,
-        provider,
-        inputTokens: gemini.inputTokens,
-        outputTokens: gemini.outputTokens,
-      });
+    await logAiUsage({
+      shopId: input.shopId ?? null,
+      feature: input.feature,
+      model,
+      provider,
+      inputTokens: gemini.inputTokens,
+      outputTokens: gemini.outputTokens,
+    });
 
-      const parsed = input.schema.safeParse(JSON.parse(gemini.text));
-      if (!parsed.success) {
-        throw new Error("AI returned JSON that did not match the expected schema.");
-      }
-      return { data: parsed.data, model: gemini.model ?? model, provider };
-    } catch (err) {
-      if (err instanceof Error && err.message.startsWith("AI returned JSON")) throw err;
-      throw new Error(friendlyGeminiError(err));
+    const parsed = input.schema.safeParse(JSON.parse(gemini.text));
+    if (!parsed.success) {
+      throw new Error("AI returned JSON that did not match the expected schema.");
     }
+    return { data: parsed.data, model, provider };
   }
 
   const client = new Anthropic({ apiKey: anthropicApiKey() ?? undefined });
