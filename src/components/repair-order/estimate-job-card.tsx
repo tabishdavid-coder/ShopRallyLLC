@@ -105,6 +105,7 @@ type LaborRow = {
   /** Shop cost for this labor line (cents) — independent of customer rate. */
   costCents: number;
   rateCents: number;
+  discountCents?: number;
   totalCents?: number;
   lastField?: "hours" | "rate" | "total";
   useLaborMatrix?: boolean;
@@ -130,6 +131,7 @@ type PartRow = {
   quantity: number;
   costCents: number;
   retailCents: number;
+  discountCents?: number;
   totalCents?: number;
   lastField?: "qty" | "cost" | "retail" | "total";
   usePartMatrix?: boolean;
@@ -276,6 +278,7 @@ function newLaborRow(baseRateCents: number, laborTiers: LaborTier[]): LaborRow {
     hours: 0,
     costCents: 0,
     rateCents: baseRateCents,
+    discountCents: 0,
   };
   if (laborTiers.length > 0) {
     return applyLaborMatrixRow({ ...base, useLaborMatrix: true }, baseRateCents, laborTiers);
@@ -292,6 +295,7 @@ function newPartRow(partTiers: PartTier[]): PartRow {
     quantity: 1,
     costCents: 0,
     retailCents: 0,
+    discountCents: 0,
   };
   if (partTiers.length > 0) {
     return applyPartMatrixRow({ ...base, usePartMatrix: true }, partTiers);
@@ -467,6 +471,7 @@ export function EstimateJobCard({
     hours: l.hours,
     costCents: "costCents" in l && typeof l.costCents === "number" ? l.costCents : 0,
     rateCents: l.rateCents,
+    discountCents: "discountCents" in l && typeof l.discountCents === "number" ? l.discountCents : 0,
     authorized: l.authorized,
     technicianId: l.technicianId,
     sortOrder: l.sortOrder ?? i,
@@ -487,6 +492,7 @@ export function EstimateJobCard({
       quantity: p.quantity,
       costCents: p.costCents,
       retailCents: p.retailCents,
+      discountCents: "discountCents" in p && typeof p.discountCents === "number" ? p.discountCents : 0,
       source: p.source,
       authorized: p.authorized,
       sortOrder: p.sortOrder ?? i + initialLabor.length,
@@ -537,6 +543,7 @@ export function EstimateJobCard({
           hours: l.hours,
           costCents: l.costCents,
           rateCents: l.rateCents,
+          discountCents: l.discountCents ?? 0,
           totalCents: l.totalCents,
           lastField: l.lastField,
           authorized: l.authorized,
@@ -546,6 +553,7 @@ export function EstimateJobCard({
           quantity: p.quantity,
           retailCents: p.retailCents,
           costCents: p.costCents,
+          discountCents: p.discountCents ?? 0,
           totalCents: p.totalCents,
           lastField: p.lastField,
           authorized: p.authorized,
@@ -618,6 +626,7 @@ export function EstimateJobCard({
         hours: line.hours,
         costCents: 0,
         rateCents: baseRateCents,
+        discountCents: 0,
       };
       if (laborTiers.length > 0) {
         return applyLaborMatrixRow({ ...base, useLaborMatrix: true }, baseRateCents, laborTiers);
@@ -734,6 +743,7 @@ export function EstimateJobCard({
           hours: l.hours,
           costCents: l.costCents,
           rateCents: l.rateCents,
+          discountCents: l.discountCents ?? 0,
           technicianId: l.technicianId ?? null,
         })),
         partLines: parts.map((p) => ({
@@ -744,6 +754,7 @@ export function EstimateJobCard({
           quantity: p.quantity,
           costCents: p.costCents,
           retailCents: p.retailCents,
+          discountCents: p.discountCents ?? 0,
         })),
       });
       if (res.ok) {
@@ -776,6 +787,7 @@ export function EstimateJobCard({
           hours: l.hours,
           costCents: l.costCents,
           rateCents: l.rateCents,
+          discountCents: l.discountCents ?? 0,
           technicianId: l.technicianId ?? null,
         })),
         partLines: parts.map((p) => ({
@@ -786,6 +798,7 @@ export function EstimateJobCard({
           quantity: p.quantity,
           costCents: p.costCents,
           retailCents: p.retailCents,
+          discountCents: p.discountCents ?? 0,
         })),
       });
       if (res.ok) {

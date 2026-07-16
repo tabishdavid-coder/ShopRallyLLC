@@ -32,7 +32,9 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { formatCents } from "@/lib/format";
 import {
+  laborLineAmount,
   laborLineTotal,
+  partLineAmount,
   partLineTotal,
   patchLaborLine,
   patchPartLine,
@@ -135,6 +137,7 @@ type LaborRow = {
   /** Shop cost for this labor line (cents) — independent of customer rate. */
   costCents: number;
   rateCents: number;
+  discountCents?: number;
   totalCents?: number;
   lastField?: "hours" | "rate" | "total";
   useLaborMatrix?: boolean;
@@ -151,6 +154,7 @@ type PartRow = {
   quantity: number;
   costCents: number;
   retailCents: number;
+  discountCents?: number;
   totalCents?: number;
   lastField?: "qty" | "cost" | "retail" | "total";
   usePartMatrix?: boolean;
@@ -318,7 +322,7 @@ function splitMerged(merged: MergedItem[]): { labor: LaborRow[]; parts: PartRow[
 }
 
 function newLaborRow(baseRateCents: number, laborTiers: LaborTier[]): LaborRow {
-  const base: LaborRow = { description: "", hours: 0, costCents: 0, rateCents: baseRateCents };
+  const base: LaborRow = { description: "", hours: 0, costCents: 0, rateCents: baseRateCents, discountCents: 0 };
   if (laborTiers.length > 0) {
     return applyLaborMatrixRow({ ...base, useLaborMatrix: true }, baseRateCents, laborTiers);
   }
@@ -333,6 +337,7 @@ function newPartRow(partTiers: PartTier[], lineType: PartFamilyType = "part"): P
     quantity: 1,
     costCents: 0,
     retailCents: 0,
+    discountCents: 0,
     lineType,
   };
   if (partTiers.length > 0) {
@@ -347,6 +352,7 @@ function laborFromPart(row: PartRow, baseRateCents: number, laborTiers: LaborTie
     hours: 1,
     costCents: 0,
     rateCents: baseRateCents,
+    discountCents: 0,
     authorized: row.authorized,
   };
   if (laborTiers.length > 0) {
@@ -363,6 +369,7 @@ function partFromLabor(row: LaborRow, partTiers: PartTier[], lineType: PartFamil
     quantity: 1,
     costCents: 0,
     retailCents: 0,
+    discountCents: 0,
     authorized: row.authorized,
     lineType,
   };
@@ -373,7 +380,6 @@ function partFromLabor(row: LaborRow, partTiers: PartTier[], lineType: PartFamil
 }
 
 const MONEY_CELL = "flex h-7 w-full min-w-0 items-center overflow-visible";
-const VENDOR_COST_TITLE = "From vendor — edit via parts ordering";
 const ADD_ROW_CHIP =
   "inline-flex h-7 shrink-0 items-center gap-0.5 rounded-md border border-brand-navy/25 bg-white px-1.5 text-[10px] font-semibold uppercase tracking-wide text-brand-navy hover:bg-brand-light/15";
 const MONEY_INPUT = cn(LAB_INPUT_FLAT, "min-w-0 w-full text-right text-[11px] tabular-nums");
@@ -456,12 +462,56 @@ function InlinePlaceholderCell({ placeholder = "—" }: { placeholder?: string }
   );
 }
 
-/** Per-line discount — schema has no line-level discount; Tekmetric column stub. */
-function LineDiscountStub({ editing }: { editing: boolean }) {
+function LineDiscountCell({
+  editing,
+  amountCents,
+  discountCents = 0,
+  draftKey,
+  fieldDrafts,
+  focusFieldDraft,
+  setFieldDraft,
+  clearFieldDraft,
+  onCommitCents,
+  className,
+}: {
+  editing: boolean;
+  amountCents: number;
+  discountCents?: number;
+  draftKey?: string;
+  fieldDrafts?: FieldDrafts;
+  focusFieldDraft?: (key: string, value: string) => void;
+  setFieldDraft?: (key: string, value: string) => void;
+  clearFieldDraft?: (key: string) => void;
+  onCommitCents?: (cents: number) => void;
+  className?: string;
+}) {
+  const pct = amountCents > 0 ? (Math.min(discountCents, amountCents) / amountCents) * 100 : 0;
+
+  if (editing && draftKey && fieldDrafts && focusFieldDraft && setFieldDraft && clearFieldDraft && onCommitCents) {
+    return (
+      <div className="flex min-w-0 flex-col gap-0.5">
+        <InlineMoneyCell
+          draftKey={draftKey}
+          valueCents={discountCents}
+          fieldDrafts={fieldDrafts}
+          focusFieldDraft={focusFieldDraft}
+          setFieldDraft={setFieldDraft}
+          clearFieldDraft={clearFieldDraft}
+          onCommitCents={(cents) => onCommitCents(Math.min(Math.max(0, cents), amountCents))}
+        />
+        <span className="text-right text-[10px] tabular-nums text-muted-foreground/55">
+          {pct.toFixed(pct % 1 === 0 ? 0 : 1)}%
+        </span>
+      </div>
+    );
+  }
+
   return (
-    <div className={cn("flex min-w-0 flex-col gap-0.5", editing ? "" : "items-end")}>
-      <span className="text-[10px] tabular-nums text-muted-foreground/70">$0.00</span>
-      <span className="text-[10px] tabular-nums text-muted-foreground/50">0%</span>
+    <div className={cn("flex min-w-0 flex-col gap-0.5 items-end", className)}>
+      <span className="text-[10px] tabular-nums text-muted-foreground/70">{formatCents(discountCents)}</span>
+      <span className="text-[10px] tabular-nums text-muted-foreground/50">
+        {pct.toFixed(pct % 1 === 0 ? 0 : 1)}%
+      </span>
     </div>
   );
 }
@@ -950,7 +1000,8 @@ export function EstimateLabServiceItemsGrid({
     if (item.kind === "labor") {
       const l = item.row;
       const { name: laborName, detail: laborDetail } = splitLaborDesc(l.description);
-      const amountCents = laborLineTotal(l);
+      const amountCents = laborLineAmount(l);
+      const netCents = laborLineTotal(l);
 
       return (
         <SortableRow key={item.key} id={item.key} disabled={!editing || !dndReady} gridTemplateColumns={gridTemplateColumns}>
@@ -1080,10 +1131,25 @@ export function EstimateLabServiceItemsGrid({
                 <ReadOnlyMoney cents={amountCents} className={cn("font-medium", lineThrough)} />
               </div>
               <div className={LAB_GRID_NUM_BORDERED}>
-                <LineDiscountStub editing={editing} />
+                <LineDiscountCell
+                  editing={editing}
+                  amountCents={amountCents}
+                  discountCents={l.discountCents ?? 0}
+                  draftKey={`${draftPrefix}-discount`}
+                  fieldDrafts={fieldDrafts}
+                  focusFieldDraft={focusFieldDraft}
+                  setFieldDraft={setFieldDraft}
+                  clearFieldDraft={clearFieldDraft}
+                  onCommitCents={(cents) =>
+                    updateAt(index, (m) =>
+                      m.kind === "labor" ? { ...m, row: { ...m.row, discountCents: cents } } : m,
+                    )
+                  }
+                  className={lineThrough}
+                />
               </div>
               <div className={LAB_GRID_NUM_BORDERED}>
-                <ReadOnlyMoney cents={amountCents} className={cn("font-semibold", lineThrough)} />
+                <ReadOnlyMoney cents={netCents} className={cn("font-semibold", lineThrough)} />
               </div>
               <div className={cn(LAB_GRID_CELL_BORDERED, "justify-center")}>
                 <TaxableCell
@@ -1223,7 +1289,7 @@ export function EstimateLabServiceItemsGrid({
                 <ReadOnlyMoney cents={total} className="font-medium" />
               </div>
               <div className={LAB_GRID_NUM_BORDERED}>
-                <LineDiscountStub editing={editing} />
+                <LineDiscountCell editing={false} amountCents={total} discountCents={0} />
               </div>
               <div className={LAB_GRID_NUM_BORDERED}>
                 <span
@@ -1267,7 +1333,8 @@ export function EstimateLabServiceItemsGrid({
 
     const p = item.row;
     const partDetail = formatPartDetail(p.partNumber, p.brand);
-    const amountCents = partLineTotal(p);
+    const amountCents = partLineAmount(p);
+    const netCents = partLineTotal(p);
 
     return (
       <SortableRow key={item.key} id={item.key} disabled={!editing || !dndReady} gridTemplateColumns={gridTemplateColumns}>
@@ -1349,8 +1416,24 @@ export function EstimateLabServiceItemsGrid({
                 </span>
               )}
             </div>
-            <div className={LAB_GRID_NUM_BORDERED} title={editing ? VENDOR_COST_TITLE : undefined}>
-              <ReadOnlyMoney cents={p.costCents} className={lineThrough} />
+            <div className={LAB_GRID_NUM_BORDERED}>
+              {editing ? (
+                <InlineMoneyCell
+                  draftKey={`${draftPrefix}-cost`}
+                  valueCents={p.costCents}
+                  fieldDrafts={fieldDrafts}
+                  focusFieldDraft={focusFieldDraft}
+                  setFieldDraft={setFieldDraft}
+                  clearFieldDraft={clearFieldDraft}
+                  onCommitCents={(cents) =>
+                    updateAt(index, (m) =>
+                      m.kind === "part" ? { ...m, row: patchPartLine(m.row, "cost", cents, partTiers) } : m,
+                    )
+                  }
+                />
+              ) : (
+                <ReadOnlyMoney cents={p.costCents} className={lineThrough} />
+              )}
             </div>
             <div className={LAB_GRID_NUM_BORDERED}>
               {editing ? (
@@ -1375,10 +1458,25 @@ export function EstimateLabServiceItemsGrid({
               <ReadOnlyMoney cents={amountCents} className={cn("font-medium", lineThrough)} />
             </div>
             <div className={LAB_GRID_NUM_BORDERED}>
-              <LineDiscountStub editing={editing} />
+              <LineDiscountCell
+                editing={editing}
+                amountCents={amountCents}
+                discountCents={p.discountCents ?? 0}
+                draftKey={`${draftPrefix}-discount`}
+                fieldDrafts={fieldDrafts}
+                focusFieldDraft={focusFieldDraft}
+                setFieldDraft={setFieldDraft}
+                clearFieldDraft={clearFieldDraft}
+                onCommitCents={(cents) =>
+                  updateAt(index, (m) =>
+                    m.kind === "part" ? { ...m, row: { ...m.row, discountCents: cents } } : m,
+                  )
+                }
+                className={lineThrough}
+              />
             </div>
             <div className={LAB_GRID_NUM_BORDERED}>
-              <ReadOnlyMoney cents={amountCents} className={cn("font-semibold", lineThrough)} />
+              <ReadOnlyMoney cents={netCents} className={cn("font-semibold", lineThrough)} />
             </div>
             <div className={cn(LAB_GRID_CELL_BORDERED, "justify-center")}>
               <TaxableCell
@@ -1499,9 +1597,8 @@ export function EstimateLabServiceItemsGrid({
                   LAB_GRID_NUM_BORDERED,
                   "inline-flex min-h-7 items-center justify-end text-[10px] text-muted-foreground/40",
                 )}
-                title={isPartFamily(addType) ? VENDOR_COST_TITLE : undefined}
               >
-                {isPartFamily(addType) ? "—" : "0.00"}
+                0.00
               </span>
               <span className={cn(LAB_GRID_NUM_BORDERED, "text-[10px] text-muted-foreground/40")}>0.00</span>
               <span className={cn(LAB_GRID_NUM_BORDERED, "text-[10px] text-muted-foreground/40")}>0.00</span>

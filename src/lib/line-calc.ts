@@ -8,6 +8,7 @@ export type PartEditField = "qty" | "cost" | "retail" | "total";
 export type EditableLaborLine = {
   hours: number;
   rateCents: number;
+  discountCents?: number;
   totalCents?: number;
   lastField?: LaborEditField;
   useLaborMatrix?: boolean;
@@ -17,19 +18,28 @@ export type EditablePartLine = {
   quantity: number;
   costCents: number;
   retailCents: number;
+  discountCents?: number;
   totalCents?: number;
   lastField?: PartEditField;
   usePartMatrix?: boolean;
 };
 
-export function laborLineTotal(l: EditableLaborLine): number {
+export function laborLineAmount(l: EditableLaborLine): number {
   if (l.lastField === "total" && l.totalCents != null) return l.totalCents;
   return Math.round(l.hours * l.rateCents);
 }
 
-export function partLineTotal(p: EditablePartLine): number {
+export function partLineAmount(p: EditablePartLine): number {
   if (p.lastField === "total" && p.totalCents != null) return p.totalCents;
   return p.retailCents * p.quantity;
+}
+
+export function laborLineTotal(l: EditableLaborLine): number {
+  return Math.max(0, laborLineAmount(l) - (l.discountCents ?? 0));
+}
+
+export function partLineTotal(p: EditablePartLine): number {
+  return Math.max(0, partLineAmount(p) - (p.discountCents ?? 0));
 }
 
 export function patchLaborLine<T extends EditableLaborLine>(

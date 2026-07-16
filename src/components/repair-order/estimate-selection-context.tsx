@@ -34,6 +34,7 @@ export type JobEditDraft = {
     hours: number;
     costCents?: number;
     rateCents: number;
+    discountCents?: number;
     totalCents?: number;
     lastField?: "hours" | "rate" | "total";
     authorized?: boolean;
@@ -43,6 +44,7 @@ export type JobEditDraft = {
     quantity: number;
     retailCents: number;
     costCents: number;
+    discountCents?: number;
     totalCents?: number;
     lastField?: "qty" | "cost" | "retail" | "total";
     authorized?: boolean;
