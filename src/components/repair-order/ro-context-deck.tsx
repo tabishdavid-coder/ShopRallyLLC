@@ -453,7 +453,7 @@ export function RoContextDeck({
               </CollapsibleTrigger>
               <CollapsibleContent>
                 <DetailRow
-                  label="Service Writer"
+                  label="Service Advisor"
                   value={
                     <EditableValue
                       value={ro.serviceWriterName}
@@ -646,8 +646,8 @@ export function RoContextDeck({
       <SelectFieldDialog
         open={dialog === "serviceWriter"}
         onOpenChange={(o) => !o && close()}
-        title="Service Writer"
-        label="Employee"
+        title="Service Advisor"
+        label="Service advisor"
         value={ro.serviceWriterId}
         allowClear
         options={options.serviceWriters.map((s) => ({ value: s.id, label: s.name }))}

@@ -137,7 +137,15 @@ export function AddEmployeeDialog({ onCreated }: { onCreated?: () => void }) {
               <section className="space-y-3 border-t pt-4">
                 <h3 className="text-sm font-semibold">Role and Salary</h3>
                 <Field label="Employee Role" required>
-                  <select className={input} value={f.role} onChange={(e) => set("role", e.target.value as Form["role"])}>
+                  <select
+                    className={input}
+                    value={f.role}
+                    onChange={(e) => {
+                      const role = e.target.value as Form["role"];
+                      // Techs wrench by default; advisors/owners/managers opt in explicitly.
+                      setF((p) => ({ ...p, role, canPerformWork: role === "TECHNICIAN" }));
+                    }}
+                  >
                     <option value="">Select Role</option>
                     {EMPLOYEE_ROLES.map((r) => <option key={r.value} value={r.value}>{r.label}</option>)}
                   </select>

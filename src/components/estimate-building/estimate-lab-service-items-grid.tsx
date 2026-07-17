@@ -19,7 +19,7 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { GripVertical, Plus, X } from "lucide-react";
+import { ChevronDown, GripVertical, Plus, X } from "lucide-react";
 
 import { EstimateLabLineAddSplit } from "@/components/estimate-building/estimate-lab-line-add-split";
 import {
@@ -396,6 +396,7 @@ function InlineMoneyCell({
   readOnly,
   placeholder,
   fontMedium,
+  belowSlot,
 }: {
   draftKey: string;
   valueCents: number;
@@ -407,12 +408,13 @@ function InlineMoneyCell({
   readOnly?: boolean;
   placeholder?: string;
   fontMedium?: boolean;
+  belowSlot?: ReactNode;
 }) {
   const locked = readOnly;
   const display = draftValue(fieldDrafts, draftKey, dollars(valueCents));
 
   return (
-    <div className={MONEY_CELL}>
+    <div className={cn(MONEY_CELL, belowSlot && "flex-col items-stretch justify-center gap-0")}>
       <div className="relative w-full min-w-0">
         <span className="pointer-events-none absolute left-0 top-1/2 -translate-y-1/2 text-[10px] text-muted-foreground">
           $
@@ -441,9 +443,16 @@ function InlineMoneyCell({
             onCommitCents(cents);
             clearFieldDraft(draftKey);
           }}
-          className={cn(MONEY_INPUT, "pl-3", fontMedium && "font-medium", locked && MONEY_INPUT_LOCKED)}
+          className={cn(
+            MONEY_INPUT,
+            "pl-3",
+            belowSlot && "h-4",
+            fontMedium && "font-medium",
+            locked && MONEY_INPUT_LOCKED,
+          )}
         />
       </div>
+      {belowSlot}
     </div>
   );
 }
@@ -486,32 +495,31 @@ function LineDiscountCell({
   className?: string;
 }) {
   const pct = amountCents > 0 ? (Math.min(discountCents, amountCents) / amountCents) * 100 : 0;
+  const pctLabel = `${pct.toFixed(pct % 1 === 0 ? 0 : 1)}%`;
 
   if (editing && draftKey && fieldDrafts && focusFieldDraft && setFieldDraft && clearFieldDraft && onCommitCents) {
     return (
-      <div className="flex min-w-0 flex-col gap-0.5">
-        <InlineMoneyCell
-          draftKey={draftKey}
-          valueCents={discountCents}
-          fieldDrafts={fieldDrafts}
-          focusFieldDraft={focusFieldDraft}
-          setFieldDraft={setFieldDraft}
-          clearFieldDraft={clearFieldDraft}
-          onCommitCents={(cents) => onCommitCents(Math.min(Math.max(0, cents), amountCents))}
-        />
-        <span className="text-right text-[10px] tabular-nums text-muted-foreground/55">
-          {pct.toFixed(pct % 1 === 0 ? 0 : 1)}%
-        </span>
-      </div>
+      <InlineMoneyCell
+        draftKey={draftKey}
+        valueCents={discountCents}
+        fieldDrafts={fieldDrafts}
+        focusFieldDraft={focusFieldDraft}
+        setFieldDraft={setFieldDraft}
+        clearFieldDraft={clearFieldDraft}
+        onCommitCents={(cents) => onCommitCents(Math.min(Math.max(0, cents), amountCents))}
+        belowSlot={
+          <span className="block pr-1 text-right text-[9px] leading-none tabular-nums text-muted-foreground/55">
+            {pctLabel}
+          </span>
+        }
+      />
     );
   }
 
   return (
-    <div className={cn("flex min-w-0 flex-col gap-0.5 items-end", className)}>
-      <span className="text-[10px] tabular-nums text-muted-foreground/70">{formatCents(discountCents)}</span>
-      <span className="text-[10px] tabular-nums text-muted-foreground/50">
-        {pct.toFixed(pct % 1 === 0 ? 0 : 1)}%
-      </span>
+    <div className={cn("flex h-7 w-full min-w-0 flex-col items-end justify-center gap-0 leading-none", className)}>
+      <span className="pr-1 text-[11px] tabular-nums text-muted-foreground/80">{formatCents(discountCents)}</span>
+      <span className="pr-1 text-[9px] tabular-nums text-muted-foreground/50">{pctLabel}</span>
     </div>
   );
 }
@@ -533,15 +541,24 @@ function TaxableCell({
     );
   }
   return (
-    <select
-      value={value ? "yes" : "no"}
-      onChange={(e) => onChange?.(e.target.value === "yes")}
-      className={cn(LAB_INPUT_FLAT, "w-full text-[10px]")}
-      aria-label="Taxable"
-    >
-      <option value="yes">Yes</option>
-      <option value="no">No</option>
-    </select>
+    <div className="relative flex w-full min-w-0 items-center justify-center">
+      <select
+        value={value ? "yes" : "no"}
+        onChange={(e) => onChange?.(e.target.value === "yes")}
+        className={cn(
+          LAB_INPUT_FLAT,
+          "w-full appearance-none pl-1 pr-3.5 text-center text-[10px] font-medium",
+        )}
+        aria-label="Taxable"
+      >
+        <option value="yes">Yes</option>
+        <option value="no">No</option>
+      </select>
+      <ChevronDown
+        aria-hidden
+        className="pointer-events-none absolute right-0.5 top-1/2 size-3 -translate-y-1/2 text-muted-foreground/60"
+      />
+    </div>
   );
 }
 

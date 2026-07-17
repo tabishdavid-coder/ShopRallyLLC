@@ -44,17 +44,16 @@ export const PART_FAMILY_LINE_TYPES: InlineLineType[] = [
   "other",
 ];
 
-/** Labor Type column — labor + fee/discount (Labor Book lives in the actions section). */
-export const LABOR_LINE_TYPES: InlineLineType[] = ["labor", "fee", "discount"];
+/** Labor Type column — Labor Book lives in the actions section. */
+export const LABOR_LINE_TYPES: InlineLineType[] = ["labor"];
 
 /**
- * Full service-items Type list — Labor → Fee/Discount → Part family.
+ * Full service-items Type list — Labor → Part family.
  * Used on every Type button so the menu stays consistent.
+ * Fee/Discount are handled by the dedicated adjustments UI, not line-type swaps.
  */
 export const SERVICE_LINE_TYPE_OPTIONS: InlineLineType[] = [
   "labor",
-  "fee",
-  "discount",
   "part",
   "tire",
   "sublet",
@@ -86,8 +85,8 @@ function resolveScope(
 
 function defaultTypeOptions(menuScope: EstimateLineTypeMenuScope): InlineLineType[] {
   if (menuScope === "labor") return LABOR_LINE_TYPES;
-  if (menuScope === "part") return [...PART_FAMILY_LINE_TYPES, "fee", "discount"];
-  return INLINE_LINE_TYPE_OPTIONS.map((o) => o.value);
+  if (menuScope === "part") return PART_FAMILY_LINE_TYPES;
+  return SERVICE_LINE_TYPE_OPTIONS;
 }
 
 function triggerIcon(value: InlineLineType) {

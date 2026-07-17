@@ -409,9 +409,18 @@ async function main() {
       phone: "(518) 555-0142",
     },
   });
+  // Macuto staff — dedicated advisor + technician so pickers stay separate in Core QA.
+  const elena = await prisma.user.create({
+    data: { email: "elena@macutoautorepair.test", firstName: "Elena", lastName: "Macuto" },
+  });
+  const miguel = await prisma.user.create({
+    data: { email: "miguel@macutoautorepair.test", firstName: "Miguel", lastName: "Santos" },
+  });
+  // canPerformWork drives technician pickers/tech board; advisors and
+  // non-wrenching owners must be false so tech and advisor lists stay separate.
   await prisma.membership.createMany({
     data: [
-      { shopId: demo.id, userId: owner.id, role: Role.OWNER },
+      { shopId: demo.id, userId: owner.id, role: Role.OWNER, canPerformWork: false },
       {
         shopId: demo.id,
         userId: carlos.id,
@@ -419,6 +428,7 @@ async function main() {
         payrollType: "FLAT_RATE",
         permissionGroup: "Technician",
         permissionMode: "GROUP",
+        canPerformWork: true,
       },
       {
         shopId: demo.id,
@@ -427,9 +437,28 @@ async function main() {
         payrollType: "HOURLY",
         permissionGroup: "Service Advisor",
         permissionMode: "GROUP",
+        canPerformWork: false,
       },
-      { shopId: macuto.id, userId: owner.id, role: Role.OWNER },
-      { shopId: macuto.id, userId: platformAdmin.id, role: Role.OWNER },
+      { shopId: macuto.id, userId: owner.id, role: Role.OWNER, canPerformWork: false },
+      { shopId: macuto.id, userId: platformAdmin.id, role: Role.OWNER, canPerformWork: false },
+      {
+        shopId: macuto.id,
+        userId: elena.id,
+        role: Role.SERVICE_WRITER,
+        payrollType: "HOURLY",
+        permissionGroup: "Service Advisor",
+        permissionMode: "GROUP",
+        canPerformWork: false,
+      },
+      {
+        shopId: macuto.id,
+        userId: miguel.id,
+        role: Role.TECHNICIAN,
+        payrollType: "FLAT_RATE",
+        permissionGroup: "Technician",
+        permissionMode: "GROUP",
+        canPerformWork: true,
+      },
     ],
   });
 
@@ -536,7 +565,8 @@ async function main() {
       customerId: macutoCustomer.id,
       vehicleId: macutoVehicle.id,
       status: ROStatus.ESTIMATE,
-      serviceWriterId: owner.id,
+      serviceWriterId: elena.id,
+      technicianId: miguel.id,
       mileageIn: 87420,
       laborRateCents: dollars(125),
       concerns: ["Front brakes grinding", "Steering wheel vibration when braking"],
@@ -559,6 +589,7 @@ async function main() {
                   hours: 1.5,
                   rateCents: dollars(125),
                   totalCents: macutoLabor,
+                  technicianId: miguel.id,
                 },
               ],
             },
@@ -1294,7 +1325,7 @@ async function main() {
       ...s1,
       status: AppointmentStatus.SCHEDULED,
       notes: "State inspection",
-      technicianId: priya.id,
+      technicianId: carlos.id,
     });
     const s2 = apptSlot(2, 14, 0, 60);
     apptRows.push({
@@ -1304,7 +1335,7 @@ async function main() {
       title: "Tabish David — follow-up",
       ...s2,
       status: AppointmentStatus.CONFIRMED,
-      technicianId: priya.id,
+      technicianId: carlos.id,
     });
   }
 

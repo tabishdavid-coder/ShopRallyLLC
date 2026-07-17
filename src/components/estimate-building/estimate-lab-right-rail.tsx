@@ -58,7 +58,6 @@ import { fmtDateTime, toDate } from "@/lib/datetime";
 import { formatCents } from "@/lib/format";
 import type { EstimateLabVehicleSpecsBundle } from "@/lib/estimate-lab-vehicle-specs";
 import { paymentDisplayStatus } from "@/lib/payment-status";
-import { jobAuthState } from "@/lib/ro-totals";
 import { cn } from "@/lib/utils";
 
 type StaffPick = { id: string; name: string };
@@ -155,33 +154,6 @@ const RAIL_PALETTE_STYLE = {
   "--jb-line": "#dde5ef",
   "--jb-hover-line": "#b9c8dc",
 } as CSSProperties;
-
-function computeAuthCounts(jobs: AuthJob[]) {
-  let pendingApproval = 0;
-  let approved = 0;
-  let declined = 0;
-
-  for (const job of jobs) {
-    if (job.approvedAt) {
-      approved++;
-      continue;
-    }
-    const state = jobAuthState({
-      laborLines: job.laborLines.map((l) => ({ authorized: l.authorized !== false })),
-      partLines: job.partLines.map((p) => ({ authorized: p.authorized !== false })),
-    });
-    if (state === true) approved++;
-    else if (state === "indeterminate") pendingApproval++;
-    else if (
-      job.laborLines.some((l) => l.authorized === false) ||
-      job.partLines.some((p) => p.authorized === false)
-    ) {
-      declined++;
-    } else pendingApproval++;
-  }
-
-  return { pendingApproval, approved, declined };
-}
 
 function usePreviewFinancial(financial: EstimateLabFinancialSummary): EstimateLabFinancialSummary {
   const { paymentPreview } = useEstimateLabDisplay();
@@ -504,7 +476,6 @@ function StatusCard({
   canArchive,
   canEdit,
   approvable,
-  authCounts,
   paid,
   quickReference,
   technicians,
@@ -517,7 +488,6 @@ function StatusCard({
   canArchive?: boolean;
   canEdit: boolean;
   approvable: boolean;
-  authCounts: { pendingApproval: number; approved: number; declined: number };
   paid: boolean;
   quickReference: EstimateLabQuickReferenceData | null;
   technicians: StaffPick[];
@@ -556,9 +526,6 @@ function StatusCard({
     : "Unassigned";
   const techWarn = techUnassigned || (quickReference?.unassignedJobs ?? 0) > 0;
 
-  const approvalChipClass =
-    "flex min-h-9 min-w-0 flex-1 items-center justify-center gap-1.5 rounded-none border border-[var(--jb-line,#dde5ef)] bg-[var(--jb-surface,#f0f3f8)] px-2 py-1.5 text-[12.5px] leading-tight tabular-nums transition-colors";
-
   return (
     <div className={cn(RAIL_CARD, "overflow-hidden")}>
       <div className="flex items-center gap-2 border-b border-[var(--jb-line,#dde5ef)] px-3.5 py-2">
@@ -591,57 +558,6 @@ function StatusCard({
             Get approval
           </Button>
         ) : null}
-
-        <div className="grid w-full grid-cols-3 gap-1">
-          <button
-            type="button"
-            disabled={!approvable}
-            onClick={() => setAuthorizeOpen(true)}
-            className={cn(
-              approvalChipClass,
-              approvable
-                ? "hover:border-[var(--jb-azure,#1e7fe0)] hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--jb-azure,#1e7fe0)]/40"
-                : "cursor-default opacity-80",
-            )}
-            title={approvable ? "Get approval / authorize" : "Approval counts"}
-          >
-            <span className="size-2 shrink-0 rounded-none bg-[var(--jb-green,#1c9e5a)]" aria-hidden />
-            <span className="truncate text-[var(--jb-slate,#5b7295)]">Approved</span>
-            <span className="shrink-0 font-bold text-[var(--jb-ink,#0b1f3b)]">{authCounts.approved}</span>
-          </button>
-          <button
-            type="button"
-            disabled={!approvable}
-            onClick={() => setAuthorizeOpen(true)}
-            className={cn(
-              approvalChipClass,
-              approvable
-                ? "hover:border-[#B27A00] hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#B27A00]/40"
-                : "cursor-default opacity-80",
-            )}
-            title={approvable ? "Get approval / authorize" : "Approval counts"}
-          >
-            <span className="size-2 shrink-0 rounded-none bg-[#B27A00]" aria-hidden />
-            <span className="truncate text-[var(--jb-slate,#5b7295)]">Pending</span>
-            <span className="shrink-0 font-bold text-[var(--jb-ink,#0b1f3b)]">{authCounts.pendingApproval}</span>
-          </button>
-          <button
-            type="button"
-            disabled={!approvable}
-            onClick={() => setAuthorizeOpen(true)}
-            className={cn(
-              approvalChipClass,
-              approvable
-                ? "hover:border-[var(--jb-red,#c93838)] hover:bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--jb-red,#c93838)]/40"
-                : "cursor-default opacity-80",
-            )}
-            title={approvable ? "Get approval / authorize" : "Approval counts"}
-          >
-            <span className="size-2 shrink-0 rounded-none bg-[var(--jb-red,#c93838)]" aria-hidden />
-            <span className="truncate text-[var(--jb-slate,#5b7295)]">Declined</span>
-            <span className="shrink-0 font-bold text-[var(--jb-ink,#0b1f3b)]">{authCounts.declined}</span>
-          </button>
-        </div>
 
         {quickReference ? (
           <div className="border-t border-dashed border-[var(--jb-line,#dde5ef)] pt-2">
@@ -970,9 +886,7 @@ function VehicleSpecsRailSection({
   );
 }
 
-function EstimateLabRightRailBody(props: EstimateLabRightRailProps & {
-  authCounts: { pendingApproval: number; approved: number; declined: number };
-}) {
+function EstimateLabRightRailBody(props: EstimateLabRightRailProps) {
   const {
     roId,
     roNumber,
@@ -993,7 +907,6 @@ function EstimateLabRightRailBody(props: EstimateLabRightRailProps & {
     vehicleSpecs = null,
     technicians = [],
     allowPaymentPreview = true,
-    authCounts,
   } = props;
 
   const [depositOpen, setDepositOpen] = useState(false);
@@ -1031,7 +944,6 @@ function EstimateLabRightRailBody(props: EstimateLabRightRailProps & {
           canArchive={canArchive}
           canEdit={canEdit}
           approvable={approvable}
-          authCounts={authCounts}
           paid={paidInFull}
           quickReference={quickReference}
           technicians={technicians}
@@ -1078,7 +990,6 @@ function EstimateLabRightRailBody(props: EstimateLabRightRailProps & {
 
 /** Fixed right rail (~302px) on desktop; sheet drawer on smaller screens. */
 export function EstimateLabRightRail(props: EstimateLabRightRailProps) {
-  const authCounts = useMemo(() => computeAuthCounts(props.jobs), [props.jobs]);
   const financial = usePreviewFinancial(props.financial);
 
   return (
@@ -1095,7 +1006,7 @@ export function EstimateLabRightRail(props: EstimateLabRightRailProps) {
         style={RAIL_PALETTE_STYLE}
       >
         <div className="flex min-h-0 flex-1 flex-col overflow-y-auto">
-          <EstimateLabRightRailBody {...props} financial={financial} authCounts={authCounts} />
+          <EstimateLabRightRailBody {...props} financial={financial} />
         </div>
       </aside>
 
@@ -1118,7 +1029,7 @@ export function EstimateLabRightRail(props: EstimateLabRightRailProps) {
             style={RAIL_PALETTE_STYLE}
           >
             <div className="min-h-0 flex-1 overflow-y-auto bg-[var(--jb-surface,#f0f3f8)]">
-              <EstimateLabRightRailBody {...props} financial={financial} authCounts={authCounts} />
+              <EstimateLabRightRailBody {...props} financial={financial} />
             </div>
           </SheetContent>
         </Sheet>

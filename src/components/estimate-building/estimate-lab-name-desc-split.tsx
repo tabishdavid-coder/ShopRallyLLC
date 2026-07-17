@@ -29,7 +29,7 @@ function readStoredRatio(): number {
 export function labLineGridTemplate(nameShare = LAB_NAME_DESC_RATIO_DEFAULT): string {
   const name = clampRatio(nameShare);
   const desc = 1 - name;
-  return `24px 128px minmax(120px,${name}fr) minmax(100px,${desc}fr) 72px 84px 84px 96px 80px 96px 52px 28px`;
+  return `24px 128px minmax(120px,${name}fr) minmax(100px,${desc}fr) 72px 84px 84px 96px 80px 96px 64px 28px`;
 }
 
 export function useLabNameDescSplit() {
@@ -71,7 +71,7 @@ export function LabNameDescResizeHandle({
     const header = e.currentTarget.closest<HTMLElement>("[data-lab-name-desc-header]");
     const pairWidth =
       (header?.offsetWidth ?? 900) -
-      (24 + 128 + 72 + 84 + 84 + 96 + 80 + 96 + 52 + 28);
+      (24 + 128 + 72 + 84 + 84 + 96 + 80 + 96 + 64 + 28);
     const target = e.currentTarget;
     target.setPointerCapture(e.pointerId);
     document.body.style.cursor = "col-resize";
