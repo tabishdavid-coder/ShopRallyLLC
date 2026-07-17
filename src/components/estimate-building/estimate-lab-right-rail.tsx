@@ -6,11 +6,13 @@
  * IA: agents/EstimateBuilding/RIGHT-RAIL-IA.md
  */
 
-import { useEffect, useMemo, useState, type CSSProperties } from "react";
+import { useEffect, useMemo, useState, useTransition, type CSSProperties } from "react";
 import Link from "next/link";
 import {
   CheckCircle2,
+  ChevronDown,
   CreditCard,
+  Loader2,
   PanelRight,
   Printer,
   Send,
@@ -40,7 +42,6 @@ import { PrintMenu } from "@/components/repair-order/print-menu";
 import { RoWorkflowDropdown } from "@/components/repair-order/ro-workflow-dropdown";
 import { AuthorizeEstimateDialog } from "@/components/repair-order/authorize-estimate-dialog";
 import {
-  SelectFieldDialog,
   useRoSidebarSave,
 } from "@/components/repair-order/ro-sidebar-field-dialogs";
 import { roEstimateActionHref } from "@/lib/ro-context-actions";
@@ -493,7 +494,7 @@ function StatusCard({
   technicians: StaffPick[];
 }) {
   const [authorizeOpen, setAuthorizeOpen] = useState(false);
-  const [techOpen, setTechOpen] = useState(false);
+  const [techPending, startTech] = useTransition();
   const partsCtx = useEstimateLabPartsOptional();
   const partsTechOk = usePartsTechUiEnabled();
   const saveSidebar = useRoSidebarSave(roId);
@@ -575,19 +576,48 @@ function StatusCard({
             <div className="flex items-baseline justify-between gap-2 py-[3px] text-[13px]">
               <span className="shrink-0 text-[var(--jb-slate,#5b7295)]">Technician</span>
               {canEdit && technicians.length > 0 ? (
-                <button
-                  type="button"
-                  onClick={() => setTechOpen(true)}
-                  className={cn(
-                    "min-w-0 truncate rounded-none text-right font-medium tabular-nums transition-colors hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--jb-azure,#1e7fe0)]/40",
-                    techWarn
-                      ? "font-semibold text-[var(--jb-red,#c93838)]"
-                      : "text-[var(--jb-ink,#0b1f3b)]",
+                <div className="relative min-w-0 max-w-[62%] flex-1">
+                  <select
+                    aria-label="Assign technician"
+                    title={
+                      !techUnassigned && (quickReference.unassignedJobs ?? 0) > 0
+                        ? `${techLabel} — assign remaining jobs`
+                        : "Assign technician"
+                    }
+                    value={quickReference.technicianId ?? ""}
+                    disabled={techPending}
+                    onChange={(e) => {
+                      const next = e.target.value || null;
+                      startTech(async () => {
+                        await saveSidebar({ technicianId: next });
+                      });
+                    }}
+                    className={cn(
+                      "h-auto w-full min-w-0 cursor-pointer appearance-none truncate rounded-none border-0 bg-transparent py-0 pl-1 pr-4 text-right text-[13px] font-medium tabular-nums outline-none transition-colors focus-visible:ring-2 focus-visible:ring-[var(--jb-azure,#1e7fe0)]/40 disabled:opacity-60",
+                      techWarn
+                        ? "font-semibold text-[var(--jb-red,#c93838)]"
+                        : "text-[var(--jb-ink,#0b1f3b)]",
+                    )}
+                  >
+                    <option value="">Unassigned</option>
+                    {technicians.map((t) => (
+                      <option key={t.id} value={t.id}>
+                        {t.name}
+                      </option>
+                    ))}
+                  </select>
+                  {techPending ? (
+                    <Loader2
+                      className="pointer-events-none absolute right-0 top-1/2 size-3 -translate-y-1/2 animate-spin text-[var(--jb-faint,#8ca2c0)]"
+                      aria-hidden
+                    />
+                  ) : (
+                    <ChevronDown
+                      className="pointer-events-none absolute right-0 top-1/2 size-3 -translate-y-1/2 text-[var(--jb-faint,#8ca2c0)]"
+                      aria-hidden
+                    />
                   )}
-                  title="Assign technician"
-                >
-                  {techLabel}
-                </button>
+                </div>
               ) : (
                 <span
                   className={cn(
@@ -596,6 +626,11 @@ function StatusCard({
                       ? "font-semibold text-[var(--jb-red,#c93838)]"
                       : "text-[var(--jb-ink,#0b1f3b)]",
                   )}
+                  title={
+                    techWarn && !techUnassigned
+                      ? `${techLabel} — some jobs still unassigned`
+                      : undefined
+                  }
                 >
                   {techLabel}
                 </span>
@@ -675,17 +710,6 @@ function StatusCard({
         roNumber={roNumber}
         customerName={customerName}
         phone={phone}
-      />
-
-      <SelectFieldDialog
-        open={techOpen}
-        onOpenChange={setTechOpen}
-        title="Technician"
-        label="Technician"
-        value={quickReference?.technicianId ?? null}
-        allowClear
-        options={technicians.map((t) => ({ value: t.id, label: t.name }))}
-        onSave={async (id) => saveSidebar({ technicianId: id })}
       />
     </div>
   );
