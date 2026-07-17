@@ -35,6 +35,7 @@ const ESTIMATE_EVENT_TYPES: ShopAuditEventType[] = [
   ShopAuditEventType.ESTIMATE_APPROVED_BY_CUSTOMER,
   ShopAuditEventType.ESTIMATE_LINK_CREATED,
   ShopAuditEventType.ESTIMATE_LINK_REVOKED,
+  ShopAuditEventType.RO_ACTIVITY_ADDED,
 ];
 
 const PAYMENT_EVENT_TYPES: ShopAuditEventType[] = [
