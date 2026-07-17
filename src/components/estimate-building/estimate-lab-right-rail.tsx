@@ -20,9 +20,7 @@ import {
 import { EstimateLabMessagesHost } from "@/components/estimate-building/estimate-lab-messages-host";
 import { useEstimateLabContextDrawerOptional } from "@/components/estimate-building/estimate-lab-context-drawer-provider";
 import { EstimateLabVehicleSpecsSection } from "@/components/estimate-building/estimate-lab-vehicle-specs-section";
-import { useEstimateLabPartsOptional } from "@/components/estimate-building/estimate-lab-parts-provider";
 import {
-  usePartsTechUiEnabled,
   useStripePaymentsUiEnabled,
   useVehicleSpecsUiEnabled,
 } from "@/lib/shop-capabilities";
@@ -494,8 +492,6 @@ function StatusCard({
 }) {
   const [authorizeOpen, setAuthorizeOpen] = useState(false);
   const [techOpen, setTechOpen] = useState(false);
-  const partsCtx = useEstimateLabPartsOptional();
-  const partsTechOk = usePartsTechUiEnabled();
   const saveSidebar = useRoSidebarSave(roId);
   const [roAge, setRoAge] = useState("—");
 
@@ -513,10 +509,6 @@ function StatusCard({
         : quickReference.approvalSentAt != null
           ? `Sent ${fmtDate(quickReference.approvalSentAt)}`
           : "Not sent";
-
-  const partsTotal = quickReference
-    ? quickReference.partsNeeded + quickReference.partsQuoted + quickReference.partsOrdered
-    : 0;
 
   const techUnassigned = !quickReference?.technicianName;
   const techLabel = quickReference?.technicianName
@@ -601,69 +593,6 @@ function StatusCard({
                 </span>
               )}
             </div>
-          </div>
-        ) : null}
-
-        {quickReference ? (
-          <div className="space-y-1.5 border-t border-dashed border-[var(--jb-line,#dde5ef)] pt-2.5">
-            <p className="text-[11px] font-bold uppercase tracking-[0.08em] text-[var(--jb-faint,#8ca2c0)]">
-              Parts pipeline
-            </p>
-            {partsTotal === 0 ? (
-              <p className="text-[13px] text-[var(--jb-faint,#8ca2c0)]">No part lines yet</p>
-            ) : (
-              <div className="grid w-full grid-cols-3 gap-1">
-                {(
-                  [
-                    {
-                      label: "Needed",
-                      count: quickReference.partsNeeded,
-                      tone: "border-[#F0CFA4] bg-[#FDF0E2] text-[#9A5200]",
-                    },
-                    {
-                      label: "Quoted",
-                      count: quickReference.partsQuoted,
-                      tone: "border-[#BCD9F5] bg-[#E7F1FD] text-[#0F5FB0]",
-                    },
-                    {
-                      label: "Ordered",
-                      count: quickReference.partsOrdered,
-                      tone: "border-[#B7E2CB] bg-[#E4F5EC] text-[#137347]",
-                    },
-                  ] as const
-                ).map((pill) => {
-                  const clickable = Boolean(partsCtx) && partsTechOk;
-                  const cellClass = cn(
-                    "flex min-h-9 w-full min-w-0 items-center justify-center gap-1.5 rounded-none border px-1.5 py-1.5 text-[12.5px] leading-tight tabular-nums",
-                    pill.tone,
-                  );
-                  const inner = (
-                    <>
-                      <span className="truncate opacity-80">{pill.label}</span>
-                      <span className="shrink-0 font-bold">{pill.count}</span>
-                    </>
-                  );
-                  return clickable ? (
-                    <button
-                      key={pill.label}
-                      type="button"
-                      onClick={() => partsCtx?.openPartsMenu({ mode: "home" })}
-                      className={cn(
-                        cellClass,
-                        "transition-opacity hover:opacity-90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--jb-azure,#1e7fe0)]/40",
-                      )}
-                      title="Open parts ordering"
-                    >
-                      {inner}
-                    </button>
-                  ) : (
-                    <span key={pill.label} className={cellClass}>
-                      {inner}
-                    </span>
-                  );
-                })}
-              </div>
-            )}
           </div>
         ) : null}
       </div>
