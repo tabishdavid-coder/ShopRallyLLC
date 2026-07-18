@@ -32,6 +32,7 @@ import {
   type ApprovalSignatureInfo,
 } from "@/components/repair-order/approval-signature-panel";
 import { formatCents } from "@/lib/format";
+import { stripVehicleDetailsFromLineText } from "@/lib/labor-guide-helpers";
 import { jobAuthState } from "@/lib/ro-totals";
 import { useShopCapabilities } from "@/lib/shop-capabilities";
 import {
@@ -467,7 +468,7 @@ export function EstimateJobCard({
 
   const initialLabor: LaborRow[] = job.laborLines.map((l, i) => ({
     id: l.id,
-    description: l.description,
+    description: stripVehicleDetailsFromLineText(l.description),
     hours: l.hours,
     costCents: "costCents" in l && typeof l.costCents === "number" ? l.costCents : 0,
     rateCents: l.rateCents,
@@ -622,7 +623,10 @@ export function EstimateJobCard({
       const base: LaborRow = {
         // Guide/canned-job hits should already carry the operation name — fall
         // back to the job name so the field never renders blank.
-        description: line.description.trim() || job.name,
+        description:
+          stripVehicleDetailsFromLineText(line.description.trim() || job.name) ||
+          stripVehicleDetailsFromLineText(job.name) ||
+          "Labor",
         hours: line.hours,
         costCents: 0,
         rateCents: baseRateCents,

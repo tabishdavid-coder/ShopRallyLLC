@@ -152,6 +152,8 @@ export async function EstimateBuildingLabPanel({
   const isLab = variant === "lab";
   const isProductionWorkspace = variant === "production";
 
+  // Two waves keep peak concurrent DB queries under Neon's low connection_limit
+  // (AppLayout + this page used to fire ~17 queries at once → P2024 timeouts).
   const [
     deposit,
     { history, declined },
@@ -162,14 +164,6 @@ export async function EstimateBuildingLabPanel({
     cannedJobCategories,
     partstechStatus,
     weldonStatus,
-    sidebarOptions,
-    auditEvents,
-    contextDrawerData,
-    vehicleSpecsBundle,
-    defaultAppointmentDurationMins,
-    invoiceShareLink,
-    stripeEnabled,
-    customerPaymentHistory,
   ] = await Promise.all([
     getDepositRequestForRo(shopId, ro.id),
     getVehicleHistory(shopId, ro.vehicleId, ro.id),
@@ -196,6 +190,18 @@ export async function EstimateBuildingLabPanel({
     listCannedJobCategories(shopId),
     getIntegrationStatusForShop(shopId, "partstech"),
     getIntegrationStatusForShop(shopId, "weldon"),
+  ]);
+
+  const [
+    sidebarOptions,
+    auditEvents,
+    contextDrawerData,
+    vehicleSpecsBundle,
+    defaultAppointmentDurationMins,
+    invoiceShareLink,
+    stripeEnabled,
+    customerPaymentHistory,
+  ] = await Promise.all([
     getRoSidebarOptions(shopId),
     getRepairOrderAuditTrail(shopId, ro.id, "all"),
     loadEstimateContextDrawerData(shopId, ro.customerId),

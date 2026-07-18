@@ -7,9 +7,33 @@ import type {
 } from "@/lib/labor-guide-types";
 import type { LaborSuggestion } from "@/server/services/labor-guide";
 
+/**
+ * Remove trailing vehicle YMM phrases from estimate line names
+ * (e.g. "… strut assembly on 2012 Honda Accord" → "… strut assembly").
+ * Vehicle identity belongs in the RO header, not every labor/part Name cell.
+ */
+export function stripVehicleDetailsFromLineText(text: string): string {
+  let s = text.trim();
+  if (!s) return s;
+
+  // "… on/for [a|an|the] 2012 Honda Accord EX-L …"
+  s = s.replace(
+    /\s+(?:on|for)(?:\s+a|\s+an|\s+the)?\s+(?:(?:19|20)\d{2}\b)(?:\s+[A-Za-z][\w./-]*){0,8}\s*$/i,
+    "",
+  );
+  // "… — 2012 Honda Accord" / "… - 2012 Honda"
+  s = s.replace(/\s*[—–-]\s*(?:(?:19|20)\d{2}\b)(?:\s+[A-Za-z][\w./-]*){0,8}\s*$/i, "");
+  // leftover trailing year only
+  s = s.replace(/\s+(?:19|20)\d{2}\s*$/i, "");
+
+  return s.trim();
+}
+
 /** Strip category breadcrumbs and verbose phrasing for short estimate lines. */
 export function compactOperationName(name: string): string {
-  const stripped = name.split(/\s*[>›]\s*/).pop()?.trim() ?? name.trim();
+  const stripped = stripVehicleDetailsFromLineText(
+    name.split(/\s*[>›]\s*/).pop()?.trim() ?? name.trim(),
+  );
 
   const rnrPrefix = stripped.match(/^remove\s*(?:&|and)\s*replace\s+(.+)/i);
   if (rnrPrefix) return `${rnrPrefix[1].trim()} R&R`;
@@ -26,8 +50,9 @@ export function compactOperationName(name: string): string {
 
 /** Default job card title from a guide hit — operation name, not variant text. */
 export function guideJobName(jobName: string): string {
-  if (/\b(strut|shock)\b/i.test(jobName)) return "Strut R&R";
-  return jobName.split(/\s*[>›]\s*/)[0]?.trim() ?? jobName;
+  const cleaned = stripVehicleDetailsFromLineText(jobName);
+  if (/\b(strut|shock)\b/i.test(cleaned)) return "Strut R&R";
+  return cleaned.split(/\s*[>›]\s*/)[0]?.trim() ?? cleaned;
 }
 
 /** Short labor line for estimate — scope encoded only when it clarifies (struts/brakes). */

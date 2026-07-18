@@ -9,15 +9,16 @@ const globalForPrisma = globalThis as unknown as {
 };
 
 /** Bump when generated client shape changes (e.g. Shop.apptWeeklyHours). */
-const PRISMA_SCHEMA_REVISION = 10;
+const PRISMA_SCHEMA_REVISION = 11;
 
 function withDevPoolParams(url: string): string {
   if (process.env.NODE_ENV !== "development") return url;
   try {
     const parsed = new URL(url);
-    // Neon free/dev caps are low; extra browser tabs + HMR blow past 10 fast.
-    // 3 was too tight for AppLayout + page queries in parallel (P2024 timeouts).
-    parsed.searchParams.set("connection_limit", "5");
+    // Neon free/dev caps are low; extra browser tabs + HMR blow past the pool fast.
+    // Prefer Neon's pooler host when available; keep limit modest either way.
+    const usingPooler = parsed.hostname.includes("-pooler") || parsed.searchParams.get("pgbouncer") === "true";
+    parsed.searchParams.set("connection_limit", usingPooler ? "10" : "8");
     parsed.searchParams.set("pool_timeout", "30");
     parsed.searchParams.set("connect_timeout", "15");
     return parsed.toString();

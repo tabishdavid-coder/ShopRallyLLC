@@ -30,6 +30,7 @@ import {
 } from "@/components/estimate-building/estimate-line-type-menu";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { stripVehicleDetailsFromLineText } from "@/lib/labor-guide-helpers";
 import {
   laborLineAmount,
   laborLineTotal,
@@ -81,6 +82,7 @@ import {
 function LabDescriptionTextarea({
   value = "",
   onChange,
+  onBlur,
   placeholder = "Description",
   readOnly,
   disabled,
@@ -88,6 +90,7 @@ function LabDescriptionTextarea({
 }: {
   value?: string;
   onChange?: (e: ChangeEvent<HTMLTextAreaElement>) => void;
+  onBlur?: () => void;
   placeholder?: string;
   readOnly?: boolean;
   disabled?: boolean;
@@ -98,6 +101,7 @@ function LabDescriptionTextarea({
       data-lab-description
       value={value}
       onChange={onChange}
+      onBlur={onBlur}
       readOnly={readOnly}
       disabled={disabled}
       rows={2}
@@ -1049,7 +1053,9 @@ export function EstimateLabServiceItemsGrid({
 
     if (item.kind === "labor") {
       const l = item.row;
-      const { name: laborName, detail: laborDetail } = splitLaborDesc(l.description);
+      const { name: rawLaborName, detail: laborDetail } = splitLaborDesc(l.description);
+      // Vehicle YMM belongs in the RO header — keep Name as the repair only.
+      const laborName = stripVehicleDetailsFromLineText(rawLaborName);
       const amountCents = laborLineAmount(l);
       const netCents = laborLineTotal(l);
 
@@ -1082,10 +1088,33 @@ export function EstimateLabServiceItemsGrid({
                       onChange={(e) =>
                         updateAt(index, (m) =>
                           m.kind === "labor"
-                            ? { ...m, row: { ...m.row, description: joinLaborDesc(e.target.value, laborDetail) } }
+                            ? {
+                                ...m,
+                                row: {
+                                  ...m.row,
+                                  description: joinLaborDesc(
+                                    stripVehicleDetailsFromLineText(e.target.value),
+                                    laborDetail,
+                                  ),
+                                },
+                              }
                             : m,
                         )
                       }
+                      onBlur={() => {
+                        if (rawLaborName === laborName) return;
+                        updateAt(index, (m) =>
+                          m.kind === "labor"
+                            ? {
+                                ...m,
+                                row: {
+                                  ...m.row,
+                                  description: joinLaborDesc(laborName, laborDetail),
+                                },
+                              }
+                            : m,
+                        );
+                      }}
                     />
                   ) : (
                     <p className={cn("min-w-0 line-clamp-2 text-xs text-brand-navy", lineThrough)}>
@@ -1371,6 +1400,7 @@ export function EstimateLabServiceItemsGrid({
     }
 
     const p = item.row;
+    const partName = stripVehicleDetailsFromLineText(p.description);
     const partDetail = formatPartDetail(p.partNumber, p.brand);
     const amountCents = partLineAmount(p);
     const netCents = partLineTotal(p);
@@ -1399,17 +1429,25 @@ export function EstimateLabServiceItemsGrid({
               name={
                 editing ? (
                   <LabDescriptionTextarea
-                    value={p.description}
+                    value={partName}
                     placeholder="Enter name*"
                     onChange={(e) =>
                       updateAt(index, (m) =>
-                        m.kind === "part" ? { ...m, row: { ...m.row, description: e.target.value } } : m,
+                        m.kind === "part"
+                          ? {
+                              ...m,
+                              row: {
+                                ...m.row,
+                                description: stripVehicleDetailsFromLineText(e.target.value),
+                              },
+                            }
+                          : m,
                       )
                     }
                   />
                 ) : (
                   <p className={cn("min-w-0 line-clamp-2 text-xs", lineThrough)}>
-                    {p.description || "—"}
+                    {partName || "—"}
                   </p>
                 )
               }

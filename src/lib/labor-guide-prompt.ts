@@ -31,6 +31,7 @@ export const LABOR_GUIDE_SYSTEM_PROMPT = `You are an expert automotive flat-rate
 Given a vehicle configuration and a requested repair, estimate realistic flat-rate labor hours per unit.
 Respond with structured JSON only. Use first-principles reasoning (access, component count, typical shop time).
 Do not reference proprietary guide books or copyrighted labor tables.
+jobName and laborOperations must describe the repair only — never include year, make, model, trim, VIN, or phrases like "on 2012 Honda Accord". Vehicle context is already provided separately.
 
 ${ASSEMBLY_RULES_BLOCK}
 
