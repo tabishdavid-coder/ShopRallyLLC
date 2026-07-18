@@ -146,6 +146,8 @@ type LaborRow = {
   useLaborMatrix?: boolean;
   technicianId?: string | null;
   authorized?: boolean;
+  /** Per-line tax flag; independent of sibling labor rows. */
+  taxable?: boolean;
   sortOrder?: number;
 };
 
@@ -163,6 +165,8 @@ type PartRow = {
   usePartMatrix?: boolean;
   source?: string;
   authorized?: boolean;
+  /** Per-line tax flag; independent of sibling part rows. */
+  taxable?: boolean;
   sortOrder?: number;
   lineType?: PartFamilyType;
 };
@@ -218,6 +222,12 @@ function joinLaborDesc(name: string, detail: string): string {
   const d = detail.trim();
   if (!d) return n;
   return n ? `${n}\n${d}` : d;
+}
+
+/** Live join while typing — do not trim trailing spaces from Name. */
+function joinLaborDescLive(name: string, detail: string): string {
+  if (!detail) return name;
+  return name ? `${name}\n${detail}` : detail;
 }
 
 /** Part detail textarea — line 1 = part #, line 2+ = brand / notes (stored in `brand`). */
@@ -324,15 +334,30 @@ function splitMerged(merged: MergedItem[]): { labor: LaborRow[]; parts: PartRow[
   return { labor, parts };
 }
 
-function newLaborRow(baseRateCents: number, laborTiers: LaborTier[]): LaborRow {
-  const base: LaborRow = { description: "", hours: 0, costCents: 0, rateCents: baseRateCents, discountCents: 0 };
+function newLaborRow(
+  baseRateCents: number,
+  laborTiers: LaborTier[],
+  taxable = true,
+): LaborRow {
+  const base: LaborRow = {
+    description: "",
+    hours: 0,
+    costCents: 0,
+    rateCents: baseRateCents,
+    discountCents: 0,
+    taxable,
+  };
   if (laborTiers.length > 0) {
     return applyLaborMatrixRow({ ...base, useLaborMatrix: true }, baseRateCents, laborTiers);
   }
   return base;
 }
 
-function newPartRow(partTiers: PartTier[], lineType: PartFamilyType = "part"): PartRow {
+function newPartRow(
+  partTiers: PartTier[],
+  lineType: PartFamilyType = "part",
+  taxable = true,
+): PartRow {
   const base: PartRow = {
     brand: "",
     description: "",
@@ -341,6 +366,7 @@ function newPartRow(partTiers: PartTier[], lineType: PartFamilyType = "part"): P
     costCents: 0,
     retailCents: 0,
     discountCents: 0,
+    taxable,
     lineType,
   };
   if (partTiers.length > 0) {
@@ -357,6 +383,7 @@ function laborFromPart(row: PartRow, baseRateCents: number, laborTiers: LaborTie
     rateCents: baseRateCents,
     discountCents: 0,
     authorized: row.authorized,
+    taxable: row.taxable ?? true,
   };
   if (laborTiers.length > 0) {
     return applyLaborMatrixRow({ ...base, useLaborMatrix: true }, baseRateCents, laborTiers);
@@ -374,6 +401,7 @@ function partFromLabor(row: LaborRow, partTiers: PartTier[], lineType: PartFamil
     retailCents: 0,
     discountCents: 0,
     authorized: row.authorized,
+    taxable: row.taxable ?? true,
     lineType,
   };
   if (partTiers.length > 0) {
@@ -742,10 +770,9 @@ export function EstimateLabServiceItemsGrid({
   partsCents = 0,
   feeTemplates = [],
   discountTemplates = [],
+  /** Job-level defaults for new lines / fallback when a row has no explicit taxable. */
   laborTaxable = true,
   partsTaxable = true,
-  onToggleLaborTax,
-  onTogglePartsTax,
 }: {
   labor: LaborRow[];
   parts: PartRow[];
@@ -774,8 +801,6 @@ export function EstimateLabServiceItemsGrid({
   discountTemplates?: AdjustTemplate[];
   laborTaxable?: boolean;
   partsTaxable?: boolean;
-  onToggleLaborTax?: (next: boolean) => void;
-  onTogglePartsTax?: (next: boolean) => void;
 }) {
   const router = useRouter();
   const [, startAdj] = useTransition();
@@ -947,11 +972,29 @@ export function EstimateLabServiceItemsGrid({
       const kind = item.adjKind;
       removeAdjustment(item.row.id, kind);
       if (nextType === "labor") {
-        onLaborChange([...labor, laborFromPart({ brand: "", description: desc, partNumber: "", quantity: 1, costCents: 0, retailCents: 0 }, baseRateCents, laborTiers)]);
+        onLaborChange([
+          ...labor,
+          laborFromPart(
+            {
+              brand: "",
+              description: desc,
+              partNumber: "",
+              quantity: 1,
+              costCents: 0,
+              retailCents: 0,
+              taxable: laborTaxable,
+            },
+            baseRateCents,
+            laborTiers,
+          ),
+        ]);
         return;
       }
       if (isPartFamily(nextType)) {
-        onPartsChange([...parts, { ...newPartRow(partTiers, nextType), description: desc }]);
+        onPartsChange([
+          ...parts,
+          { ...newPartRow(partTiers, nextType, partsTaxable), description: desc },
+        ]);
         return;
       }
       return;
@@ -1054,10 +1097,11 @@ export function EstimateLabServiceItemsGrid({
     if (item.kind === "labor") {
       const l = item.row;
       const { name: rawLaborName, detail: laborDetail } = splitLaborDesc(l.description);
-      // Vehicle YMM belongs in the RO header — keep Name as the repair only.
-      const laborName = stripVehicleDetailsFromLineText(rawLaborName);
+      // Vehicle YMM belongs in the RO header — strip only for read-only display / blur commit.
+      const laborNameDisplay = stripVehicleDetailsFromLineText(rawLaborName);
       const amountCents = laborLineAmount(l);
       const netCents = laborLineTotal(l);
+      const lineTaxable = l.taxable ?? laborTaxable;
 
       return (
         <SortableRow key={item.key} id={item.key} disabled={!editing || !dndReady} gridTemplateColumns={gridTemplateColumns}>
@@ -1083,7 +1127,7 @@ export function EstimateLabServiceItemsGrid({
                 name={
                   editing ? (
                     <LabDescriptionTextarea
-                      value={laborName}
+                      value={rawLaborName}
                       placeholder="Enter name*"
                       onChange={(e) =>
                         updateAt(index, (m) =>
@@ -1092,24 +1136,22 @@ export function EstimateLabServiceItemsGrid({
                                 ...m,
                                 row: {
                                   ...m.row,
-                                  description: joinLaborDesc(
-                                    stripVehicleDetailsFromLineText(e.target.value),
-                                    laborDetail,
-                                  ),
+                                  description: joinLaborDescLive(e.target.value, laborDetail),
                                 },
                               }
                             : m,
                         )
                       }
                       onBlur={() => {
-                        if (rawLaborName === laborName) return;
+                        const cleaned = stripVehicleDetailsFromLineText(rawLaborName);
+                        if (cleaned === rawLaborName) return;
                         updateAt(index, (m) =>
                           m.kind === "labor"
                             ? {
                                 ...m,
                                 row: {
                                   ...m.row,
-                                  description: joinLaborDesc(laborName, laborDetail),
+                                  description: joinLaborDesc(cleaned, laborDetail),
                                 },
                               }
                             : m,
@@ -1118,7 +1160,7 @@ export function EstimateLabServiceItemsGrid({
                     />
                   ) : (
                     <p className={cn("min-w-0 line-clamp-2 text-xs text-brand-navy", lineThrough)}>
-                      {laborName || "—"}
+                      {laborNameDisplay || "—"}
                     </p>
                   )
                 }
@@ -1129,7 +1171,13 @@ export function EstimateLabServiceItemsGrid({
                       onChange={(e) =>
                         updateAt(index, (m) =>
                           m.kind === "labor"
-                            ? { ...m, row: { ...m.row, description: joinLaborDesc(laborName, e.target.value) } }
+                            ? {
+                                ...m,
+                                row: {
+                                  ...m.row,
+                                  description: joinLaborDescLive(rawLaborName, e.target.value),
+                                },
+                              }
                             : m,
                         )
                       }
@@ -1227,9 +1275,13 @@ export function EstimateLabServiceItemsGrid({
               </div>
               <div className={cn(LAB_GRID_CELL_BORDERED, "justify-center")}>
                 <TaxableCell
-                  value={laborTaxable}
+                  value={lineTaxable}
                   editing={editing}
-                  onChange={onToggleLaborTax}
+                  onChange={(v) =>
+                    updateAt(index, (m) =>
+                      m.kind === "labor" ? { ...m, row: { ...m.row, taxable: v } } : m,
+                    )
+                  }
                 />
               </div>
               <div className={LAB_GRID_CELL_END}>
@@ -1400,10 +1452,11 @@ export function EstimateLabServiceItemsGrid({
     }
 
     const p = item.row;
-    const partName = stripVehicleDetailsFromLineText(p.description);
+    const partNameDisplay = stripVehicleDetailsFromLineText(p.description);
     const partDetail = formatPartDetail(p.partNumber, p.brand);
     const amountCents = partLineAmount(p);
     const netCents = partLineTotal(p);
+    const lineTaxable = p.taxable ?? partsTaxable;
 
     return (
       <SortableRow key={item.key} id={item.key} disabled={!editing || !dndReady} gridTemplateColumns={gridTemplateColumns}>
@@ -1429,25 +1482,26 @@ export function EstimateLabServiceItemsGrid({
               name={
                 editing ? (
                   <LabDescriptionTextarea
-                    value={partName}
+                    value={p.description}
                     placeholder="Enter name*"
                     onChange={(e) =>
                       updateAt(index, (m) =>
                         m.kind === "part"
-                          ? {
-                              ...m,
-                              row: {
-                                ...m.row,
-                                description: stripVehicleDetailsFromLineText(e.target.value),
-                              },
-                            }
+                          ? { ...m, row: { ...m.row, description: e.target.value } }
                           : m,
                       )
                     }
+                    onBlur={() => {
+                      const cleaned = stripVehicleDetailsFromLineText(p.description);
+                      if (cleaned === p.description) return;
+                      updateAt(index, (m) =>
+                        m.kind === "part" ? { ...m, row: { ...m.row, description: cleaned } } : m,
+                      );
+                    }}
                   />
                 ) : (
                   <p className={cn("min-w-0 line-clamp-2 text-xs", lineThrough)}>
-                    {partName || "—"}
+                    {partNameDisplay || "—"}
                   </p>
                 )
               }
@@ -1555,9 +1609,13 @@ export function EstimateLabServiceItemsGrid({
             </div>
             <div className={cn(LAB_GRID_CELL_BORDERED, "justify-center")}>
               <TaxableCell
-                value={partsTaxable}
+                value={lineTaxable}
                 editing={editing}
-                onChange={onTogglePartsTax}
+                onChange={(v) =>
+                  updateAt(index, (m) =>
+                    m.kind === "part" ? { ...m, row: { ...m.row, taxable: v } } : m,
+                  )
+                }
               />
             </div>
             <div className={LAB_GRID_CELL_END}>

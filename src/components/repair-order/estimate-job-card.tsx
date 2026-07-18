@@ -112,6 +112,8 @@ type LaborRow = {
   useLaborMatrix?: boolean;
   technicianId?: string | null;
   authorized?: boolean;
+  /** Per-line tax flag; independent of sibling labor rows. */
+  taxable?: boolean;
   sortOrder?: number;
 };
 
@@ -138,6 +140,8 @@ type PartRow = {
   usePartMatrix?: boolean;
   source?: string;
   authorized?: boolean;
+  /** Per-line tax flag; independent of sibling part rows. */
+  taxable?: boolean;
   sortOrder?: number;
   /** Inline type picker — Part, Tire, Sublet, Hazardous, Other (UI until persisted). */
   lineType?: "part" | "tire" | "sublet" | "hazardous" | "other";
@@ -150,9 +154,12 @@ function splitPartDesc(full: string): { description: string; details: string } {
   return { description: full.slice(0, i), details: full.slice(i + 1) };
 }
 
-function joinPartDesc(description: string, details: string): string {
-  const d = description.trimEnd();
-  const extra = details.trim();
+function joinPartDesc(
+  description: string | null | undefined,
+  details: string | null | undefined,
+): string {
+  const d = (description ?? "").trimEnd();
+  const extra = (details ?? "").trim();
   if (!extra) return d;
   return d ? `${d}\n${extra}` : extra;
 }
@@ -273,13 +280,14 @@ function TotalBox({
   );
 }
 
-function newLaborRow(baseRateCents: number, laborTiers: LaborTier[]): LaborRow {
+function newLaborRow(baseRateCents: number, laborTiers: LaborTier[], taxable = true): LaborRow {
   const base: LaborRow = {
     description: "",
     hours: 0,
     costCents: 0,
     rateCents: baseRateCents,
     discountCents: 0,
+    taxable,
   };
   if (laborTiers.length > 0) {
     return applyLaborMatrixRow({ ...base, useLaborMatrix: true }, baseRateCents, laborTiers);
@@ -287,7 +295,7 @@ function newLaborRow(baseRateCents: number, laborTiers: LaborTier[]): LaborRow {
   return base;
 }
 
-function newPartRow(partTiers: PartTier[]): PartRow {
+function newPartRow(partTiers: PartTier[], taxable = true): PartRow {
   const base: PartRow = {
     brand: "",
     description: "",
@@ -297,6 +305,7 @@ function newPartRow(partTiers: PartTier[]): PartRow {
     costCents: 0,
     retailCents: 0,
     discountCents: 0,
+    taxable,
   };
   if (partTiers.length > 0) {
     return applyPartMatrixRow({ ...base, usePartMatrix: true }, partTiers);
@@ -328,21 +337,35 @@ function parseOptionalCents(s: string): number | null {
   return n === null ? null : Math.round(n * 100);
 }
 
-function totals(labor: LaborRow[], parts: PartRow[], taxBps: number) {
+function totals(
+  labor: LaborRow[],
+  parts: PartRow[],
+  taxBps: number,
+  laborTaxDefault = true,
+  partsTaxDefault = true,
+) {
   const activeLabor = labor.filter((l) => l.authorized !== false);
   const activeParts = parts.filter((p) => p.authorized !== false);
   const laborTotal = activeLabor.reduce((s, l) => s + laborLineTotal(l), 0);
   const partsTotal = activeParts.reduce((s, p) => s + partLineTotal(p), 0);
+  const taxableLaborTotal = activeLabor
+    .filter((l) => (l.taxable ?? laborTaxDefault) === true)
+    .reduce((s, l) => s + laborLineTotal(l), 0);
+  const taxablePartsTotal = activeParts
+    .filter((p) => (p.taxable ?? partsTaxDefault) === true)
+    .reduce((s, p) => s + partLineTotal(p), 0);
   const laborCost = activeLabor.reduce((s, l) => s + l.costCents, 0);
   const partsCost = activeParts.reduce((s, p) => s + p.costCents * p.quantity, 0);
   const subtotal = laborTotal + partsTotal;
-  const laborTax = Math.round((laborTotal * taxBps) / 10000);
-  const partsTax = Math.round((partsTotal * taxBps) / 10000);
+  const laborTax = Math.round((taxableLaborTotal * taxBps) / 10000);
+  const partsTax = Math.round((taxablePartsTotal * taxBps) / 10000);
   const gp = laborTotal - laborCost + (partsTotal - partsCost);
   const hours = activeLabor.reduce((s, l) => s + l.hours, 0);
   return {
     laborTotal,
     partsTotal,
+    taxableLaborTotal,
+    taxablePartsTotal,
     subtotal,
     laborTax,
     partsTax,
@@ -474,6 +497,7 @@ export function EstimateJobCard({
     rateCents: l.rateCents,
     discountCents: "discountCents" in l && typeof l.discountCents === "number" ? l.discountCents : 0,
     authorized: l.authorized,
+    taxable: "taxable" in l && typeof l.taxable === "boolean" ? l.taxable : job.laborTaxable,
     technicianId: l.technicianId,
     sortOrder: l.sortOrder ?? i,
     useLaborMatrix: inferLaborMatrixMode(
@@ -496,6 +520,7 @@ export function EstimateJobCard({
       discountCents: "discountCents" in p && typeof p.discountCents === "number" ? p.discountCents : 0,
       source: p.source,
       authorized: p.authorized,
+      taxable: "taxable" in p && typeof p.taxable === "boolean" ? p.taxable : job.partsTaxable,
       sortOrder: p.sortOrder ?? i + initialLabor.length,
       lineType: "part",
       usePartMatrix: inferPartMatrixMode(
@@ -548,6 +573,7 @@ export function EstimateJobCard({
           totalCents: l.totalCents,
           lastField: l.lastField,
           authorized: l.authorized,
+          taxable: l.taxable,
         })),
         partLines: parts.map((p) => ({
           id: p.id,
@@ -558,6 +584,7 @@ export function EstimateJobCard({
           totalCents: p.totalCents,
           lastField: p.lastField,
           authorized: p.authorized,
+          taxable: p.taxable,
         })),
       });
     } else {
@@ -566,14 +593,14 @@ export function EstimateJobCard({
   }, [editing, labor, parts, job.id, onDraftChange]);
 
   const view = editing ? { labor, parts } : { labor: initialLabor, parts: initialParts };
-  const t = totals(view.labor, view.parts, taxBps);
+  const t = totals(view.labor, view.parts, taxBps, job.laborTaxable, job.partsTaxable);
   const authState = jobAuthState({
     laborLines: view.labor.map((l) => ({ authorized: l.authorized !== false })),
     partLines: view.parts.map((p) => ({ authorized: p.authorized !== false })),
   });
 
   // Job-level fees/discounts (computed against this job's labor/parts) folded
-  // into the job total, honoring the per-job tax flags.
+  // into the job total. Labor/parts tax uses per-line taxable flags.
   const jobDiscountTotal = Math.min(
     t.subtotal,
     jobDiscounts.reduce((s, d) => s + adjVal(d, t.laborTotal, t.partsTotal), 0),
@@ -585,8 +612,8 @@ export function EstimateJobCard({
     jobFeeTotal += v;
     if (f.taxable) jobTaxableFees += v;
   }
-  const taxLabor = job.laborTaxable ? t.laborTotal : 0;
-  const taxParts = job.partsTaxable ? t.partsTotal : 0;
+  const taxLabor = t.taxableLaborTotal;
+  const taxParts = t.taxablePartsTotal;
   const jobTax = Math.round(
     ((Math.max(0, taxLabor + taxParts - jobDiscountTotal) + jobTaxableFees) * taxBps) / 10000,
   );
@@ -610,12 +637,13 @@ export function EstimateJobCard({
 
   function addLaborLine() {
     if (!canEdit) return;
+    const row = newLaborRow(baseRateCents, laborTiers, job.laborTaxable);
     if (editing) {
-      setLabor((rows) => [...rows, newLaborRow(baseRateCents, laborTiers)]);
+      setLabor((rows) => [...rows, row]);
       setCollapsed(false);
       return;
     }
-    beginEdit([...initialLabor, newLaborRow(baseRateCents, laborTiers)], initialParts);
+    beginEdit([...initialLabor, row], initialParts);
   }
 
   function laborRowsFromGuide(lines: { description: string; hours: number }[]): LaborRow[] {
@@ -631,6 +659,7 @@ export function EstimateJobCard({
         costCents: 0,
         rateCents: baseRateCents,
         discountCents: 0,
+        taxable: job.laborTaxable,
       };
       if (laborTiers.length > 0) {
         return applyLaborMatrixRow({ ...base, useLaborMatrix: true }, baseRateCents, laborTiers);
@@ -660,7 +689,7 @@ export function EstimateJobCard({
 
   function addInlinePartRow(lineType: PartFamilyType = "part") {
     if (!canEdit) return;
-    const row = { ...newPartRow(partTiers), lineType };
+    const row = { ...newPartRow(partTiers, job.partsTaxable), lineType };
     if (editing) {
       setParts((rows) => [...rows, row]);
       setCollapsed(false);
@@ -748,6 +777,7 @@ export function EstimateJobCard({
           costCents: l.costCents,
           rateCents: l.rateCents,
           discountCents: l.discountCents ?? 0,
+          taxable: l.taxable ?? job.laborTaxable,
           technicianId: l.technicianId ?? null,
         })),
         partLines: parts.map((p) => ({
@@ -759,6 +789,7 @@ export function EstimateJobCard({
           costCents: p.costCents,
           retailCents: p.retailCents,
           discountCents: p.discountCents ?? 0,
+          taxable: p.taxable ?? job.partsTaxable,
         })),
       });
       if (res.ok) {
@@ -792,6 +823,7 @@ export function EstimateJobCard({
           costCents: l.costCents,
           rateCents: l.rateCents,
           discountCents: l.discountCents ?? 0,
+          taxable: l.taxable ?? job.laborTaxable,
           technicianId: l.technicianId ?? null,
         })),
         partLines: parts.map((p) => ({
@@ -803,6 +835,7 @@ export function EstimateJobCard({
           costCents: p.costCents,
           retailCents: p.retailCents,
           discountCents: p.discountCents ?? 0,
+          taxable: p.taxable ?? job.partsTaxable,
         })),
       });
       if (res.ok) {
@@ -1169,8 +1202,6 @@ export function EstimateJobCard({
                 discountTemplates={discountTemplates}
                 laborTaxable={job.laborTaxable}
                 partsTaxable={job.partsTaxable}
-                onToggleLaborTax={(v) => toggleTax({ laborTaxable: v })}
-                onTogglePartsTax={(v) => toggleTax({ partsTaxable: v })}
               />
             </>
           ) : (
@@ -1929,7 +1960,8 @@ export function EstimateJobCard({
                     checked={job.laborTaxable}
                     disabled={!canEdit || quickPending}
                     onCheckedChange={(v) => toggleTax({ laborTaxable: v === true })}
-                    aria-label="Labor taxable"
+                    aria-label="Default taxable for new labor lines"
+                    title="Default for newly added labor lines. Per-line Taxable in the grid controls tax."
                     className={cn("size-3.5", ORANGE_CHECKBOX)}
                   />
                 }
@@ -1942,7 +1974,8 @@ export function EstimateJobCard({
                     checked={job.partsTaxable}
                     disabled={!canEdit || quickPending}
                     onCheckedChange={(v) => toggleTax({ partsTaxable: v === true })}
-                    aria-label="Parts taxable"
+                    aria-label="Default taxable for new part lines"
+                    title="Default for newly added part lines. Per-line Taxable in the grid controls tax."
                     className={cn("size-3.5", ORANGE_CHECKBOX)}
                   />
                 }

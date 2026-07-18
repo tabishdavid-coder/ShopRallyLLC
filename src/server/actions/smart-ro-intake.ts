@@ -61,12 +61,17 @@ const StagingCustomerSchema = z.object({
 });
 
 const StagingVehicleSchema = z.object({
+  vin: z.string().trim().length(17).optional().nullable(),
   year: z.number().int().nullable(),
   make: z.string().nullable(),
   model: z.string().nullable(),
   trim: z.string().nullable(),
   engine: z.string().nullable(),
+  transmission: z.string().nullable().optional(),
+  drivetrain: z.string().nullable().optional(),
+  bodyClass: z.string().nullable().optional(),
   confidence_score: z.number().int().min(0).max(100),
+  vinDecoded: z.boolean().optional(),
 });
 
 const StagingLaborLineSchema = z.object({
@@ -81,6 +86,8 @@ const CommitInput = z.object({
   customer: StagingCustomerSchema,
   vehicle: StagingVehicleSchema,
   laborLines: z.array(StagingLaborLineSchema).min(1),
+  /** Staging labor $/hr override (cents). Defaults to shop rate when omitted. */
+  laborRateCents: z.number().int().positive().max(1_000_000).optional(),
   /** When set, skip dedupe and use this customer. */
   customerId: z.string().optional(),
   /** When set, attach RO to existing vehicle (must belong to customer). */
@@ -132,11 +139,15 @@ export async function commitSmartRoIntake(
       data: {
         shopId,
         customerId,
+        vin: v.vin?.trim().toUpperCase() || null,
         year: v.year,
         make: v.make.trim(),
         model: v.model.trim(),
         trim: v.trim?.trim() || null,
         engine: v.engine?.trim() || null,
+        transmission: v.transmission?.trim() || null,
+        drivetrain: v.drivetrain?.trim() || null,
+        bodyClass: v.bodyClass?.trim() || null,
       },
       select: { id: true },
     });
@@ -144,9 +155,31 @@ export async function commitSmartRoIntake(
   } else {
     const vehicle = await prisma.vehicle.findFirst({
       where: { id: vehicleId, shopId, customerId },
-      select: { id: true },
+      select: { id: true, vin: true },
     });
     if (!vehicle) return { ok: false, error: "Vehicle not found for this customer." };
+    // Backfill VIN / decoded fields when advisor linked an existing vehicle without them.
+    const vin = v.vin?.trim().toUpperCase() || null;
+    if (
+      vin ||
+      v.trim ||
+      v.engine ||
+      v.transmission ||
+      v.drivetrain ||
+      v.bodyClass
+    ) {
+      await prisma.vehicle.update({
+        where: { id: vehicle.id },
+        data: {
+          ...(vin && !vehicle.vin ? { vin } : {}),
+          ...(v.trim?.trim() ? { trim: v.trim.trim() } : {}),
+          ...(v.engine?.trim() ? { engine: v.engine.trim() } : {}),
+          ...(v.transmission?.trim() ? { transmission: v.transmission.trim() } : {}),
+          ...(v.drivetrain?.trim() ? { drivetrain: v.drivetrain.trim() } : {}),
+          ...(v.bodyClass?.trim() ? { bodyClass: v.bodyClass.trim() } : {}),
+        },
+      });
+    }
   }
 
   const [shop, currentUser, { laborTiers }] = await Promise.all([
@@ -162,7 +195,8 @@ export async function commitSmartRoIntake(
     };
   }
 
-  const baseRate = shop?.laborRateCents ?? 15000;
+  const shopBaseRate = shop?.laborRateCents ?? 15000;
+  const baseRate = d.laborRateCents ?? shopBaseRate;
   const concerns = d.laborLines.map((line) => line.task_title.trim());
 
   const ro = await withShopTransaction(shopId, async (tx) => {
@@ -202,6 +236,7 @@ export async function commitSmartRoIntake(
         vehicleId: vehicleId!,
         status: ROStatus.ESTIMATE,
         serviceWriterId,
+        laborRateCents: baseRate,
         notes: d.rawText.trim().slice(0, 2000) || null,
         concerns,
         vehicleConcerns: concerns.length
@@ -217,7 +252,11 @@ export async function commitSmartRoIntake(
         jobs: {
           create: d.laborLines.map((line, i) => {
             const hours = Math.max(0.1, line.estimated_hours);
-            const rateCents = shopLaborRate(baseRate, hours, laborTiers);
+            // Staging override uses the selected $/hr directly (matches review preview).
+            // Without override, keep matrix-adjusted shop rate.
+            const rateCents = d.laborRateCents
+              ? d.laborRateCents
+              : shopLaborRate(shopBaseRate, hours, laborTiers);
             return {
               shopId,
               name: line.task_title.trim(),

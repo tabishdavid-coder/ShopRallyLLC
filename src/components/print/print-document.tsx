@@ -124,10 +124,17 @@ export function PrintDocument({
           const labor = job.laborLines.reduce((s, l) => s + l.totalCents, 0);
           const parts = job.partLines.reduce((s, p) => s + p.totalCents, 0);
           const sub = labor + parts;
-          // Mirror recomputeRoTotals: tax only the taxable buckets, honoring the
-          // job's tax flags and the shop-level tax gates.
-          const taxableLabor = job.laborTaxable && ro.shop.taxOnLabor ? labor : 0;
-          const taxableParts = job.partsTaxable && ro.shop.taxOnParts ? parts : 0;
+          // Mirror recomputeRoTotals: per-line taxable wins; shop gates still apply.
+          const taxableLabor = ro.shop.taxOnLabor
+            ? job.laborLines
+                .filter((l) => (("taxable" in l ? l.taxable : undefined) ?? job.laborTaxable) === true)
+                .reduce((s, l) => s + l.totalCents, 0)
+            : 0;
+          const taxableParts = ro.shop.taxOnParts
+            ? job.partLines
+                .filter((p) => (("taxable" in p ? p.taxable : undefined) ?? job.partsTaxable) === true)
+                .reduce((s, p) => s + p.totalCents, 0)
+            : 0;
           const tax = Math.round(((taxableLabor + taxableParts) * taxBps) / 10000);
           return (
             <div key={job.id} className="break-inside-avoid border border-slate-300">

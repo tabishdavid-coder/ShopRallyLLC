@@ -32,10 +32,16 @@ function jobTotals(job: Job, taxBps: number) {
   const partLines = job.partLines.filter((p) => p.authorized);
   const laborTotal = laborLines.reduce((s, l) => s + Math.round(l.hours * l.rateCents), 0);
   const partsTotal = partLines.reduce((s, p) => s + p.retailCents * p.quantity, 0);
+  const taxableLaborTotal = laborLines
+    .filter((l) => (("taxable" in l ? l.taxable : undefined) ?? job.laborTaxable) === true)
+    .reduce((s, l) => s + Math.round(l.hours * l.rateCents), 0);
+  const taxablePartsTotal = partLines
+    .filter((p) => (("taxable" in p ? p.taxable : undefined) ?? job.partsTaxable) === true)
+    .reduce((s, p) => s + p.retailCents * p.quantity, 0);
   const partsCost = partLines.reduce((s, p) => s + p.costCents * p.quantity, 0);
   const subtotal = laborTotal + partsTotal;
-  const laborTax = job.laborTaxable ? Math.round((laborTotal * taxBps) / 10000) : 0;
-  const partsTax = job.partsTaxable ? Math.round((partsTotal * taxBps) / 10000) : 0;
+  const laborTax = Math.round((taxableLaborTotal * taxBps) / 10000);
+  const partsTax = Math.round((taxablePartsTotal * taxBps) / 10000);
   const gp = laborTotal + (partsTotal - partsCost);
   const hours = laborLines.reduce((s, l) => s + l.hours, 0);
   return {

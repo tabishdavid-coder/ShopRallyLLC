@@ -553,6 +553,7 @@ const SaveJobInput = z.object({
         costCents: z.number().int().min(0).optional().default(0),
         rateCents: z.number().int().min(0),
         discountCents: z.number().int().min(0).optional().default(0),
+        taxable: z.boolean().optional().default(true),
         technicianId: z.string().nullable().optional(),
       }),
     )
@@ -568,6 +569,7 @@ const SaveJobInput = z.object({
         costCents: z.number().int().min(0),
         retailCents: z.number().int().min(0),
         discountCents: z.number().int().min(0).optional().default(0),
+        taxable: z.boolean().optional().default(true),
       }),
     )
     .max(100),
@@ -618,6 +620,7 @@ export async function saveJob(raw: SaveJobInput): Promise<EstimateResult> {
               rateCents: l.rateCents,
               discountCents,
               totalCents,
+              taxable: l.taxable ?? true,
               technicianId: l.technicianId ?? null,
               sortOrder: i,
             },
@@ -632,6 +635,7 @@ export async function saveJob(raw: SaveJobInput): Promise<EstimateResult> {
               rateCents: l.rateCents,
               discountCents,
               totalCents,
+              taxable: l.taxable ?? true,
               technicianId: l.technicianId ?? null,
               sortOrder: i,
             },
@@ -653,6 +657,7 @@ export async function saveJob(raw: SaveJobInput): Promise<EstimateResult> {
               retailCents: p.retailCents,
               discountCents,
               totalCents,
+              taxable: p.taxable ?? true,
               sortOrder: i,
             },
           })
@@ -668,6 +673,7 @@ export async function saveJob(raw: SaveJobInput): Promise<EstimateResult> {
               retailCents: p.retailCents,
               discountCents,
               totalCents,
+              taxable: p.taxable ?? true,
               sortOrder: i,
             },
           });
@@ -723,7 +729,11 @@ export async function reorderJobs(raw: z.infer<typeof ReorderJobsInput>): Promis
   return done(parsed.data.repairOrderId);
 }
 
-/** Toggle whether a job's labor and/or parts are taxable, then recompute. */
+/**
+ * Update job-level labor/parts tax defaults (used for newly added lines).
+ * Does not bulk-overwrite per-line `taxable` on existing labor/part rows —
+ * tax totals follow each line's own flag.
+ */
 export async function setJobTax(
   jobId: string,
   patch: { laborTaxable?: boolean; partsTaxable?: boolean },
@@ -740,7 +750,7 @@ export async function setJobTax(
     data: { laborTaxable: patch.laborTaxable, partsTaxable: patch.partsTaxable },
   });
   await recompute(ctx.ro.id);
-  await auditEstimate(shopId, ctx.ro.id, ShopAuditEventType.ESTIMATE_JOB_UPDATED, "Updated job tax settings", {
+  await auditEstimate(shopId, ctx.ro.id, ShopAuditEventType.ESTIMATE_JOB_UPDATED, "Updated job tax defaults", {
     jobId,
     ...patch,
   });

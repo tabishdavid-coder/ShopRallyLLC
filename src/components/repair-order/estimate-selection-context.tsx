@@ -38,6 +38,7 @@ export type JobEditDraft = {
     totalCents?: number;
     lastField?: "hours" | "rate" | "total";
     authorized?: boolean;
+    taxable?: boolean;
   }[];
   partLines: {
     id?: string;
@@ -48,6 +49,7 @@ export type JobEditDraft = {
     totalCents?: number;
     lastField?: "qty" | "cost" | "retail" | "total";
     authorized?: boolean;
+    taxable?: boolean;
   }[];
 };
 
@@ -188,10 +190,12 @@ export function EstimateSelectionProvider({
                 laborLines: draft.laborLines.map((l) => ({
                   totalCents: laborLineTotal(l),
                   authorized: l.id ? (selection[j.id]?.labor[l.id] ?? l.authorized !== false) : l.authorized !== false,
+                  taxable: l.taxable,
                 })),
                 partLines: draft.partLines.map((p) => ({
                   totalCents: partLineTotal(p),
                   authorized: p.id ? (selection[j.id]?.parts[p.id] ?? p.authorized !== false) : p.authorized !== false,
+                  taxable: p.taxable,
                 })),
               };
             }
@@ -199,8 +203,16 @@ export function EstimateSelectionProvider({
               id: j.id,
               laborTaxable: j.laborTaxable,
               partsTaxable: j.partsTaxable,
-              laborLines: j.laborLines.map((l) => ({ totalCents: l.totalCents, authorized: l.authorized })),
-              partLines: j.partLines.map((p) => ({ totalCents: p.totalCents, authorized: p.authorized })),
+              laborLines: j.laborLines.map((l) => ({
+                totalCents: l.totalCents,
+                authorized: l.authorized,
+                taxable: "taxable" in l ? l.taxable : undefined,
+              })),
+              partLines: j.partLines.map((p) => ({
+                totalCents: p.totalCents,
+                authorized: p.authorized,
+                taxable: "taxable" in p ? p.taxable : undefined,
+              })),
             };
           }),
           fees: fees.map((f) => ({

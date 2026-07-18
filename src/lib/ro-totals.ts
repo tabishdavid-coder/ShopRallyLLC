@@ -2,10 +2,12 @@
 
 export type RoTotalsJob = {
   id: string;
+  /** Fallback when a labor line has no explicit `taxable` (legacy / dual-path). */
   laborTaxable: boolean;
+  /** Fallback when a part line has no explicit `taxable` (legacy / dual-path). */
   partsTaxable: boolean;
-  laborLines: { totalCents: number; authorized: boolean }[];
-  partLines: { totalCents: number; authorized: boolean }[];
+  laborLines: { totalCents: number; authorized: boolean; taxable?: boolean | null }[];
+  partLines: { totalCents: number; authorized: boolean; taxable?: boolean | null }[];
 };
 
 export type RoTotalsFee = {
@@ -76,13 +78,20 @@ export function computeRoTotals(
   const jobBase = new Map<string, { labor: number; parts: number }>();
 
   for (const j of input.jobs) {
-    const jl = j.laborLines.filter((l) => l.authorized).reduce((x, l) => x + l.totalCents, 0);
-    const jp = j.partLines.filter((p) => p.authorized).reduce((x, p) => x + p.totalCents, 0);
-    partsCount += j.partLines.filter((p) => p.authorized).length;
+    const activeLabor = j.laborLines.filter((l) => l.authorized);
+    const activeParts = j.partLines.filter((p) => p.authorized);
+    const jl = activeLabor.reduce((x, l) => x + l.totalCents, 0);
+    const jp = activeParts.reduce((x, p) => x + p.totalCents, 0);
+    partsCount += activeParts.length;
     labor += jl;
     parts += jp;
-    if (j.laborTaxable) taxableLabor += jl;
-    if (j.partsTaxable) taxableParts += jp;
+    // Per-line taxable wins; fall back to job-level flags when unset (expand dual-path).
+    taxableLabor += activeLabor
+      .filter((l) => (l.taxable ?? j.laborTaxable) === true)
+      .reduce((x, l) => x + l.totalCents, 0);
+    taxableParts += activeParts
+      .filter((p) => (p.taxable ?? j.partsTaxable) === true)
+      .reduce((x, p) => x + p.totalCents, 0);
     jobBase.set(j.id, { labor: jl, parts: jp });
   }
 

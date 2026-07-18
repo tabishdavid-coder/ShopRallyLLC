@@ -4,8 +4,15 @@ import { SchemaType, type ResponseSchema } from "@google/generative-ai";
 import { z } from "zod";
 
 import { parseYmmSearch } from "@/lib/parse-ymm-search";
-import type { SmartRoIntakePayload, SmartRoStagingState } from "@/lib/smart-ro-intake-types";
+import { formatPhoneInput } from "@/lib/phone";
+import type {
+  SmartRoIntakePayload,
+  SmartRoStagingState,
+  SmartRoVehicle,
+} from "@/lib/smart-ro-intake-types";
 import { createAiJsonMessage, isAiConfigured } from "@/server/services/ai/client";
+import { recordDecodeUsage } from "@/server/services/decode-usage";
+import { decodeVinForShop, isValidVin, type DecodedVin } from "@/server/services/vin";
 
 /**
  * System prompt wrapper for Gemini — precise parser + mechanical labor guide.
@@ -26,6 +33,12 @@ LABOR LINE SPLITTING:
 - If the text mentions multiple unrelated issues (e.g. "oil change and check engine light"), create SEPARATE objects in labor_lines — one per independent job.
 - Do not merge unrelated work into a single labor line.
 
+TASK TITLES (replacement work):
+- For remove-and-replace / R&R / replacement jobs, prefer task_title shaped as "Remove and Replace <Work>" (Title Case work phrase).
+- Examples: "brake lines replacement" → "Remove and Replace Brake Lines"; "R&R front brakes" → "Remove and Replace Front Brakes".
+- Do not rename non-replacement jobs (oil change, diagnosis, flush, inspection, alignment, etc.).
+- If already titled "Remove and Replace …", leave that form.
+
 CONFIDENCE SCORING (0–100 integer):
 - vehicle.confidence_score: how confident you are in year/make/model/trim/engine extraction.
 - labor_lines[].confidence_score: how confident you are in the task identification AND hour estimate.
@@ -40,6 +53,8 @@ NULL HANDLING:
 VEHICLE NORMALIZATION:
 - Standardize makes (Honda, Toyota, Chevrolet, BMW).
 - year must be a 4-digit integer or null.
+- When a VERIFIED VEHICLE DECODE block is provided in the user message, treat it as ground truth for year/make/model/trim/engine — do not invent conflicting YMM. Use it to calibrate labor hours for that specific vehicle.
+- Do not put year/make/model/VIN into task_title or description.
 
 OUTPUT: Valid JSON only — no markdown, no commentary.`;
 
@@ -116,6 +131,111 @@ function clampScore(n: number): number {
   return Math.max(0, Math.min(100, Math.round(n)));
 }
 
+const RR_PREFIX_RE = /^remove\s+and\s+replace\b/i;
+const RR_SHORT_PREFIX_RE = /^(?:r\s*&\s*r|r\s+and\s+r|remove\s*&\s*replace)\b[\s:.-]*/i;
+const REPLACE_PREFIX_RE = /^replace(?:ment)?\b[\s:.-]*/i;
+const REPLACEMENT_SUFFIX_RE =
+  /\b(?:r\s*&\s*r|r\s+and\s+r|remove\s+and\s+replace|remove\s*&\s*replace|replacement|replace)\s*$/i;
+
+function titleCaseWorkPhrase(phrase: string): string {
+  return phrase
+    .trim()
+    .split(/\s+/)
+    .filter(Boolean)
+    .map((word) => {
+      if (/^[A-Z0-9]+$/.test(word) && word.length <= 4) return word;
+      return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+    })
+    .join(" ");
+}
+
+/**
+ * Normalize replacement-style job titles to "Remove and Replace <Work>".
+ * Non-replacement titles are returned unchanged (trimmed).
+ */
+export function normalizeReplacementTaskTitle(title: string): string {
+  const trimmed = title.trim().replace(/\s+/g, " ");
+  if (!trimmed) return trimmed;
+
+  // Already in canonical form — leave unchanged.
+  if (RR_PREFIX_RE.test(trimmed)) return trimmed;
+
+  let work: string | null = null;
+  if (RR_SHORT_PREFIX_RE.test(trimmed)) {
+    work = trimmed.replace(RR_SHORT_PREFIX_RE, "").trim();
+  } else if (REPLACE_PREFIX_RE.test(trimmed) && !/^replacement\b/i.test(trimmed)) {
+    work = trimmed.replace(REPLACE_PREFIX_RE, "").trim();
+  } else if (REPLACEMENT_SUFFIX_RE.test(trimmed)) {
+    work = trimmed.replace(REPLACEMENT_SUFFIX_RE, "").trim();
+  }
+
+  if (!work) return trimmed;
+  return `Remove and Replace ${titleCaseWorkPhrase(work)}`;
+}
+
+function normalizePhoneForStaging(phone: string | null): string | null {
+  if (!phone?.trim()) return null;
+  const formatted = formatPhoneInput(phone);
+  return formatted || null;
+}
+
+/** First valid 17-char VIN found in free-form intake notes. */
+export function extractVinFromIntakeText(text: string): string | null {
+  const matches = text.toUpperCase().match(/\b[A-HJ-NPR-Z0-9]{17}\b/g);
+  if (!matches) return null;
+  for (const m of matches) {
+    if (isValidVin(m)) return m;
+  }
+  return null;
+}
+
+function formatDecodedVehicleBlock(vin: string, decoded: DecodedVin): string {
+  const lines = [
+    `VIN: ${vin}`,
+    decoded.year != null ? `Year: ${decoded.year}` : null,
+    decoded.make ? `Make: ${decoded.make}` : null,
+    decoded.model ? `Model: ${decoded.model}` : null,
+    decoded.trim ? `Trim: ${decoded.trim}` : null,
+    decoded.engine ? `Engine: ${decoded.engine}` : null,
+    decoded.transmission ? `Transmission: ${decoded.transmission}` : null,
+    decoded.drivetrain ? `Drivetrain: ${decoded.drivetrain}` : null,
+    decoded.bodyClass ? `Body: ${decoded.bodyClass}` : null,
+  ].filter(Boolean);
+  return [
+    "VERIFIED VEHICLE DECODE (NHTSA / shop VIN provider — ground truth for YMM and labor hour calibration):",
+    ...lines,
+    "Use this vehicle identity when estimating labor hours for the repair tasks below.",
+  ].join("\n");
+}
+
+function mergeDecodedVehicle(
+  aiVehicle: SmartRoIntakePayload["vehicle"],
+  vin: string,
+  decoded: DecodedVin,
+): SmartRoVehicle {
+  const year = decoded.year ?? aiVehicle.year;
+  const make = decoded.make?.trim() || aiVehicle.make;
+  const model = decoded.model?.trim() || aiVehicle.model;
+  const trim = decoded.trim?.trim() || aiVehicle.trim;
+  const engine = decoded.engine?.trim() || aiVehicle.engine;
+  const hasYmm = year != null && !!make && !!model;
+  return {
+    vin,
+    year: year ?? null,
+    make: make?.trim() || null,
+    model: model?.trim() || null,
+    trim: trim?.trim() || null,
+    engine: engine?.trim() || null,
+    transmission: decoded.transmission?.trim() || null,
+    drivetrain: decoded.drivetrain?.trim() || null,
+    bodyClass: decoded.bodyClass?.trim() || null,
+    confidence_score: hasYmm
+      ? Math.max(clampScore(aiVehicle.confidence_score), 92)
+      : clampScore(aiVehicle.confidence_score),
+    vinDecoded: true,
+  };
+}
+
 function normalizeVehicle(
   raw: SmartRoIntakePayload["vehicle"],
 ): SmartRoIntakePayload["vehicle"] {
@@ -147,12 +267,12 @@ function normalizePayload(data: z.infer<typeof SmartRoGeminiSchema>): SmartRoInt
   return {
     customer: {
       name: data.customer.name?.trim() || null,
-      phone: data.customer.phone?.trim() || null,
+      phone: normalizePhoneForStaging(data.customer.phone),
       email: data.customer.email?.trim() || null,
     },
     vehicle: normalizeVehicle(data.vehicle),
     labor_lines: data.labor_lines.map((line) => ({
-      task_title: line.task_title.trim(),
+      task_title: normalizeReplacementTaskTitle(line.task_title),
       description: line.description.trim(),
       estimated_hours: Math.round(line.estimated_hours * 100) / 100,
       confidence_score: clampScore(line.confidence_score),
@@ -173,22 +293,44 @@ export async function parseSmartRoIntakeText(
     throw new Error("AI is not configured. Set GEMINI_API_KEY on the server.");
   }
 
+  const vin = extractVinFromIntakeText(text);
+  let decoded: DecodedVin | null = null;
+  if (vin) {
+    try {
+      decoded = await decodeVinForShop(shopId, vin);
+      if (decoded) {
+        await recordDecodeUsage(shopId, "VIN").catch(() => undefined);
+      }
+    } catch {
+      decoded = null;
+    }
+  }
+
+  const decodeBlock =
+    vin && decoded ? `\n\n${formatDecodedVehicleBlock(vin, decoded)}\n` : "";
+
   const { data } = await createAiJsonMessage({
     shopId,
     feature: "FREEFORM_RO_INTAKE",
     system: SMART_RO_INTAKE_SYSTEM_PROMPT,
-    userContent: `Parse this repair order intake:\n\n${text}`,
+    userContent: `Parse this repair order intake:\n\n${text}${decodeBlock}`,
     maxTokens: 4096,
     schema: SmartRoGeminiSchema,
     responseSchema: SMART_RO_GEMINI_RESPONSE_SCHEMA,
   });
 
   const payload = normalizePayload(data);
+  const vehicle: SmartRoVehicle =
+    vin && decoded
+      ? mergeDecodedVehicle(payload.vehicle, vin, decoded)
+      : vin
+        ? { ...payload.vehicle, vin, vinDecoded: false }
+        : payload.vehicle;
 
   return {
     rawText: text,
     customer: payload.customer,
-    vehicle: payload.vehicle,
+    vehicle,
     laborLines: payload.labor_lines,
     suggestedCustomerIds: [],
   };

@@ -11,12 +11,19 @@ export type SmartRoCustomer = {
 };
 
 export type SmartRoVehicle = {
+  /** 17-char VIN when extracted/decoded from intake notes. */
+  vin?: string | null;
   year: number | null;
   make: string | null;
   model: string | null;
   trim: string | null;
   engine: string | null;
+  transmission?: string | null;
+  drivetrain?: string | null;
+  bodyClass?: string | null;
   confidence_score: number;
+  /** True when year/make/model came from free NHTSA (or shop VIN provider) decode. */
+  vinDecoded?: boolean;
 };
 
 export type SmartRoLaborLine = {

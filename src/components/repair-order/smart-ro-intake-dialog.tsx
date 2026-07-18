@@ -5,6 +5,8 @@ import { useRouter } from "next/navigation";
 import {
   AlertTriangle,
   Car,
+  Check,
+  ChevronDown,
   Flag,
   Loader2,
   Sparkles,
@@ -25,6 +27,21 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { CustomerSearchResults } from "@/components/customers/customer-search-results";
 import {
   commitSmartRoIntake,
@@ -43,10 +60,14 @@ import {
   type SmartRoLaborLine,
   type SmartRoStagingState,
 } from "@/lib/smart-ro-intake-types";
+import { formatPhoneInput } from "@/lib/phone";
 import { customerDisplayName } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 type Step = "input" | "staging";
+
+/** Same common options as create-vehicle / Add Vehicle flows. */
+const TRANSMISSION_OPTIONS = ["Automatic", "Manual", "CVT", "Dual-Clutch", "Other"] as const;
 
 function nullFieldClass(isNull: boolean): string {
   return isNull
@@ -81,7 +102,13 @@ export function SmartRoIntakeDialog({
   config: RoIntakeConfig;
 }) {
   const router = useRouter();
-  const laborRateCents = useMemo(() => defaultLaborRateCents(config.laborRates), [config.laborRates]);
+  const defaultRateCents = useMemo(
+    () => defaultLaborRateCents(config.laborRates),
+    [config.laborRates],
+  );
+  const [laborRateCents, setLaborRateCents] = useState(defaultRateCents);
+  const [customRateDollars, setCustomRateDollars] = useState("");
+  const [rateMenuOpen, setRateMenuOpen] = useState(false);
   const laborRateLabel = `$${(laborRateCents / 100).toFixed(2)}/hr`;
 
   const [step, setStep] = useState<Step>("input");
@@ -97,6 +124,13 @@ export function SmartRoIntakeDialog({
   const [pending, startTransition] = useTransition();
   const [searching, setSearching] = useState(false);
 
+  const transmissionOptions = useMemo(() => {
+    const decoded = staging?.vehicle.transmission?.trim();
+    const opts = [...TRANSMISSION_OPTIONS] as string[];
+    if (decoded && !opts.includes(decoded)) opts.unshift(decoded);
+    return opts;
+  }, [staging?.vehicle.transmission]);
+
   const reset = useCallback(() => {
     setStep("input");
     setText("");
@@ -108,7 +142,10 @@ export function SmartRoIntakeDialog({
     setVehicles([]);
     setVehicleId(null);
     setCreateNewVehicle(true);
-  }, []);
+    setLaborRateCents(defaultRateCents);
+    setCustomRateDollars("");
+    setRateMenuOpen(false);
+  }, [defaultRateCents]);
 
   useEffect(() => {
     if (!open) reset();
@@ -190,6 +227,8 @@ export function SmartRoIntakeDialog({
         return;
       }
       setStaging(res.staging);
+      setLaborRateCents(defaultRateCents);
+      setCustomRateDollars((defaultRateCents / 100).toFixed(2));
       setStep("staging");
       const c = res.staging.customer;
       const q = c.phone || c.email || c.name || "";
@@ -216,6 +255,7 @@ export function SmartRoIntakeDialog({
         customer: staging.customer,
         vehicle: staging.vehicle,
         laborLines: staging.laborLines,
+        laborRateCents,
         customerId: selectedCustomer?.id,
         vehicleId: vehicleId ?? undefined,
         createVehicle: createNewVehicle || !vehicleId,
@@ -276,8 +316,8 @@ export function SmartRoIntakeDialog({
                 className="min-h-[180px] resize-y bg-white"
               />
               <p className="text-xs text-muted-foreground">
-                Gemini returns labor hours only — shop rate ({laborRateLabel}) is applied on the review
-                screen.
+                VINs are decoded via free NHTSA for car details and more accurate labor hours. Gemini
+                returns hours only — shop rate ({laborRateLabel}) is applied on the review screen.
               </p>
             </div>
           ) : staging ? (
@@ -304,9 +344,12 @@ export function SmartRoIntakeDialog({
                       <Label htmlFor="cust-phone">Phone</Label>
                       <Input
                         id="cust-phone"
+                        inputMode="tel"
                         value={staging.customer.phone ?? ""}
-                        onChange={(e) => updateCustomer("phone", e.target.value || null)}
-                        placeholder="Add phone"
+                        onChange={(e) =>
+                          updateCustomer("phone", formatPhoneInput(e.target.value) || null)
+                        }
+                        placeholder="518-555-0199"
                         className={nullFieldClass(!staging.customer.phone)}
                       />
                     </div>
@@ -384,7 +427,29 @@ export function SmartRoIntakeDialog({
                     </div>
                     <ConfidenceFlag score={staging.vehicle.confidence_score} label="Verify vehicle" />
                   </div>
-                  <div className="grid grid-cols-2 gap-3 sm:grid-cols-5">
+                  {staging.vehicle.vinDecoded ? (
+                    <p className="text-xs text-emerald-800">
+                      VIN decoded via NHTSA — year/make/model applied for car details and labor
+                      estimates.
+                    </p>
+                  ) : null}
+                  <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                    <div className="col-span-2 sm:col-span-3">
+                      <Label htmlFor="veh-vin">VIN</Label>
+                      <Input
+                        id="veh-vin"
+                        value={staging.vehicle.vin ?? ""}
+                        onChange={(e) =>
+                          updateVehicle("vin", e.target.value.trim().toUpperCase() || null)
+                        }
+                        placeholder="17-character VIN"
+                        maxLength={17}
+                        className={cn(
+                          "font-mono tracking-wide",
+                          nullFieldClass(!staging.vehicle.vin),
+                        )}
+                      />
+                    </div>
                     <div>
                       <Label htmlFor="veh-year">Year</Label>
                       <Input
@@ -431,7 +496,7 @@ export function SmartRoIntakeDialog({
                         className={nullFieldClass(!staging.vehicle.trim)}
                       />
                     </div>
-                    <div className="col-span-2 sm:col-span-1">
+                    <div>
                       <Label htmlFor="veh-engine">Engine</Label>
                       <Input
                         id="veh-engine"
@@ -440,6 +505,30 @@ export function SmartRoIntakeDialog({
                         placeholder="Add engine"
                         className={nullFieldClass(!staging.vehicle.engine)}
                       />
+                    </div>
+                    <div>
+                      <Label htmlFor="veh-trans">Transmission</Label>
+                      <Select
+                        value={staging.vehicle.transmission?.trim() || "__none__"}
+                        onValueChange={(v) =>
+                          updateVehicle("transmission", v === "__none__" ? null : v)
+                        }
+                      >
+                        <SelectTrigger
+                          id="veh-trans"
+                          className={nullFieldClass(!staging.vehicle.transmission)}
+                        >
+                          <SelectValue placeholder="Select transmission" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="__none__">Not set</SelectItem>
+                          {transmissionOptions.map((t) => (
+                            <SelectItem key={t} value={t}>
+                              {t}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
                     </div>
                   </div>
 
@@ -486,9 +575,83 @@ export function SmartRoIntakeDialog({
                   <div className="flex items-center gap-2">
                     <Wrench className="size-4 text-brand-navy" aria-hidden />
                     <h3 className="font-semibold text-brand-navy">Labor lines</h3>
-                    <Badge variant="secondary" className="text-xs">
-                      Rate: {laborRateLabel}
-                    </Badge>
+                    <DropdownMenu open={rateMenuOpen} onOpenChange={setRateMenuOpen}>
+                      <DropdownMenuTrigger asChild>
+                        <button
+                          type="button"
+                          className="inline-flex items-center gap-1 rounded-md outline-none focus-visible:ring-2 focus-visible:ring-brand-navy/40"
+                          title="Change labor rate"
+                        >
+                          <Badge
+                            variant="secondary"
+                            className="inline-flex cursor-pointer items-center text-xs hover:bg-secondary/80"
+                          >
+                            Rate: {laborRateLabel}
+                            <ChevronDown className="ml-1 size-3 opacity-70" aria-hidden />
+                          </Badge>
+                        </button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="start" className="w-64">
+                        <DropdownMenuLabel>Shop labor rates</DropdownMenuLabel>
+                        {config.laborRates.map((r, i) => (
+                          <DropdownMenuItem
+                            key={`${r.name}-${r.rateCents}-${i}`}
+                            onClick={() => {
+                              setLaborRateCents(r.rateCents);
+                              setCustomRateDollars((r.rateCents / 100).toFixed(2));
+                            }}
+                          >
+                            <Check
+                              className={cn(
+                                "size-3.5 shrink-0",
+                                laborRateCents === r.rateCents ? "opacity-100" : "opacity-0",
+                              )}
+                              aria-hidden
+                            />
+                            <span className="min-w-0 flex-1 truncate">
+                              {r.name}
+                              {r.isDefault ? " (default)" : ""}
+                            </span>
+                            <span className="tabular-nums text-muted-foreground">
+                              ${(r.rateCents / 100).toFixed(2)}/hr
+                            </span>
+                          </DropdownMenuItem>
+                        ))}
+                        <DropdownMenuSeparator />
+                        <div className="px-2 py-1.5" onKeyDown={(e) => e.stopPropagation()}>
+                          <Label htmlFor="smart-custom-rate" className="text-xs text-muted-foreground">
+                            Custom $/hr
+                          </Label>
+                          <div className="mt-1 flex items-center gap-2">
+                            <Input
+                              id="smart-custom-rate"
+                              type="number"
+                              min={1}
+                              step={0.01}
+                              value={customRateDollars}
+                              onChange={(e) => setCustomRateDollars(e.target.value)}
+                              className="h-8"
+                              placeholder="125.00"
+                            />
+                            <Button
+                              type="button"
+                              size="sm"
+                              className="h-8 shrink-0 bg-brand-navy"
+                              onClick={() => {
+                                const dollars = parseFloat(customRateDollars);
+                                if (!Number.isFinite(dollars) || dollars <= 0) return;
+                                const cents = Math.round(dollars * 100);
+                                setLaborRateCents(cents);
+                                setCustomRateDollars((cents / 100).toFixed(2));
+                                setRateMenuOpen(false);
+                              }}
+                            >
+                              Apply
+                            </Button>
+                          </div>
+                        </div>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
                   <p className="text-sm font-semibold tabular-nums text-brand-navy">
                     Est. total ${(totalLaborCents / 100).toFixed(2)}

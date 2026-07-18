@@ -1433,6 +1433,8 @@ model LaborLine {
   discountCents Int    @default(0)
   totalCents   Int     @default(0)
   authorized   Boolean @default(true) // included in estimate / WIP totals
+  /// When true, this line's net amount is included in labor tax. Independent of sibling lines.
+  taxable      Boolean @default(true)
   technicianId String? // User id
   sortOrder    Int     @default(0)
 
@@ -1454,6 +1456,8 @@ model PartLine {
   discountCents Int      @default(0)
   totalCents  Int        @default(0)
   authorized  Boolean    @default(true) // included in estimate / WIP totals
+  /// When true, this line's net amount is included in parts tax. Independent of sibling lines.
+  taxable     Boolean    @default(true)
   source      PartSource @default(MANUAL)
   status      PartStatus @default(NEEDED)
   partstechId String?

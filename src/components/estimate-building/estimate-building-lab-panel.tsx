@@ -221,8 +221,16 @@ export async function EstimateBuildingLabPanel({
       id: j.id,
       laborTaxable: j.laborTaxable,
       partsTaxable: j.partsTaxable,
-      laborLines: j.laborLines.map((l) => ({ totalCents: l.totalCents, authorized: l.authorized })),
-      partLines: j.partLines.map((p) => ({ totalCents: p.totalCents, authorized: p.authorized })),
+      laborLines: j.laborLines.map((l) => ({
+        totalCents: l.totalCents,
+        authorized: l.authorized,
+        taxable: "taxable" in l ? l.taxable : undefined,
+      })),
+      partLines: j.partLines.map((p) => ({
+        totalCents: p.totalCents,
+        authorized: p.authorized,
+        taxable: "taxable" in p ? p.taxable : undefined,
+      })),
     })),
     fees: filteredFees,
     discounts: ro.discounts,

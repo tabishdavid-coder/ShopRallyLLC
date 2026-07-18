@@ -29,8 +29,8 @@ export async function recomputeRoTotals(roId: string): Promise<void> {
           id: true,
           laborTaxable: true,
           partsTaxable: true,
-          laborLines: { select: { totalCents: true, authorized: true } },
-          partLines: { select: { totalCents: true, authorized: true } },
+          laborLines: { select: { totalCents: true, authorized: true, taxable: true } },
+          partLines: { select: { totalCents: true, authorized: true, taxable: true } },
         },
       },
       fees: { select: { jobId: true, method: true, base: true, amount: true, capCents: true, taxable: true } },
@@ -45,12 +45,19 @@ export async function recomputeRoTotals(roId: string): Promise<void> {
   let taxableParts = 0;
   const jobBase = new Map<string, { labor: number; parts: number }>();
   for (const j of ro.jobs) {
-    const jl = j.laborLines.filter((l) => l.authorized).reduce((x, l) => x + l.totalCents, 0);
-    const jp = j.partLines.filter((p) => p.authorized).reduce((x, p) => x + p.totalCents, 0);
+    const activeLabor = j.laborLines.filter((l) => l.authorized);
+    const activeParts = j.partLines.filter((p) => p.authorized);
+    const jl = activeLabor.reduce((x, l) => x + l.totalCents, 0);
+    const jp = activeParts.reduce((x, p) => x + p.totalCents, 0);
     labor += jl;
     parts += jp;
-    if (j.laborTaxable) taxableLabor += jl;
-    if (j.partsTaxable) taxableParts += jp;
+    // Per-line taxable wins; fall back to job-level flags when unset.
+    taxableLabor += activeLabor
+      .filter((l) => (l.taxable ?? j.laborTaxable) === true)
+      .reduce((x, l) => x + l.totalCents, 0);
+    taxableParts += activeParts
+      .filter((p) => (p.taxable ?? j.partsTaxable) === true)
+      .reduce((x, p) => x + p.totalCents, 0);
     jobBase.set(j.id, { labor: jl, parts: jp });
   }
   const supplies = ro.shopSuppliesCents ?? 0;
