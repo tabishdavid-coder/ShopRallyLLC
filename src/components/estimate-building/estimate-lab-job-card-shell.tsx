@@ -82,13 +82,13 @@ export const LAB_LINE_GRID_HEAD_BASE = "grid items-center gap-0";
 
 /** @deprecated Prefer labLineGridTemplate() + inline gridTemplateColumns for resizable name/desc. */
 export const LAB_LINE_GRID =
-  "grid grid-cols-[24px_128px_minmax(120px,0.62fr)_minmax(100px,0.38fr)_72px_84px_84px_96px_80px_96px_64px_28px] items-stretch gap-0";
+  "grid grid-cols-[24px_128px_minmax(88px,0.55fr)_minmax(72px,0.45fr)_90px_100px_100px_112px_96px_112px_80px_28px] items-stretch gap-0";
 /** @deprecated Prefer labLineGridTemplate() + inline gridTemplateColumns for resizable name/desc. */
 export const LAB_LINE_GRID_HEAD =
-  "grid grid-cols-[24px_128px_minmax(120px,0.62fr)_minmax(100px,0.38fr)_72px_84px_84px_96px_80px_96px_64px_28px] items-center gap-0";
+  "grid grid-cols-[24px_128px_minmax(88px,0.55fr)_minmax(72px,0.45fr)_90px_100px_100px_112px_96px_112px_80px_28px] items-center gap-0";
 
-/** Minimum width before horizontal scroll kicks in. */
-export const LAB_LINE_GRID_MIN_W = "min-w-[1124px]";
+/** Minimum width before horizontal scroll kicks in (fixed tracks + name/desc floors). */
+export const LAB_LINE_GRID_MIN_W = "min-w-[1206px]";
 
 /** Vertical column divider — shared between adjacent cells (not a full box). */
 export const LAB_GRID_DIVIDER = "border-r border-border/50";

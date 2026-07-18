@@ -2,7 +2,7 @@
 
 import { Badge } from "@/components/ui/badge";
 import { EstimateLabServiceAdvisorSelect } from "@/components/estimate-building/estimate-lab-service-advisor-select";
-import { RO_STATUS_LABEL, RO_STATUS_PILL } from "@/lib/ro-status";
+import { RO_STATUS_PILL } from "@/lib/ro-status";
 import { cn } from "@/lib/utils";
 import type { ROStatus } from "@/generated/prisma";
 
@@ -52,7 +52,6 @@ export function EstimateWorkspaceHeroBar({
   actions: React.ReactNode;
 }) {
   const pill = RO_STATUS_PILL[roStatus];
-  const phase = RO_STATUS_LABEL[roStatus];
   const createdMeta = `Created ${formatRoCreated(createdAt)}${createdByName ? ` by ${createdByName}` : ""}`;
 
   return (
@@ -61,8 +60,7 @@ export function EstimateWorkspaceHeroBar({
         className="min-w-0 flex-1 truncate text-sm font-semibold leading-snug text-foreground md:text-base"
         title={`${createdMeta} · ${customerName}`}
       >
-        RO #{roNumber}{" "}
-        <span className="font-normal text-muted-foreground">({phase})</span>
+        RO #{roNumber}
         <span className="mx-1.5 font-normal text-muted-foreground/45" aria-hidden>
           ·
         </span>

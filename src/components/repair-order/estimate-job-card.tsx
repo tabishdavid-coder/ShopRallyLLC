@@ -1041,7 +1041,10 @@ export function EstimateJobCard({
             <Input
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className={cn(inputH, "min-w-0 flex-1 border-slate-200 bg-white font-semibold shadow-none")}
+              className={cn(
+                inputH,
+                "w-1/2 min-w-0 shrink-0 truncate border-slate-200 bg-white font-semibold shadow-none",
+              )}
               placeholder="Job name"
             />
             {customerApproved ? (

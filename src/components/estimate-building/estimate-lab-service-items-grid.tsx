@@ -30,7 +30,6 @@ import {
 } from "@/components/estimate-building/estimate-line-type-menu";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { formatCents } from "@/lib/format";
 import {
   laborLineAmount,
   laborLineTotal,
@@ -379,11 +378,24 @@ function partFromLabor(row: LaborRow, partTiers: PartTier[], lineType: PartFamil
   return base;
 }
 
+/** Shared Service Items numeric rhythm — one size/weight/align for Qty + money columns. */
+const NUM_TYPE = "text-[11px] font-medium tabular-nums";
 const MONEY_CELL = "flex h-7 w-full min-w-0 items-center overflow-visible";
+/** Left `$` — same typeface as amount; slightly softer via opacity so digits stay primary. */
+const MONEY_DOLLAR =
+  "pointer-events-none absolute left-0 top-1/2 -translate-y-1/2 text-[11px] font-medium tabular-nums opacity-70";
+const MONEY_AMOUNT_PAD = "pl-3";
+const DISCOUNT_PCT =
+  "block w-full text-right text-[10px] font-medium leading-none tabular-nums text-muted-foreground/70";
 const ADD_ROW_CHIP =
   "inline-flex h-7 shrink-0 items-center gap-0.5 rounded-md border border-brand-navy/25 bg-white px-1.5 text-[10px] font-semibold uppercase tracking-wide text-brand-navy hover:bg-brand-light/15";
-const MONEY_INPUT = cn(LAB_INPUT_FLAT, "min-w-0 w-full text-right text-[11px] tabular-nums");
+const MONEY_INPUT = cn(LAB_INPUT_FLAT, NUM_TYPE, "min-w-0 w-full text-right");
 const MONEY_INPUT_LOCKED = "cursor-default bg-muted/25 text-foreground/90";
+const QTY_INPUT = cn(LAB_INPUT_FLAT, NUM_TYPE, "w-full min-w-0 text-right");
+const QTY_READONLY = cn(
+  "inline-flex h-7 w-full min-w-0 items-center justify-end overflow-visible",
+  NUM_TYPE,
+);
 
 function InlineMoneyCell({
   draftKey,
@@ -395,7 +407,6 @@ function InlineMoneyCell({
   onCommitCents,
   readOnly,
   placeholder,
-  fontMedium,
   belowSlot,
 }: {
   draftKey: string;
@@ -407,16 +418,21 @@ function InlineMoneyCell({
   onCommitCents: (cents: number) => void;
   readOnly?: boolean;
   placeholder?: string;
-  fontMedium?: boolean;
   belowSlot?: ReactNode;
 }) {
   const locked = readOnly;
   const display = draftValue(fieldDrafts, draftKey, dollars(valueCents));
 
   return (
-    <div className={cn(MONEY_CELL, belowSlot && "flex-col items-stretch justify-center gap-0")}>
+    <div
+      className={cn(
+        MONEY_CELL,
+        "text-foreground",
+        belowSlot && "h-auto min-h-7 flex-col items-stretch justify-center gap-0.5 py-0.5",
+      )}
+    >
       <div className="relative w-full min-w-0">
-        <span className="pointer-events-none absolute left-0 top-1/2 -translate-y-1/2 text-[10px] text-muted-foreground">
+        <span className={MONEY_DOLLAR} aria-hidden>
           $
         </span>
         <Input
@@ -445,9 +461,8 @@ function InlineMoneyCell({
           }}
           className={cn(
             MONEY_INPUT,
-            "pl-3",
-            belowSlot && "h-4",
-            fontMedium && "font-medium",
+            MONEY_AMOUNT_PAD,
+            belowSlot && "h-4 min-h-0",
             locked && MONEY_INPUT_LOCKED,
           )}
         />
@@ -460,13 +475,14 @@ function InlineMoneyCell({
 function InlinePlaceholderCell({ placeholder = "—" }: { placeholder?: string }) {
   return (
     <div className={MONEY_CELL}>
-      <Input
-        readOnly
-        disabled
-        value={placeholder}
-        tabIndex={-1}
-        className={cn(MONEY_INPUT, "cursor-default bg-transparent text-muted-foreground/40")}
-      />
+      <span
+        className={cn(
+          "inline-flex h-7 w-full items-center justify-end text-muted-foreground/40",
+          NUM_TYPE,
+        )}
+      >
+        {placeholder}
+      </span>
     </div>
   );
 }
@@ -507,19 +523,20 @@ function LineDiscountCell({
         setFieldDraft={setFieldDraft}
         clearFieldDraft={clearFieldDraft}
         onCommitCents={(cents) => onCommitCents(Math.min(Math.max(0, cents), amountCents))}
-        belowSlot={
-          <span className="block pr-1 text-right text-[9px] leading-none tabular-nums text-muted-foreground/55">
-            {pctLabel}
-          </span>
-        }
+        belowSlot={<span className={DISCOUNT_PCT}>{pctLabel}</span>}
       />
     );
   }
 
   return (
-    <div className={cn("flex h-7 w-full min-w-0 flex-col items-end justify-center gap-0 leading-none", className)}>
-      <span className="pr-1 text-[11px] tabular-nums text-muted-foreground/80">{formatCents(discountCents)}</span>
-      <span className="pr-1 text-[9px] tabular-nums text-muted-foreground/50">{pctLabel}</span>
+    <div
+      className={cn(
+        "flex h-auto min-h-7 w-full min-w-0 flex-col items-stretch justify-center gap-0.5 py-0.5",
+        className,
+      )}
+    >
+      <ReadOnlyMoney cents={discountCents} />
+      <span className={DISCOUNT_PCT}>{pctLabel}</span>
     </div>
   );
 }
@@ -534,11 +551,7 @@ function TaxableCell({
   onChange?: (next: boolean) => void;
 }) {
   if (!editing) {
-    return (
-      <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
-        {value ? "Yes" : "No"}
-      </span>
-    );
+    return <span className={cn(NUM_TYPE, "text-muted-foreground")}>{value ? "Yes" : "No"}</span>;
   }
   return (
     <div className="relative flex w-full min-w-0 items-center justify-center">
@@ -547,7 +560,8 @@ function TaxableCell({
         onChange={(e) => onChange?.(e.target.value === "yes")}
         className={cn(
           LAB_INPUT_FLAT,
-          "w-full appearance-none pl-1 pr-3.5 text-center text-[10px] font-medium",
+          NUM_TYPE,
+          "w-full appearance-none pl-1 pr-3.5 text-center",
         )}
         aria-label="Taxable"
       >
@@ -562,16 +576,35 @@ function TaxableCell({
   );
 }
 
-function ReadOnlyMoney({ cents, className }: { cents: number; className?: string }) {
+/** Read-only money: same `$` left + amount right rhythm as editable Cost/Price. */
+function ReadOnlyMoney({
+  cents,
+  className,
+  prefix = "$",
+}: {
+  cents: number;
+  className?: string;
+  /** Currency glyph (use "−$" for credit/discount nets). */
+  prefix?: string;
+}) {
+  const abs = Math.abs(cents);
   return (
-    <span
-      className={cn(
-        "inline-flex h-7 w-full min-w-0 items-center justify-end overflow-visible text-[11px] tabular-nums",
-        className,
-      )}
-    >
-      {formatCents(cents)}
-    </span>
+    <div className={cn(MONEY_CELL, "text-foreground", className)}>
+      <div className="relative w-full min-w-0">
+        <span className={MONEY_DOLLAR} aria-hidden>
+          {prefix}
+        </span>
+        <span
+          className={cn(
+            "inline-flex h-7 w-full min-w-0 items-center justify-end overflow-visible",
+            MONEY_AMOUNT_PAD,
+            NUM_TYPE,
+          )}
+        >
+          {dollars(abs)}
+        </span>
+      </div>
+    </div>
   );
 }
 
@@ -610,7 +643,7 @@ function InlineQtyCell({
         onCommit(e.target.value);
         clearFieldDraft(draftKey);
       }}
-      className={cn(LAB_INPUT_FLAT, "w-full min-w-0 text-right tabular-nums")}
+      className={QTY_INPUT}
     />
   );
 }
@@ -1096,12 +1129,7 @@ export function EstimateLabServiceItemsGrid({
                     }}
                   />
                 ) : (
-                  <span
-                    className={cn(
-                      "inline-flex h-7 w-full min-w-0 items-center justify-end overflow-visible text-xs tabular-nums",
-                      lineThrough,
-                    )}
-                  >
+                  <span className={cn(QTY_READONLY, lineThrough)}>
                     {l.hours ? formatLaborHours(l.hours) : "0"}
                   </span>
                 )}
@@ -1145,7 +1173,7 @@ export function EstimateLabServiceItemsGrid({
                 )}
               </div>
               <div className={LAB_GRID_NUM_BORDERED}>
-                <ReadOnlyMoney cents={amountCents} className={cn("font-medium", lineThrough)} />
+                <ReadOnlyMoney cents={amountCents} className={lineThrough} />
               </div>
               <div className={LAB_GRID_NUM_BORDERED}>
                 <LineDiscountCell
@@ -1166,7 +1194,7 @@ export function EstimateLabServiceItemsGrid({
                 />
               </div>
               <div className={LAB_GRID_NUM_BORDERED}>
-                <ReadOnlyMoney cents={netCents} className={cn("font-semibold", lineThrough)} />
+                <ReadOnlyMoney cents={netCents} className={lineThrough} />
               </div>
               <div className={cn(LAB_GRID_CELL_BORDERED, "justify-center")}>
                 <TaxableCell
@@ -1254,7 +1282,7 @@ export function EstimateLabServiceItemsGrid({
                 }
               />
               <div className={LAB_GRID_NUM_BORDERED}>
-                <span className="inline-flex h-7 w-full items-center justify-end text-xs tabular-nums text-muted-foreground">
+                <span className={cn(QTY_READONLY, "text-muted-foreground")}>
                   {a.method === "PERCENT" ? "—" : "1"}
                 </span>
               </div>
@@ -1265,7 +1293,7 @@ export function EstimateLabServiceItemsGrid({
                 {editing ? (
                   <div className={MONEY_CELL}>
                     <select
-                      className={cn(LAB_MONEY_PREFIX, LAB_INPUT_FLAT, "text-[10px]")}
+                      className={cn(LAB_MONEY_PREFIX, LAB_INPUT_FLAT, NUM_TYPE)}
                       value={a.method}
                       onChange={(e) =>
                         commitAdjustment(a, item.adjKind, { method: e.target.value as AdjustMethod })
@@ -1295,29 +1323,23 @@ export function EstimateLabServiceItemsGrid({
                     />
                   </div>
                 ) : a.method === "PERCENT" ? (
-                  <span className="inline-flex h-7 w-full items-center justify-end text-xs font-medium tabular-nums">
-                    {a.amount / 100}%
-                  </span>
+                  <span className={cn(QTY_READONLY)}>{a.amount / 100}%</span>
                 ) : (
-                  <ReadOnlyMoney cents={a.amount} className="font-medium" />
+                  <ReadOnlyMoney cents={a.amount} />
                 )}
               </div>
               <div className={LAB_GRID_NUM_BORDERED}>
-                <ReadOnlyMoney cents={total} className="font-medium" />
+                <ReadOnlyMoney cents={total} />
               </div>
               <div className={LAB_GRID_NUM_BORDERED}>
                 <LineDiscountCell editing={false} amountCents={total} discountCents={0} />
               </div>
               <div className={LAB_GRID_NUM_BORDERED}>
-                <span
-                  className={cn(
-                    "inline-flex h-7 w-full items-center justify-end text-xs font-semibold tabular-nums",
-                    !isFee && total > 0 && "text-destructive",
-                  )}
-                >
-                  {!isFee && total > 0 ? "−" : ""}
-                  {formatCents(total)}
-                </span>
+                <ReadOnlyMoney
+                  cents={total}
+                  prefix={!isFee && total > 0 ? "−$" : "$"}
+                  className={!isFee && total > 0 ? "text-destructive" : undefined}
+                />
               </div>
               <div className={cn(LAB_GRID_CELL_BORDERED, "justify-center")}>
                 {isFee ? (
@@ -1327,7 +1349,7 @@ export function EstimateLabServiceItemsGrid({
                     onChange={(v) => commitAdjustment(a, "fee", { taxable: v })}
                   />
                 ) : (
-                  <span className="text-[10px] text-muted-foreground/40">—</span>
+                  <span className={cn(NUM_TYPE, "text-muted-foreground/40")}>—</span>
                 )}
               </div>
               <div className={LAB_GRID_CELL_END}>
@@ -1428,9 +1450,7 @@ export function EstimateLabServiceItemsGrid({
                   }}
                 />
               ) : (
-                <span className={cn("inline-flex h-7 w-full items-center justify-end text-xs", lineThrough)}>
-                  {p.quantity}
-                </span>
+                <span className={cn(QTY_READONLY, lineThrough)}>{p.quantity}</span>
               )}
             </div>
             <div className={LAB_GRID_NUM_BORDERED}>
@@ -1468,11 +1488,11 @@ export function EstimateLabServiceItemsGrid({
                   }
                 />
               ) : (
-                <ReadOnlyMoney cents={p.retailCents} className={cn("font-medium", lineThrough)} />
+                <ReadOnlyMoney cents={p.retailCents} className={lineThrough} />
               )}
             </div>
             <div className={LAB_GRID_NUM_BORDERED}>
-              <ReadOnlyMoney cents={amountCents} className={cn("font-medium", lineThrough)} />
+              <ReadOnlyMoney cents={amountCents} className={lineThrough} />
             </div>
             <div className={LAB_GRID_NUM_BORDERED}>
               <LineDiscountCell
@@ -1493,7 +1513,7 @@ export function EstimateLabServiceItemsGrid({
               />
             </div>
             <div className={LAB_GRID_NUM_BORDERED}>
-              <ReadOnlyMoney cents={netCents} className={cn("font-semibold", lineThrough)} />
+              <ReadOnlyMoney cents={netCents} className={lineThrough} />
             </div>
             <div className={cn(LAB_GRID_CELL_BORDERED, "justify-center")}>
               <TaxableCell
@@ -1608,20 +1628,26 @@ export function EstimateLabServiceItemsGrid({
                   }
                 />
               </div>
-              <span className={cn(LAB_GRID_NUM_BORDERED, "text-[10px] text-muted-foreground/40")}>—</span>
-              <span
-                className={cn(
-                  LAB_GRID_NUM_BORDERED,
-                  "inline-flex min-h-7 items-center justify-end text-[10px] text-muted-foreground/40",
-                )}
-              >
-                0.00
-              </span>
-              <span className={cn(LAB_GRID_NUM_BORDERED, "text-[10px] text-muted-foreground/40")}>0.00</span>
-              <span className={cn(LAB_GRID_NUM_BORDERED, "text-[10px] text-muted-foreground/40")}>0.00</span>
-              <span className={cn(LAB_GRID_NUM_BORDERED, "text-[10px] text-muted-foreground/40")}>$0 / 0%</span>
-              <span className={cn(LAB_GRID_NUM_BORDERED, "text-[10px] text-muted-foreground/40")}>0.00</span>
-              <span className={cn(LAB_GRID_CELL_BORDERED, "justify-center text-[10px] text-muted-foreground/40")}>
+              <span className={cn(LAB_GRID_NUM_BORDERED, NUM_TYPE, "justify-end text-muted-foreground/40")}>—</span>
+              <div className={LAB_GRID_NUM_BORDERED}>
+                <ReadOnlyMoney cents={0} className="text-muted-foreground/40" />
+              </div>
+              <div className={LAB_GRID_NUM_BORDERED}>
+                <ReadOnlyMoney cents={0} className="text-muted-foreground/40" />
+              </div>
+              <div className={LAB_GRID_NUM_BORDERED}>
+                <ReadOnlyMoney cents={0} className="text-muted-foreground/40" />
+              </div>
+              <div className={LAB_GRID_NUM_BORDERED}>
+                <div className="flex h-auto min-h-7 w-full flex-col items-stretch justify-center gap-0.5 py-0.5 text-muted-foreground/40">
+                  <ReadOnlyMoney cents={0} className="text-muted-foreground/40" />
+                  <span className={DISCOUNT_PCT}>0%</span>
+                </div>
+              </div>
+              <div className={LAB_GRID_NUM_BORDERED}>
+                <ReadOnlyMoney cents={0} className="text-muted-foreground/40" />
+              </div>
+              <span className={cn(LAB_GRID_CELL_BORDERED, "justify-center", NUM_TYPE, "text-muted-foreground/40")}>
                 —
               </span>
               <span className="min-h-7" />

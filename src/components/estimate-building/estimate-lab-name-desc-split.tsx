@@ -6,8 +6,8 @@ import { cn } from "@/lib/utils";
 
 export const LAB_NAME_DESC_RATIO_KEY = "shoprally-lab-name-desc-ratio";
 export const LAB_NAME_DESC_RATIO_MIN = 0.4;
-export const LAB_NAME_DESC_RATIO_MAX = 0.78;
-export const LAB_NAME_DESC_RATIO_DEFAULT = 0.62;
+export const LAB_NAME_DESC_RATIO_MAX = 0.7;
+export const LAB_NAME_DESC_RATIO_DEFAULT = 0.55;
 
 function clampRatio(value: number): number {
   return Math.min(LAB_NAME_DESC_RATIO_MAX, Math.max(LAB_NAME_DESC_RATIO_MIN, value));
@@ -29,7 +29,8 @@ function readStoredRatio(): number {
 export function labLineGridTemplate(nameShare = LAB_NAME_DESC_RATIO_DEFAULT): string {
   const name = clampRatio(nameShare);
   const desc = 1 - name;
-  return `24px 128px minmax(120px,${name}fr) minmax(100px,${desc}fr) 72px 84px 84px 96px 80px 96px 64px 28px`;
+  // drag | type | name | desc | qty/hrs | cost | price | amount | discount | net | taxable | remove
+  return `24px 128px minmax(88px,${name}fr) minmax(72px,${desc}fr) 90px 100px 100px 112px 96px 112px 80px 28px`;
 }
 
 export function useLabNameDescSplit() {
@@ -71,7 +72,7 @@ export function LabNameDescResizeHandle({
     const header = e.currentTarget.closest<HTMLElement>("[data-lab-name-desc-header]");
     const pairWidth =
       (header?.offsetWidth ?? 900) -
-      (24 + 128 + 72 + 84 + 84 + 96 + 80 + 96 + 64 + 28);
+      (24 + 128 + 90 + 100 + 100 + 112 + 96 + 112 + 80 + 28);
     const target = e.currentTarget;
     target.setPointerCapture(e.pointerId);
     document.body.style.cursor = "col-resize";

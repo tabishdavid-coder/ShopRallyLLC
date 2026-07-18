@@ -39,14 +39,16 @@ export function EstimateLabServiceAdvisorSelect({
   }
 
   return (
-    <label className={cn("inline-flex min-w-0 items-center gap-1", className)}>
+    <label className={cn("inline-flex min-w-0 items-center gap-1.5", className)}>
       <span
         className={cn(
-          "shrink-0 text-[10px] font-semibold uppercase tracking-wide text-crm-label",
-          compact && "sr-only",
+          "shrink-0 font-semibold uppercase tracking-wide text-crm-label",
+          compact
+            ? "text-[10px] text-brand-navy/75"
+            : "text-[10px]",
         )}
       >
-        Service advisor
+        {compact ? "Advisor" : "Service advisor"}
       </span>
       <div className="relative min-w-[7.5rem]">
         <select

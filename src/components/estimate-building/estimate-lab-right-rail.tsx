@@ -39,10 +39,7 @@ import { EstimateLabPaymentStatusMenu } from "@/components/estimate-building/est
 import { PrintMenu } from "@/components/repair-order/print-menu";
 import { RoWorkflowDropdown } from "@/components/repair-order/ro-workflow-dropdown";
 import { AuthorizeEstimateDialog } from "@/components/repair-order/authorize-estimate-dialog";
-import {
-  SelectFieldDialog,
-  useRoSidebarSave,
-} from "@/components/repair-order/ro-sidebar-field-dialogs";
+import { useRoSidebarSave } from "@/components/repair-order/ro-sidebar-field-dialogs";
 import { roEstimateActionHref } from "@/lib/ro-context-actions";
 import { ShareEstimateDialog } from "@/components/repair-order/share-estimate-dialog";
 import { useEstimateSelection } from "@/components/repair-order/estimate-selection-context";
@@ -178,8 +175,27 @@ const RAIL_DT_OPTS: Intl.DateTimeFormatOptions = {
   minute: "2-digit",
 };
 
+/** Compact date for narrow Status meta values (no time — full stamp on hover). */
+const RAIL_DATE_OPTS: Intl.DateTimeFormatOptions = {
+  month: "short",
+  day: "numeric",
+};
+
 function fmtDate(d: Date | string) {
   return fmtDateTime(d, RAIL_DT_OPTS);
+}
+
+function fmtRailDate(d: Date | string) {
+  return fmtDateTime(d, RAIL_DATE_OPTS);
+}
+
+/** e.g. "Authorized · Jul 18" — fits ~302px rail; title carries full datetime. */
+function fmtOutreach(status: string, at: Date | string) {
+  return `${status} · ${fmtRailDate(at)}`;
+}
+
+function fmtOutreachTitle(status: string, at: Date | string) {
+  return `${status} ${fmtDate(at)}`;
 }
 
 /** Relative age — coerce RSC-serialized ISO strings before `.getTime()`. */
@@ -442,11 +458,14 @@ function StatusMetaRow({
   value,
   warn,
   muted,
+  title,
 }: {
   label: string;
   value: string;
   warn?: boolean;
   muted?: boolean;
+  /** Full string on hover when value is abbreviated. */
+  title?: string;
 }) {
   return (
     <div className="flex items-baseline justify-between gap-2 py-[3px] text-[13px]">
@@ -460,6 +479,7 @@ function StatusMetaRow({
               ? "text-[var(--jb-faint,#8ca2c0)]"
               : "text-[var(--jb-ink,#0b1f3b)]",
         )}
+        title={title}
       >
         {value}
       </span>
@@ -493,38 +513,59 @@ function StatusCard({
   technicians: StaffPick[];
 }) {
   const [authorizeOpen, setAuthorizeOpen] = useState(false);
-  const [techOpen, setTechOpen] = useState(false);
   const partsCtx = useEstimateLabPartsOptional();
   const partsTechOk = usePartsTechUiEnabled();
   const saveSidebar = useRoSidebarSave(roId);
   const [roAge, setRoAge] = useState("—");
+  const [techSaving, setTechSaving] = useState(false);
 
   useEffect(() => {
     if (!quickReference) return;
     setRoAge(fmtRelativeDays(quickReference.createdAt));
   }, [quickReference]);
 
+  const outreachAt =
+    quickReference?.authorizedAt ??
+    quickReference?.estimateViewedAt ??
+    quickReference?.approvalSentAt ??
+    null;
+  const outreachStatus =
+    quickReference?.authorizedAt != null
+      ? "Authorized"
+      : quickReference?.estimateViewedAt != null
+        ? "Viewed"
+        : quickReference?.approvalSentAt != null
+          ? "Sent"
+          : null;
   const outreach = !quickReference
     ? "—"
-    : quickReference.authorizedAt != null
-      ? `Authorized ${fmtDate(quickReference.authorizedAt)}`
-      : quickReference.estimateViewedAt != null
-        ? `Viewed ${fmtDate(quickReference.estimateViewedAt)}`
-        : quickReference.approvalSentAt != null
-          ? `Sent ${fmtDate(quickReference.approvalSentAt)}`
-          : "Not sent";
+    : outreachStatus && outreachAt
+      ? fmtOutreach(outreachStatus, outreachAt)
+      : "Not sent";
+  const outreachTitle =
+    outreachStatus && outreachAt
+      ? fmtOutreachTitle(outreachStatus, outreachAt)
+      : undefined;
 
   const partsTotal = quickReference
     ? quickReference.partsNeeded + quickReference.partsQuoted + quickReference.partsOrdered
     : 0;
 
   const techUnassigned = !quickReference?.technicianName;
-  const techLabel = quickReference?.technicianName
-    ? quickReference.unassignedJobs > 0
-      ? `${quickReference.technicianName} · ${quickReference.unassignedJobs} open`
-      : quickReference.technicianName
-    : "Unassigned";
-  const techWarn = techUnassigned || (quickReference?.unassignedJobs ?? 0) > 0;
+  const unassignedJobs = quickReference?.unassignedJobs ?? 0;
+  const techName = quickReference?.technicianName ?? "Unassigned";
+  const techTitle =
+    unassignedJobs > 0 ? `${techName} · ${unassignedJobs} open` : "Assign technician";
+  const techWarn = techUnassigned || unassignedJobs > 0;
+
+  async function onTechnicianChange(nextId: string) {
+    setTechSaving(true);
+    try {
+      await saveSidebar({ technicianId: nextId || null });
+    } finally {
+      setTechSaving(false);
+    }
+  }
 
   return (
     <div className={cn(RAIL_CARD, "overflow-hidden")}>
@@ -570,24 +611,32 @@ function StatusCard({
             <StatusMetaRow
               label="Last outreach"
               value={outreach}
+              title={outreachTitle}
               muted={outreach === "Not sent" || outreach === "—"}
             />
-            <div className="flex items-baseline justify-between gap-2 py-[3px] text-[13px]">
+            <div className="flex items-center justify-between gap-2 py-[3px] text-[13px]">
               <span className="shrink-0 text-[var(--jb-slate,#5b7295)]">Technician</span>
               {canEdit && technicians.length > 0 ? (
-                <button
-                  type="button"
-                  onClick={() => setTechOpen(true)}
+                <select
                   className={cn(
-                    "min-w-0 truncate rounded-none text-right font-medium tabular-nums transition-colors hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--jb-azure,#1e7fe0)]/40",
+                    "h-7 min-w-0 max-w-[11rem] truncate rounded-none border border-[var(--jb-line,#dde5ef)] bg-white py-0 pl-1.5 pr-1 text-right text-[12px] font-medium tabular-nums focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--jb-azure,#1e7fe0)]/40 disabled:opacity-60",
                     techWarn
                       ? "font-semibold text-[var(--jb-red,#c93838)]"
                       : "text-[var(--jb-ink,#0b1f3b)]",
                   )}
-                  title="Assign technician"
+                  value={quickReference?.technicianId ?? ""}
+                  onChange={(e) => void onTechnicianChange(e.target.value)}
+                  disabled={techSaving}
+                  title={techTitle}
+                  aria-label="Technician"
                 >
-                  {techLabel}
-                </button>
+                  <option value="">Unassigned</option>
+                  {technicians.map((t) => (
+                    <option key={t.id} value={t.id}>
+                      {t.name}
+                    </option>
+                  ))}
+                </select>
               ) : (
                 <span
                   className={cn(
@@ -596,8 +645,9 @@ function StatusCard({
                       ? "font-semibold text-[var(--jb-red,#c93838)]"
                       : "text-[var(--jb-ink,#0b1f3b)]",
                   )}
+                  title={unassignedJobs > 0 ? techTitle : undefined}
                 >
-                  {techLabel}
+                  {techName}
                 </span>
               )}
             </div>
@@ -675,17 +725,6 @@ function StatusCard({
         roNumber={roNumber}
         customerName={customerName}
         phone={phone}
-      />
-
-      <SelectFieldDialog
-        open={techOpen}
-        onOpenChange={setTechOpen}
-        title="Technician"
-        label="Technician"
-        value={quickReference?.technicianId ?? null}
-        allowClear
-        options={technicians.map((t) => ({ value: t.id, label: t.name }))}
-        onSave={async (id) => saveSidebar({ technicianId: id })}
       />
     </div>
   );

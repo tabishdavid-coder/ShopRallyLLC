@@ -16,8 +16,9 @@ function withDevPoolParams(url: string): string {
   try {
     const parsed = new URL(url);
     // Neon free/dev caps are low; extra browser tabs + HMR blow past 10 fast.
-    parsed.searchParams.set("connection_limit", "3");
-    parsed.searchParams.set("pool_timeout", "20");
+    // 3 was too tight for AppLayout + page queries in parallel (P2024 timeouts).
+    parsed.searchParams.set("connection_limit", "5");
+    parsed.searchParams.set("pool_timeout", "30");
     parsed.searchParams.set("connect_timeout", "15");
     return parsed.toString();
   } catch {
@@ -27,7 +28,7 @@ function withDevPoolParams(url: string): string {
 
 function createPrismaClient() {
   const url = process.env.DATABASE_URL;
-  return new PrismaClient({
+  const client = new PrismaClient({
     log: process.env.NODE_ENV === "development" ? ["warn", "error"] : ["error"],
     ...(url
       ? {
@@ -37,6 +38,14 @@ function createPrismaClient() {
         }
       : {}),
   });
+  // Neon idle compute often fails the first connect after sleep (P1001).
+  // Warm the pool in the background so the first page load is less likely to 500.
+  if (process.env.NODE_ENV === "development") {
+    void client.$connect().catch(() => {
+      /* first page load will retry via Neon wake */
+    });
+  }
+  return client;
 }
 
 function isPrismaClientStale(cached: PrismaClient): boolean {

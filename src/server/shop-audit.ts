@@ -44,7 +44,15 @@ const PAYMENT_EVENT_TYPES: ShopAuditEventType[] = [
   ShopAuditEventType.PAYMENT_REFUND_REQUESTED,
   ShopAuditEventType.INVOICE_LINK_CREATED,
   ShopAuditEventType.INVOICE_LINK_REVOKED,
+  ShopAuditEventType.DEPOSIT_REQUEST_CREATED,
+  ShopAuditEventType.DEPOSIT_REQUEST_SENT,
+  ShopAuditEventType.DEPOSIT_PAID,
 ];
+
+/** True when the event belongs on the estimate-scoped change log. */
+export function isEstimateScopedAuditEvent(eventType: ShopAuditEventType): boolean {
+  return ESTIMATE_EVENT_TYPES.includes(eventType);
+}
 
 async function resolveActor(input: RecordShopAuditInput) {
   if (input.actor === null) {

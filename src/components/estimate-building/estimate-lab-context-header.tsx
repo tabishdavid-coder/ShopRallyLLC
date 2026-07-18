@@ -19,7 +19,7 @@ import type { EditableVehicle } from "@/components/repair-order/edit-vehicle-dia
 import type { EstimateContextDrawerData } from "@/lib/estimate-context-drawer-types";
 import type { EstimateLabVehicleSpecsBundle } from "@/lib/estimate-lab-vehicle-specs";
 
-import { RO_STATUS_LABEL, RO_STATUS_PILL } from "@/lib/ro-status";
+import { RO_STATUS_PILL } from "@/lib/ro-status";
 
 import { cn } from "@/lib/utils";
 
@@ -133,8 +133,6 @@ export function EstimateLabContextHeader({
 
   const pill = RO_STATUS_PILL[roStatus];
 
-  const phase = RO_STATUS_LABEL[roStatus];
-
   const createdMeta = `Created ${formatRoCreated(createdAt)}${createdByName ? ` by ${createdByName}` : ""}`;
 
 
@@ -165,9 +163,7 @@ export function EstimateLabContextHeader({
 
           >
 
-            RO #{roNumber}{" "}
-
-            <span className="font-normal text-muted-foreground">({phase})</span>
+            RO #{roNumber}
 
             <span className="mx-1.5 font-normal text-muted-foreground/45" aria-hidden>
 

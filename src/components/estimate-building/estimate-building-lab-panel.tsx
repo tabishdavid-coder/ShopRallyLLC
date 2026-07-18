@@ -47,7 +47,10 @@ import { getDepositRequestForRo } from "@/server/deposit-request";
 import { getIntegrationStatusForShop } from "@/server/integrations";
 import { getRoSidebarOptions } from "@/server/ro-sidebar-options";
 import { getVehicleSpecsBundle } from "@/server/vehicle-specs-bundle";
-import { getRepairOrderAuditTrail } from "@/server/shop-audit";
+import {
+  getRepairOrderAuditTrail,
+  isEstimateScopedAuditEvent,
+} from "@/server/shop-audit";
 import { RoAuditTrailPanel } from "@/components/repair-order/ro-audit-trail-panel";
 import { buildHubParts } from "@/lib/hub-parts";
 import { buildServiceJobSummaries } from "@/lib/service-job-parts";
@@ -194,7 +197,7 @@ export async function EstimateBuildingLabPanel({
     getIntegrationStatusForShop(shopId, "partstech"),
     getIntegrationStatusForShop(shopId, "weldon"),
     getRoSidebarOptions(shopId),
-    isLab ? Promise.resolve([]) : getRepairOrderAuditTrail(shopId, ro.id, "estimate"),
+    getRepairOrderAuditTrail(shopId, ro.id, "all"),
     loadEstimateContextDrawerData(shopId, ro.customerId),
     ro.vehicleId
       ? getVehicleSpecsBundle(shopId, ro.vehicleId, { excludeRoId: ro.id })
@@ -504,6 +507,7 @@ export async function EstimateBuildingLabPanel({
                 description: a.description,
                 createdAt: a.createdAt,
               }))}
+              auditEvents={auditEvents}
             />
           ),
           parts: (
@@ -659,7 +663,7 @@ export async function EstimateBuildingLabPanel({
               className="mt-6 shrink-0"
               title="Estimate change log"
               description="Who changed jobs, lines, and authorization on this repair order."
-              events={auditEvents}
+              events={auditEvents.filter((e) => isEstimateScopedAuditEvent(e.eventType))}
             />
           ) : null}
         </div>
