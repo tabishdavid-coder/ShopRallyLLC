@@ -132,7 +132,7 @@ export function EmailSettingsPanel({ initial }: { initial: EmailSettings }) {
         <ol className="mt-2 list-decimal space-y-1 pl-5 text-muted-foreground">
           <li>Enter your shop From name and business From email (and Reply-to if different).</li>
           <li>
-            Verify that domain in{" "}
+            Platform ops: verify that domain in{" "}
             <a
               href="https://resend.com/domains"
               target="_blank"
@@ -141,7 +141,8 @@ export function EmailSettingsPanel({ initial }: { initial: EmailSettings }) {
             >
               Resend Domains
             </a>{" "}
-            (platform ops).
+            (add DNS SPF/DKIM until status is Verified). Live sends fail if the From domain is not
+            verified — even when Resend shows connected.
           </li>
           <li>Send a test email — success enables shop email and marks you Ready for Share.</li>
         </ol>
@@ -160,10 +161,37 @@ export function EmailSettingsPanel({ initial }: { initial: EmailSettings }) {
           yours.
         </p>
         {!initial.platformResendConfigured ? (
-          <p className="mt-2 text-xs text-amber-900">
-            Platform admin: set <code className="rounded bg-muted px-1">RESEND_API_KEY</code> in{" "}
-            <code className="rounded bg-muted px-1">.env</code>. Until then, email shares open your
-            mail app (mailto fallback).
+          <div className="mt-3 space-y-1.5 rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-xs text-amber-900">
+            <p className="font-medium">What you need from Resend (platform admin)</p>
+            <ol className="list-decimal space-y-1 pl-4">
+              <li>
+                Create an API key and set <code className="rounded bg-muted px-1">RESEND_API_KEY</code>{" "}
+                in <code className="rounded bg-muted px-1">.env</code> (local) and Vercel (prod).
+              </li>
+              <li>
+                Add &amp; verify the shop&apos;s From domain at{" "}
+                <a
+                  href="https://resend.com/domains"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="font-medium underline"
+                >
+                  resend.com/domains
+                </a>
+                .
+              </li>
+            </ol>
+            <p className="pt-0.5">
+              Until the key is set, Share opens your mail app (mailto). Test send stays in mock mode
+              (server log only).
+            </p>
+          </div>
+        ) : hasFromAddress ? (
+          <p className="mt-2 text-xs text-muted-foreground">
+            Confirm the domain for{" "}
+            <span className="font-medium text-foreground">{fromAddress.trim()}</span> is{" "}
+            <span className="font-medium text-foreground">Verified</span> in Resend before relying on
+            live Share emails.
           </p>
         ) : null}
       </div>
@@ -173,8 +201,10 @@ export function EmailSettingsPanel({ initial }: { initial: EmailSettings }) {
           <AlertTriangle className="mt-0.5 size-4 shrink-0" />
           <p>
             {liveStatus === "disabled"
-              ? "From address is saved but shop email is off. Enable below or send a test to go live for Share."
-              : "Not ready for Share yet — save your business From email, enable shop email (or send a test), and ensure Resend is connected."}
+              ? "From address is saved but shop email is off. Enable below or send a test to go live for Share. Domain must already be verified in Resend."
+              : !initial.platformResendConfigured
+                ? "Not ready for Share — platform Resend key is missing (mock/mailto). After RESEND_API_KEY is set and your From domain is verified, save From email and Enable or Send test."
+                : "Not ready for Share yet — save your business From email, enable shop email (or send a test). From domain must be verified in Resend."}
           </p>
         </div>
       ) : (
@@ -182,7 +212,8 @@ export function EmailSettingsPanel({ initial }: { initial: EmailSettings }) {
           <CheckCircle2 className="mt-0.5 size-4 shrink-0" />
           <p>
             Ready for Share — estimate and invoice emails will send from{" "}
-            <span className="font-medium">{fromAddress.trim()}</span>.
+            <span className="font-medium">{fromAddress.trim()}</span>
+            . If a send fails, re-check that domain in Resend Domains.
           </p>
         </div>
       )}

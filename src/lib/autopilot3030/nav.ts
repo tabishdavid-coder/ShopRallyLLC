@@ -182,12 +182,6 @@ export const AP_SIDEBAR_NAV_GROUPS: ApNavGroup[] = [
         description: "Daily shop snapshot & KPI overview",
       },
       {
-        title: "Customers",
-        href: "/customers",
-        icon: Users,
-        description: "Search, tags & contact info",
-      },
-      {
         title: AP_TERMS.jobBoard,
         href: "/job-board",
         icon: Columns3,
@@ -211,6 +205,12 @@ export const AP_SIDEBAR_NAV_GROUPS: ApNavGroup[] = [
     id: "shop",
     label: "Shop",
     items: [
+      {
+        title: "Customers",
+        href: "/customers",
+        icon: Users,
+        description: "Search, tags & contact info",
+      },
       {
         title: "Tires",
         href: "/tires",

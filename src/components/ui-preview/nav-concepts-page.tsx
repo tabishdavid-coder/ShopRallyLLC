@@ -38,7 +38,7 @@ function MiniTopNavMock() {
             {e.label}
           </span>
         ))}
-        <span className="ml-auto rounded bg-brand-red px-1">+ RO</span>
+        <span className="ml-auto rounded bg-brand-red px-1">New Repair Order</span>
       </div>
       <div className="flex gap-1 border-b px-2 py-1 text-brand-navy/70">
         <span className="rounded bg-brand-navy px-1 text-white">Shop Home</span>

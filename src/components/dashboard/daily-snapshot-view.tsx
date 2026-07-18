@@ -225,7 +225,7 @@ const QUICK_ACTIONS: {
   intake?: boolean;
 }[] = [
   {
-    title: "New Estimate",
+    title: "New Repair Order",
     description: "Start a quote for a customer",
     href: "/repair-orders/new",
     icon: FileText,

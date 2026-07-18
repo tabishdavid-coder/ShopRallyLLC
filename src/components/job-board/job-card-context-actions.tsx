@@ -9,12 +9,13 @@ import { Button } from "@/components/ui/button";
 import { roEstimateActionHref } from "@/lib/ro-context-actions";
 import { cn } from "@/lib/utils";
 
+/** Quiet icon hit targets — used on kanban cards + list rows (no bordered chips). */
 const ICON_BTN =
-  "size-7 shrink-0 rounded-none p-0 text-muted-foreground hover:bg-muted/80 hover:text-brand-navy";
+  "job-board-card-icon-btn size-7 shrink-0 rounded-md p-0 text-[color:var(--jb-slate,#5a6f8c)] hover:bg-brand-navy/[0.06] hover:text-brand-navy";
 
-/** Full-bleed footer actions — 3 equal cells with dividers (mock action bar). */
+/** Full-bleed labeled strip — list / legacy only; avoid on simplified kanban cards. */
 const LABELED_BTN =
-  "job-board-card-action-btn h-auto min-h-8 flex-1 gap-1 rounded-none border-0 bg-transparent px-1 py-2 text-[11px] font-medium shadow-none";
+  "job-board-card-action-btn h-auto min-h-7 flex-1 gap-1 rounded-none border-0 bg-transparent px-1 py-1.5 text-[10px] font-medium shadow-none";
 
 function stopCardNav(e: React.SyntheticEvent) {
   e.stopPropagation();
@@ -99,7 +100,7 @@ export function JobCardContextActions({
   const chatLabel = labeled ? "Chat" : "Message";
   const vehicleActionLabel = labeled ? "Vehicle" : "Car specs";
 
-  const iconClass = labeled ? "size-4 shrink-0" : "size-3.5 shrink-0";
+  const iconClass = labeled ? "size-3.5 shrink-0 opacity-80" : "size-3.5 shrink-0";
 
   return (
     <div

@@ -38,13 +38,13 @@ export function ShopDayHeader({ shop, todayLabel }: { shop: Shop; todayLabel: st
             onClick={() => openIntake()}
           >
             <Plus className="size-3" />
-            New RO
+            New Repair Order
           </Button>
         ) : (
           <Button asChild size="sm" className="h-7 gap-1 bg-brand-navy px-2 text-xs hover:bg-brand-navy/90">
             <Link href="/repair-orders/new">
               <Plus className="size-3" />
-              New RO
+              New Repair Order
             </Link>
           </Button>
         )}

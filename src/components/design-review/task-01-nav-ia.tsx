@@ -140,7 +140,7 @@ function ChromeMock({
             </span>
           ))}
           <span className="ml-auto rounded bg-brand-light px-1.5 py-0.5 font-semibold text-brand-navy">
-            + New RO
+            New Repair Order
           </span>
         </div>
         <div className="border-t border-white/15 px-2 py-1.5 text-[10px] text-white/80">

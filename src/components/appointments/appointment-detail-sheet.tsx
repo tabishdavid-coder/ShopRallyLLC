@@ -293,7 +293,7 @@ export function AppointmentDetailSheet({
                 ) : (
                   <Wrench className="size-4" />
                 )}
-                Create repair order
+                New Repair Order
               </Button>
             )}
             <Button

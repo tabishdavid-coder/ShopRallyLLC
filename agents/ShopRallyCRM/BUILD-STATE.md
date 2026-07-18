@@ -1,6 +1,6 @@
 # Dev 3031 — build state (ShopRallyCRM)
 
-Last updated: 2026-07-18 (shop-owned email go-live)
+Last updated: 2026-07-18 (job board redesign)
 
 > **Canonical dev:** **`ShopRally/`** folder only — `npm run dev` → :3031. See `docs/SHOPRALLY-DEV.md`.
 > Do **not** develop shop CRM in the sibling `karvio/` folder (legacy platform fork).
@@ -26,7 +26,8 @@ npm run dev
 
 ## Done
 
-- [x] **Shop-owned email go-live path (2026-07-18)** — Product decision: **the shop owns their email** (From name / From address / Reply-to in Settings → Communications → Email). Platform Resend is transport only; Share + other CRM outbound use `sendShopEmail` with that identity. Doc: `docs/SHOP-EMAIL.md`. This pass: go-live Ready/Not-ready UX + Enable/test CTAs; `getShopEmailSendStatus` readable by share roles (`estimate.approve` / `payments.collect` / `customers.message`); provision + seed defaults (name + from/reply-to, **`emailEnabled` false** until explicit enable or successful test). Deferred: DNS wizard, per-shop Resend keys, HTML templates, EmailSendLog.
+- [x] **Job Board redesign (2026-07-18)** — `/job-board` kanban cards/columns restyled for Tekmetric-inspired scan hierarchy (status pill, RO#, created-ago, customer+phone, vehicle, total) with ShopRally navy/light-blue/red chrome (left rail accent, no teal WIP). DnD, menus, search/filters, RO links preserved. Verify: http://localhost:3031/job-board
+- [x] **Shop-owned email go-live path (2026-07-18)** — Product decision: **the shop owns their email** (From name / From address / Reply-to in Settings → Communications → Email). Platform Resend is transport only; Share + other CRM outbound use `sendShopEmail` with that identity. Doc: `docs/SHOP-EMAIL.md` (operator go-live checklist). Ready/Not-ready UX + Enable/test CTAs + Resend helper banner; `getShopEmailSendStatus` for share roles; provision + seed defaults (`emailEnabled` false until enable/test). **Local audit:** `RESEND_API_KEY` absent → mock/mailto; live DB demo shops have From fields null until Settings filled (seed defaults only apply on fresh seed). Deferred: DNS wizard, per-shop Resend keys, HTML templates, EmailSendLog.
 - [x] **Maintenance Schedule hidden (2026-07-09)** — removed product UI entries from the estimate launcher and Labor Book job-card toolbar; no customer/shop-facing Maintenance Schedule stub remains.
 - [x] **MOTOR-first labor pivot — AI parked (2026-07-09)** — reversed the no-license direction: **MOTOR sandbox/licensed catalog is now the primary Labor Book experience; AI first-principles generation is parked (default OFF)**. Changes:
   - **Env flags:** `MOTOR_SANDBOX_CACHE=true` serves locally-loaded MOTOR test data without live keys; `LABOR_AI_ENABLED` (new, default **false**) gates the AI-DRAFT generation path + "Estimate with AI" CTAs. New `isLaborAiEnabled()` / `motorCatalogDataAvailable()` in `labor-catalog-mode.ts`.

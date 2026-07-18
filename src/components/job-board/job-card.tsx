@@ -1,19 +1,23 @@
 "use client";
 
-import { useJobBoardContextOptional } from "@/components/job-board/job-board-history-provider";
+import Link from "next/link";
+
 import { JobCardContextActions } from "@/components/job-board/job-card-context-actions";
+import { useJobBoardContextOptional } from "@/components/job-board/job-board-history-provider";
+import { RelativeTime } from "@/components/ui/relative-time";
 import { cn } from "@/lib/utils";
 import { customerDisplayName, formatCents } from "@/lib/format";
 import {
-  formatTimeInStage,
-  jobCardStatusBarTone,
   type BoardColumn,
   type JobCard as JobCardData,
 } from "@/lib/job-board";
 import { paymentMethodShortLabel } from "@/lib/payment-display";
+import { defaultRoOpenHref } from "@/lib/ro-workspace";
 import {
+  JOB_BOARD_CARD_STATUS_PILL,
   JOB_BOARD_CONTEXT_CHIP,
   jobBoardCardClass,
+  type JobBoardCardStatusPillKey,
 } from "@/lib/job-board-theme";
 
 function stopCardNav(e: React.SyntheticEvent) {
@@ -29,24 +33,23 @@ function authorizationKind(card: JobCardData): AuthKind {
   return null;
 }
 
-type ContextChip = {
+type ContextCue = {
   label: string;
   className: string;
 };
 
-/** One primary context chip — priority matches screenshot badge semantics. */
-function resolveContextChip(card: JobCardData, auth: AuthKind): ContextChip | null {
+/** Sparse secondary cue — never competes with status / customer / money. */
+function resolveContextCue(card: JobCardData, auth: AuthKind): ContextCue | null {
   const balanceDue = (card.invoiceBalanceCents ?? 0) > 0;
 
+  // Unread is signaled on the Chat icon badge — skip a competing text cue.
   if (card.paymentPosted && card.lastPaymentMethod) {
     return {
       label: `Paid · ${paymentMethodShortLabel(card.lastPaymentMethod)}`,
       className: JOB_BOARD_CONTEXT_CHIP.paid,
     };
   }
-  if (balanceDue) {
-    return { label: "Balance due", className: JOB_BOARD_CONTEXT_CHIP.alert };
-  }
+  if (balanceDue) return null;
   if (auth === "customer") {
     return { label: "Customer approved", className: JOB_BOARD_CONTEXT_CHIP.approved };
   }
@@ -62,9 +65,45 @@ function resolveContextChip(card: JobCardData, auth: AuthKind): ContextChip | nu
   return null;
 }
 
-function vehicleYmm(v: JobCardData["vehicle"]): string {
+function resolveStatusPill(
+  card: JobCardData,
+  column?: BoardColumn,
+): { key: JobBoardCardStatusPillKey; label: string; className: string } {
+  const balanceDue = (card.invoiceBalanceCents ?? 0) > 0 && !card.paymentPosted;
+
+  if (card.paymentPosted) {
+    return { key: "paid", ...JOB_BOARD_CARD_STATUS_PILL.paid };
+  }
+  if (balanceDue) {
+    return { key: "balanceDue", ...JOB_BOARD_CARD_STATUS_PILL.balanceDue };
+  }
+  if (column === "completed" || card.status === "COMPLETED" || card.status === "INVOICED") {
+    return { key: "completed", ...JOB_BOARD_CARD_STATUS_PILL.completed };
+  }
+  if (
+    column === "workInProgress" ||
+    card.status === "IN_PROGRESS" ||
+    card.status === "APPROVED"
+  ) {
+    if (card.status === "APPROVED" && column !== "workInProgress") {
+      return { key: "approved", ...JOB_BOARD_CARD_STATUS_PILL.approved };
+    }
+    return { key: "inProgress", ...JOB_BOARD_CARD_STATUS_PILL.inProgress };
+  }
+  return { key: "notStarted", ...JOB_BOARD_CARD_STATUS_PILL.notStarted };
+}
+
+function vehicleLine(v: JobCardData["vehicle"]): string {
   if (!v) return "No vehicle on file";
-  return [v.year, v.make, v.model].filter(Boolean).join(" ") || "No vehicle on file";
+  const ymm = [v.year, v.make, v.model].filter(Boolean).join(" ");
+  const plate = v.plate?.trim();
+  const state = v.plateState?.trim();
+  if (!ymm && !plate) return "No vehicle on file";
+  if (plate) {
+    const platePart = state ? `${plate} ${state}` : plate;
+    return ymm ? `${ymm} — ${platePart}` : platePart;
+  }
+  return ymm || "No vehicle on file";
 }
 
 export function JobCard({
@@ -72,22 +111,24 @@ export function JobCard({
   menu,
   selected = false,
   column,
+  openHref,
 }: {
   card: JobCardData;
   menu?: React.ReactNode;
   selected?: boolean;
   column?: BoardColumn;
+  /** Override RO open href (workflow board). */
+  openHref?: string;
 }) {
   const ctx = useJobBoardContextOptional();
   const auth = authorizationKind(card);
-  const context = resolveContextChip(card, auth);
+  const cue = resolveContextCue(card, auth);
+  const statusPill = resolveStatusPill(card, column);
   const balanceDue = (card.invoiceBalanceCents ?? 0) > 0 && !card.paymentPosted;
-  const tone = jobCardStatusBarTone({ ...card, column });
-  const timeInStage = formatTimeInStage(card.stageEnteredAt);
-  const ymm = vehicleYmm(card.vehicle);
-  const plate = card.vehicle?.plate?.trim() || null;
-  const plateState = card.vehicle?.plateState?.trim() || null;
+  const vehicle = vehicleLine(card.vehicle);
   const name = customerDisplayName(card.customer, { nameOrder: "firstLast" });
+  const phone = card.customer.phone?.trim() || null;
+  const href = openHref ?? defaultRoOpenHref(card.id);
 
   const historyTarget = {
     customerId: card.customer.id,
@@ -103,23 +144,29 @@ export function JobCard({
   };
 
   return (
-    <div className={jobBoardCardClass({ selected, auth, column, tone })}>
-      <div className="job-board-card-body">
-        <div className="job-board-card-header">
-          <div className="flex min-w-0 items-center gap-1.5">
-            <span
-              className={cn("job-board-card-status-dot", `job-board-card-status-dot-${tone}`)}
-              aria-hidden
-            />
-            <span className="job-board-card-ro-number">RO #{card.number}</span>
-            {timeInStage ? (
-              <span className="job-board-card-age">{timeInStage}</span>
-            ) : null}
-          </div>
+    <div className={jobBoardCardClass({ selected, auth, column })}>
+      {/* Top: status · RO# + created + ⋮ */}
+      <div className="job-board-card-header">
+        <span className={statusPill.className}>{statusPill.label}</span>
+        <div className="job-board-card-meta">
+          <Link
+            href={href}
+            className="job-board-card-ro-number"
+            onClick={stopCardNav}
+            onPointerDown={stopCardNav}
+          >
+            RO#{card.number}
+          </Link>
+          <span className="job-board-card-created">
+            <RelativeTime date={card.createdAt} prefix="Created " />
+          </span>
           {menu}
         </div>
+      </div>
 
-        <div className="job-board-card-customer">
+      {/* Who + vehicle */}
+      <div className="job-board-card-identity">
+        <p className="job-board-card-customer-line">
           <button
             type="button"
             className="job-board-card-customer-name"
@@ -132,44 +179,19 @@ export function JobCard({
           >
             {name}
           </button>
-          <div className="job-board-card-vehicle-row">
-            <p className="job-board-card-vehicle">{ymm}</p>
-            {plate ? (
-              <span className="job-board-card-plate">
-                <span className="job-board-card-plate-num">{plate}</span>
-                {plateState ? (
-                  <span className="job-board-card-plate-state">{plateState}</span>
-                ) : null}
-              </span>
-            ) : null}
-          </div>
-        </div>
-
-        {context ? (
-          <div className="job-board-card-chip-row">
-            <span className={context.className}>{context.label}</span>
-          </div>
-        ) : null}
-
-        <div className="job-board-card-money">
-          {balanceDue && card.invoiceBalanceCents != null ? (
-            <span className="job-board-card-due">
-              {formatCents(card.invoiceBalanceCents)} due
-            </span>
-          ) : null}
-          <span
-            className={cn(
-              "job-board-card-total",
-              balanceDue && "job-board-card-total-due",
-            )}
-          >
-            {formatCents(card.totalCents)}
-          </span>
-        </div>
+          {phone ? <span className="job-board-card-phone">{phone}</span> : null}
+        </p>
+        <p className="job-board-card-vehicle">{vehicle}</p>
       </div>
 
-      <div className="job-board-card-footer">
+      {/* Cue (if any) above; quiet actions + money share one baseline */}
+      {cue ? (
+        <span className={cn("job-board-card-cue", cue.className)}>{cue.label}</span>
+      ) : null}
+      <div className="job-board-card-footer-row">
         <JobCardContextActions
+          className="job-board-card-inline-actions"
+          iconOnly
           roId={card.id}
           roNumber={card.number}
           customerId={card.customer.id}
@@ -179,11 +201,18 @@ export function JobCard({
           customerPhone={card.customer.phone}
           marketingOptIn={card.customer.marketingOptIn}
           vehicleId={card.vehicle?.id ?? null}
-          vehicleLabel={ymm}
+          vehicleLabel={vehicle}
           vehicle={card.vehicle}
           unreadSmsCount={card.unreadSmsCount}
-          labeled
         />
+        <div className="job-board-card-money">
+          <span className="job-board-card-total">{formatCents(card.totalCents)}</span>
+          {balanceDue && card.invoiceBalanceCents != null ? (
+            <span className="job-board-card-due-label">
+              Balance Due {formatCents(card.invoiceBalanceCents)}
+            </span>
+          ) : null}
+        </div>
       </div>
     </div>
   );

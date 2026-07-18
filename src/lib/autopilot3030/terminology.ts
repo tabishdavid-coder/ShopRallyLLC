@@ -21,6 +21,6 @@ export const AP_TERMS = {
   roSettings: "RO Defaults",
   shopProfile: "Shop Identity",
   newRepairOrder: "New Repair Order",
-  newRepairOrderShort: "+ RO",
+  newRepairOrderShort: "New Repair Order",
   buildServiceTicket: "Build Repair Order",
 } as const;

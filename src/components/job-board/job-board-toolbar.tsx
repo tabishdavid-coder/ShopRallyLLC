@@ -48,7 +48,7 @@ import { openRoLabelPrint, type RoLabelOption } from "@/lib/ro-label";
 import { cn } from "@/lib/utils";
 
 const COMPACT_BTN =
-  "h-7 shrink-0 gap-1 rounded-none px-2 text-xs [&_svg:not([class*='size-'])]:size-3.5";
+  "h-8 shrink-0 gap-1 rounded-md px-2.5 text-xs [&_svg:not([class*='size-'])]:size-3.5";
 
 function FilterButton({
   active,
@@ -151,21 +151,21 @@ export function JobBoardToolbar({
   const approvalLabel = approval ? JOB_BOARD_APPROVAL_LABELS[approval] : "Approval";
   const sourceLabel = marketingSource || "Lead source";
   const ap3030 = isAutopilot3030Shell();
-  const newRoLabel = ap3030 ? AP_TERMS.newRepairOrder : "Repair Order";
+  const newRoLabel = AP_TERMS.newRepairOrder;
   const secondaryFilterCount = [appointmentOption, payment, approval, marketingSource].filter(Boolean).length;
 
   return (
     <div className="job-board-toolbar flex flex-nowrap items-center gap-1.5 overflow-x-auto">
-      <div className="relative max-w-[220px] min-w-[120px] shrink">
-        <Search className="absolute left-2 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
+      <div className="relative max-w-[240px] min-w-[140px] shrink">
+        <Search className="absolute left-2.5 top-1/2 size-3.5 -translate-y-1/2 text-muted-foreground" />
         {isPending ? (
           <Loader2 className="absolute right-2 top-1/2 size-3.5 -translate-y-1/2 animate-spin text-muted-foreground" />
         ) : null}
         <Input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder={ap3030 ? "Search ROs…" : "Search pipeline…"}
-          className="h-7 border-brand-navy/20 bg-card pl-7 pr-7 text-xs focus-visible:ring-brand-navy"
+          placeholder={ap3030 ? "Search ROs…" : "Search job board…"}
+          className="h-8 rounded-md border-brand-navy/15 bg-card pl-8 pr-7 text-xs focus-visible:ring-brand-navy"
         />
       </div>
 

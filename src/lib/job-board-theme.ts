@@ -2,26 +2,26 @@ import type { ROStatus } from "@/generated/prisma";
 
 import type { BoardColumn } from "@/lib/job-board";
 
-  /** ShopRally pipeline stage labels — industry-standard shop terminology. */
+/** ShopRally pipeline stage labels — industry-standard shop terminology. */
 export const JOB_BOARD_COLUMN_META: Record<
   BoardColumn,
   { title: string; subtitle: string }
 > = {
   estimates: {
-    title: "ESTIMATES",
-    subtitle: "Quotes awaiting customer or shop authorization",
+    title: "Estimates",
+    subtitle: "Quotes awaiting authorization",
   },
   workInProgress: {
-    title: "WORK IN PROGRESS",
-    subtitle: "Authorized jobs actively in the bay",
+    title: "Work in Progress",
+    subtitle: "Authorized jobs in the bay",
   },
   completed: {
-    title: "COMPLETED",
-    subtitle: "Ready to invoice or collect payment",
+    title: "Completed",
+    subtitle: "Ready to invoice or collect",
   },
 };
 
-/** Branded column chrome — Palette C accents (orange / azure / green). */
+/** Column chrome classes — subtle brand accents (navy / light-blue / red). */
 export const JOB_BOARD_COLUMN: Record<
   BoardColumn,
   { header: string; body: string; dropOver: string }
@@ -43,45 +43,77 @@ export const JOB_BOARD_COLUMN: Record<
   },
 };
 
-/** Rectangular status chips — mock STATUS_STYLE (wait / ok / paid / due). */
-const CHIP_BASE =
-  "inline-flex h-5 w-fit max-w-full shrink-0 items-center gap-1 truncate rounded-none border px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-[0.04em] leading-none";
+/** Sparse text cues — no bordered chips (keeps cards scannable). */
+const CUE_BASE =
+  "inline-flex max-w-full truncate text-[11px] font-medium leading-none tracking-[0.01em]";
 
-/** Primary context chips — one per card, priority-ordered in job-card.tsx. */
 export const JOB_BOARD_CONTEXT_CHIP = {
-  paid: `${CHIP_BASE} border-[#B7E2CB] bg-[#E4F5EC] text-[#137347]`,
-  approved: `${CHIP_BASE} border-[#BCD9F5] bg-[#E7F1FD] text-[#0F5FB0]`,
-  pending: `${CHIP_BASE} border-[#F0CFA4] bg-[#FDF0E2] text-[#9A5200]`,
-  alert: `${CHIP_BASE} border-[#EFC2C2] bg-[#FBEAEA] text-[#A32626]`,
+  paid: `${CUE_BASE} text-emerald-700`,
+  approved: `${CUE_BASE} text-brand-navy/80`,
+  pending: `${CUE_BASE} text-muted-foreground`,
+  alert: `${CUE_BASE} text-brand-red`,
 } as const;
 
-/** Legacy status pills — used outside job cards (dashboard widgets, etc.). */
 const PILL_BASE =
-  "inline-flex h-5 w-fit shrink-0 items-center rounded-none border px-2 py-0.5 text-[10px] font-semibold";
+  "job-board-card-status-pill inline-flex h-5 w-fit max-w-[9rem] shrink-0 items-center truncate rounded px-1.5 text-[10px] font-semibold leading-none tracking-[0.01em]";
 
+/**
+ * Primary card status pill — ShopRally navy / light-blue / red (never Tekmetric teal).
+ * Small and calm so status → who → money stays the scan path.
+ */
+export const JOB_BOARD_CARD_STATUS_PILL = {
+  notStarted: {
+    label: "Not Started",
+    className: `${PILL_BASE} bg-brand-navy text-white`,
+  },
+  inProgress: {
+    label: "In Progress",
+    className: `${PILL_BASE} bg-brand-navy/12 text-brand-navy`,
+  },
+  balanceDue: {
+    label: "Balance Due",
+    className: `${PILL_BASE} bg-brand-red text-white`,
+  },
+  paid: {
+    label: "Paid",
+    className: `${PILL_BASE} bg-emerald-700 text-white`,
+  },
+  completed: {
+    label: "Completed",
+    className: `${PILL_BASE} bg-emerald-700/10 text-emerald-800`,
+  },
+  approved: {
+    label: "Approved",
+    className: `${PILL_BASE} bg-brand-navy text-white`,
+  },
+} as const;
+
+export type JobBoardCardStatusPillKey = keyof typeof JOB_BOARD_CARD_STATUS_PILL;
+
+/** Legacy status pills — used outside job cards (dashboard widgets, list view). */
 export const JOB_BOARD_STATUS_PILL: Record<
   ROStatus,
   { label: string; className: string }
 > = {
   ESTIMATE: {
-    label: "Quote",
-    className: `${PILL_BASE} border-amber-300/70 bg-amber-50 text-amber-900`,
+    label: "Estimate",
+    className: `${PILL_BASE} bg-brand-navy text-white`,
   },
   APPROVED: {
-    label: "Active",
-    className: `${PILL_BASE} border-brand-light/60 bg-brand-light/25 text-brand-navy`,
+    label: "Approved",
+    className: `${PILL_BASE} bg-brand-light/35 text-brand-navy ring-1 ring-inset ring-brand-navy/15`,
   },
   IN_PROGRESS: {
-    label: "Active",
-    className: `${PILL_BASE} border-brand-light/60 bg-brand-light/25 text-brand-navy`,
+    label: "In Progress",
+    className: `${PILL_BASE} bg-brand-light/35 text-brand-navy ring-1 ring-inset ring-brand-navy/15`,
   },
   COMPLETED: {
-    label: "Done",
-    className: `${PILL_BASE} border-emerald-500/50 bg-emerald-50 text-emerald-800`,
+    label: "Completed",
+    className: `${PILL_BASE} bg-emerald-50 text-emerald-800 ring-1 ring-inset ring-emerald-200`,
   },
   INVOICED: {
     label: "Invoiced",
-    className: `${PILL_BASE} border-emerald-600/50 bg-emerald-100 text-emerald-900`,
+    className: `${PILL_BASE} bg-emerald-600 text-white`,
   },
 };
 
@@ -89,7 +121,7 @@ export function jobBoardCardClass(opts: {
   selected: boolean;
   auth: "customer" | "shop" | null;
   column?: BoardColumn;
-  /** @deprecated AgeDot uses its own class; top accent bar is column-driven. */
+  /** @deprecated Age tone is no longer used for card chrome. */
   tone?: "fresh" | "amber" | "stale" | "ready" | "neutral";
 }): string {
   const parts = ["job-board-card"];

@@ -272,7 +272,7 @@ function AutopilotShellMock() {
           <div className="mb-2 flex flex-wrap items-center gap-1.5">
             <span className="h-6 flex-1 min-w-[80px] rounded-md ap-bg-surface-raised ring-1 ring ap-border-color" />
             <span className="rounded-md bg-brand-orange px-2 py-1 text-[9px] font-semibold text-white">
-              + New Repair Order
+              New Repair Order
             </span>
           </div>
           <BayPipelineMock compact />

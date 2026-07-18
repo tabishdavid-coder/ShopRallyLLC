@@ -32,8 +32,8 @@ export function CreateRoFab() {
           type="button"
           size="icon"
           className="size-12 rounded-full bg-brand-light text-brand-navy shadow-lg hover:bg-brand-light/90"
-          aria-label="New repair order"
-          title="New repair order"
+          aria-label="New Repair Order"
+          title="New Repair Order"
           onClick={() => openIntake()}
         >
           <Plus className="size-5" strokeWidth={2.5} />
@@ -43,8 +43,8 @@ export function CreateRoFab() {
           asChild
           size="icon"
           className="size-12 rounded-full bg-brand-light text-brand-navy shadow-lg hover:bg-brand-light/90"
-          aria-label="New repair order"
-          title="New repair order"
+          aria-label="New Repair Order"
+          title="New Repair Order"
         >
           <Link href="/repair-orders/new">
             <Plus className="size-5" strokeWidth={2.5} />

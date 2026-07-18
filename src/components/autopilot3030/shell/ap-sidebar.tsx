@@ -32,6 +32,7 @@ import {
   type ApNavLink,
 } from "@/lib/autopilot3030/nav";
 import { apSidebarLinkClass, apSidebarSectionClass } from "@/lib/autopilot3030/nav-active";
+import { AP_TERMS } from "@/lib/autopilot3030/terminology";
 import { isPlanHiddenNavHref } from "@/lib/crm-access";
 import { isClerkConfigured } from "@/lib/clerk-auth-client";
 import { syncClerkActiveOrg } from "@/lib/clerk-org-client";
@@ -165,20 +166,20 @@ function SidebarCreateButton({ collapsed }: { collapsed?: boolean }) {
       <Button
         type="button"
         className={className}
-        aria-label="Repair Order"
+        aria-label={AP_TERMS.newRepairOrder}
         onClick={() => openIntake()}
       >
         <Plus className="size-4 shrink-0" aria-hidden />
-        {collapsed ? null : <span>Repair Order</span>}
+        {collapsed ? null : <span>{AP_TERMS.newRepairOrder}</span>}
       </Button>
     );
   }
 
   return (
-    <Button type="button" className={className} aria-label="Repair Order" asChild>
+    <Button type="button" className={className} aria-label={AP_TERMS.newRepairOrder} asChild>
       <Link href="/repair-orders/new">
         <Plus className="size-4 shrink-0" aria-hidden />
-        {collapsed ? null : <span>Repair Order</span>}
+        {collapsed ? null : <span>{AP_TERMS.newRepairOrder}</span>}
       </Link>
     </Button>
   );

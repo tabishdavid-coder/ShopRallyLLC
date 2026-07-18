@@ -69,18 +69,18 @@ export default async function JobBoardPage({
   const labelOptions = buildRoLabelOptions(board);
 
   return (
-    <div className="job-board-shell flex h-full min-h-0 flex-col gap-4 overflow-hidden">
+    <div className="job-board-shell flex h-full min-h-0 flex-col gap-3 overflow-hidden">
       {!ap3030 ? (
-        <div className="flex flex-wrap items-end justify-between gap-3 px-0.5">
+        <div className="job-board-page-intro flex flex-wrap items-end justify-between gap-3">
           <div>
-            <h1 className="text-lg font-semibold text-brand-navy">Shop pipeline</h1>
-            <p className="text-sm text-muted-foreground">
-              Drag repair orders across stages — quotes, bay work, and ready to close.
+            <h1 className="job-board-page-title">Job Board</h1>
+            <p className="job-board-page-subtitle">
+              Drag repair orders across estimates, bay work, and ready to close.
             </p>
           </div>
         </div>
       ) : (
-        <p className="px-0.5 text-sm ap-text-muted">
+        <p className="job-board-page-subtitle px-0.5">
           Drag repair orders across Intake, {AP_TERMS.workInProgress}, and Closed &amp; Paid.
         </p>
       )}

@@ -331,7 +331,7 @@ export function JobBoardLandingMock() {
           </Button>
           <Button asChild size="sm" className="gap-1.5 bg-brand-navy hover:bg-brand-navy/90">
             <Link href="/repair-orders/new">
-              <Plus className="size-4" /> Repair Order
+              <Plus className="size-4" /> New Repair Order
             </Link>
           </Button>
         </div>

@@ -465,7 +465,7 @@ function HybridMock() {
         <div className="flex min-h-0 flex-1 flex-col gap-1.5 p-1.5">
           <div className="flex items-center justify-between rounded-md border bg-card px-2 py-1 text-[8px]">
             <span className="font-semibold text-brand-navy">In & Out AutoHaus · Wed Jul 1</span>
-            <span className="text-muted-foreground">+ Repair Order</span>
+            <span className="text-muted-foreground">New Repair Order</span>
           </div>
           <div className="grid grid-cols-[1fr_1.2fr] gap-1.5">
             <div className="rounded-md border border-brand-red/20 bg-brand-red/5 p-1.5">

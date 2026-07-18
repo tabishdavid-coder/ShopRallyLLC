@@ -30,27 +30,27 @@ export const JobBoardPipelineConfigSchema = z.object({
   columns: z.array(ColumnSchema).min(3).max(12),
 });
 
-/** Industry-standard default labels (Tekmetric / shop-management conventions). */
+/** Industry-standard default labels (shop-management conventions). */
 export function defaultJobBoardPipelineConfig(): JobBoardPipelineConfig {
   return {
     columns: [
       {
         id: "estimates",
         kind: "estimates",
-        title: "ESTIMATES",
-        subtitle: "Quotes awaiting customer or shop authorization",
+        title: "Estimates",
+        subtitle: "Quotes awaiting authorization",
       },
       {
         id: "workInProgress",
         kind: "workInProgress",
-        title: "WORK IN PROGRESS",
-        subtitle: "Authorized jobs actively in the bay",
+        title: "Work in Progress",
+        subtitle: "Authorized jobs in the bay",
       },
       {
         id: "completed",
         kind: "completed",
-        title: "COMPLETED",
-        subtitle: "Ready to invoice or collect payment",
+        title: "Completed",
+        subtitle: "Ready to invoice or collect",
       },
     ],
   };
@@ -73,10 +73,27 @@ export function resolveJobBoardPipelineConfig(raw: unknown): JobBoardPipelineCon
     }
   }
 
+  /** Migrate legacy ALL-CAPS defaults to Title Case without wiping custom labels. */
+  const legacyCoreTitles = new Set([
+    "ESTIMATES",
+    "WORK IN PROGRESS",
+    "COMPLETED",
+  ]);
+
   const columns: PipelineColumn[] = PIPELINE_CORE_KINDS.map((kind) => {
     const saved = byKind.get(kind);
     const fallback = defaults.columns.find((c) => c.kind === kind)!;
-    return saved ? { ...fallback, ...saved, id: kind, kind } : fallback;
+    if (!saved) return fallback;
+    const title = legacyCoreTitles.has(saved.title.trim()) ? fallback.title : saved.title;
+    const subtitle =
+      !saved.subtitle ||
+      saved.subtitle ===
+        "Quotes awaiting customer or shop authorization" ||
+      saved.subtitle === "Authorized jobs actively in the bay" ||
+      saved.subtitle === "Ready to invoice or collect payment"
+        ? fallback.subtitle
+        : saved.subtitle;
+    return { ...fallback, ...saved, title, subtitle, id: kind, kind };
   });
 
   columns.push(...customs);

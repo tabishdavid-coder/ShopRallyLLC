@@ -40,7 +40,7 @@ export function RoIntakeChooserDialog({
         <div className="border-b border-brand-navy/8 bg-gradient-to-br from-brand-navy/[0.04] via-background to-brand-light/[0.08] px-5 pb-4 pt-5 pr-12">
           <DialogHeader className="gap-1.5 text-left">
             <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-brand-navy/55">
-              New repair order
+              New Repair Order
             </p>
             <DialogTitle className="text-xl font-semibold tracking-tight text-brand-navy">
               How do you want to start?

@@ -90,7 +90,7 @@ Copy `.env.example` → Vercel Project Settings → Environment Variables.
 | Variable | Purpose |
 |----------|---------|
 | `TWILIO_*` | Live SMS |
-| `RESEND_API_KEY`, `EMAIL_FROM` | Live email |
+| `RESEND_API_KEY` (+ shop From in Settings; optional `EMAIL_FROM` for internal only) | Live email — see `docs/SHOP-EMAIL.md` |
 | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | GBP reviews OAuth |
 | `INNGEST_EVENT_KEY`, `INNGEST_SIGNING_KEY` | Background jobs |
 | `BLOB_READ_WRITE_TOKEN` | Vercel Blob uploads |
@@ -229,7 +229,7 @@ For smoother dev, clone the repo to e.g. `C:\dev\repairpilot`.
 - [ ] Stripe Connect enabled; webhook endpoint registered
 - [ ] Twilio webhook URL set to production domain
 - [ ] Google OAuth consent screen: prod redirect URI registered
-- [ ] `RESEND_API_KEY` + verified `EMAIL_FROM` domain
+- [ ] `RESEND_API_KEY` + each shop From domain verified in Resend (see `docs/SHOP-EMAIL.md`)
 - [ ] Inngest app + signing keys; migrate long jobs
 - [ ] `BLOB_READ_WRITE_TOKEN` before inspection photo uploads
 - [ ] Optional: Upstash Redis for API rate limits

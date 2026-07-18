@@ -990,7 +990,7 @@ export function RoIntakeForm({
                 <ClipboardList className="size-5 text-brand-light" />
               </div>
               <div className="min-w-0">
-                <h1 className="text-lg font-semibold text-brand-navy">New repair order</h1>
+                <h1 className="text-lg font-semibold text-brand-navy">New Repair Order</h1>
                 <p className="mt-0.5 text-sm text-muted-foreground">
                   Find or add a customer and vehicle, capture concerns, then open the estimate.
                 </p>
@@ -1499,7 +1499,7 @@ export function RoIntakeForm({
                 ) : (
                   <ClipboardList className="size-4" />
                 )}
-                Create repair order
+                New Repair Order
               </Button>
             </div>
           </div>

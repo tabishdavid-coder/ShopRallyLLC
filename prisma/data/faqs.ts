@@ -23,7 +23,7 @@ export const FAQ_SEED: FaqSeed[] = [
     category: "Getting Started",
     question: "How do I create my first repair order?",
     answer:
-      "Open Job Board or click + Repair Order. Search for an existing customer or add a new one, " +
+      "Open Job Board or click New Repair Order. Search for an existing customer or add a new one, " +
       "select or add a vehicle (VIN decode is built in), enter odometer and concerns, then save. " +
       "You'll land on the Estimate tab to build the job.",
     sortOrder: 2,

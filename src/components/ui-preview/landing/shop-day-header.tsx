@@ -34,7 +34,7 @@ export function ShopDayHeader({ shop }: { shop: Shop }) {
         <Button asChild size="sm" className="gap-1.5 bg-brand-navy hover:bg-brand-navy/90">
           <Link href="/repair-orders/new">
             <Plus className="size-3.5" />
-            Repair Order
+            New Repair Order
           </Link>
         </Button>
       </div>

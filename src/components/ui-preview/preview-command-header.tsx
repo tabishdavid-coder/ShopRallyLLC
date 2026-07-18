@@ -293,7 +293,7 @@ export function PreviewCommandHeader({
           <Button asChild size="sm" className="gap-1 bg-brand-navy hover:bg-brand-navy/90">
             <Link href="/repair-orders/new">
               <Plus className="size-3.5" />
-              <span className="hidden sm:inline">New RO</span>
+              <span className="hidden sm:inline">New Repair Order</span>
             </Link>
           </Button>
           <DropdownMenu>

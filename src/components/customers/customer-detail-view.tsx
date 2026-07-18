@@ -159,13 +159,13 @@ export function CustomerDetailView({
               onClick={() => openIntake({ customerId: customer.id })}
             >
               <Plus className="size-3.5" />
-              New RO
+              New Repair Order
             </Button>
           ) : (
             <Button asChild size="sm" variant="outline" className="gap-1.5">
               <Link href={`/repair-orders/new?customerId=${customer.id}`}>
                 <Plus className="size-3.5" />
-                New RO
+                New Repair Order
               </Link>
             </Button>
           )}

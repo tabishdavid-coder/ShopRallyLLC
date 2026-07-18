@@ -402,7 +402,7 @@ export function FreeformRoDialog({
                   Creating…
                 </>
               ) : (
-                "Create repair order"
+                "New Repair Order"
               )}
             </Button>
           )}

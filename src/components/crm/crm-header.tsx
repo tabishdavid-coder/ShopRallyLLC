@@ -219,13 +219,13 @@ export function CrmHeader({
               onClick={() => openIntake()}
             >
               <Plus className="size-3.5" />
-              <span className="hidden sm:inline">New RO</span>
+              <span className="hidden sm:inline">New Repair Order</span>
             </Button>
           ) : (
             <Button asChild size="sm" className="gap-1 bg-brand-light text-brand-navy hover:bg-brand-light/90">
               <Link href="/repair-orders/new">
                 <Plus className="size-3.5" />
-                <span className="hidden sm:inline">New RO</span>
+                <span className="hidden sm:inline">New Repair Order</span>
               </Link>
             </Button>
           )}

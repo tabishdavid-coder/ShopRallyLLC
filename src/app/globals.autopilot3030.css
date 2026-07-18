@@ -489,20 +489,8 @@ html[data-ap-shell="3030"] nav[aria-label="Payments"] {
   display: none;
 }
 
-/* Bay Pipeline — Palette C accents (orange / azure / green) */
+/* Bay Pipeline — ShopRally navy / light-blue / red (inherits job-board-shell tokens) */
 html[data-ap-shell="3030"] .job-board-shell {
-  --jb-ink: #0b1f3b;
-  --jb-azure: #1e7fe0;
-  --jb-orange: #e86a10;
-  --jb-green: #1c9e5a;
-  --jb-red: #c93838;
-  --jb-slate: #5b7295;
-  --jb-faint: #8ca2c0;
-  --jb-surface: #f0f3f8;
-  --jb-card: #ffffff;
-  --jb-line: #dde5ef;
-  --jb-hover-line: #b9c8dc;
-  border-radius: 0;
   border-color: var(--jb-line);
   background: var(--jb-surface);
   box-shadow: none;
@@ -513,61 +501,6 @@ html[data-ap-shell="3030"] .job-board-toolbar {
   background: var(--jb-card);
 }
 
-html[data-ap-shell="3030"] .job-board-col {
-  border: none;
-  background: transparent;
-}
-
-html[data-ap-shell="3030"] .job-board-col-header-estimates {
-  border-top-color: var(--jb-orange);
-}
-
-html[data-ap-shell="3030"] .job-board-col-header-wip {
-  border-top-color: var(--jb-azure);
-}
-
-html[data-ap-shell="3030"] .job-board-col-header-completed {
-  border-top-color: var(--jb-green);
-}
-
-html[data-ap-shell="3030"] .job-board-col-header-estimates .job-board-col-title,
-html[data-ap-shell="3030"] .job-board-col-header-wip .job-board-col-title,
-html[data-ap-shell="3030"] .job-board-col-header-completed .job-board-col-title {
-  color: var(--jb-ink);
-}
-
-html[data-ap-shell="3030"] .job-board-col-header-estimates .job-board-col-badge {
-  background: var(--jb-orange);
-  border-color: transparent;
-  color: white;
-}
-
-html[data-ap-shell="3030"] .job-board-col-header-wip .job-board-col-badge {
-  background: var(--jb-azure);
-  border-color: transparent;
-  color: white;
-}
-
-html[data-ap-shell="3030"] .job-board-col-header-completed .job-board-col-badge {
-  background: var(--jb-green);
-  border-color: transparent;
-  color: white;
-}
-
-html[data-ap-shell="3030"] .job-board-col-header-estimates .job-board-col-total-amount {
-  color: var(--jb-orange);
-}
-
-html[data-ap-shell="3030"] .job-board-col-header-wip .job-board-col-total-amount {
-  color: var(--jb-azure);
-}
-
-html[data-ap-shell="3030"] .job-board-col-header-completed .job-board-col-total-amount {
-  color: var(--jb-green);
-}
-
-html[data-ap-shell="3030"] .job-board-card-selected {
-  border-color: var(--jb-azure);
-  background: #f2f8fe;
-  box-shadow: 0 1px 2px rgba(11, 31, 59, 0.05);
+html[data-ap-shell="3030"] .job-board-page-subtitle {
+  color: var(--jb-slate);
 }

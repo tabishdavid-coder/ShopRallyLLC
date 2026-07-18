@@ -45,7 +45,7 @@ export function IntakeDrawer({ open, onClose }: IntakeDrawerProps) {
               Quick intake
             </p>
             <h2 id="intake-title" className="text-lg font-bold text-brand-navy">
-              New repair order
+              New Repair Order
             </h2>
           </div>
           <Button type="button" variant="ghost" size="icon" onClick={onClose}>

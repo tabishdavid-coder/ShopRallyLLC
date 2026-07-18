@@ -328,10 +328,10 @@ export function JobBoardDnd({
         <div
           className={cn(
             "grid h-full min-h-0 gap-3",
-            compact ? "h-full flex-1" : "flex-1 gap-4",
+            compact ? "h-full flex-1" : "flex-1 gap-3.5",
           )}
           style={{
-            gridTemplateColumns: `repeat(${columnOrder.length}, minmax(260px, 1fr))`,
+            gridTemplateColumns: `repeat(${columnOrder.length}, minmax(280px, 1fr))`,
           }}
         >
           {columnDefs.map((def) => (
@@ -442,15 +442,19 @@ function Column({
     <div className="job-board-col">
       <div className={cn(theme.header, "relative", canDelete && "pr-9")}>
         <div className="min-w-0">
-          <div className="flex flex-wrap items-center gap-2">
-            <h2 className="job-board-col-title">{title}</h2>
-            <span className="job-board-col-badge">{cards.length}</span>
+          <div className="job-board-col-heading">
+            <h2 className="job-board-col-title">
+              {title}
+              <span className="job-board-col-count"> ({cards.length})</span>
+            </h2>
           </div>
-          {subtitle ? <p className="job-board-col-subtitle">{subtitle}</p> : null}
+          {/* Subtitle kept for a11y / custom columns; visually quiet on core stages */}
+          {subtitle && kind === "custom" ? (
+            <p className="job-board-col-subtitle">{subtitle}</p>
+          ) : null}
           {totalCents != null ? (
             <p className="job-board-col-total">
               <span className="job-board-col-total-amount">{formatCents(totalCents)}</span>
-              <span className="job-board-col-total-label"> PIPELINE</span>
             </p>
           ) : null}
         </div>
@@ -469,7 +473,7 @@ function Column({
           ref={setNodeRef}
           className={cn(
             theme.body,
-            "flex-1 space-y-2 overflow-y-auto p-2",
+            "job-board-col-scroll flex-1 space-y-3 overflow-y-auto p-2.5",
             isOver && theme.dropOver,
             compact && "min-h-[120px]",
           )}
@@ -547,6 +551,7 @@ function SortableCard({
         card={card}
         column={styleKind}
         selected={selected}
+        openHref={openHref}
         menu={
           <JobCardMenu
             columnId={columnId}
@@ -558,6 +563,25 @@ function SortableCard({
             onMove={(to) => onMove(card.id, to)}
             onAuthorize={() => onAuthorize(card)}
             onArchive={() => onArchive(card.id)}
+            context={{
+              customerId: card.customer.id,
+              customerName: customerDisplayName(card.customer, { nameOrder: "firstLast" }),
+              customerFirstName: card.customer.firstName,
+              customerLastName: card.customer.lastName,
+              customerPhone: card.customer.phone,
+              marketingOptIn: card.customer.marketingOptIn,
+              roNumber: card.number,
+              vehicleId: card.vehicle?.id ?? null,
+              vehicleLabel: [
+                card.vehicle?.year,
+                card.vehicle?.make,
+                card.vehicle?.model,
+              ]
+                .filter(Boolean)
+                .join(" "),
+              vehicle: card.vehicle,
+              unreadSmsCount: card.unreadSmsCount,
+            }}
           />
         }
       />
