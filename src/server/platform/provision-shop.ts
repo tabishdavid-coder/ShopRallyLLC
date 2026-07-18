@@ -114,8 +114,11 @@ export async function provisionPlatformShop(
         primaryContactName: input.primaryContactName.trim(),
         phone: input.phone.trim(),
         email: contactEmail,
+        // Shop-owned email defaults — identity prefilled; shop must Enable (or pass test) to go live.
         emailFromName: input.name.trim(),
-        emailFromAddress: shopEmail,
+        emailFromAddress: shopEmail || null,
+        emailReplyTo: shopEmail || contactEmail || null,
+        emailEnabled: false,
         authorizationNotifyEmail: contactEmail,
         landlineNumber: input.phone.trim(),
         address: input.address.trim(),

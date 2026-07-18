@@ -1,12 +1,11 @@
 "use client";
 
-import Link from "next/link";
-import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
+import { useMemo, useState, useTransition } from "react";
 import {
   AlertTriangle,
   Check,
   CheckCircle2,
-  ExternalLink,
   Loader2,
   Mail,
   Send,
@@ -14,6 +13,7 @@ import {
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { deriveShopEmailSetupStatus } from "@/lib/email-constants";
 import {
   sendShopTestEmail,
   updateEmailSettings,
@@ -24,15 +24,18 @@ const inputCls =
   "w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-ring";
 
 const SETUP_META = {
-  not_configured: { label: "Not configured", variant: "secondary" as const },
-  disabled: { label: "Disabled", variant: "outline" as const },
-  ready: { label: "Ready", variant: "default" as const },
+  not_configured: { label: "Not ready for Share", variant: "secondary" as const },
+  disabled: { label: "Not ready for Share", variant: "outline" as const },
+  ready: { label: "Ready for Share", variant: "default" as const },
 };
 
 export function EmailSettingsPanel({ initial }: { initial: EmailSettings }) {
+  const router = useRouter();
   const [fromName, setFromName] = useState(initial.emailFromName ?? initial.shopName);
   const [fromAddress, setFromAddress] = useState(initial.emailFromAddress ?? initial.shopEmail ?? "");
-  const [replyTo, setReplyTo] = useState(initial.emailReplyTo ?? "");
+  const [replyTo, setReplyTo] = useState(
+    initial.emailReplyTo ?? initial.shopEmail ?? "",
+  );
   const [emailEnabled, setEmailEnabled] = useState(initial.emailEnabled);
   const [testEmail, setTestEmail] = useState("");
   const [saved, setSaved] = useState(false);
@@ -40,22 +43,36 @@ export function EmailSettingsPanel({ initial }: { initial: EmailSettings }) {
   const [error, setError] = useState<string | null>(null);
   const [pending, start] = useTransition();
 
-  const setupMeta = SETUP_META[initial.setupStatus];
+  const liveStatus = useMemo(
+    () =>
+      deriveShopEmailSetupStatus({
+        emailFromAddress: fromAddress.trim() || null,
+        emailEnabled,
+        platformResendConfigured: initial.platformResendConfigured,
+      }),
+    [fromAddress, emailEnabled, initial.platformResendConfigured],
+  );
+  const setupMeta = SETUP_META[liveStatus];
+  const hasFromAddress = Boolean(fromAddress.trim());
+  const canEnable = hasFromAddress && !emailEnabled;
 
-  function save(onSuccess?: () => void) {
+  function save(opts?: { enable?: boolean; onSuccess?: () => void }) {
     setError(null);
     setSaved(false);
+    const nextEnabled = opts?.enable ? true : emailEnabled;
     start(async () => {
       const res = await updateEmailSettings({
         emailFromName: fromName,
         emailFromAddress: fromAddress,
         emailReplyTo: replyTo,
-        emailEnabled,
+        emailEnabled: nextEnabled,
       });
       if (res.ok) {
+        if (opts?.enable) setEmailEnabled(true);
         setSaved(true);
         setTimeout(() => setSaved(false), 2500);
-        onSuccess?.();
+        router.refresh();
+        opts?.onSuccess?.();
       } else {
         setError(res.error);
       }
@@ -78,11 +95,13 @@ export function EmailSettingsPanel({ initial }: { initial: EmailSettings }) {
       }
       const res = await sendShopTestEmail({ toEmail: testEmail || undefined });
       if (res.ok) {
+        setEmailEnabled(true);
         setTestResult(
           res.mode === "live"
-            ? "Test email sent via Resend."
-            : "Test recorded (mock mode — check server logs).",
+            ? "Test email sent via Resend. Shop email is enabled — Ready for Share."
+            : "Test recorded (mock mode — check server logs). Shop email is enabled for CRM sends.",
         );
+        router.refresh();
       } else {
         setError(res.error);
       }
@@ -101,23 +120,44 @@ export function EmailSettingsPanel({ initial }: { initial: EmailSettings }) {
             <Badge variant={setupMeta.variant}>{setupMeta.label}</Badge>
           </div>
           <p className="mt-1 text-sm text-muted-foreground">
-            Send estimates, invoices, maintenance plan links, and campaigns from your shop&apos;s own
-            email address — not a generic ShopRally address.
+            Your shop owns this address. Enter your business email before go-live — customers see it as
+            From / Reply-to on estimates, invoices, and other CRM messages (not a generic ShopRally
+            address).
           </p>
         </div>
+      </div>
+
+      <div className="rounded-lg border border-brand-navy/15 bg-brand-navy/[0.03] p-4 text-sm">
+        <p className="font-medium text-brand-navy">Before go-live</p>
+        <ol className="mt-2 list-decimal space-y-1 pl-5 text-muted-foreground">
+          <li>Enter your shop From name and business From email (and Reply-to if different).</li>
+          <li>
+            Verify that domain in{" "}
+            <a
+              href="https://resend.com/domains"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="font-medium text-brand-navy hover:underline"
+            >
+              Resend Domains
+            </a>{" "}
+            (platform ops).
+          </li>
+          <li>Send a test email — success enables shop email and marks you Ready for Share.</li>
+        </ol>
       </div>
 
       <div className="rounded-lg border bg-card p-4 shadow-sm">
         <div className="mb-3 flex items-center gap-2">
           <Mail className="size-4 text-brand-navy" />
-          <h3 className="font-medium">Platform status</h3>
+          <h3 className="font-medium">Platform transport</h3>
           <Badge variant={initial.platformResendConfigured ? "default" : "secondary"}>
             {initial.platformResendConfigured ? "Resend connected" : "Mock mode"}
           </Badge>
         </div>
         <p className="text-sm text-muted-foreground">
-          ShopRally uses one Resend account at the platform level. Each shop sends from its own
-          verified domain or address — configure yours below.
+          ShopRally sends through one platform Resend account. Identity (From / Reply-to) is always
+          yours.
         </p>
         {!initial.platformResendConfigured ? (
           <p className="mt-2 text-xs text-amber-900">
@@ -128,33 +168,30 @@ export function EmailSettingsPanel({ initial }: { initial: EmailSettings }) {
         ) : null}
       </div>
 
-      {!initial.platformResendConfigured || initial.setupStatus !== "ready" ? (
+      {liveStatus !== "ready" ? (
         <div className="flex gap-2 rounded-md border border-amber-200 bg-amber-50 px-3 py-2.5 text-sm text-amber-900">
           <AlertTriangle className="mt-0.5 size-4 shrink-0" />
           <p>
-            {initial.setupStatus === "disabled"
-              ? "Shop email is saved but disabled. Enable it below to send from CRM."
-              : "Email not fully configured — CRM sends will use your mail app until you save a from address and enable shop email."}
+            {liveStatus === "disabled"
+              ? "From address is saved but shop email is off. Enable below or send a test to go live for Share."
+              : "Not ready for Share yet — save your business From email, enable shop email (or send a test), and ensure Resend is connected."}
           </p>
         </div>
-      ) : null}
+      ) : (
+        <div className="flex gap-2 rounded-md border border-emerald-200 bg-emerald-50 px-3 py-2.5 text-sm text-emerald-900">
+          <CheckCircle2 className="mt-0.5 size-4 shrink-0" />
+          <p>
+            Ready for Share — estimate and invoice emails will send from{" "}
+            <span className="font-medium">{fromAddress.trim()}</span>.
+          </p>
+        </div>
+      )}
 
       <div className="space-y-4 rounded-lg border bg-card p-4 shadow-sm">
         <h3 className="font-medium">Outbound identity</h3>
         <p className="text-sm text-muted-foreground">
           Use an address on a domain you control (e.g.{" "}
-          <code className="rounded bg-muted px-1 text-xs">service@inandoutautohaus.com</code>). Verify
-          the domain in{" "}
-          <a
-            href="https://resend.com/domains"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-0.5 font-medium text-brand-navy hover:underline"
-          >
-            Resend Domains
-            <ExternalLink className="size-3" />
-          </a>{" "}
-          before going live.
+          <code className="rounded bg-muted px-1 text-xs">service@inandoutautohaus.com</code>).
         </p>
 
         <Field label="From name">
@@ -192,20 +229,33 @@ export function EmailSettingsPanel({ initial }: { initial: EmailSettings }) {
           </p>
         </Field>
 
-        <label className="flex cursor-pointer items-center gap-2 text-sm">
-          <input
-            type="checkbox"
-            checked={emailEnabled}
-            onChange={(e) => setEmailEnabled(e.target.checked)}
-            className="size-4 rounded border-input"
-          />
-          Enable shop email for CRM sends
-        </label>
+        <div className="flex flex-wrap items-center gap-3">
+          <label className="flex cursor-pointer items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              checked={emailEnabled}
+              onChange={(e) => setEmailEnabled(e.target.checked)}
+              className="size-4 rounded border-input"
+            />
+            Shop email enabled for CRM sends
+          </label>
+          {canEnable ? (
+            <Button
+              type="button"
+              size="sm"
+              className="bg-brand-navy"
+              disabled={pending}
+              onClick={() => save({ enable: true })}
+            >
+              Enable shop email
+            </Button>
+          ) : null}
+        </div>
 
         {initial.emailConfiguredAt ? (
           <p className="flex items-center gap-1.5 text-xs text-emerald-700">
             <CheckCircle2 className="size-3.5" />
-            Configured {new Date(initial.emailConfiguredAt).toLocaleDateString()}
+            First enabled {new Date(initial.emailConfiguredAt).toLocaleDateString()}
           </p>
         ) : null}
       </div>
@@ -213,7 +263,8 @@ export function EmailSettingsPanel({ initial }: { initial: EmailSettings }) {
       <div className="space-y-3 rounded-lg border bg-card p-4 shadow-sm">
         <h3 className="font-medium">Send test email</h3>
         <p className="text-sm text-muted-foreground">
-          Verify your from address and domain setup. Leave blank to send to your account email.
+          Save your From address first, then send a test. A successful test turns on shop email
+          automatically.
         </p>
         <div className="flex flex-wrap gap-2">
           <input
@@ -223,7 +274,13 @@ export function EmailSettingsPanel({ initial }: { initial: EmailSettings }) {
             value={testEmail}
             onChange={(e) => setTestEmail(e.target.value)}
           />
-          <Button size="sm" variant="outline" className="gap-1.5" onClick={sendTest} disabled={pending}>
+          <Button
+            size="sm"
+            variant="outline"
+            className="gap-1.5"
+            onClick={sendTest}
+            disabled={pending || !hasFromAddress}
+          >
             {pending ? <Loader2 className="size-4 animate-spin" /> : <Send className="size-3.5" />}
             Send test
           </Button>

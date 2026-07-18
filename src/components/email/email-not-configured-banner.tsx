@@ -16,11 +16,11 @@ export function EmailNotConfiguredBanner({ onMailtoFallback, showMailtoButton }:
       <AlertTriangle className="mt-0.5 size-4 shrink-0" />
       <div className="space-y-2">
         <p>
-          Shop email is not configured. Configure a from address in{" "}
+          Not ready for Share — add your shop&apos;s business email in{" "}
           <Link href="/settings/communications/email" className="font-medium text-brand-navy hover:underline">
-            Settings → Email
-          </Link>{" "}
-          to send directly from CRM, or use your mail app as a fallback.
+            Settings → Communications → Email
+          </Link>
+          , enable it (or send a test), then share from CRM. Or open your mail app as a fallback.
         </p>
         {showMailtoButton && onMailtoFallback ? (
           <Button
