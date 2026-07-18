@@ -115,7 +115,7 @@ Per shop: purge messages/consent past policy windows, clear stale AI insight cac
 ## TCPA / CAN-SPAM / 10DLC notes
 
 - **TCPA**: separate **transactional** vs **marketing** SMS consent (`transactionalSmsConsent`, `marketingOptIn`); proof in `ConsentRecord`; opt-out footer on outbound messages.
-- **CAN-SPAM**: shop-configured `emailFromAddress`; unsubscribe on marketing campaigns (future).
+- **CAN-SPAM**: shop-configured `emailFromAddress` (shop owns From / Reply-to — see `docs/SHOP-EMAIL.md`); unsubscribe on marketing campaigns (future).
 - **10DLC**: legal entity name + EIN must match IRS filings (collect `taxId` in shop settings when wiring Twilio registration).
 
 ---

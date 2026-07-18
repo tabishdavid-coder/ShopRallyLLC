@@ -12,7 +12,6 @@ import { resendPlatformConfigured } from "@/server/services/email";
 import {
   getShopEmailConfig,
   getShopEmailStatus,
-  isShopEmailReady,
   sendShopEmail,
 } from "@/server/services/shop-email";
 import { gates } from "@/server/permission-gates";
@@ -118,10 +117,14 @@ export async function updateEmailSettings(
 }
 
 export type ShopTestEmailResult =
-  | { ok: true; mode: "live" | "mock" }
+  | { ok: true; mode: "live" | "mock"; enabled: boolean }
   | { ok: false; error: string };
 
-/** Send a test email to verify shop from-address configuration. */
+/**
+ * Send a test email to verify shop from-address configuration.
+ * Does not require emailEnabled first — a successful test auto-enables shop email
+ * so go-live is: save From → send test → Ready for Share.
+ */
 export async function sendShopTestEmail(input: {
   toEmail?: string;
 }): Promise<ShopTestEmailResult> {
@@ -136,19 +139,22 @@ export async function sendShopTestEmail(input: {
   }
 
   const config = await getShopEmailConfig(shopId);
-  if (!isShopEmailReady(config)) {
-    if (!config.emailFromAddress?.trim()) {
-      return { ok: false, error: "Set a from email address in Settings → Email." };
-    }
-    if (!config.emailEnabled) {
-      return { ok: false, error: "Enable shop email before sending a test." };
-    }
-    if (!resendPlatformConfigured()) {
-      return {
-        ok: false,
-        error: "Resend is not configured — check RESEND_API_KEY in .env (platform admin).",
-      };
-    }
+  if (!config.emailFromAddress?.trim()) {
+    return { ok: false, error: "Set a from email address in Settings → Email, then save." };
+  }
+  if (!resendPlatformConfigured() && process.env.NODE_ENV === "production") {
+    return {
+      ok: false,
+      error: "Resend is not configured — check RESEND_API_KEY in .env (platform admin).",
+    };
+  }
+
+  // Temporarily treat as enabled so sendShopEmail can use the shop From (or mock).
+  if (!config.emailEnabled) {
+    await prisma.shop.updateMany({
+      where: { id: shopId },
+      data: { emailEnabled: true },
+    });
   }
 
   try {
@@ -164,21 +170,50 @@ export async function sendShopTestEmail(input: {
       ].join("\n"),
     });
 
-    if (res.mode === "live") return { ok: true, mode: "live" };
-    if (res.mode === "mock") return { ok: true, mode: "mock" };
-    return {
-      ok: false,
-      error: "Shop email is not fully configured. Save settings and verify your domain in Resend.",
-    };
+    if (res.mode === "fallback") {
+      // Revert optimistic enable if send could not go through Resend/mock.
+      if (!config.emailEnabled) {
+        await prisma.shop.updateMany({
+          where: { id: shopId },
+          data: { emailEnabled: false },
+        });
+      }
+      return {
+        ok: false,
+        error: "Shop email is not fully configured. Save a from address and verify your domain in Resend.",
+      };
+    }
+
+    const existing = await prisma.shop.findFirst({
+      where: { id: shopId },
+      select: { emailConfiguredAt: true },
+    });
+    await prisma.shop.updateMany({
+      where: { id: shopId },
+      data: {
+        emailEnabled: true,
+        emailConfiguredAt: existing?.emailConfiguredAt ?? new Date(),
+      },
+    });
+    revalidatePath("/settings/communications/email");
+
+    if (res.mode === "live") return { ok: true, mode: "live", enabled: true };
+    return { ok: true, mode: "mock", enabled: true };
   } catch (e) {
+    if (!config.emailEnabled) {
+      await prisma.shop.updateMany({
+        where: { id: shopId },
+        data: { emailEnabled: false },
+      });
+    }
     return { ok: false, error: e instanceof Error ? e.message : "Test send failed." };
   }
 }
 
-/** Client-safe status for share dialogs and banners. */
+/** Client-safe status for share dialogs and banners (share roles, not only settings admins). */
 export async function getShopEmailSendStatus() {
   const shopId = await getShopId();
-  const denied = await gates.employeesManage(shopId);
+  const denied = await gates.emailSendStatus(shopId);
   if (denied) throw new Error(denied.error);
   return getShopEmailStatus(shopId);
 }

@@ -29,6 +29,14 @@ export const gates = {
   employeesManage: (shopId: string) => gate(shopId, "employees.manage"),
   employeesPermissions: (shopId: string) => gate(shopId, "employees.permissions"),
   employeesGroups: (shopId: string) => gate(shopId, "employees.groups"),
+  /** Read shop email readiness for Share / customer email (not settings write). */
+  emailSendStatus: (shopId: string) =>
+    gateAny(shopId, [
+      "estimate.approve",
+      "payments.collect",
+      "customers.message",
+      "employees.manage",
+    ]),
   vendorsManage: (shopId: string) => gate(shopId, "vendors.manage"),
   financeAccount: (shopId: string) => gate(shopId, "finance.account"),
   ordersManage: (shopId: string) => gate(shopId, "orders.manage"),
