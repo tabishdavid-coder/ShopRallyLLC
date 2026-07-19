@@ -376,7 +376,7 @@ function buildAccountCreateParams(
     },
     metadata: {
       shopId,
-      platform: "repairpilot",
+      platform: "shoprally",
     },
   };
 }

@@ -1,7 +1,7 @@
 /**
  * Pre-launch marketing config — flip `preLaunch` to false when GA opens self-serve signup.
  */
-import { PLANS, PHASE_ONE_LAUNCH, repairPilotAllInMonthly, repairPilotStarterMonthly } from "@/lib/plans";
+import { PLANS, PHASE_ONE_LAUNCH, shoprallyAllInMonthly, shoprallyStarterMonthly } from "@/lib/plans";
 
 export const MARKETING_LAUNCH = {
   preLaunch: true,
@@ -89,8 +89,8 @@ export const MARKET_POSITIONING = {
       label: "ShopRally premium",
       summary: "Cloud CRM, Growth Engine, training & optional full stack",
       priceLabel: PHASE_ONE_LAUNCH
-        ? `From $${repairPilotStarterMonthly(true)}/mo`
-        : `From $${repairPilotAllInMonthly(true)}/mo`,
+        ? `From $${shoprallyStarterMonthly(true)}/mo`
+        : `From $${shoprallyAllInMonthly(true)}/mo`,
       subPrice: PHASE_ONE_LAUNCH
         ? "Ignition shop plan · AI Plus optional +$20/mo"
         : "Pro flagship · licensed MOTOR + Growth Engine · Elite full stack",
@@ -151,7 +151,7 @@ export const VS_BUDGET_COMPETITORS = [
   },
   {
     category: "SMS, booking & campaigns",
-    shoprally: `Growth Engine automations & win-back on ${PLANS.PROFESSIONAL.name} ($${repairPilotAllInMonthly(true)}/mo annual)`,
+    shoprally: `Growth Engine automations & win-back on ${PLANS.PROFESSIONAL.name} ($${shoprallyAllInMonthly(true)}/mo annual)`,
     garage360: "Not included on any CRM tier",
     torque360: "One-way SMS on Starter · two-way on Turbo",
   },

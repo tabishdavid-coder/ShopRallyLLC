@@ -6,6 +6,8 @@ This version has breaking changes — APIs, conventions, and file structure may 
 
 # ShopRally agents
 
+> **New PM?** Start with [`docs/PM-HANDOFF.md`](docs/PM-HANDOFF.md) (not this file).
+
 > **Canonical CRM dev:** open the **`ShopRally/`** folder (`C:\Users\tabis\OneDrive\Documents\ClaudeCode\ShopRally`), run `npm run dev` → **http://localhost:3031**. See `docs/SHOPRALLY-DEV.md`.
 >
 > The sibling **`karvio/`** folder is a legacy platform fork — do not develop shop CRM there.

@@ -41,7 +41,7 @@ function micrositeDomain(slug: string): string {
   try {
     return new URL(publicUrl(publicSitePath(slug))).hostname;
   } catch {
-    return `${slug}.repairpilot.com`;
+    return customDomainCnameTarget(slug);
   }
 }
 

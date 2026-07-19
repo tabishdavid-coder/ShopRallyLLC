@@ -1,4 +1,4 @@
-# RepairPilot — Platform Operations
+# ShopRally — Platform Operations
 
 Authoritative design for subscription tiers, remote platform administration, support, and FAQ with AI.
 
@@ -6,7 +6,7 @@ Authoritative design for subscription tiers, remote platform administration, sup
 
 ## Architecture overview
 
-RepairPilot is **true multi-tenant SaaS**: one Vercel deployment, one Neon Postgres database, row-level isolation via `shopId`. There is **no per-shop deploy** — platform admins manage all tenants from `/platform/shops`.
+ShopRally is **true multi-tenant SaaS**: one Vercel deployment, one Neon Postgres database, row-level isolation via `shopId`. There is **no per-shop deploy** — platform admins manage all tenants from `/platform/shops`.
 
 ```
 ┌─────────────────────────────────────────────────────────────┐
@@ -43,7 +43,7 @@ See [`docs/MIGRATION-EXPAND-CONTRACT.md`](./MIGRATION-EXPAND-CONTRACT.md) for sa
 
 ### Tier catalog
 
-RepairPilot uses the existing `ShopPlan` enum (`STARTER`, `PROFESSIONAL`, `ENTERPRISE` marketed as **Scale**). Feature gates live in `src/lib/plans.ts`; subscription helpers in `src/lib/subscription.ts`.
+ShopRally uses the existing `ShopPlan` enum (`STARTER`, `PROFESSIONAL`, `ENTERPRISE` marketed as **Scale**). Feature gates live in `src/lib/plans.ts`; subscription helpers in `src/lib/subscription.ts`.
 
 | Tier | Users | ROs/month | Key features |
 |------|-------|-----------|--------------|
@@ -104,7 +104,7 @@ Canceled shops retain read-only core CRM; past-due shops keep features until enf
 ### Dashboard (`/platform/shops`)
 
 - Lists all shops with plan, billing status, location, customer/RO counts, **MRR stub**, **last active**.
-- Actions: create shop, edit tier/status, **Enter** (sets `rp_active_shop` cookie → shop tenant context).
+- Actions: create shop, edit tier/status, **Enter** (sets `sr_active_shop` cookie → shop tenant context).
 - Suspend: set `Shop.status = SUSPENDED` (enforcement hook deferred).
 
 ### Deployment model
@@ -150,7 +150,7 @@ model SupportTicket {
 ```
 
 - Server action: `createSupportTicket` in `src/server/actions/support.ts`.
-- Email notification: dev console log; wire Resend to `support@repairpilot.com` later.
+- Email notification: dev console log; wire Resend to `hello@getshoprally.com` later.
 - Live chat: placeholder copy on support page.
 
 ---
@@ -185,12 +185,12 @@ Model default: `claude-haiku-4-5` (`SUPPORT_AI_MODEL` override).
 
 ## Stripe Billing integration (deferred steps)
 
-Stripe **Connect** (shop customer payments) is separate from Stripe **Billing** (RepairPilot subscription fees).
+Stripe **Connect** (shop customer payments) is separate from Stripe **Billing** (ShopRally subscription fees).
 
 ### Phase 2 — Stripe Billing wiring
 
 1. **Products & Prices** in Stripe Dashboard:
-   - `repairpilot_starter_monthly`, `repairpilot_professional_monthly`, `repairpilot_scale_monthly`
+   - `shoprally_starter_monthly`, `shoprally_professional_monthly`, `shoprally_scale_monthly`
    - Mirror cents from `PLANS` in `src/lib/plans.ts`.
 
 2. **Checkout Session** on Upgrade click:

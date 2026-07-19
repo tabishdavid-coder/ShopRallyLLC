@@ -4,7 +4,7 @@
 **Status:** Design-only — recommended default for Labor Book rebuild approval  
 **Scope:** ShopRally Smart Labor Book / Shop Library (:3031)  
 **Option label:** **F** (synthesis of Q1 Options A–D + Q2 Option E with chip-sync)  
-**Canvas:** `canvases/labor-book-mock-v3-hybrid.canvas.tsx` (karvio workspace — open beside chat)
+**Canvas:** `canvases/labor-book-mock-v3-hybrid.canvas.tsx` (ShopRally workspace — open beside chat)
 
 ---
 

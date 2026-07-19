@@ -3,7 +3,7 @@
 import {
   PLANS,
   PHASE_ONE_LAUNCH,
-  repairPilotStarterMonthly,
+  shoprallyStarterMonthly,
 } from "@/lib/plans";
 
 export type MarketingDripEmail = {
@@ -45,7 +45,7 @@ Quick snapshot of why shops are switching to ShopRally:
 
 • Job board + estimates + Operations Daily Snapshot in one CRM
 • Digital vehicle inspections on every plan
-• ${PLANS.STARTER.name} ($${repairPilotStarterMonthly(true)}/mo annual): full shop CRM · DVIs · daily snapshot
+• ${PLANS.STARTER.name} ($${shoprallyStarterMonthly(true)}/mo annual): full shop CRM · DVIs · daily snapshot
 • AI Plus (+$20/mo): freeform AI intake, labor assist & advisor app
 ${PHASE_ONE_LAUNCH ? "• Pro & Elite tiers — licensed MOTOR, Growth Engine, payments — coming in phase two" : `• ${PLANS.PROFESSIONAL.name}: licensed MOTOR + Growth Engine + reviews\n• ${PLANS.ENTERPRISE.name}: AI, ShopSite, Local SEO, maintenance programs`}
 

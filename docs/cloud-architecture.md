@@ -1,6 +1,6 @@
-# RepairPilot — Cloud Architecture
+# ShopRally — Cloud Architecture
 
-Authoritative reference for deploying RepairPilot as a multi-tenant SaaS on Vercel.
+Authoritative reference for deploying ShopRally as a multi-tenant SaaS on Vercel.
 
 ---
 
@@ -51,7 +51,7 @@ Authoritative reference for deploying RepairPilot as a multi-tenant SaaS on Verc
 1. **Every tenant-scoped model** carries `shopId` (see `prisma/schema.prisma`).
 2. **All server queries/mutations** resolve the active shop via `getShopId()` in `src/lib/shop.ts` — never trust a client-supplied `shopId`.
 3. **Per-shop integrations** (PartsTech, Google Reviews, Stripe Connect account id, etc.) live in `ShopIntegration` rows — not env files or local config.
-4. **Platform admin** can switch shops via cookie `rp_active_shop`; shop users are limited to `Membership` rows.
+4. **Platform admin** can switch shops via cookie `sr_active_shop` (legacy `rp_active_shop` still read); shop users are limited to `Membership` rows.
 5. **Public pages** (`/approve/[token]`, `/invoice/[token]`, `/inspection/[token]`) use unguessable tokens — no shop id in the URL.
 
 ### Clerk migration path (M1b)
@@ -61,7 +61,7 @@ Current stub (`src/lib/platform.ts`, `src/lib/shop.ts`):
 | Today | After Clerk |
 |-------|-------------|
 | `getCurrentUser()` reads `PLATFORM_ADMIN_EMAIL` from DB | `auth()` from `@clerk/nextjs/server` |
-| Shop switcher cookie `rp_active_shop` | Clerk Organization = Shop; `orgId` maps to `Shop.clerkOrgId` |
+| Shop switcher cookie `sr_active_shop` | Clerk Organization = Shop; `orgId` maps to `Shop.clerkOrgId` |
 | `Membership` links User ↔ Shop | Sync from Clerk org membership webhooks |
 | Platform admin via `User.isPlatformAdmin` | Clerk `publicMetadata.role === "platform_admin"` or separate Clerk app |
 
@@ -78,7 +78,7 @@ Copy `.env.example` → Vercel Project Settings → Environment Variables.
 | Variable | Purpose |
 |----------|---------|
 | `DATABASE_URL` | Neon **pooled** connection string (`?pgbouncer=true` or Neon pooler host) |
-| `APP_URL` | Canonical HTTPS origin, e.g. `https://app.repairpilot.com` |
+| `APP_URL` | Canonical HTTPS origin, e.g. `https://app.getshoprally.com` |
 | `CLERK_SECRET_KEY` | Server auth (when M1b ships) |
 | `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | Client auth |
 | `STRIPE_SECRET_KEY` | Platform Stripe secret |
@@ -119,7 +119,7 @@ Use `getAppUrl()` / `publicUrl()` from `src/lib/app-url.ts` for all absolute lin
 | Edge middleware (future Clerk) | Edge | Session cookies; no filesystem |
 | Long AI labor batch, review sync cron | **Inngest** (planned) | Not in-request — see below |
 
-No file-based sessions. Cookies (`rp_active_shop`, future Clerk session) are HTTP-only and work across Vercel instances.
+No file-based sessions. Cookies (`sr_active_shop`, legacy `rp_active_shop`, future Clerk session) are HTTP-only and work across Vercel instances.
 
 ---
 
@@ -216,7 +216,7 @@ Developing under OneDrive (`C:\Users\...\OneDrive\...`) can cause:
 
 This is a **local dev quirk only**. Production on Vercel is unaffected.
 
-For smoother dev, clone the repo to e.g. `C:\dev\repairpilot`.
+For smoother dev, clone the repo to e.g. `C:\dev\shoprally`.
 
 ---
 

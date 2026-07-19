@@ -397,7 +397,7 @@ async function main() {
   // ── Users + memberships ────────────────────────────────
   const platformAdmin = await prisma.user.create({
     data: {
-      email: "platform@repairpilot.com",
+      email: "hello@getshoprally.com",
       firstName: "Platform",
       lastName: "Admin",
       isPlatformAdmin: true,
@@ -1536,9 +1536,17 @@ async function main() {
 
   // Global FAQ library (platform support)
   for (const faq of FAQ_SEED) {
-    await prisma.faqArticle.create({
-      data: {
+    await prisma.faqArticle.upsert({
+      where: { slug: faq.slug },
+      create: {
         slug: faq.slug,
+        category: faq.category,
+        question: faq.question,
+        answer: faq.answer,
+        sortOrder: faq.sortOrder,
+        published: true,
+      },
+      update: {
         category: faq.category,
         question: faq.question,
         answer: faq.answer,

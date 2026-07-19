@@ -1,4 +1,6 @@
 /** Seed data for the global FAQ library. */
+import { BRAND } from "../../src/lib/brand";
+
 export type FaqSeed = {
   slug: string;
   category: string;
@@ -11,9 +13,9 @@ export const FAQ_SEED: FaqSeed[] = [
   {
     slug: "getting-started-overview",
     category: "Getting Started",
-    question: "What is RepairPilot?",
+    question: `What is ${BRAND.name}?`,
     answer:
-      "RepairPilot is a cloud shop-management CRM for auto repair businesses. " +
+      `${BRAND.name} is a cloud shop-management CRM for auto repair businesses. ` +
       "Manage customers, vehicles, repair orders, estimates, inspections, appointments, " +
       "parts, invoicing, and customer messaging — all in one place. Each shop is an isolated tenant.",
     sortOrder: 1,
@@ -42,7 +44,7 @@ export const FAQ_SEED: FaqSeed[] = [
     category: "Billing & Plans",
     question: "What subscription plans are available?",
     answer:
-      "RepairPilot offers Starter, Professional, and Scale (Enterprise) tiers. Starter includes core CRM, " +
+      `${BRAND.name} offers Starter, Professional, and Scale (Enterprise) tiers. Starter includes core CRM, ` +
       "job board, estimates, and inspections. Professional adds parts catalog, labor guide, SMS, reports, " +
       "and markup matrices. Scale adds multi-location admin and advanced reporting. See /pricing for details.",
     sortOrder: 1,
@@ -72,17 +74,17 @@ export const FAQ_SEED: FaqSeed[] = [
     question: "How do I connect Stripe to accept card payments?",
     answer:
       "Go to Settings → Integrations → Stripe. Click Connect and complete Stripe Express onboarding. " +
-      "Each shop connects its own Express account under the RepairPilot platform — customer payments " +
-      "settle directly to your shop. Platform subscription billing (RepairPilot fees) is separate from Connect.",
+      `Each shop connects its own Express account under the ${BRAND.name} platform — customer payments ` +
+      `settle directly to your shop. Platform subscription billing (${BRAND.name} fees) is separate from Connect.`,
     sortOrder: 1,
   },
   {
     slug: "stripe-connect-vs-billing",
     category: "Payments",
-    question: "What's the difference between Stripe Connect and my RepairPilot subscription?",
+    question: `What's the difference between Stripe Connect and my ${BRAND.name} subscription?`,
     answer:
       "Stripe Connect lets your shop accept customer payments (invoices, repair orders). " +
-      "Stripe Billing (coming soon) handles your monthly RepairPilot subscription fee. " +
+      `Stripe Billing (coming soon) handles your monthly ${BRAND.name} subscription fee. ` +
       "They use separate Stripe objects — Connect account ID vs Billing customer/subscription ID.",
     sortOrder: 2,
   },
@@ -147,11 +149,11 @@ export const FAQ_SEED: FaqSeed[] = [
   {
     slug: "support-contact",
     category: "Support",
-    question: "How do I contact RepairPilot support?",
+    question: `How do I contact ${BRAND.name} support?`,
     answer:
       "Click the Help (?) button in the bottom-right corner of any page, or visit Support from the sidebar. " +
       "Submit a ticket with your question — we typically respond within one business day. " +
-      "You can also email support@repairpilot.com directly.",
+      `You can also email ${BRAND.supportEmail} directly.`,
     sortOrder: 1,
   },
   {
@@ -159,7 +161,7 @@ export const FAQ_SEED: FaqSeed[] = [
     category: "Marketing",
     question: "Do you build websites for my shop?",
     answer:
-      "Yes — RepairPilot offers a managed Website & Local SEO service as a paid add-on, separate from your " +
+      `Yes — ${BRAND.name} offers a managed Website & Local SEO service as a paid add-on, separate from your ` +
       "subscription. Our team builds a custom shop site, sets up local SEO, integrates online booking, and " +
       "provides ongoing optimization. Open Marketing → Website & SEO and submit a quote request to get started.",
     sortOrder: 1,

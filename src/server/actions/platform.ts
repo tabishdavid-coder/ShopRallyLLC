@@ -6,7 +6,8 @@ import { cookies } from "next/headers";
 
 import { prisma } from "@/db/client";
 import { isPlatformAdmin, requirePlatformAdmin } from "@/lib/platform";
-import { ACTIVE_SHOP_COOKIE, canAccessShop } from "@/lib/shop";
+import { ACTIVE_SHOP_COOKIE, SHOP_COOKIE_OPTIONS } from "@/lib/shop-constants";
+import { canAccessShop } from "@/lib/shop";
 import { recordShopCrmEntered } from "@/server/platform/shop-crm-access";
 import {
   parsePlatformShopForm,
@@ -55,12 +56,7 @@ export async function switchShop(shopId: string): Promise<ActionResult> {
   if (!allowed) return { ok: false, error: "You do not have access to this shop." };
 
   const cookieStore = await cookies();
-  cookieStore.set(ACTIVE_SHOP_COOKIE, shopId, {
-    path: "/",
-    httpOnly: true,
-    sameSite: "lax",
-    maxAge: 60 * 60 * 24 * 365,
-  });
+  cookieStore.set(ACTIVE_SHOP_COOKIE, shopId, SHOP_COOKIE_OPTIONS);
 
   if (await isPlatformAdmin()) {
     await recordShopCrmEntered(shopId, "switchShop");

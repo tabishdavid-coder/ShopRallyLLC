@@ -1,4 +1,4 @@
-# Website & SEO Service — RepairPilot
+# Website & SEO Service — ShopRally
 
 **Status:** Phase 1 (v1) — **advertised managed service** + builder infrastructure for paying customers  
 **Last updated:** 2026-06-28
@@ -25,7 +25,7 @@ When a shop is on **Premier** (`aiSeoContent` plan gate), has **SEO Autopilot** 
 
 ## Product concept (updated 2026-07-05)
 
-RepairPilot **Website & SEO** is a **conversion hub**, not just a brochure:
+ShopRally **Website & SEO** is a **conversion hub**, not just a brochure:
 
 1. **Managed service (v1 default)** — platform builds and launches shop-branded microsite
 2. **ShopSite microsite** — `/sites/[slug]` with **Book** + **Request service** CTAs wired to CRM
@@ -65,7 +65,7 @@ RepairPilot **Website & SEO** is a **conversion hub**, not just a brochure:
 ```prisma
 model ShopWebsiteConfig {
   shopId                String   @unique
-  published             Boolean  // false until RepairPilot team launches customer site
+  published             Boolean  // false until ShopRally team launches customer site
   heroHeadline          String?
   heroSubtext           String?
   aboutText             String?

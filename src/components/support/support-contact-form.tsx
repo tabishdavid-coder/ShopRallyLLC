@@ -116,17 +116,17 @@ export function SupportContactForm() {
             {pending ? <Loader2 className="size-4 animate-spin" /> : "Submit ticket"}
           </Button>
           <a
-            href="mailto:info@getshoprally.com"
+            href={`mailto:${SUPPORT_EMAIL}`}
             className="inline-flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground"
           >
             <Mail className="size-3.5" />
-            info@getshoprally.com
+            {SUPPORT_EMAIL}
           </a>
         </div>
       </form>
 
       <p className="mt-4 rounded-md border border-dashed bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
-        Live chat coming soon. For urgent billing issues, email info@getshoprally.com with your shop name.
+        Live chat coming soon. For urgent billing issues, email {SUPPORT_EMAIL} with your shop name.
       </p>
     </div>
   );

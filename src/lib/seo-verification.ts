@@ -1,13 +1,16 @@
 /** Domain verification helpers for external / custom-domain SEO properties. */
 
-export const SEO_VERIFICATION_META_NAME = "repairpilot-site-verification";
+export const SEO_VERIFICATION_META_NAME = "shoprally-site-verification";
+
+/** @deprecated Legacy RepairPilot verification meta name — still accepted when verifying. */
+export const LEGACY_SEO_VERIFICATION_META_NAME = "repairpilot-site-verification";
 
 export function seoVerificationTxtValue(token: string): string {
-  return `repairpilot-site-verification=${token}`;
+  return `${SEO_VERIFICATION_META_NAME}=${token}`;
 }
 
 export function seoVerificationDnsHost(domain: string): string {
-  return `_repairpilot.${domain}`;
+  return `_shoprally.${domain}`;
 }
 
 export function seoVerificationMetaSnippet(token: string): string {

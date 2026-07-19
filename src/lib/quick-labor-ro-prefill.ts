@@ -4,7 +4,8 @@ import {
   type QuickLaborVehicle,
 } from "@/lib/quick-labor";
 
-const STORAGE_KEY = "karvio-quick-labor-ro-prefill";
+const STORAGE_KEY = "shoprally-quick-labor-ro-prefill";
+const LEGACY_STORAGE_KEY = "karvio-quick-labor-ro-prefill";
 
 export type QuickLaborRoPrefill = {
   vehicle: QuickLaborVehicle;
@@ -23,7 +24,8 @@ export function storeQuickLaborRoPrefill(prefill: QuickLaborRoPrefill): void {
 export function readQuickLaborRoPrefill(): QuickLaborRoPrefill | null {
   if (typeof sessionStorage === "undefined") return null;
   try {
-    const raw = sessionStorage.getItem(STORAGE_KEY);
+    const raw =
+      sessionStorage.getItem(STORAGE_KEY) ?? sessionStorage.getItem(LEGACY_STORAGE_KEY);
     if (!raw) return null;
     const parsed = JSON.parse(raw) as QuickLaborRoPrefill;
     if (!parsed?.vehicle || !isQuickLaborVehicleIdentified(parsed.vehicle)) return null;
@@ -36,6 +38,7 @@ export function readQuickLaborRoPrefill(): QuickLaborRoPrefill | null {
 export function clearQuickLaborRoPrefill(): void {
   if (typeof sessionStorage === "undefined") return;
   sessionStorage.removeItem(STORAGE_KEY);
+  sessionStorage.removeItem(LEGACY_STORAGE_KEY);
 }
 
 export function quickLaborVehicleLookupKey(v: QuickLaborVehicle): string {

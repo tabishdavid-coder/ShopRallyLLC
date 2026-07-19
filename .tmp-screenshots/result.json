@@ -1,9 +1,0 @@
-{
-  "jobBoardUrl": "http://localhost:3031/job-board",
-  "estimateUrl": "http://localhost:3031/repair-orders/cmr9dephy0001hhk0cesht45z/estimate",
-  "title": "ShopRally — Auto Repair Shop Management Software",
-  "hasShopRally": true,
-  "hardRefresh": "Page.reload with ignoreCache: true via CDP",
-  "jobBoardShot": "C:\\Users\\tabis\\OneDrive\\Documents\\ClaudeCode\\ShopRally\\.tmp-screenshots\\job-board-after-hard-refresh.png",
-  "estimateShot": "C:\\Users\\tabis\\OneDrive\\Documents\\ClaudeCode\\ShopRally\\.tmp-screenshots\\ro-estimate-after-hard-refresh.png"
-}

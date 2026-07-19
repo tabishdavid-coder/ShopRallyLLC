@@ -3,7 +3,8 @@ import { NextResponse } from "next/server";
 
 import { enterShopCrmPath, MASTER_CRM_HOME } from "@/lib/platform-routing";
 import { isPlatformAdmin } from "@/lib/platform";
-import { ACTIVE_SHOP_COOKIE, canAccessShop } from "@/lib/shop";
+import { ACTIVE_SHOP_COOKIE, SHOP_COOKIE_OPTIONS } from "@/lib/shop-constants";
+import { canAccessShop } from "@/lib/shop";
 import { recordShopCrmEntered } from "@/server/platform/shop-crm-access";
 
 /** Deep link from Master CRM — sets tenant cookie then opens Shop CRM (or `next` path). */
@@ -25,12 +26,7 @@ export async function GET(request: Request) {
   }
 
   const cookieStore = await cookies();
-  cookieStore.set(ACTIVE_SHOP_COOKIE, shopId, {
-    path: "/",
-    httpOnly: true,
-    sameSite: "lax",
-    maxAge: 60 * 60 * 24 * 365,
-  });
+  cookieStore.set(ACTIVE_SHOP_COOKIE, shopId, SHOP_COOKIE_OPTIONS);
 
   // Audit must not block CRM entry (missing shop / FK races still set cookie).
   try {

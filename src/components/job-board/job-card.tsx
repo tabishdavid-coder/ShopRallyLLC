@@ -16,10 +16,15 @@ import { paymentMethodShortLabel } from "@/lib/payment-display";
 import { defaultRoOpenHref } from "@/lib/ro-workspace";
 import {
   JOB_BOARD_CARD_STATUS_PILL,
+  JOB_BOARD_COLUMN_META,
   JOB_BOARD_CONTEXT_CHIP,
   jobBoardCardClass,
+  jobBoardCardStageStyle,
+  jobBoardColumnStagePill,
+  jobBoardCoreThemeHex,
   jobBoardProgressStep,
   type JobBoardCardStatusPillKey,
+  type JobBoardColumnTheme,
 } from "@/lib/job-board-theme";
 
 function stopCardNav(e: React.SyntheticEvent) {
@@ -62,8 +67,13 @@ function resolveContextCue(card: JobCardData, auth: AuthKind): ContextCue | null
 
 function resolveStatusPill(
   card: JobCardData,
-  column?: BoardColumn,
-): { key: JobBoardCardStatusPillKey; label: string; className: string } {
+  columnTheme?: JobBoardColumnTheme,
+): {
+  key: JobBoardCardStatusPillKey | "columnStage";
+  label: string;
+  className: string;
+  style?: React.CSSProperties;
+} {
   const balanceDue = (card.invoiceBalanceCents ?? 0) > 0 && !card.paymentPosted;
 
   if (card.paymentPosted) {
@@ -72,17 +82,35 @@ function resolveStatusPill(
   if (balanceDue) {
     return { key: "balanceDue", ...JOB_BOARD_CARD_STATUS_PILL.balanceDue };
   }
-  if (column === "completed" || card.status === "COMPLETED" || card.status === "INVOICED") {
-    return { key: "completed", ...JOB_BOARD_CARD_STATUS_PILL.completed };
-  }
-  if (
-    column === "workInProgress" ||
-    card.status === "IN_PROGRESS" ||
-    card.status === "APPROVED"
-  ) {
-    if (card.status === "APPROVED" && column !== "workInProgress") {
+
+  const coreColumn = columnTheme?.coreColumn;
+
+  if (coreColumn === "estimates") {
+    if (card.estimateViewedAt) {
+      return { key: "viewed", ...JOB_BOARD_CARD_STATUS_PILL.viewed };
+    }
+    if (card.approvalSentAt) {
+      return { key: "sent", ...JOB_BOARD_CARD_STATUS_PILL.sent };
+    }
+    if (card.status === "APPROVED") {
       return { key: "approved", ...JOB_BOARD_CARD_STATUS_PILL.approved };
     }
+    return { key: "notStarted", ...JOB_BOARD_CARD_STATUS_PILL.notStarted };
+  }
+
+  if (coreColumn === "workInProgress" && card.status === "APPROVED") {
+    return { key: "approved", ...JOB_BOARD_CARD_STATUS_PILL.approved };
+  }
+
+  if (columnTheme) {
+    const stage = jobBoardColumnStagePill(columnTheme.stageLabel, columnTheme.hex);
+    return { key: "columnStage", ...stage };
+  }
+
+  if (card.status === "COMPLETED" || card.status === "INVOICED") {
+    return { key: "completed", ...JOB_BOARD_CARD_STATUS_PILL.completed };
+  }
+  if (card.status === "IN_PROGRESS" || card.status === "APPROVED") {
     return { key: "inProgress", ...JOB_BOARD_CARD_STATUS_PILL.inProgress };
   }
   if (card.estimateViewedAt) {
@@ -112,19 +140,34 @@ export function JobCard({
   menu,
   selected = false,
   column,
+  columnTheme,
   openHref,
 }: {
   card: JobCardData;
   menu?: React.ReactNode;
   selected?: boolean;
+  /** @deprecated Prefer columnTheme */
   column?: BoardColumn;
+  columnTheme?: JobBoardColumnTheme;
   /** Override RO open href (workflow board). */
   openHref?: string;
 }) {
   const ctx = useJobBoardContextOptional();
   const auth = authorizationKind(card);
   const cue = resolveContextCue(card, auth);
-  const statusPill = resolveStatusPill(card, column);
+  const theme =
+    columnTheme ??
+    (column
+      ? {
+          hex: jobBoardCoreThemeHex(column),
+          stageLabel: JOB_BOARD_COLUMN_META[column].subtitle,
+          columnIndex:
+            column === "workInProgress" ? 1 : column === "completed" ? 2 : 0,
+          columnCount: 3,
+          coreColumn: column,
+        }
+      : undefined);
+  const statusPill = resolveStatusPill(card, theme);
   const balanceDue = (card.invoiceBalanceCents ?? 0) > 0 && !card.paymentPosted;
   const ymm = vehicleYmm(card.vehicle);
   const plate = plateLabel(card.vehicle);
@@ -132,9 +175,11 @@ export function JobCard({
   const name = customerDisplayName(card.customer, { nameOrder: "firstLast" });
   const phone = card.customer.phone?.trim() || null;
   const href = openHref ?? defaultRoOpenHref(card.id);
-  const progress = jobBoardProgressStep(column);
+  const progress = jobBoardProgressStep(theme?.columnIndex ?? 0);
+  const progressSteps = theme?.columnCount ?? 3;
   const sent = Boolean(card.approvalSentAt);
   const viewed = Boolean(card.estimateViewedAt);
+  const cardStyle = theme ? jobBoardCardStageStyle(theme.hex) : undefined;
 
   const historyTarget = {
     customerId: card.customer.id,
@@ -150,7 +195,10 @@ export function JobCard({
   };
 
   return (
-    <div className={jobBoardCardClass({ selected, auth, column })}>
+    <div
+      className={jobBoardCardClass({ selected, columnTheme: theme, column })}
+      style={cardStyle}
+    >
       {/* Top: RO# + sent/viewed · created · stage dot · menu */}
       <div className="job-board-card-header">
         <div className="job-board-card-meta">
@@ -209,7 +257,9 @@ export function JobCard({
 
       {/* Soft status pill + optional cue */}
       <div className="flex flex-wrap items-center gap-1.5">
-        <span className={statusPill.className}>{statusPill.label}</span>
+        <span className={statusPill.className} style={statusPill.style}>
+          {statusPill.label}
+        </span>
         {cue ? (
           <span className={cn("job-board-card-cue", cue.className)}>{cue.label}</span>
         ) : null}
@@ -219,7 +269,7 @@ export function JobCard({
       <div className="job-board-card-footer-row">
         <div className="flex min-w-0 items-center gap-2">
           <div className="job-board-card-progress" aria-hidden>
-            {[0, 1, 2].map((step) => (
+            {Array.from({ length: progressSteps }, (_, step) => (
               <span
                 key={step}
                 className={cn(

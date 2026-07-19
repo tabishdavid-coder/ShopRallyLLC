@@ -1,9 +1,0 @@
-{
-  "at": "2026-07-05T18:56:10.597Z",
-  "to": "tabish.david@gmail.com",
-  "video": "C:\\Users\\tabis\\OneDrive\\Documents\\ClaudeCode\\shoprally\\agents\\OrderProcessLab\\output\\intake-redesign-mockup-2026-07-05T18-55-12.webm",
-  "method": "eml-fallback",
-  "resendId": null,
-  "emlPath": "C:\\Users\\tabis\\OneDrive\\Documents\\ClaudeCode\\shoprally\\agents\\OrderProcessLab\\output\\email-to-tabish.david-at-gmail.com.eml",
-  "error": "C:\\Users\\tabis\\OneDrive\\Documents\\ClaudeCode\\shoprally\\agents\\OrderProcessLab\\scripts\\send-via-outlook.ps1 : Mail still \r\nin Outbox (5 pending). Outlook may be offline.\r\n    + CategoryInfo          : NotSpecified: (:) [Write-Error], WriteErrorException\r\n    + FullyQualifiedErrorId : Microsoft.PowerShell.Commands.WriteErrorException,send-via-outlook.ps1"
-}

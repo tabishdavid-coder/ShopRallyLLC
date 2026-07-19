@@ -22,7 +22,7 @@ import {
   WEB_PRESENCE_SERVICES,
   planMarketingDisplayName,
   publicPlanAddons,
-  repairPilotStarterMonthly,
+  shoprallyStarterMonthly,
   webPresenceAlaCarteMonthlyCents,
 } from "@/lib/plans";
 import { WebPresenceLaunchSetupDetails, WebPresenceSetupLine } from "@/components/marketing-site/web-presence-launch-setup-details";
@@ -47,7 +47,7 @@ export function PricingPageContent({ foundingSpotsClaimed = 0 }: { foundingSpots
   const preLaunch = MARKETING_LAUNCH.preLaunch;
   const foundingRemaining = foundingSpotsRemaining(foundingSpotsClaimed);
   const foundingMessaging = getFoundingSpotMessaging(foundingSpotsClaimed);
-  const ignitionPrice = repairPilotStarterMonthly(annual);
+  const ignitionPrice = shoprallyStarterMonthly(annual);
   const ignitionPlan = PLANS.STARTER;
   const ignitionMarketingName = planMarketingDisplayName(ignitionPlan);
   const phaseOneAddons = publicPlanAddons();

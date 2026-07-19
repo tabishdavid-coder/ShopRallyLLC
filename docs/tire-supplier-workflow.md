@@ -4,7 +4,7 @@ Approval-before-buy for website tire deposits. Separate from the normal booking 
 
 ## Can we auto-order through Weldon today?
 
-**No.** RepairPilot has no Weldon API integration, credentials, or automated purchase path.
+**No.** ShopRally has no Weldon API integration, credentials, or automated purchase path.
 
 | What exists | What is missing |
 |-------------|-----------------|
@@ -64,7 +64,7 @@ The marketing site (separate project) should:
 
 1. Collect the long tire intake form.
 2. Charge the deposit via Stripe Checkout.
-3. `POST` to RepairPilot:
+3. `POST` to ShopRally:
 
 ```
 POST https://<crm-domain>/api/tires/intake

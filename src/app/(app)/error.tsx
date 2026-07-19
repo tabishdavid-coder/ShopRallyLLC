@@ -52,7 +52,7 @@ export default function AppError({
         <p className="max-w-sm text-xs text-muted-foreground">
           Fix: stop the dev server (Ctrl+C), then run{" "}
           <code className="rounded bg-muted px-1 py-0.5">npm run dev</code> in the{" "}
-          <code className="rounded bg-muted px-1 py-0.5">repairpilot2</code> folder.
+          <code className="rounded bg-muted px-1 py-0.5">shoprally</code> folder.
         </p>
       ) : null}
     </div>

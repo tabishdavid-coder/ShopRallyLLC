@@ -3,19 +3,35 @@ import "server-only";
 import { promises as dns } from "node:dns";
 
 import {
+  LEGACY_SEO_VERIFICATION_META_NAME,
   SEO_VERIFICATION_META_NAME,
   seoVerificationDnsHost,
   seoVerificationTxtValue,
 } from "@/lib/seo-verification";
 
+function legacySeoVerificationDnsHost(domain: string): string {
+  return `_repairpilot.${domain}`;
+}
+
+function legacySeoVerificationTxtValue(token: string): string {
+  return `${LEGACY_SEO_VERIFICATION_META_NAME}=${token}`;
+}
+
 function tokenPresentInTxtRecords(records: string[][], token: string): boolean {
   const expected = seoVerificationTxtValue(token);
+  const legacyExpected = legacySeoVerificationTxtValue(token);
   const flat = records.flat().map((r) => r.trim());
-  return flat.some((r) => r === expected || r.includes(token));
+  return flat.some(
+    (r) => r === expected || r === legacyExpected || r.includes(token),
+  );
 }
 
 async function verifyDnsTxt(domain: string, token: string): Promise<boolean> {
-  const hosts = [seoVerificationDnsHost(domain), domain];
+  const hosts = [
+    seoVerificationDnsHost(domain),
+    legacySeoVerificationDnsHost(domain),
+    domain,
+  ];
   for (const host of hosts) {
     try {
       const records = await dns.resolveTxt(host);
@@ -38,15 +54,18 @@ async function verifyMetaTag(domain: string, token: string): Promise<boolean> {
       });
       if (!res.ok) continue;
       const html = (await res.text()).slice(0, 200_000);
-      const metaPattern = new RegExp(
-        `<meta[^>]+name=["']${SEO_VERIFICATION_META_NAME}["'][^>]+content=["']${token}["']`,
-        "i",
-      );
-      const altPattern = new RegExp(
-        `<meta[^>]+content=["']${token}["'][^>]+name=["']${SEO_VERIFICATION_META_NAME}["']`,
-        "i",
-      );
-      if (metaPattern.test(html) || altPattern.test(html)) return true;
+      const metaNames = [SEO_VERIFICATION_META_NAME, LEGACY_SEO_VERIFICATION_META_NAME];
+      for (const metaName of metaNames) {
+        const metaPattern = new RegExp(
+          `<meta[^>]+name=["']${metaName}["'][^>]+content=["']${token}["']`,
+          "i",
+        );
+        const altPattern = new RegExp(
+          `<meta[^>]+content=["']${token}["'][^>]+name=["']${metaName}["']`,
+          "i",
+        );
+        if (metaPattern.test(html) || altPattern.test(html)) return true;
+      }
     } catch {
       // unreachable — try next URL
     }

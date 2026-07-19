@@ -15,7 +15,7 @@ import type { AppNotification } from "@/server/notifications";
 import { cn } from "@/lib/utils";
 
 /**
- * Matches repairpilot/src/components/top-bar.tsx layout:
+ * Matches legacy top-bar layout:
  * title · Support · notifications · messages · search.
  */
 export function PreviewTopBar({

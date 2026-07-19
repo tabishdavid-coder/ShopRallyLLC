@@ -93,7 +93,7 @@ Key rules:
 ### 3.9 Maintenance Programs (customer subscriptions)
 
 > Shop-defined maintenance / VIP membership programs for **their customers**
-> (distinct from RepairPilot SaaS `ShopPlan` billing). Covers prepaid bundles,
+> (distinct from ShopRally SaaS `ShopPlan` billing). Covers prepaid bundles,
 > monthly clubs, household plans, and vehicle-class pricing — modeled on patterns
 > from All 4 One, Green Drop Garage, Brian's Buddies, CARe Club, UltraCare+.
 
@@ -376,7 +376,7 @@ Add `maintenancePrograms Boolean` to `PlanFeature` in `src/lib/plans.ts`
 ┌─────────────────────────────────────────────────────────────────┐
 │ Maintenance Programs          [Preview public page] [Copy embed]│
 ├─────────────────────────────────────────────────────────────────┤
-│ ☑ Enable public plans page    URL: repairpilot.com/plans/iohaus│
+│ ☑ Enable public plans page    URL: getshoprally.com/plans/iohaus│
 │ Hero title: [Making Every Day Car Maintenance Easy        ]    │
 │ Hero subtitle: [textarea                                    ]    │
 ├─────────────────────────────────────────────────────────────────┤

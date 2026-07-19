@@ -5,7 +5,11 @@ import { checkShopLegalCompliance } from "@/server/legal";
 import { shopIdForClerkOrg } from "@/server/clerk-org";
 
 /** Cookie/header flag set when a newly created Clerk org still needs platform legal onboarding. */
-export const LEGAL_ONBOARDING_PENDING_COOKIE = "rp_legal_pending";
+export {
+  LEGAL_ONBOARDING_PENDING_COOKIE,
+  LEGACY_LEGAL_ONBOARDING_PENDING_COOKIE,
+  readLegalPendingCookie,
+} from "@/lib/shop-constants";
 
 /**
  * Returns the path new org members should visit before using the CRM.

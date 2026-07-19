@@ -1,12 +1,12 @@
 # Two-way SMS (platform-managed, per shop)
 
-RepairPilot uses **Twilio** for shop-to-customer SMS — the same carrier model Tekmetric and Shopmonkey use behind the scenes (hosted SMS on a business number, not personal cell phones).
+ShopRally uses **Twilio** for shop-to-customer SMS — the same carrier model Tekmetric and Shopmonkey use behind the scenes (hosted SMS on a business number, not personal cell phones).
 
 ## Platform vs shop responsibility
 
 | Who | Responsibility |
 |-----|------------------|
-| **RepairPilot platform admin** | One Twilio account (`TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`); A2P 10DLC brand registration; webhook URL on stable domain; provision or assign numbers per shop from **Platform → Shops** |
+| **ShopRally platform admin** | One Twilio account (`TWILIO_ACCOUNT_SID`, `TWILIO_AUTH_TOKEN`); A2P 10DLC brand registration; webhook URL on stable domain; provision or assign numbers per shop from **Platform → Shops** |
 | **Shop owner / admin** | **Settings → Phone & SMS** — landline reference, confirm assigned Twilio number, verify webhook, enable SMS, customize opt-out footer, send test message |
 | **Never in production** | A single global `TWILIO_FROM_NUMBER` shared by all shops — dev-only fallback with console warning |
 
@@ -21,7 +21,7 @@ These products do **not** magic your existing landline into SMS without a carrie
 3. **Outbound from the shop number** — Advisors text from the CRM; Twilio sends as the shop's configured number (Text-to-Pay, estimate links, status updates).
 4. **Per-location routing** — Multi-shop platforms map each inbound `To` number to the correct tenant/shop.
 
-RepairPilot mirrors this: platform Twilio credentials in env, **per-shop `twilioPhoneNumber`** for routing, inbound webhooks at `/api/webhooks/twilio/sms` and `/api/webhooks/twilio/voice`.
+ShopRally mirrors this: platform Twilio credentials in env, **per-shop `twilioPhoneNumber`** for routing, inbound webhooks at `/api/webhooks/twilio/sms` and `/api/webhooks/twilio/voice`.
 
 ## Voice receptionist (Premier)
 
@@ -36,7 +36,7 @@ New platform-provisioned numbers get both URLs automatically. For older numbers,
 
 Full E2E test checklist: **`docs/voice-receptionist-test.md`**.
 
-## Architecture in RepairPilot
+## Architecture in ShopRally
 
 | Layer | Implementation |
 |-------|----------------|
@@ -54,7 +54,7 @@ Full E2E test checklist: **`docs/voice-receptionist-test.md`**.
 
 Best when customers already know your shop number.
 
-1. RepairPilot platform admin creates/manages the Twilio account.
+1. ShopRally platform admin creates/manages the Twilio account.
 2. Twilio Console → **Phone Numbers → Port & Host → Port a Number**.
 3. Submit a **Letter of Authorization (LOA)** with your current carrier bill showing the number.
 4. Typical port time: **2–4 weeks** (US local numbers).
@@ -63,7 +63,7 @@ Best when customers already know your shop number.
    https://YOUR_DOMAIN/api/webhooks/twilio/sms
    HTTP POST
    ```
-   (Use `APP_URL` — RepairPilot signs webhooks against this canonical URL.)
+   (Use `APP_URL` — ShopRally signs webhooks against this canonical URL.)
 6. Platform admin assigns the E.164 number to the shop (**Platform → Shops → Manage SMS**) or shop enters it in **Settings → Phone & SMS**.
 
 ### Option B — Platform-provisioned local number (dev/staging)
@@ -79,11 +79,11 @@ Some US carriers allow SMS on fixed lines via Twilio/Bandwidth **Hosted SMS** wi
 ## Environment variables
 
 ```env
-# Platform (RepairPilot ops — one account for all shops)
+# Platform (ShopRally ops — one account for all shops)
 TWILIO_ACCOUNT_SID=
 TWILIO_AUTH_TOKEN=
 TWILIO_MESSAGING_SERVICE_SID=   # optional — A2P 10DLC Messaging Service at platform level
-APP_URL=https://app.repairpilot.com   # required in prod — webhook signature + public links
+APP_URL=https://app.getshoprally.com   # required in prod — webhook signature + public links
 
 # Dev-only fallback when a shop has no twilioPhoneNumber yet (NOT for production multi-tenant)
 TWILIO_FROM_NUMBER=
@@ -104,7 +104,7 @@ Inbound routing: Twilio `To` is matched against `Shop.twilioPhoneNumber` (unique
 
 ## A2P 10DLC (US commercial SMS)
 
-Register **one brand** at the RepairPilot platform level in Twilio Trust Hub. Per-shop campaigns are optional when each shop has its own number — coordinate with Twilio support for multi-tenant campaign strategy.
+Register **one brand** at the ShopRally platform level in Twilio Trust Hub. Per-shop campaigns are optional when each shop has its own number — coordinate with Twilio support for multi-tenant campaign strategy.
 
 ## Customer matching
 

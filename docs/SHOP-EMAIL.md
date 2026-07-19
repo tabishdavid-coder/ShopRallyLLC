@@ -15,6 +15,14 @@ Fields on `Shop`: `emailFromName`, `emailFromAddress`, `emailReplyTo`, `emailEna
 
 Outbound path: `sendShopEmail()` → Resend with shop From / Reply-To. Not ready → mailto fallback (or mock log in local dev when `RESEND_API_KEY` is unset).
 
+## Platform contact vs shop email
+
+| Address | Purpose |
+|--------|---------|
+| `hello@getshoprally.com` | ShopRally platform contact — marketing site, CRM Help & Support, billing, owner ops copy (`src/lib/brand.ts` → `PLATFORM_CONTACT_EMAIL`) |
+| Shop `emailFromAddress` | Customer-facing estimate/invoice/campaign sends (shop-owned) |
+| `PLATFORM_ADMIN_EMAIL` | Stub platform admin auth only — not shown as public contact |
+
 ## Operator go-live checklist
 
 Do these in order. Steps 1–3 are platform ops; 4–6 are per shop.

@@ -1,4 +1,4 @@
-// RepairPilot data model.
+// ShopRally data model.
 // Conventions (see CLAUDE.md):
 //  - Every tenant-scoped row carries `shopId`. Queries filter by it.
 //  - Money is stored as integer CENTS (never floats).
@@ -305,7 +305,7 @@ enum AgreementType {
   CUSTOM_MSA
 }
 
-// Per-shop Stripe Connect onboarding (Express accounts under RepairPilot platform).
+// Per-shop Stripe Connect onboarding (Express accounts under ShopRally platform).
 enum StripeConnectStatus {
   NOT_STARTED
   PENDING
@@ -487,7 +487,7 @@ model MotorCatalogApplication {
 
 // ─────────────────────────────── Tenancy ───────────────────────────────
 
-// Platform owner deploys RepairPilot to many shops. Each Shop is a tenant;
+// Platform owner deploys ShopRally to many shops. Each Shop is a tenant;
 // platform admins manage all shops without cross-tenant data leakage in
 // normal shop views (they must explicitly switch shop context).
 model Platform {
@@ -1082,7 +1082,7 @@ model LaborMatrixTier {
 model User {
   id        String   @id @default(cuid())
   clerkId   String?  @unique // set when Clerk is wired (M1b)
-  isPlatformAdmin Boolean @default(false) // RepairPilot platform owner / super-admin
+  isPlatformAdmin Boolean @default(false) // ShopRally platform owner / super-admin
   email     String   @unique
   firstName String?
   lastName  String?

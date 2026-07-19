@@ -58,7 +58,7 @@ Save. Voice agent runs when shop is **closed** (booking hours + timezone), unles
 ## Step 3 — Local smoke tests (no phone call)
 
 ```powershell
-cd repairpilot
+cd ShopRally
 npx tsx scripts/test-voice-agent-parse.ts
 npx tsx scripts/test-review-reply-tone.ts
 ```

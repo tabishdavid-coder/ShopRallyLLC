@@ -1,4 +1,7 @@
-/** Human-readable shop Master ID — format: RP-{CODE}-{6 digits}. */
+/** Human-readable shop Master ID — format: RP-{CODE}-{6 digits}.
+
+Legacy `RP-` prefix from the RepairPilot era; kept for DB compatibility. Product brand is ShopRally.
+*/
 
 const MASTER_ID_RE = /^RP-[A-Z0-9]{1,6}-\d{6}$/;
 

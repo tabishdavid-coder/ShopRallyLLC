@@ -43,6 +43,3 @@ export function shoprallyMetadata(overrides?: Metadata): Metadata {
 }
 
 export { defaultDescription as SHOPRALLY_DEFAULT_DESCRIPTION };
-
-/** @deprecated Use shoprallyMetadata */
-export const karvioMetadata = shoprallyMetadata;

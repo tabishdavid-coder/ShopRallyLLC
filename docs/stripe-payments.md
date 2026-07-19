@@ -15,7 +15,7 @@ Matches the Tekmetric-style flow from the setup screenshot (Step 2 CRM lane).
 stripe listen --forward-to localhost:3000/api/webhooks/stripe
 ```
 
-4. Restart RepairPilot: `npm run dev`
+4. Restart ShopRally: `npm run dev`
 
 ## Step 2 — CRM invoice pay flow
 
@@ -40,7 +40,7 @@ stripe listen --forward-to localhost:3000/api/webhooks/stripe
 
 ## Settings reference (Step 5)
 
-RepairPilot: **Admin → Payments → Account** shows Stripe Connect status (Tekmetric-equivalent). Legacy path Settings → Integrations → Stripe redirects here.
+ShopRally: **Admin → Payments → Account** shows Stripe Connect status (Tekmetric-equivalent). Legacy path Settings → Integrations → Stripe redirects here.
 
 Tekmetric equivalent: Admin → Payments → Account → Sign in to see details / Connect with Stripe.
 

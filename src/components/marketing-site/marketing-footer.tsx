@@ -1,6 +1,7 @@
 import Link from "next/link";
 
 import { ShopRallyLogo } from "@/components/brand/shoprally-logo";
+import { PLATFORM_CONTACT_EMAIL } from "@/lib/support";
 
 const FOOTER_LINKS = {
   Product: [
@@ -60,7 +61,15 @@ export function MarketingFooter() {
 
         <div className="mt-10 flex flex-col gap-2 border-t border-white/10 pt-6 text-xs text-white/50 sm:flex-row sm:items-center sm:justify-between">
           <p>© {new Date().getFullYear()} ShopRally. All rights reserved.</p>
-          <p>Built for shops that fix cars — and run a real business.</p>
+          <p className="flex flex-wrap items-center gap-x-3 gap-y-1">
+            <span>Built for shops that fix cars — and run a real business.</span>
+            <a
+              href={`mailto:${PLATFORM_CONTACT_EMAIL}`}
+              className="text-white/70 transition-colors hover:text-white"
+            >
+              {PLATFORM_CONTACT_EMAIL}
+            </a>
+          </p>
         </div>
       </div>
     </footer>

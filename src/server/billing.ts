@@ -149,7 +149,7 @@ async function loadUsage(shopId: string, plan: ShopPlan): Promise<BillingOvervie
   };
 }
 
-/** Shop-facing platform billing overview (RepairPilot subscription — not Stripe Connect). */
+/** Shop-facing platform billing overview (ShopRally subscription — not Stripe Connect). */
 export async function getBillingOverview(shopId: string): Promise<BillingOverviewClient> {
   const [shop, subscription] = await Promise.all([
     prisma.shop.findUniqueOrThrow({

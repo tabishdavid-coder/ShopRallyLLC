@@ -22,7 +22,7 @@ export function previewNavHref(item: NavItem): string {
   return item.href;
 }
 
-/** Mirrors repairpilot AppSidebar active rules + /preview as Job Board home. */
+/** Mirrors AppSidebar active rules + /preview as Job Board home. */
 export function previewNavIsActive(pathname: string, item: NavItem): boolean {
   if (pathname === PREVIEW_LANDING_HREF) {
     return item.href === "/job-board";
@@ -31,7 +31,7 @@ export function previewNavIsActive(pathname: string, item: NavItem): boolean {
   return pathname === item.href || pathname.startsWith(`${item.href}/`);
 }
 
-/** Mirrors repairpilot TopBar title resolution. */
+/** Mirrors TopBar title resolution. */
 export function previewNavTitle(pathname: string): string {
   if (pathname === PREVIEW_LANDING_HREF) return "Shop Home";
   if (pathname.startsWith("/preview/nav-concepts")) return "Menu layouts";

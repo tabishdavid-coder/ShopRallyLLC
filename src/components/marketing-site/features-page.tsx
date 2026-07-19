@@ -18,7 +18,7 @@ import { HeroPlatformPreview } from "@/components/marketing-site/hero-platform-p
 import { MarketPositioningSection } from "@/components/marketing-site/market-positioning-section";
 import { Button } from "@/components/ui/button";
 import { MARKETING_LAUNCH } from "@/lib/marketing-launch";
-import { COMPETITOR_BENCHMARK, LABOR_PLAN_COPY, PLANS, repairPilotAllInMonthly, repairPilotOverdriveMonthly } from "@/lib/plans";
+import { COMPETITOR_BENCHMARK, LABOR_PLAN_COPY, PLANS, shoprallyAllInMonthly, shoprallyOverdriveMonthly } from "@/lib/plans";
 
 const MODULES = [
   {
@@ -85,8 +85,8 @@ export function FeaturesPageContent() {
             marketing, and maintenance with training included on every tier.
           </p>
           <p className="mx-auto mt-3 max-w-xl text-sm font-medium text-brand-navy">
-            {PLANS.PROFESSIONAL.name}: ${repairPilotAllInMonthly(true)}/mo · {PLANS.ENTERPRISE.name}: $
-            {repairPilotOverdriveMonthly(true)}/mo · vs ~${COMPETITOR_BENCHMARK.legacy.typicalMonthly}/mo legacy
+            {PLANS.PROFESSIONAL.name}: ${shoprallyAllInMonthly(true)}/mo · {PLANS.ENTERPRISE.name}: $
+            {shoprallyOverdriveMonthly(true)}/mo · vs ~${COMPETITOR_BENCHMARK.legacy.typicalMonthly}/mo legacy
             stacks
           </p>
           <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">

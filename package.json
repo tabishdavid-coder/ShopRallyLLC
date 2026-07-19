@@ -9,7 +9,6 @@
     "dev:3001": "next dev -p 3001",
     "dev:preview": "node scripts/dev-3031.mjs",
     "dev:3030": "node scripts/dev-3030.mjs",
-    "intake-lab": "npx --yes serve prototypes/intake-lab -l 3010",
     "build": "next build",
     "start": "next start -p 3031",
     "lint": "eslint",

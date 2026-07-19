@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { PLATFORM_CONTACT_EMAIL } from "@/lib/support";
 import {
   Dialog,
   DialogContent,
@@ -237,8 +238,8 @@ function YourPlanTab({ overview }: { overview: BillingOverview }) {
 
       <p className="text-sm text-muted-foreground">
         To cancel or downgrade your plan, contact us at{" "}
-        <a href="mailto:info@getshoprally.com" className="font-medium text-brand-navy hover:underline">
-          info@getshoprally.com
+        <a href={`mailto:${PLATFORM_CONTACT_EMAIL}`} className="font-medium text-brand-navy hover:underline">
+          {PLATFORM_CONTACT_EMAIL}
         </a>{" "}
         or visit{" "}
         <Link href="/support" className="font-medium text-brand-navy hover:underline">

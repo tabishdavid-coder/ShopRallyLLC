@@ -20,7 +20,7 @@ ShopRally covers **core CRM workflow** (customers, ROs, job board, editable esti
 
 Legend: ✅ built · ⬜ partial/stub · ❌ missing
 
-| Category | Feature | RepairPilot | Tekmetric | Shopmonkey |
+| Category | Feature | ShopRally | Tekmetric | Shopmonkey |
 |----------|---------|-------------|-----------|------------|
 | **Core** | Customer list | ✅ | ✅ | ✅ |
 | | Customer detail | ✅ (this pass) | ✅ | ✅ |

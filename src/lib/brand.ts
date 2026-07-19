@@ -7,7 +7,8 @@ export const BRAND = {
   domain: "getshoprally.com",
   url: "https://getshoprally.com",
   tagline: "Shop management that keeps every bay moving.",
-  supportEmail: "info@getshoprally.com",
+  /** Public platform contact — marketing, support, billing, owner ops copy */
+  supportEmail: "hello@getshoprally.com",
 } as const;
 
 /** Static brand assets under /public (from shoprally-brand-kit/svg/) */

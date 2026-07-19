@@ -4,7 +4,7 @@
 **Status:** Design-only — recommended Labor Book direction (replaces rejected v1 trail + v3 hybrid)  
 **Scope:** ShopRally Smart Labor Book / Shop Library (:3031)  
 **Pattern name:** **Tree-Grid Explorer** — persistent side tree + live results grid + bottom staging dock  
-**Canvas:** `canvases/labor-book-mock-v4-competitor.canvas.tsx` (karvio workspace — open beside chat)  
+**Canvas:** `canvases/labor-book-mock-v4-competitor.canvas.tsx` (ShopRally workspace — open beside chat)  
 **Prototype:** `/dev/labor-mockup` → **Mock v4 (tree-grid)** tab
 
 ---

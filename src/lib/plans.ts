@@ -738,7 +738,7 @@ export type PriceComparisonRow = {
   marketingLabel: string;
   stackTotal: number | null;
   note: string;
-  repairPilot?: boolean;
+  shoprally?: boolean;
 };
 
 function planMonthlyPrice(planId: ShopPlan, annual: boolean): number {
@@ -746,7 +746,7 @@ function planMonthlyPrice(planId: ShopPlan, annual: boolean): number {
   return (annual ? plan.annualMonthlyCents : plan.monthlyCents) / 100;
 }
 
-/** Incumbent + RepairPilot rows for the pricing page comparison table. */
+/** Incumbent + ShopRally rows for the pricing page comparison table. */
 export function buildPriceComparisonRows(annual: boolean): PriceComparisonRow[] {
   const incumbents: PriceComparisonRow[] = COMPETITOR_BENCHMARK.incumbents.map((row) => ({
     name: row.name,
@@ -763,7 +763,7 @@ export function buildPriceComparisonRows(annual: boolean): PriceComparisonRow[] 
 
   const budgetStack = COMPETITOR_BENCHMARK.budgetGrowthStackMonthly;
 
-  const repairPilot: PriceComparisonRow[] = [
+  const shoprallyRows: PriceComparisonRow[] = [
     {
       name: `ShopRally ${PLANS.STARTER.name}`,
       planId: "STARTER",
@@ -771,7 +771,7 @@ export function buildPriceComparisonRows(annual: boolean): PriceComparisonRow[] 
       marketingLabel: "—",
       stackTotal: starter,
       note: "Ignition CRM · DVIs · Live Operations Daily Snapshot · appointments · payment tracking · NHTSA VIN · shop catalog",
-      repairPilot: true,
+      shoprally: true,
     },
     {
       name: `ShopRally ${PLANS.PROFESSIONAL.name}`,
@@ -780,7 +780,7 @@ export function buildPriceComparisonRows(annual: boolean): PriceComparisonRow[] 
       marketingLabel: "Included",
       stackTotal: professional,
       note: "Everything in Ignition + licensed MOTOR, unlimited VIN/plate, Stripe Connect, Growth Engine & reviews",
-      repairPilot: true,
+      shoprally: true,
     },
     {
       name: `ShopRally ${PLANS.ENTERPRISE.name}`,
@@ -789,11 +789,11 @@ export function buildPriceComparisonRows(annual: boolean): PriceComparisonRow[] 
       marketingLabel: "Premium included",
       stackTotal: premier,
       note: "Everything in Pro + AI, ShopSite, Local SEO, maintenance programs & white-glove onboarding",
-      repairPilot: true,
+      shoprally: true,
     },
   ];
 
-  return [...incumbents, ...repairPilot];
+  return [...incumbents, ...shoprallyRows];
 }
 
 /** Rows for the public pricing comparison table. */
@@ -1008,22 +1008,29 @@ export function estimatedCompetitorStackMonthly(): number {
 }
 
 /** ShopRally Starter monthly price for comparison callouts. */
-export function repairPilotStarterMonthly(annual = true): number {
+export function shoprallyStarterMonthly(annual = true): number {
   const p = PLANS.STARTER;
   return (annual ? p.annualMonthlyCents : p.monthlyCents) / 100;
 }
 
-/** RepairPilot Professional monthly price for comparison callouts. */
-export function repairPilotAllInMonthly(annual = true): number {
+/** ShopRally Professional monthly price for comparison callouts. */
+export function shoprallyAllInMonthly(annual = true): number {
   const p = PLANS.PROFESSIONAL;
   return (annual ? p.annualMonthlyCents : p.monthlyCents) / 100;
 }
 
 /** ShopRally Elite monthly price for comparison callouts. */
-export function repairPilotOverdriveMonthly(annual = true): number {
+export function shoprallyOverdriveMonthly(annual = true): number {
   const p = PLANS.ENTERPRISE;
   return (annual ? p.annualMonthlyCents : p.monthlyCents) / 100;
 }
+
+/** @deprecated Use shoprallyStarterMonthly */
+export const repairPilotStarterMonthly = shoprallyStarterMonthly;
+/** @deprecated Use shoprallyAllInMonthly */
+export const repairPilotAllInMonthly = shoprallyAllInMonthly;
+/** @deprecated Use shoprallyOverdriveMonthly */
+export const repairPilotOverdriveMonthly = shoprallyOverdriveMonthly;
 
 export type ShopPlanContext = {
   plan: ShopPlan;

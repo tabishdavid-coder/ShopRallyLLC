@@ -1,6 +1,6 @@
 # Shop onboarding & compliance
 
-RepairPilot provisions **multi-tenant shop tenants** from the platform console (`/platform/**`). Each shop is isolated by `shopId` on every row, a unique **master ID** (`RP-{code}-{digits}`), and explicit shop-context switching for platform admins.
+ShopRally provisions **multi-tenant shop tenants** from the platform console (`/platform/**`). Each shop is isolated by `shopId` on every row, a unique **shop master ID** (`RP-{code}-{digits}` — legacy `RP-` prefix kept for compatibility), and explicit shop-context switching for platform admins.
 
 This document summarizes industry patterns, our implementation, and the compliance checklist platform owners should verify before go-live.
 
@@ -8,7 +8,7 @@ This document summarizes industry patterns, our implementation, and the complian
 
 ## How competitors onboard shops
 
-| Pattern | Tekmetric / Shopmonkey / AutoLeap | RepairPilot |
+| Pattern | Tekmetric / Shopmonkey / AutoLeap | ShopRally |
 |--------|-----------------------------------|-------------|
 | **Entry** | Sales-led demo → account setup; some self-serve trial signup | Platform **Add shop** (direct) or **intake link** (`/onboard/shop/[token]`) |
 | **Business info** | Legal name, EIN (10DLC), address, primary contact | `legalEntityName`, DBA `name`, address, `primaryContactName`, contact email |

@@ -385,7 +385,10 @@ export async function addJobBoardPipelineColumn(title: string): Promise<ActionRe
     return { ok: false, error: "Maximum of 12 sections reached." };
   }
 
-  const column = newCustomPipelineColumn(name);
+  const column = newCustomPipelineColumn(
+    name,
+    config.columns.filter((c) => c.kind === "custom"),
+  );
   await saveShopJobBoardPipeline(shopId, { columns: [...config.columns, column] });
 
   revalidatePath("/job-board");

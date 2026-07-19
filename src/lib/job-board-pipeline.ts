@@ -2,6 +2,12 @@ import { z } from "zod";
 
 import type { BoardColumn, JobCard } from "@/lib/job-board";
 import { COLUMN_OF } from "@/lib/job-board";
+import {
+  JOB_BOARD_COLUMN_META,
+  jobBoardCoreThemeHex,
+  pickCustomAccentColor,
+  type JobBoardColumnTheme,
+} from "@/lib/job-board-theme";
 
 /** Core pipeline stage — maps to RO status grouping. */
 export type PipelineColumnKind = BoardColumn | "custom";
@@ -11,6 +17,8 @@ export type PipelineColumn = {
   kind: PipelineColumnKind;
   title: string;
   subtitle: string;
+  /** Optional persisted accent for custom sections (expand-only). */
+  accentColor?: string;
 };
 
 export type JobBoardPipelineConfig = {
@@ -24,6 +32,10 @@ const ColumnSchema = z.object({
   kind: z.enum(["estimates", "workInProgress", "completed", "custom"]),
   title: z.string().min(1).max(80),
   subtitle: z.string().max(200).default(""),
+  accentColor: z
+    .string()
+    .regex(/^#[0-9a-fA-F]{6}$/)
+    .optional(),
 });
 
 export const JobBoardPipelineConfigSchema = z.object({
@@ -100,8 +112,16 @@ export function resolveJobBoardPipelineConfig(raw: unknown): JobBoardPipelineCon
     return { ...fallback, ...saved, title, subtitle, id: kind, kind };
   });
 
-  columns.push(...customs);
+  columns.push(...customs.map((col, index) => withCustomAccent(col, customs.slice(0, index))));
   return { columns };
+}
+
+function withCustomAccent(col: PipelineColumn, priorCustoms: PipelineColumn[]): PipelineColumn {
+  if (col.kind !== "custom") return col;
+  return {
+    ...col,
+    accentColor: col.accentColor ?? pickCustomAccentColor(priorCustoms),
+  };
 }
 
 export function pipelineColumnKind(columnId: string, config: JobBoardPipelineConfig): PipelineColumnKind | null {
@@ -124,7 +144,10 @@ export function resolveRoPipelineColumnId(
   return COLUMN_OF[ro.status];
 }
 
-export function newCustomPipelineColumn(title: string): PipelineColumn {
+export function newCustomPipelineColumn(
+  title: string,
+  existingCustoms: PipelineColumn[] = [],
+): PipelineColumn {
   const slug = title
     .trim()
     .toLowerCase()
@@ -137,10 +160,52 @@ export function newCustomPipelineColumn(title: string): PipelineColumn {
     kind: "custom",
     title: title.trim().slice(0, 80),
     subtitle: "",
+    accentColor: pickCustomAccentColor(existingCustoms),
   };
 }
 
-/** Styling bucket for column chrome — custom columns reuse WIP tint. */
+function pipelineStageLabel(col: PipelineColumn): string {
+  if (col.kind !== "custom") {
+    return JOB_BOARD_COLUMN_META[col.kind].subtitle;
+  }
+  return col.subtitle.trim() || col.title.trim();
+}
+
+/** Resolve header + card chrome for any pipeline column (core or custom). */
+export function resolvePipelineColumnTheme(
+  col: PipelineColumn,
+  allColumns: PipelineColumn[],
+): JobBoardColumnTheme {
+  const columnIndex = Math.max(
+    0,
+    allColumns.findIndex((c) => c.id === col.id),
+  );
+  const columnCount = allColumns.length;
+
+  if (col.kind !== "custom") {
+    return {
+      hex: jobBoardCoreThemeHex(col.kind),
+      stageLabel: JOB_BOARD_COLUMN_META[col.kind].subtitle,
+      columnIndex,
+      columnCount,
+      coreColumn: col.kind,
+    };
+  }
+
+  const customsBefore = allColumns
+    .slice(0, columnIndex)
+    .filter((c) => c.kind === "custom");
+  const hex = col.accentColor ?? pickCustomAccentColor(customsBefore);
+
+  return {
+    hex,
+    stageLabel: pipelineStageLabel(col),
+    columnIndex,
+    columnCount,
+  };
+}
+
+/** @deprecated Use resolvePipelineColumnTheme — kept for legacy callers. */
 export function pipelineColumnStyleKind(kind: PipelineColumnKind): BoardColumn {
   return kind === "custom" ? "workInProgress" : kind;
 }

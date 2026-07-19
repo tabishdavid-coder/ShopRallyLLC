@@ -109,7 +109,7 @@ export function SupportWidget() {
       const agentMsg: ChatMessage = {
         id: crypto.randomUUID(),
         role: "agent",
-        body: res.ok ? res.answer : "Something went wrong — please email info@getshoprally.com.",
+        body: res.ok ? res.answer : `Something went wrong — please email ${SUPPORT_EMAIL}.`,
         at: new Date(),
       };
       setConversations((prev) =>

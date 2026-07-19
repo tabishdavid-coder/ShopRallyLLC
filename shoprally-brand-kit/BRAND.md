@@ -29,7 +29,11 @@ Rule: orange = action, navy = trust, azure = bridge. Never recolor the chevron s
 | svg/lockup-stacked-* | Square ad slots, splash screens, merch chest print |
 | svg/mark-* | Any use under 48px wide; social avatars; watermarks |
 | svg/app-icon + icons/ | App stores, PWA manifest (512/192), iOS (180), favicon.ico |
-| png/ | Ready exports for tools that do not accept SVG |
+| png/app-icon-512.png | Google Workspace org logo, app stores (512×512, from app-icon.svg) |
+| png/app-icon-180.png | iOS / smaller avatar slots (180×180) |
+| png/app-icon-1024.png | High-res app icon (1024×1024) |
+| png/lockup-horizontal-color-1200w.png | Email signatures, docs, tools that reject SVG (1200px wide) |
+| png/ | Ready PNG exports; re-run `npx --yes -p sharp node shoprally-brand-kit/scripts/export-pngs.mjs` after SVG edits. Copies of 512/180 also live in `public/brand/`. |
 
 ## Rules
 1. Below 48px wide: mark only, never the wordmark.

@@ -36,7 +36,7 @@ type MockCard = {
   urgent?: boolean;
 };
 
-/** Matches repairpilot job-board columns: Estimates · WIP · Completed */
+/** Matches legacy :3000 archive job-board columns: Estimates · WIP · Completed */
 const BOARD: {
   id: "estimates" | "wip" | "completed";
   title: string;
@@ -280,7 +280,7 @@ function SelectedRoPanel({ card }: { card: MockCard | null }) {
           </p>
           <p>
             <FileText className="mr-1 inline size-3.5" />
-            Matches repairpilot JobCard + estimate workflow
+            Matches legacy archive JobCard + estimate workflow
           </p>
         </div>
       </div>
@@ -288,7 +288,7 @@ function SelectedRoPanel({ card }: { card: MockCard | null }) {
   );
 }
 
-/** Job board landing — same module/columns as repairpilot /job-board. */
+/** Job board landing — same module/columns as production /job-board. */
 export function JobBoardLandingMock() {
   const [selectedId, setSelectedId] = useState("a1");
   const [split, setSplit] = useState(true);
@@ -337,7 +337,7 @@ export function JobBoardLandingMock() {
         </div>
       </div>
 
-      {/* 3-column kanban — repairpilot JobBoardDnd */}
+      {/* 3-column kanban — production JobBoardDnd */}
       <div className={cn("grid min-h-0 flex-1 gap-4", split ? "grid-rows-[1fr_auto]" : "grid-rows-1")}>
         <div className="grid min-h-[420px] gap-4 lg:grid-cols-3">
           {BOARD.map((col) => {

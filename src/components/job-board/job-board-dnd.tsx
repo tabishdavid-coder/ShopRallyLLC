@@ -35,12 +35,11 @@ import {
   COLUMN_OF,
   COLUMN_STATUS,
   RO_STATUS,
-  type BoardColumn,
   type JobBoard,
   type JobCard as JobCardData,
 } from "@/lib/job-board";
 import {
-  pipelineColumnStyleKind,
+  resolvePipelineColumnTheme,
   type PipelineColumnKind,
 } from "@/lib/job-board-pipeline";
 import { defaultRoOpenHref } from "@/lib/ro-workspace";
@@ -50,8 +49,8 @@ import {
   apBayPipelineEmptyHint,
 } from "@/lib/autopilot3030/bay-pipeline";
 import {
-  JOB_BOARD_COLUMN,
-  JOB_BOARD_COLUMN_META,
+  jobBoardColumnStageStyle,
+  type JobBoardColumnTheme,
 } from "@/lib/job-board-theme";
 import { cn } from "@/lib/utils";
 
@@ -313,18 +312,6 @@ export function JobBoardDnd({
     });
   }
 
-  const coreRibbon =
-    !compact &&
-    columnDefs.some((c) => c.kind === "estimates") &&
-    columnDefs.some((c) => c.kind === "workInProgress") &&
-    columnDefs.some((c) => c.kind === "completed");
-
-  const ribbonSegs: { key: BoardColumn; className: string }[] = [
-    { key: "estimates", className: "job-board-stage-ribbon-seg-estimates" },
-    { key: "workInProgress", className: "job-board-stage-ribbon-seg-wip" },
-    { key: "completed", className: "job-board-stage-ribbon-seg-completed" },
-  ];
-
   return (
     <JobBoardHistoryProvider
       appointmentEmployees={appointmentEmployees}
@@ -340,32 +327,6 @@ export function JobBoardDnd({
         onDragEnd={onDragEnd}
       >
         <div className="flex h-full min-h-0 flex-col gap-3">
-        {coreRibbon ? (
-          <div className="job-board-stage-ribbon shrink-0" aria-label="Board stage summary">
-            {ribbonSegs.map((seg) => {
-              const def = columnDefs.find(
-                (c) => pipelineColumnStyleKind(c.kind) === seg.key,
-              );
-              const cards = def ? (columns[def.id] ?? []) : [];
-              const meta = JOB_BOARD_COLUMN_META[seg.key];
-              return (
-                <div key={seg.key} className={cn("job-board-stage-ribbon-seg", seg.className)}>
-                  <span className="job-board-stage-ribbon-label">{meta.ribbonLabel}</span>
-                  <div className="job-board-stage-ribbon-meta">
-                    <span className="job-board-stage-ribbon-count">
-                      {cards.length} {cards.length === 1 ? "job" : "jobs"}
-                    </span>
-                    {showColumnTotals ? (
-                      <span className="job-board-stage-ribbon-total">
-                        {formatCents(columnTotal(cards))}
-                      </span>
-                    ) : null}
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        ) : null}
         <div
           className={cn(
             "grid min-h-0 flex-1 gap-3",
@@ -380,7 +341,7 @@ export function JobBoardDnd({
               key={def.id}
               columnId={def.id}
               kind={def.kind}
-              styleKind={pipelineColumnStyleKind(def.kind)}
+              columnTheme={resolvePipelineColumnTheme(def, columnDefs)}
               title={def.title}
               subtitle={def.subtitle}
               cards={columns[def.id] ?? []}
@@ -405,9 +366,11 @@ export function JobBoardDnd({
               <JobCard
                 card={activeCard}
                 selected={activeCard.id === selectedRoId}
-                column={pipelineColumnStyleKind(
-                  columnDefs.find((c) => c.id === findContainer(columns, activeCard.id))?.kind ??
-                    "estimates",
+                columnTheme={resolvePipelineColumnTheme(
+                  columnDefs.find(
+                    (c) => c.id === findContainer(columns, activeCard.id),
+                  ) ?? columnDefs[0]!,
+                  columnDefs,
                 )}
               />
             </div>
@@ -442,7 +405,7 @@ export function JobBoardDnd({
 function Column({
   columnId,
   kind,
-  styleKind,
+  columnTheme,
   title,
   subtitle,
   cards,
@@ -460,7 +423,7 @@ function Column({
 }: {
   columnId: string;
   kind: PipelineColumnKind;
-  styleKind: BoardColumn;
+  columnTheme: JobBoardColumnTheme;
   title: string;
   subtitle: string;
   cards: JobCardData[];
@@ -477,16 +440,14 @@ function Column({
   cardHref?: (cardId: string) => string;
 }) {
   const { setNodeRef, isOver } = useDroppable({ id: columnId });
-  const theme = JOB_BOARD_COLUMN[styleKind];
   const canDelete = kind === "custom";
-  // Core stages use short Mac Auto–style captions; custom columns keep their subtitle.
   const caption =
-    kind !== "custom" && styleKind in JOB_BOARD_COLUMN_META
-      ? JOB_BOARD_COLUMN_META[styleKind].subtitle
-      : subtitle;
+    kind === "custom" ? subtitle.trim() || "\u00a0" : columnTheme.stageLabel;
+  const stageStyle = jobBoardColumnStageStyle(columnTheme.hex);
+
   return (
-    <div className="job-board-col">
-      <div className={cn(theme.header, "relative", canDelete && "pr-9")}>
+    <div className="job-board-col" style={stageStyle}>
+      <div className={cn("job-board-col-header relative", canDelete && "pr-9")}>
         <div className="min-w-0">
           <div className="job-board-col-heading">
             <div className="job-board-col-title-row">
@@ -497,7 +458,7 @@ function Column({
               <span className="job-board-col-total-amount">{formatCents(totalCents)}</span>
             ) : null}
           </div>
-          {caption ? <p className="job-board-col-subtitle">{caption}</p> : null}
+          <p className="job-board-col-subtitle">{caption || "\u00a0"}</p>
         </div>
         {canDelete ? (
           <JobBoardDeleteColumnButton
@@ -513,9 +474,8 @@ function Column({
         <div
           ref={setNodeRef}
           className={cn(
-            theme.body,
-            "job-board-col-scroll flex-1 space-y-3 overflow-y-auto p-2.5",
-            isOver && theme.dropOver,
+            "job-board-col-body job-board-col-scroll flex-1 space-y-3 overflow-y-auto p-2.5",
+            isOver && "job-board-col-drop-themed",
             compact && "min-h-[120px]",
           )}
         >
@@ -527,7 +487,7 @@ function Column({
                 key={card.id}
                 card={card}
                 columnId={columnId}
-                styleKind={styleKind}
+                columnTheme={columnTheme}
                 moveTargets={moveTargets}
                 onMove={onMove}
                 onAuthorize={onAuthorize}
@@ -547,7 +507,7 @@ function Column({
 function SortableCard({
   card,
   columnId,
-  styleKind,
+  columnTheme,
   moveTargets,
   onMove,
   onAuthorize,
@@ -558,7 +518,7 @@ function SortableCard({
 }: {
   card: JobCardData;
   columnId: string;
-  styleKind: BoardColumn;
+  columnTheme: JobBoardColumnTheme;
   moveTargets: { id: string; title: string }[];
   onMove: (cardId: string, toColumnId: string) => void;
   onAuthorize: (card: JobCardData) => void;
@@ -570,7 +530,7 @@ function SortableCard({
   const router = useRouter();
   const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
     useSortable({ id: card.id });
-  const isEstimate = styleKind === "estimates";
+  const isEstimate = columnTheme.coreColumn === "estimates";
   const openHref = cardHref ? cardHref(card.id) : defaultRoOpenHref(card.id);
 
   return (
@@ -590,7 +550,7 @@ function SortableCard({
     >
       <JobCard
         card={card}
-        column={styleKind}
+        columnTheme={columnTheme}
         selected={selected}
         openHref={openHref}
         menu={

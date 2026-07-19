@@ -2,7 +2,7 @@ import { Crown, Layers, Monitor } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { MARKET_POSITIONING } from "@/lib/marketing-launch";
-import { PLANS, repairPilotAllInMonthly, repairPilotOverdriveMonthly } from "@/lib/plans";
+import { PLANS, shoprallyAllInMonthly, shoprallyOverdriveMonthly } from "@/lib/plans";
 
 const TIER_STYLES = {
   legacy: {
@@ -29,8 +29,8 @@ const TIER_STYLES = {
 } as const;
 
 export function MarketPositioningSection({ compact = false }: { compact?: boolean }) {
-  const momentumPrice = repairPilotAllInMonthly(true);
-  const overdrivePrice = repairPilotOverdriveMonthly(true);
+  const momentumPrice = shoprallyAllInMonthly(true);
+  const overdrivePrice = shoprallyOverdriveMonthly(true);
 
   const tiers = MARKET_POSITIONING.tiers.map((tier) => {
     if (tier.id === "premium") {

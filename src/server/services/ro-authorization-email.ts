@@ -4,6 +4,7 @@ import { prisma } from "@/db/client";
 import { Role } from "@/generated/prisma";
 import { buildRoAuthorizationEmail } from "@/lib/email-templates/ro-authorization";
 import { customerDisplayName } from "@/lib/format";
+import { getPlatformAdminEmails } from "@/lib/platform";
 import { getEmail } from "@/server/services/email";
 
 export type RoAuthorizationEmailResult =
@@ -52,7 +53,7 @@ async function resolveAuthorizationRecipient(
   const ownerEmail = shop.memberships[0]?.user.email?.trim();
   if (ownerEmail) return ownerEmail;
 
-  return process.env.PLATFORM_ADMIN_EMAIL?.trim() || "platform@repairpilot.com";
+  return getPlatformAdminEmails()[0] ?? "hello@getshoprally.com";
 }
 
 /**

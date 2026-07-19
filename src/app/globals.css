@@ -1358,82 +1358,6 @@
     scrollbar-width: thin;
   }
 
-  /* 3-stage summary ribbon (mock-inspired, ShopRally columns only) */
-  .job-board-stage-ribbon {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 0;
-    overflow: hidden;
-    border-radius: var(--jb-radius, 0.5rem);
-    border: 1px solid var(--jb-line, #dce3ed);
-    background: var(--jb-card, #ffffff);
-    box-shadow: 0 1px 2px rgba(15, 39, 68, 0.04);
-  }
-
-  .job-board-stage-ribbon-seg {
-    position: relative;
-    display: flex;
-    min-width: 0;
-    flex-direction: column;
-    gap: 0.15rem;
-    padding: 0.55rem 0.85rem 0.55rem 1rem;
-    border-right: 1px solid var(--jb-line, #dce3ed);
-  }
-
-  .job-board-stage-ribbon-seg:last-child {
-    border-right: 0;
-  }
-
-  .job-board-stage-ribbon-seg::before {
-    content: "";
-    position: absolute;
-    left: 0;
-    top: 0.45rem;
-    bottom: 0.45rem;
-    width: 3px;
-    border-radius: 999px;
-    background: var(--jb-stage, var(--jb-navy));
-  }
-
-  .job-board-stage-ribbon-seg-estimates {
-    --jb-stage: var(--jb-stage-estimates);
-  }
-  .job-board-stage-ribbon-seg-wip {
-    --jb-stage: var(--jb-stage-wip);
-  }
-  .job-board-stage-ribbon-seg-completed {
-    --jb-stage: var(--jb-stage-completed);
-  }
-
-  .job-board-stage-ribbon-label {
-    font-size: 0.625rem;
-    font-weight: 700;
-    letter-spacing: 0.08em;
-    text-transform: uppercase;
-    color: var(--jb-stage, var(--jb-slate));
-  }
-
-  .job-board-stage-ribbon-meta {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: baseline;
-    gap: 0.35rem 0.55rem;
-  }
-
-  .job-board-stage-ribbon-count {
-    font-size: 0.8125rem;
-    font-weight: 650;
-    color: var(--jb-ink, #0f2744);
-    font-variant-numeric: tabular-nums;
-  }
-
-  .job-board-stage-ribbon-total {
-    font-size: 0.8125rem;
-    font-weight: 600;
-    color: var(--jb-slate, #5a6f8c);
-    font-variant-numeric: tabular-nums;
-  }
-
   .job-board-col {
     display: flex;
     height: 100%;
@@ -1455,7 +1379,7 @@
     border-bottom: 1px solid var(--jb-line, #dce3ed);
     border-top: 3px solid var(--jb-stage, var(--jb-navy));
     border-radius: 0;
-    background: var(--jb-card, #ffffff);
+    background: color-mix(in oklab, var(--jb-stage, var(--jb-navy)) 7%, var(--jb-card, #ffffff));
     padding: 0.6rem 0.75rem 0.55rem;
   }
 
@@ -1573,6 +1497,10 @@
 
   .job-board-col-drop-completed {
     background: color-mix(in oklab, var(--jb-stage-completed) 8%, var(--jb-well, #e8ecf2));
+  }
+
+  .job-board-col-drop-themed {
+    background: color-mix(in oklab, var(--jb-stage) 8%, var(--jb-well, #e8ecf2));
   }
 
   .job-board-col-empty {
@@ -1712,6 +1640,13 @@
 
   .job-board-card-chevron-on {
     border-left-color: var(--jb-card-stage, var(--jb-stage-estimates));
+  }
+
+  .job-board-card-status-pill-themed {
+    background: color-mix(in oklab, var(--jb-pill-stage, var(--jb-card-stage)) 12%, white);
+    color: color-mix(in oklab, var(--jb-pill-stage, var(--jb-card-stage)) 90%, #0a0a0a);
+    box-shadow: inset 0 0 0 1px
+      color-mix(in oklab, var(--jb-pill-stage, var(--jb-card-stage)) 28%, transparent);
   }
 
   .job-board-card-menu-btn {

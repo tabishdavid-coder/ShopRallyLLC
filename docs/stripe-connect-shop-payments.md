@@ -1,6 +1,6 @@
 # Stripe Connect — platform + shop-level payments
 
-Design for Tekmetric-class multi-tenant payments in RepairPilot.  
+Design for Tekmetric-class multi-tenant payments in ShopRally.  
 **Status:** Scaffold built (schema + services + settings UI). Live Connect requires a Stripe **platform** account with Connect enabled.
 
 See also: `docs/stripe-payments.md` (MVP test guide for invoice Checkout).
@@ -11,16 +11,16 @@ See also: `docs/stripe-payments.md` (MVP test guide for invoice Checkout).
 
 | Layer | Who | Role |
 |-------|-----|------|
-| **Platform** | RepairPilot (parent SaaS) | Stripe **Connect platform** account. Creates Express connected accounts, hosts onboarding, routes Checkout with `stripeAccount`, receives webhooks, optional application fees / SaaS billing. |
+| **Platform** | ShopRally (parent SaaS) | Stripe **Connect platform** account. Creates Express connected accounts, hosts onboarding, routes Checkout with `stripeAccount`, receives webhooks, optional application fees / SaaS billing. |
 | **Shop** | Each auto repair location | Own **Stripe Express** connected account. Shop admin completes KYC + bank. **Customer payments settle to the shop.** |
-| **Customer** | Vehicle owner | Pays invoice link, text-to-pay, tire deposit, or booking deposit. Sees shop name on Checkout; never sees RepairPilot platform keys. |
+| **Customer** | Vehicle owner | Pays invoice link, text-to-pay, tire deposit, or booking deposit. Sees shop name on Checkout; never sees ShopRally platform keys. |
 
 ### How peers do it
 
 - **Tekmetric** — [Stripe case study](https://stripe.com/customers/tekmetric): Stripe Connect + Payments + Terminal + Optimized Checkout (Payment Element, Payment Links, BNPL). Shops onboard via Connect; funds flow shop → Tekmetric can take platform fees. Moving to Connect embedded components.
 - **Shopmonkey** — Same Connect Express pattern; embedded onboarding in-app; Stripe Billing for shop subscriptions; Capital for shop financing.
 
-RepairPilot target: **Express + Account Links (redirect)** for v1, same money flow as Tekmetric. Embedded onboarding + Terminal deferred.
+ShopRally target: **Express + Account Links (redirect)** for v1, same money flow as Tekmetric. Embedded onboarding + Terminal deferred.
 
 ---
 
@@ -28,8 +28,8 @@ RepairPilot target: **Express + Account Links (redirect)** for v1, same money fl
 
 ```mermaid
 flowchart TB
-  subgraph Platform["RepairPilot Platform"]
-    RP[RepairPilot App]
+  subgraph Platform["ShopRally Platform"]
+    RP[ShopRally App]
     PK[Platform STRIPE_SECRET_KEY]
     WH["/api/webhooks/stripe"]
   end
@@ -66,7 +66,7 @@ flowchart TB
 
 **Charge type:** Direct charges on connected account (`stripeAccount` header) — money lands in shop account; platform can add `application_fee_amount` later.
 
-**Platform subscription billing** (RepairPilot → shop monthly fee) is **separate** — use Stripe Billing on platform account or Accounts v2 `customer` configuration. Not in this scaffold.
+**Platform subscription billing** (ShopRally → shop monthly fee) is **separate** — use Stripe Billing on platform account or Accounts v2 `customer` configuration. Not in this scaffold.
 
 ---
 
@@ -101,7 +101,7 @@ flowchart TB
 
 ### Platform-managed scope
 
-Express accounts are **created by RepairPilot** (`stripe.accounts.create`) and linked to the platform. Shops cannot use this as a standalone Stripe business account — only customer payments via RepairPilot Checkout and limited Express Dashboard access for payouts.
+Express accounts are **created by ShopRally** (`stripe.accounts.create`) and linked to the platform. Shops cannot use this as a standalone Stripe business account — only customer payments via ShopRally Checkout and limited Express Dashboard access for payouts.
 
 ### Embedded onboarding (future)
 
@@ -116,7 +116,7 @@ Account Links (redirect) is the MVP. Optional upgrade: `@stripe/connect-js` + Ac
 | Bank | Routing + account number for payouts |
 | Optional | Website, product description, support phone |
 
-Stripe performs KYC/AML; RepairPilot does not store SSN/bank — only `acct_xxx` + status flags.
+Stripe performs KYC/AML; ShopRally does not store SSN/bank — only `acct_xxx` + status flags.
 
 ---
 
@@ -202,7 +202,7 @@ Apply: `npm run db:migrate`
 
 | Variable | Owner | Purpose |
 |----------|-------|---------|
-| `STRIPE_SECRET_KEY` | Platform (RepairPilot ops) | Connect platform secret key |
+| `STRIPE_SECRET_KEY` | Platform (ShopRally ops) | Connect platform secret key |
 | `STRIPE_WEBHOOK_SECRET` | Platform | Verify webhooks |
 | `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY` | Platform | Future embedded Connect / Payment Element |
 | `STRIPE_CONNECT_CLIENT_ID` | Platform | Only if using OAuth Standard accounts (not Express v1) |

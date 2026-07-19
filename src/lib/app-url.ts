@@ -28,7 +28,7 @@ export function publicUrl(path: string): string {
   return `${base}${path.startsWith("/") ? path : `/${path}`}`;
 }
 
-/** Absolute origin for the current request (e.g. `https://app.repairpilot.com`). */
+/** Absolute origin for the current request (e.g. `https://app.getshoprally.com`). */
 export async function getAppOrigin(): Promise<string> {
   const h = await headers();
   const host = h.get("x-forwarded-host") ?? h.get("host") ?? "localhost:3000";

@@ -12,7 +12,14 @@ export type PlatformUser = {
   isPlatformAdmin: boolean;
 };
 
-const DEFAULT_PLATFORM_ADMIN_EMAIL = "platform@getshoprally.com";
+const DEFAULT_PLATFORM_ADMIN_EMAIL = "hello@getshoprally.com";
+
+/** Legacy stub admin emails still accepted for platform gate during migration. */
+const LEGACY_PLATFORM_ADMIN_EMAILS = [
+  "platform@getshoprally.com",
+  "platform@repairpilot.com",
+  "platform@getrepairpilot.com",
+];
 
 /** Comma-separated list from PLATFORM_ADMIN_EMAILS, with legacy PLATFORM_ADMIN_EMAIL fallback. */
 export function getPlatformAdminEmails(): string[] {
@@ -82,8 +89,11 @@ export async function isPlatformAdmin(): Promise<boolean> {
   const user = await getCurrentUser();
   if (user.id === "stub-platform-admin") return true;
   if (user.isPlatformAdmin) return true;
-  const allowed = getPlatformAdminEmails();
-  if (allowed.includes(user.email.toLowerCase())) return true;
+  const allowed = new Set([
+    ...getPlatformAdminEmails(),
+    ...LEGACY_PLATFORM_ADMIN_EMAILS,
+  ]);
+  if (allowed.has(user.email.toLowerCase())) return true;
   return false;
 }
 

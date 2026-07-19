@@ -18,7 +18,7 @@ import {
 } from "@/lib/shop-capabilities";
 import { cn } from "@/lib/utils";
 
-/** Karvio quote toolbar — search + differentiated action cluster (not competitor pill row). */
+/** ShopRally quote toolbar — search + differentiated action cluster (not competitor pill row). */
 
 export function EstimateLabToolbar({
   roId,

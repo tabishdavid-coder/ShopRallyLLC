@@ -145,7 +145,7 @@ function NavConceptsInner({ shops, activeShopId }: { shops: Shop[]; activeShopId
           </p>
         </div>
         <Badge variant="outline" className="border-brand-light text-brand-navy">
-          repairpilot2 preview
+          shoprally preview
         </Badge>
       </div>
 

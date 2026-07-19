@@ -7,6 +7,8 @@ import {
   ACTIVE_SHOP_COOKIE,
   DEMO_SHOP_ID,
   EMPTY_DEMO_SHOP_ID,
+  readActiveShopCookie,
+  SHOP_COOKIE_OPTIONS,
 } from "@/lib/shop-constants";
 
 /** CRM app routes — set default demo shop when cookie is missing or points at empty tenant. */
@@ -101,26 +103,16 @@ async function shoprallyMiddleware(request: NextRequest) {
     return NextResponse.next({ request: { headers: requestHeaders } });
   }
 
-  const cookie = request.cookies.get(ACTIVE_SHOP_COOKIE)?.value;
+  const cookie = readActiveShopCookie(request.cookies);
   const response = NextResponse.next({ request: { headers: requestHeaders } });
 
   if (!cookie && !isClerkConfigured()) {
-    response.cookies.set(ACTIVE_SHOP_COOKIE, DEMO_SHOP_ID, {
-      path: "/",
-      httpOnly: true,
-      sameSite: "lax",
-      maxAge: 60 * 60 * 24 * 365,
-    });
+    response.cookies.set(ACTIVE_SHOP_COOKIE, DEMO_SHOP_ID, SHOP_COOKIE_OPTIONS);
     return response;
   }
 
   if (cookie === EMPTY_DEMO_SHOP_ID && !isClerkConfigured()) {
-    response.cookies.set(ACTIVE_SHOP_COOKIE, DEMO_SHOP_ID, {
-      path: "/",
-      httpOnly: true,
-      sameSite: "lax",
-      maxAge: 60 * 60 * 24 * 365,
-    });
+    response.cookies.set(ACTIVE_SHOP_COOKIE, DEMO_SHOP_ID, SHOP_COOKIE_OPTIONS);
   }
 
   return response;

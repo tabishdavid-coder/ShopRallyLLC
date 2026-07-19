@@ -372,7 +372,7 @@ export async function exportShopDataSummary(): Promise<ExportShopDataResult> {
     return {
       ok: true,
       json,
-      filename: `repairpilot-export-${summary.shop.code ?? shopId}-${date}.json`,
+      filename: `shoprally-export-${summary.shop.code ?? shopId}-${date}.json`,
     };
   } catch {
     return { ok: false, error: "Unable to generate export. Try again later." };

@@ -1,6 +1,10 @@
 # Generated recordings — not committed
 *.webm
 *.mp4
+*.eml
 recording-meta-*.json
+*-meta-*.json
+email-delivery-manifest.json
+remote-view-link.json
 storyboard/
 frames/

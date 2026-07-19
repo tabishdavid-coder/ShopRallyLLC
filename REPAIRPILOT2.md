@@ -1,5 +1,9 @@
-# Moved
+# RepairPilot2 → ShopRally
 
-This file was renamed. See **`SHOPRALLY.md`**.
+This project was renamed. **Canonical docs:** [`SHOPRALLY.md`](./SHOPRALLY.md)
 
-The project folder is being renamed from `repairpilot2/` → **`shoprally/`**.
+- **Product:** ShopRally (`getshoprally.com`)
+- **Workspace folder:** `ShopRally/` (formerly `repairpilot2/`)
+- **Dev:** http://localhost:3031 — `npm run dev`
+
+Legacy RepairPilot references (`RP-` master IDs, `rp2` component folder, `_archive-repairpilot/`) remain for compatibility only.

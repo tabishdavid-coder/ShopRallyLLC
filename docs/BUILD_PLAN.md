@@ -1,4 +1,4 @@
-# RepairPilot — Build Plan
+# ShopRally — Build Plan
 
 Sequenced milestones. Each is a self-contained chunk of work. Do them in order;
 pair the customer-facing ones with your Tekmetric screenshots.

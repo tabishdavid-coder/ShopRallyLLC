@@ -1,6 +1,38 @@
 /** Shared shop tenant constants (safe for middleware + server). */
 
-export const ACTIVE_SHOP_COOKIE = "rp_active_shop";
+/** Active shop cookie — writes use sr_*; reads accept legacy rp_* too. */
+export const ACTIVE_SHOP_COOKIE = "sr_active_shop";
+export const LEGACY_ACTIVE_SHOP_COOKIE = "rp_active_shop";
+
+/** Legal onboarding pending flag — writes use sr_*; reads accept legacy rp_* too. */
+export const LEGAL_ONBOARDING_PENDING_COOKIE = "sr_legal_pending";
+export const LEGACY_LEGAL_ONBOARDING_PENDING_COOKIE = "rp_legal_pending";
+
+export const SHOP_COOKIE_OPTIONS = {
+  path: "/",
+  httpOnly: true,
+  sameSite: "lax" as const,
+  maxAge: 60 * 60 * 24 * 365,
+};
+
+type CookieReader = {
+  get: (name: string) => { value: string } | undefined;
+};
+
+/** Read active shop from sr_* or legacy rp_* cookie. */
+export function readActiveShopCookie(store: CookieReader): string | undefined {
+  return (
+    store.get(ACTIVE_SHOP_COOKIE)?.value ?? store.get(LEGACY_ACTIVE_SHOP_COOKIE)?.value
+  );
+}
+
+/** Read legal onboarding pending from sr_* or legacy rp_* cookie. */
+export function readLegalPendingCookie(store: CookieReader): string | undefined {
+  return (
+    store.get(LEGAL_ONBOARDING_PENDING_COOKIE)?.value ??
+    store.get(LEGACY_LEGAL_ONBOARDING_PENDING_COOKIE)?.value
+  );
+}
 
 /** Seeded demo shop — full Tekmetric-style dataset (Pro plan). */
 export const DEMO_SHOP_ID = "shop_demo";

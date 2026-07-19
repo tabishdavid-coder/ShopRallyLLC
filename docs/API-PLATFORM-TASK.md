@@ -67,7 +67,7 @@ Shops and partners can connect ShopRally to their stack without email-to-support
 - [ ] **Extract domain services** from Server Actions → `src/server/services/` (shared by actions + API)
 - [ ] **REST routes** — `GET/POST/PATCH` for customers, vehicles, repair orders, appointments
 - [ ] **API auth middleware** — bearer token from shop API key; resolve `shopId` from key (never from client body)
-- [ ] **OpenAPI spec** — generate or hand-write; publish at `/developers` or `developers.karvio.com`
+- [ ] **OpenAPI spec** — generate or hand-write; publish at `/developers` or `developers.getshoprally.com`
 - [ ] **Sandbox shop** — platform admin creates test tenant + test keys for partners
 - [ ] **QuickBooks Online OAuth** — invoices, payments, customers (table stakes vs Tekmetric/AutoLeap)
 - [ ] **PartsTech live punchout** — complete partner API path (M7/M9 dependency)

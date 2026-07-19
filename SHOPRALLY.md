@@ -1,5 +1,7 @@
 # ShopRally — CRM + marketing site
 
+> **New PM?** Start with [`docs/PM-HANDOFF.md`](docs/PM-HANDOFF.md) and [`docs/PM-REPO-MAP.md`](docs/PM-REPO-MAP.md).
+
 **Canonical app:** `ShopRally/` on **http://localhost:3031** (Dev 3031)
 
 One Next.js project serves:

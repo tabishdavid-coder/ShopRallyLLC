@@ -68,7 +68,7 @@ multi-tenant rules, file storage, and background-job plan.
 - DB scripts: `npm run db:migrate | db:seed | db:studio | db:push`.
 - Git is available. Repo not yet initialized.
 - ⚠️ Project lives under OneDrive — if `node_modules` ops get slow/locked,
-  relocate to e.g. `C:\dev\repairpilot`.
+  relocate to e.g. `C:\dev\shoprally`.
 - ⚠️ **CSS-cache gotcha (OneDrive):** turbopack's CSS cache in
   `node_modules/.cache` does NOT invalidate on `globals.css` edits here (stale
   theme tokens served even after restart). Fix: `rm -rf .next node_modules/.cache`
@@ -101,7 +101,7 @@ multi-tenant rules, file storage, and background-job plan.
 DATABASE_URL=
 CLERK_SECRET_KEY=
 NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY=
-PLATFORM_ADMIN_EMAIL=        # stub platform admin until Clerk (default platform@repairpilot.com)
+PLATFORM_ADMIN_EMAIL=        # stub platform admin until Clerk (default platform@getshoprally.com)
 VIN_PROVIDER_API_KEY=        # DataOne / VinAudit
 PARTSTECH_API_KEY=           # partner credentials (apply early)
 PARTSTECH_PARTNER_ID=
@@ -211,8 +211,8 @@ INNGEST_EVENT_KEY=
 - ✅ **Platform / master admin (v1)** — `Platform` model + `Shop.platformId` / `ShopStatus` /
   `User.isPlatformAdmin`. Stub auth via `PLATFORM_ADMIN_EMAIL` (`src/lib/platform.ts`).
   Master UI at `/platform` (shop list, KPIs, create/edit, enter shop). Shop switcher uses
-  cookie `rp_active_shop` + lists all shops for platform admins. Seed: `platform_rp`,
-  `platform@repairpilot.com` admin, 2 demo shops.
+  cookie `sr_active_shop` (legacy `rp_active_shop` still read) + lists all shops for platform admins. Seed: `platform_rp`,
+  `platform@getshoprally.com` admin, 2 demo shops.
 - ✅ **Platform subscription tiers (v1)** — `ShopPlan` (STARTER / PROFESSIONAL / ENTERPRISE),
   `BillingStatus`, `trialEndsAt`, optional `planFeatures` JSON. Plan catalog + `shopHasFeature()`
   in `src/lib/plans.ts`. Public `/pricing` page; platform admin assigns plan per shop;

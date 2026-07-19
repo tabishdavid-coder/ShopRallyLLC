@@ -1,3 +1,4 @@
+import { BRAND } from "@/lib/brand";
 import { formatApprovalTimestamp, shopTimezone } from "@/lib/shop-timezone";
 import { publicUrl } from "@/lib/app-url";
 
@@ -79,7 +80,7 @@ export function buildRoAuthorizationEmail(input: RoAuthorizationEmailInput): RoA
     "",
     "—",
     "Have questions? We're here to help.",
-    "Email us: info@getshoprally.com",
+    `Email us: ${BRAND.supportEmail}`,
     "",
     "ShopRally · Shop Management Software",
   ].join("\n");

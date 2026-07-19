@@ -17,7 +17,7 @@ import type { DashboardData } from "@/lib/dashboard";
 import { formatCents } from "@/lib/format";
 import type { Shop } from "@/lib/shop";
 
-/** Compact dashboard strip from repairpilot:3000 /dashboard — sits above the job board landing. */
+/** Compact dashboard strip from legacy :3000 /dashboard — sits above the job board landing. */
 export function DashboardPulse({
   shop,
   data,

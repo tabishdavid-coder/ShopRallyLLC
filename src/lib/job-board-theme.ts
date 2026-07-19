@@ -1,3 +1,5 @@
+import type { CSSProperties } from "react";
+
 import type { ROStatus } from "@/generated/prisma";
 
 import type { BoardColumn } from "@/lib/job-board";
@@ -15,25 +17,67 @@ export const JOB_BOARD_STAGE_COLOR: Record<
   completed: { cssVar: "--jb-stage-completed", hex: "#2f9e6b", label: "Completed" },
 };
 
+/** Accent palette for custom pipeline sections (ShopRally brand — no AutoLeap teal). */
+export const JOB_BOARD_CUSTOM_ACCENT_PALETTE = [
+  "#16588e",
+  "#6366f1",
+  "#9333ea",
+  "#c2410c",
+  "#64748b",
+  "#0284c7",
+] as const;
+
+export type JobBoardColumnTheme = {
+  hex: string;
+  stageLabel: string;
+  columnIndex: number;
+  columnCount: number;
+  /** Set for the three core RO-status columns. */
+  coreColumn?: BoardColumn;
+};
+
+export function jobBoardCoreThemeHex(column: BoardColumn): string {
+  return JOB_BOARD_STAGE_COLOR[column].hex;
+}
+
+export function pickCustomAccentColor(
+  customColumns: { accentColor?: string | null }[],
+): string {
+  const used = new Set(
+    customColumns.map((c) => c.accentColor?.toLowerCase()).filter(Boolean) as string[],
+  );
+  for (const hex of JOB_BOARD_CUSTOM_ACCENT_PALETTE) {
+    if (!used.has(hex.toLowerCase())) return hex;
+  }
+  return JOB_BOARD_CUSTOM_ACCENT_PALETTE[
+    customColumns.length % JOB_BOARD_CUSTOM_ACCENT_PALETTE.length
+  ]!;
+}
+
+export function jobBoardColumnStageStyle(hex: string): CSSProperties {
+  return { "--jb-stage": hex } as CSSProperties;
+}
+
+export function jobBoardCardStageStyle(hex: string): CSSProperties {
+  return { "--jb-card-stage": hex } as CSSProperties;
+}
+
 /** ShopRally pipeline stage labels — short mock-style captions. */
 export const JOB_BOARD_COLUMN_META: Record<
   BoardColumn,
-  { title: string; subtitle: string; ribbonLabel: string }
+  { title: string; subtitle: string }
 > = {
   estimates: {
     title: "Estimates",
     subtitle: "Build & send",
-    ribbonLabel: "ESTIMATES",
   },
   workInProgress: {
     title: "Work in Progress",
     subtitle: "On the lift",
-    ribbonLabel: "IN PROGRESS",
   },
   completed: {
     title: "Completed",
     subtitle: "Ready for pickup",
-    ribbonLabel: "COMPLETED",
   },
 };
 
@@ -63,13 +107,24 @@ export const JOB_BOARD_COLUMN: Record<
 const PILL_BASE =
   "job-board-card-status-pill inline-flex h-5 w-fit max-w-[10rem] shrink-0 items-center truncate rounded-md px-1.5 text-[10px] font-semibold leading-none tracking-[0.01em]";
 
+const PILL_THEMED = `${PILL_BASE} job-board-card-status-pill-themed`;
+
+/** Stage pill tinted to the column the card currently sits in. */
+export function jobBoardColumnStagePill(label: string, hex: string) {
+  return {
+    label,
+    className: PILL_THEMED,
+    style: { "--jb-pill-stage": hex } as CSSProperties,
+  };
+}
+
 export const JOB_BOARD_CARD_STATUS_PILL = {
   notStarted: {
-    label: "Draft",
+    label: JOB_BOARD_COLUMN_META.estimates.subtitle,
     className: `${PILL_BASE} bg-slate-100 text-slate-600 ring-1 ring-inset ring-slate-200/80`,
   },
   inProgress: {
-    label: "In bay",
+    label: JOB_BOARD_COLUMN_META.workInProgress.subtitle,
     className: `${PILL_BASE} bg-[color-mix(in_oklab,var(--jb-stage-wip)_14%,white)] text-[color-mix(in_oklab,var(--jb-stage-wip)_85%,#3a2a00)] ring-1 ring-inset ring-[color-mix(in_oklab,var(--jb-stage-wip)_28%,transparent)]`,
   },
   balanceDue: {
@@ -81,7 +136,7 @@ export const JOB_BOARD_CARD_STATUS_PILL = {
     className: `${PILL_BASE} bg-emerald-50 text-emerald-800 ring-1 ring-inset ring-emerald-200`,
   },
   completed: {
-    label: "Ready for pickup",
+    label: JOB_BOARD_COLUMN_META.completed.subtitle,
     className: `${PILL_BASE} bg-[color-mix(in_oklab,var(--jb-stage-completed)_12%,white)] text-[color-mix(in_oklab,var(--jb-stage-completed)_90%,#0a2a1a)] ring-1 ring-inset ring-[color-mix(in_oklab,var(--jb-stage-completed)_28%,transparent)]`,
   },
   approved: {
@@ -117,7 +172,7 @@ export const JOB_BOARD_STATUS_PILL: Record<
   { label: string; className: string }
 > = {
   ESTIMATE: {
-    label: "Estimate",
+    label: JOB_BOARD_COLUMN_META.estimates.subtitle,
     className: `${PILL_BASE} bg-[color-mix(in_oklab,var(--jb-stage-estimates)_14%,white)] text-[color-mix(in_oklab,var(--jb-stage-estimates)_90%,#0a1a40)]`,
   },
   APPROVED: {
@@ -125,11 +180,11 @@ export const JOB_BOARD_STATUS_PILL: Record<
     className: `${PILL_BASE} bg-[color-mix(in_oklab,var(--jb-stage-estimates)_12%,white)] text-[color-mix(in_oklab,var(--jb-stage-estimates)_90%,#0a1a40)]`,
   },
   IN_PROGRESS: {
-    label: "In Progress",
+    label: JOB_BOARD_COLUMN_META.workInProgress.subtitle,
     className: `${PILL_BASE} bg-[color-mix(in_oklab,var(--jb-stage-wip)_14%,white)] text-[color-mix(in_oklab,var(--jb-stage-wip)_85%,#3a2a00)]`,
   },
   COMPLETED: {
-    label: "Completed",
+    label: JOB_BOARD_COLUMN_META.completed.subtitle,
     className: `${PILL_BASE} bg-[color-mix(in_oklab,var(--jb-stage-completed)_12%,white)] text-[color-mix(in_oklab,var(--jb-stage-completed)_90%,#0a2a1a)]`,
   },
   INVOICED: {
@@ -140,20 +195,21 @@ export const JOB_BOARD_STATUS_PILL: Record<
 
 export function jobBoardCardClass(opts: {
   selected: boolean;
-  auth: "customer" | "shop" | null;
+  columnTheme?: JobBoardColumnTheme;
+  /** @deprecated Prefer columnTheme; kept for list/dashboard callers. */
   column?: BoardColumn;
-  /** @deprecated Age tone is no longer used for card chrome. */
-  tone?: "fresh" | "amber" | "stale" | "ready" | "neutral";
 }): string {
   const parts = ["job-board-card"];
-  if (opts.column) parts.push(`job-board-card-${opts.column}`);
+  if (opts.columnTheme?.coreColumn) {
+    parts.push(`job-board-card-${opts.columnTheme.coreColumn}`);
+  } else if (opts.column) {
+    parts.push(`job-board-card-${opts.column}`);
+  }
   if (opts.selected) parts.push("job-board-card-selected");
   return parts.join(" ");
 }
 
-/** Progress step index 0–2 for the three ShopRally columns. */
-export function jobBoardProgressStep(column?: BoardColumn): number {
-  if (column === "workInProgress") return 1;
-  if (column === "completed") return 2;
-  return 0;
+/** Progress step index for pipeline position (0-based). */
+export function jobBoardProgressStep(columnIndex = 0): number {
+  return Math.max(0, columnIndex);
 }

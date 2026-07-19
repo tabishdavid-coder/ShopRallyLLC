@@ -1,6 +1,6 @@
 # Google Business Profile — Reviews (Marketing)
 
-RepairPilot integrates with the [Google Business Profile API](https://developers.google.com/my-business/content/review-data) so shops can list, filter, and reply to Google reviews from **Marketing → Reviews** — similar to Tekmetric/Shopmonkey reputation modules.
+ShopRally integrates with the [Google Business Profile API](https://developers.google.com/my-business/content/review-data) so shops can list, filter, and reply to Google reviews from **Marketing → Reviews** — similar to Tekmetric/Shopmonkey reputation modules.
 
 ## Architecture
 
@@ -27,7 +27,7 @@ Without these, the app runs in **mock mode** with 5 seeded demo reviews for the 
 1. **Verified Google Business Profile** for the shop location (owner/manager access).
 2. **Google Cloud project** with Business Profile APIs enabled and **API access approved** by Google (not open by default — submit access request with use case).
 3. **OAuth consent screen** — external or internal, with scope `https://www.googleapis.com/auth/business.manage`.
-4. In RepairPilot: **Vendors → Google Reviews → Connect Google Business**, then enter Account ID + Location ID, then **Sync reviews**.
+4. In ShopRally: **Vendors → Google Reviews → Connect Google Business**, then enter Account ID + Location ID, then **Sync reviews**.
 
 ## OAuth flow
 

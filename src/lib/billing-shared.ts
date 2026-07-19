@@ -1,7 +1,7 @@
 import type { BillingStatus, ShopPlan } from "@/generated/prisma";
 import { PLAN_ORDER, type PlanFeatureSet } from "@/lib/plans";
 
-/** Platform subscription invoice line (shop pays RepairPilot — not customer RO invoices). */
+/** Platform subscription invoice line (shop pays ShopRally — not customer RO invoices). */
 export type BillingInvoiceLine = {
   description: string;
 };

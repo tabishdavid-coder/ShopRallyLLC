@@ -9,7 +9,7 @@ export function primaryAppHostname(): string {
   }
 }
 
-/** Per-shop sites subdomain target for custom-domain CNAME, e.g. joes-auto.sites.repairpilot.com */
+/** Per-shop sites subdomain target for custom-domain CNAME, e.g. joes-auto.sites.getshoprally.com */
 export function customDomainCnameTarget(slug: string): string {
   const appHost = primaryAppHostname();
   if (appHost === "localhost" || appHost.startsWith("127.")) {

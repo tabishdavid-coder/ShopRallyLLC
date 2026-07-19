@@ -9,6 +9,7 @@ import {
   ACTIVE_SHOP_COOKIE,
   CORE_QA_SHOP_ID,
   DEMO_SHOP_ID,
+  readActiveShopCookie,
 } from "@/lib/shop-constants";
 import { getClerkSessionContext, shopIdForClerkOrg } from "@/server/clerk-org";
 
@@ -35,12 +36,12 @@ export class ShopAccessError extends Error {
  * only shops they belong to.
  *
  * When Clerk Organizations are wired (M1b), active org maps to `Shop.clerkOrgId`.
- * Cookie `rp_active_shop` remains for platform admin multi-shop switching.
+ * Cookie `sr_active_shop` (legacy `rp_active_shop` still read) for platform admin multi-shop switching.
  */
 export async function getShopId(): Promise<string> {
   const user = await getCurrentUser();
   const cookieStore = await cookies();
-  const cookieShop = cookieStore.get(ACTIVE_SHOP_COOKIE)?.value;
+  const cookieShop = readActiveShopCookie(cookieStore);
   const isOperator = user.isPlatformAdmin || user.id === "stub-platform-admin";
 
   if (isClerkConfigured()) {
