@@ -37,11 +37,11 @@ import {
 } from "@/components/estimate-building/estimate-lab-display-context";
 import { EstimateLabPaymentStatusMenu } from "@/components/estimate-building/estimate-lab-payment-status-menu";
 import { PrintMenu } from "@/components/repair-order/print-menu";
+import { ShareMenu } from "@/components/repair-order/share-menu";
 import { RoWorkflowDropdown } from "@/components/repair-order/ro-workflow-dropdown";
 import { AuthorizeEstimateDialog } from "@/components/repair-order/authorize-estimate-dialog";
 import { useRoSidebarSave } from "@/components/repair-order/ro-sidebar-field-dialogs";
 import { roEstimateActionHref } from "@/lib/ro-context-actions";
-import { ShareEstimateDialog } from "@/components/repair-order/share-estimate-dialog";
 import { useEstimateSelection } from "@/components/repair-order/estimate-selection-context";
 import { Button } from "@/components/ui/button";
 import {
@@ -118,6 +118,8 @@ export type EstimateLabRightRailProps = {
   customerFirstName: string;
   phone: string | null;
   email: string | null;
+  /** Same phone list as header ShareMenu (primary + alt). */
+  sharePhones: { label: string; value: string }[];
   marketingOptIn: boolean;
   shopName: string;
   canEdit: boolean;
@@ -133,6 +135,10 @@ export type EstimateLabRightRailProps = {
   technicians?: StaffPick[];
   /** Design-mode-only "preview a payment status" override. Defaults to true; set false on production ROs so the strip always reflects real invoice data. */
   allowPaymentPreview?: boolean;
+  /** ShareMenu parity with RO header (inspection / estimate / invoice). */
+  invoiceId: string | null;
+  invoiceNumber: number | null;
+  inspectionId?: string | null;
 };
 
 const RAIL_CARD =
@@ -242,7 +248,14 @@ function MoneyCard({
   paidCents,
   totalCents,
   roId,
-  onShare,
+  roNumber,
+  customerFirstName,
+  shopName,
+  sharePhones,
+  email,
+  invoiceId,
+  invoiceNumber,
+  inspectionId,
   onDeposit,
   depositPending,
   depositPaid,
@@ -253,7 +266,14 @@ function MoneyCard({
   paidCents: number;
   totalCents: number;
   roId: string;
-  onShare: () => void;
+  roNumber: number;
+  customerFirstName: string;
+  shopName: string;
+  sharePhones: { label: string; value: string }[];
+  email: string | null;
+  invoiceId: string | null;
+  invoiceNumber: number | null;
+  inspectionId?: string | null;
   onDeposit: () => void;
   depositPending: boolean;
   depositPaid: boolean;
@@ -370,10 +390,30 @@ function MoneyCard({
         </Button>
 
         <div className="flex gap-1">
-          <Button type="button" variant="outline" size="sm" className={ghostBtn} onClick={onShare} title="Send or share estimate">
-            <Send className="size-3 shrink-0" aria-hidden />
-            Send
-          </Button>
+          <ShareMenu
+            roId={roId}
+            roNumber={roNumber}
+            customerFirstName={customerFirstName}
+            shopName={shopName}
+            phones={sharePhones}
+            email={email}
+            invoiceId={invoiceId}
+            invoiceNumber={invoiceNumber}
+            inspectionId={inspectionId}
+            contentAlign="start"
+            trigger={
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className={ghostBtn}
+                title="Send or share estimate"
+              >
+                <Send className="size-3 shrink-0" aria-hidden />
+                Send
+              </Button>
+            }
+          />
           <PrintMenu
             roId={roId}
             contentAlign="start"
@@ -935,6 +975,7 @@ function EstimateLabRightRailBody(props: EstimateLabRightRailProps) {
     customerFirstName,
     phone,
     email,
+    sharePhones,
     shopName,
     canEdit,
     approvable,
@@ -946,17 +987,17 @@ function EstimateLabRightRailBody(props: EstimateLabRightRailProps) {
     vehicleSpecs = null,
     technicians = [],
     allowPaymentPreview = true,
+    invoiceId,
+    invoiceNumber,
+    inspectionId = null,
   } = props;
 
   const [depositOpen, setDepositOpen] = useState(false);
-  const [shareOpen, setShareOpen] = useState(false);
 
   const depositPaid = deposit?.status === DepositRequestStatus.PAID;
   const depositPending = deposit?.status === DepositRequestStatus.PENDING;
   const paidInFull =
     financial.estimateTotalCents > 0 && financial.paidCents >= financial.estimateTotalCents;
-
-  const sharePhones = phone ? [{ label: "Primary", value: phone }] : [];
 
   return (
     <>
@@ -967,7 +1008,14 @@ function EstimateLabRightRailBody(props: EstimateLabRightRailProps) {
           paidCents={financial.paidCents}
           totalCents={financial.estimateTotalCents}
           roId={roId}
-          onShare={() => setShareOpen(true)}
+          roNumber={roNumber}
+          customerFirstName={customerFirstName}
+          shopName={shopName}
+          sharePhones={sharePhones}
+          email={email}
+          invoiceId={invoiceId}
+          invoiceNumber={invoiceNumber}
+          inspectionId={inspectionId}
           onDeposit={() => setDepositOpen(true)}
           depositPending={depositPending}
           depositPaid={depositPaid}
@@ -1011,17 +1059,6 @@ function EstimateLabRightRailBody(props: EstimateLabRightRailProps) {
         roNumber={roNumber}
         estimateTotalCents={estimateTotalCents}
         existingDeposit={deposit}
-      />
-
-      <ShareEstimateDialog
-        open={shareOpen}
-        onOpenChange={setShareOpen}
-        roId={roId}
-        roNumber={roNumber}
-        customerFirstName={customerFirstName}
-        shopName={shopName}
-        phones={sharePhones}
-        email={email}
       />
     </>
   );

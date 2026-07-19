@@ -7,6 +7,7 @@ import { DepositRequestStatus, PaymentMethod, ShopAuditEventType } from "@/gener
 import { getStripe, STRIPE_CHECKOUT_BRANDING } from "@/lib/stripe";
 import { publicUrl } from "@/lib/app-url";
 import { recordShopAuditEventSafe } from "@/server/shop-audit";
+import { applyDepositTowardInvoice } from "@/server/services/deposit-payments";
 import { getCheckoutStripeContext } from "@/server/services/stripe-connect";
 import { revalidateEstimatePaths } from "@/lib/estimate-revalidate";
 import { revalidatePath } from "next/cache";
@@ -160,6 +161,20 @@ export async function handleDepositCheckoutCompleted(session: Stripe.Checkout.Se
       stripePaymentIntentId: paymentIntentId,
     },
   });
+
+  const applied = await applyDepositTowardInvoice({
+    shopId,
+    repairOrderId: dep.repairOrderId,
+    amountCents: amountCents > 0 ? amountCents : dep.amountCents,
+    method: PaymentMethod.CARD,
+    depositRequestId: dep.id,
+    reference: `Deposit ${dep.id}`,
+    stripePaymentIntentId: paymentIntentId,
+    auditActor: null,
+  });
+  if (!applied.ok) {
+    console.error("[deposit] stripe apply toward invoice failed", dep.id, applied.error);
+  }
 
   await recordShopAuditEventSafe({
     shopId,

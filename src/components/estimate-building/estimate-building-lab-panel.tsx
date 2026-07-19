@@ -42,6 +42,7 @@ import { loadEstimateContextDrawerData } from "@/server/estimate-context-drawer"
 import { getCustomerPaymentHistory } from "@/server/customer-payment-history";
 import { getDefaultAppointmentDuration } from "@/server/actions/appointments";
 import { computeRoTotals } from "@/lib/ro-totals";
+import { sumPaidCents } from "@/lib/payment-status";
 import { inspectionProgress } from "@/lib/inspection";
 import { getDepositRequestForRo } from "@/server/deposit-request";
 import { getIntegrationStatusForShop } from "@/server/integrations";
@@ -68,8 +69,12 @@ export type EstimateWorkspaceVariant = "lab" | "production";
 function buildLabFinancial(
   ro: RepairOrderDetail,
   totals: ReturnType<typeof computeRoTotals>,
+  deposit: { status: string; amountCents: number } | null,
 ): EstimateLabFinancialSummary {
-  const paidCents = ro.invoice?.payments.reduce((s, p) => s + p.amountCents, 0) ?? 0;
+  const paidCents = sumPaidCents({
+    payments: ro.invoice?.payments,
+    deposit,
+  });
   const taxPct = (ro.shop.taxRateBps / 100).toFixed(2);
 
   return {
@@ -241,7 +246,7 @@ export async function EstimateBuildingLabPanel({
     taxOnFees: ro.shop.taxOnFees,
     taxCapCents: ro.shop.taxCapCents,
   });
-  const baseFinancial = buildLabFinancial(ro, roTotals);
+  const baseFinancial = buildLabFinancial(ro, roTotals, deposit);
   const authJobs = buildAuthJobs(ro);
   const gpGoalCents = ro.shop.gpPerHourGoalCents;
   const customerConcerns = ro.vehicleConcerns.filter((c) => c.kind === "CUSTOMER");
@@ -288,11 +293,26 @@ export async function EstimateBuildingLabPanel({
     ? [v.engine, v.drivetrain].filter(Boolean).join(" · ") || null
     : null;
 
-  const paymentBalanceDueCents = ro.invoice?.balanceCents ?? ro.totalCents;
+  const paidToDateCents = sumPaidCents({
+    payments: ro.invoice?.payments,
+    deposit,
+  });
+  // Prefer invoice balance when payments exist; otherwise subtract paid (incl. legacy deposits).
+  const paymentBalanceDueCents =
+    ro.invoice && (ro.invoice.payments?.length ?? 0) > 0
+      ? ro.invoice.balanceCents
+      : Math.max(0, (ro.invoice?.totalCents ?? ro.totalCents) - paidToDateCents);
   const canArchiveRo =
     (ro.status === ROStatus.COMPLETED || ro.status === ROStatus.INVOICED) &&
     Boolean(ro.invoice?.payments.length) &&
     paymentBalanceDueCents <= 0;
+
+  const sharePhones = [
+    ro.customer.phone ? { label: `${ro.customer.phone} - Mobile`, value: ro.customer.phone } : null,
+    ro.customer.altPhone
+      ? { label: `${ro.customer.altPhone} - Other`, value: ro.customer.altPhone }
+      : null,
+  ].filter((p): p is { label: string; value: string } => Boolean(p));
 
   const rightRailCommon = {
     roId: ro.id,
@@ -304,6 +324,7 @@ export async function EstimateBuildingLabPanel({
     customerFirstName: ro.customer.firstName?.trim() || customerName.split(/\s+/)[0] || "Customer",
     phone: ro.customer.phone,
     email: ro.customer.email,
+    sharePhones,
     marketingOptIn: ro.customer.marketingOptIn,
     shopName: ro.shop.name,
     canEdit,
@@ -315,6 +336,9 @@ export async function EstimateBuildingLabPanel({
     technicians: sidebarOptions.technicians,
     // Design-mode-only payment status override — production always shows real invoice data.
     allowPaymentPreview: variant === "lab",
+    invoiceId: ro.invoice?.id ?? null,
+    invoiceNumber: ro.invoice?.number ?? null,
+    inspectionId: ro.inspections[0]?.id ?? null,
   };
 
   const jobsLayout = resolveEstimateJobsLayout(ro.shop.estimateJobsLayout);
@@ -562,17 +586,15 @@ export async function EstimateBuildingLabPanel({
 
   const invoiceShareUrl = invoiceShareLink.ok ? invoiceShareLink.url : null;
   const paymentInvoiceId = invoiceShareLink.ok ? invoiceShareLink.invoiceId : (ro.invoice?.id ?? null);
-  const paymentIsPaid = paymentBalanceDueCents <= 0 || ro.invoice?.status === InvoiceStatus.PAID;
+  const paymentIsPaid =
+    paymentBalanceDueCents <= 0 ||
+    paidToDateCents >= ro.totalCents ||
+    ro.invoice?.status === InvoiceStatus.PAID;
   const paymentSubtotalCents =
     ro.laborSubtotalCents + ro.partsSubtotalCents + ro.shopSuppliesCents + ro.feesSubtotalCents;
   const paymentPayments = [...(ro.invoice?.payments ?? [])].sort(
     (a, b) => b.paidAt.getTime() - a.paidAt.getTime(),
   );
-  const paymentPhones = [
-    ro.customer.phone ? { label: `${ro.customer.phone} - Mobile`, value: ro.customer.phone } : null,
-    ro.customer.altPhone ? { label: `${ro.customer.altPhone} - Other`, value: ro.customer.altPhone } : null,
-  ].filter((p): p is { label: string; value: string } => Boolean(p));
-
   const paymentData: PaymentFinanceData = {
     repairOrderId: ro.id,
     roNumber: ro.number,
@@ -586,14 +608,14 @@ export async function EstimateBuildingLabPanel({
     shareUrl: invoiceShareUrl,
     customerFirstName: rightRailCommon.customerFirstName,
     shopName: ro.shop.name,
-    phones: paymentPhones,
+    phones: sharePhones,
     email: ro.customer.email,
     laborSubtotalCents: ro.laborSubtotalCents,
     feesSubtotalCents: ro.feesSubtotalCents,
     subtotalCents: paymentSubtotalCents,
     taxCents: ro.taxCents,
     grandTotalCents: ro.totalCents,
-    totalPaidCents: ro.totalCents - paymentBalanceDueCents,
+    totalPaidCents: paidToDateCents,
     payments: paymentPayments.map((p) => ({
       id: p.id,
       method: p.method,

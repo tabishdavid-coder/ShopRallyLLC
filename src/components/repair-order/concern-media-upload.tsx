@@ -11,10 +11,12 @@ export function ConcernMediaUpload({
   files,
   onFilesChange,
   disabled,
+  compact = false,
 }: {
   files: File[];
   onFilesChange: (files: File[]) => void;
   disabled?: boolean;
+  compact?: boolean;
 }) {
   const inputRef = useRef<HTMLInputElement>(null);
   const [dragOver, setDragOver] = useState(false);
@@ -52,13 +54,14 @@ export function ConcernMediaUpload({
           if (!disabled && e.dataTransfer.files.length) addFiles(e.dataTransfer.files);
         }}
         className={cn(
-          "flex flex-col items-center justify-center gap-2 rounded-md border border-dashed px-4 py-8 text-center transition-colors",
+          "flex flex-col items-center justify-center rounded-md border border-dashed text-center transition-colors",
+          compact ? "gap-1 px-3 py-3" : "gap-2 px-4 py-8",
           dragOver ? "border-brand-navy bg-brand-light/10" : "border-border bg-muted/20",
           disabled && "pointer-events-none opacity-50",
         )}
       >
-        <CloudUpload className="size-8 text-muted-foreground" />
-        <p className="text-sm text-muted-foreground">
+        <CloudUpload className={cn("text-muted-foreground", compact ? "size-5" : "size-8")} />
+        <p className={cn("text-muted-foreground", compact ? "text-xs" : "text-sm")}>
           Drag and drop files here, or{" "}
           <button
             type="button"
@@ -66,10 +69,10 @@ export function ConcernMediaUpload({
             onClick={() => inputRef.current?.click()}
             className="font-medium text-brand-navy hover:underline disabled:opacity-50"
           >
-            Choose files to upload
+            Choose files
           </button>
         </p>
-        <p className="text-xs text-muted-foreground">Maximum {MAX_FILES} files</p>
+        <p className="text-xs text-muted-foreground">Max {MAX_FILES} files</p>
         <input
           ref={inputRef}
           type="file"

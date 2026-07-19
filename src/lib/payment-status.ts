@@ -1,6 +1,21 @@
 /** Shared payment status labels for RO / invoice UI. */
 export type PaymentDisplayStatus = "unpaid" | "partial" | "paid";
 
+/**
+ * Paid-to-date for MoneyCard / estimate rail.
+ * Prefer sum of invoice Payment rows; if none exist yet, count a PAID deposit
+ * (legacy deposits that were not applied to an invoice).
+ */
+export function sumPaidCents(opts: {
+  payments?: { amountCents: number }[] | null;
+  deposit?: { status: string; amountCents: number } | null;
+}): number {
+  const fromPayments = opts.payments?.reduce((s, p) => s + p.amountCents, 0) ?? 0;
+  if (fromPayments > 0) return fromPayments;
+  if (opts.deposit?.status === "PAID") return opts.deposit.amountCents;
+  return 0;
+}
+
 export function paymentDisplayStatus(
   paidCents: number,
   totalCents: number,

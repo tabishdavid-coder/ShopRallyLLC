@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { Share2, ClipboardList, FileText, Receipt, SlidersHorizontal, History } from "lucide-react";
 
@@ -14,6 +14,7 @@ import {
 import { ShareEstimateDialog } from "@/components/repair-order/share-estimate-dialog";
 import { ShareInvoiceDialog } from "@/components/repair-order/share-invoice-dialog";
 import { ShareInspectionDialog } from "@/components/inspections/share-inspection-dialog";
+import { cn } from "@/lib/utils";
 
 export function ShareMenu({
   roId,
@@ -25,6 +26,9 @@ export function ShareMenu({
   invoiceId,
   invoiceNumber,
   inspectionId,
+  trigger,
+  contentAlign = "end",
+  contentClassName,
 }: {
   roId: string;
   roNumber: number;
@@ -35,6 +39,10 @@ export function ShareMenu({
   invoiceId: string | null;
   invoiceNumber: number | null;
   inspectionId?: string | null;
+  /** Custom trigger (e.g. MoneyCard SEND). Defaults to header share icon. */
+  trigger?: ReactNode;
+  contentAlign?: "start" | "center" | "end";
+  contentClassName?: string;
 }) {
   const router = useRouter();
   const [shareEstimateOpen, setShareEstimateOpen] = useState(false);
@@ -45,13 +53,18 @@ export function ShareMenu({
     <>
       <DropdownMenu>
         <DropdownMenuTrigger
+          asChild={trigger != null}
           aria-label="Share"
           title="Share"
-          className="rounded-md p-1.5 text-muted-foreground outline-none transition-colors hover:bg-accent hover:text-foreground data-[state=open]:bg-accent"
+          className={
+            trigger
+              ? undefined
+              : "rounded-md p-1.5 text-muted-foreground outline-none transition-colors hover:bg-accent hover:text-foreground data-[state=open]:bg-accent"
+          }
         >
-          <Share2 className="size-4" />
+          {trigger ?? <Share2 className="size-4" />}
         </DropdownMenuTrigger>
-        <DropdownMenuContent align="end" className="w-52">
+        <DropdownMenuContent align={contentAlign} className={cn("w-52", contentClassName)}>
           <DropdownMenuItem
             disabled={!inspectionId}
             onSelect={() => inspectionId && setShareInspectionOpen(true)}

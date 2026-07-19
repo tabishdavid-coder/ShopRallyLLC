@@ -19,6 +19,7 @@ import { releasedFeatureDenied } from "@/lib/subscription";
 import { requirePermission } from "@/server/permissions";
 import { recordShopAuditEventSafe } from "@/server/shop-audit";
 import { mintDepositShareToken } from "@/server/deposit-request";
+import { applyDepositTowardInvoice } from "@/server/services/deposit-payments";
 import { createDepositCheckoutSession } from "@/server/services/stripe-deposit";
 import { isStripeEnabled } from "@/lib/stripe";
 import type { ShareResult, SendChannel } from "@/server/actions/share";
@@ -237,14 +238,30 @@ export async function recordManualDepositPayment(
   });
   if (!dep) return { ok: false, error: "Deposit request not found or already paid." };
 
+  const method = parsed.data.method as PaymentMethod;
+
   await prisma.depositRequest.update({
     where: { id: dep.id },
     data: {
       status: DepositRequestStatus.PAID,
       paidAt: new Date(),
-      paidMethod: parsed.data.method as PaymentMethod,
+      paidMethod: method,
     },
   });
+
+  // Apply toward invoice so MoneyCard paid/due + Activity (PAYMENT_RECORDED) stay in sync.
+  const applied = await applyDepositTowardInvoice({
+    shopId,
+    repairOrderId: dep.repairOrderId,
+    amountCents: dep.amountCents,
+    method,
+    depositRequestId: dep.id,
+    reference: parsed.data.reference ?? `Deposit ${dep.id}`,
+    auditActor: { userId: user.id, email: user.email },
+  });
+  if (!applied.ok) {
+    console.error("[deposit] apply toward invoice failed", dep.id, applied.error);
+  }
 
   await recordShopAuditEventSafe({
     shopId,

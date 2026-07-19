@@ -9,8 +9,16 @@ import { resolveShopInvoiceTerms } from "@/lib/estimate-terms-default";
 import { buildServiceAdvisor, type ServiceAdvisorInfo } from "@/lib/service-advisor";
 import { ensureAutoApplyFees } from "@/server/ro-fees";
 
-/** Create an invoice for a completed repair order if one does not exist yet. */
-export async function ensureInvoiceForRepairOrder(roId: string, shopId: string) {
+/**
+ * Create an invoice for a repair order if one does not exist yet.
+ * By default only COMPLETED / INVOICED (job-board completion path).
+ * Pass `forPaymentCollection` to allow estimate/WIP deposits and in-shop payments.
+ */
+export async function ensureInvoiceForRepairOrder(
+  roId: string,
+  shopId: string,
+  opts?: { forPaymentCollection?: boolean },
+) {
   const existing = await prisma.invoice.findFirst({ where: { repairOrderId: roId, shopId } });
   if (existing) return existing;
 
@@ -29,7 +37,14 @@ export async function ensureInvoiceForRepairOrder(roId: string, shopId: string) 
     },
   });
   if (!ro || ro.invoice) return null;
-  if (ro.status !== ROStatus.COMPLETED && ro.status !== ROStatus.INVOICED) return null;
+  if (
+    !opts?.forPaymentCollection &&
+    ro.status !== ROStatus.COMPLETED &&
+    ro.status !== ROStatus.INVOICED
+  ) {
+    return null;
+  }
+  if (opts?.forPaymentCollection && ro.totalCents <= 0) return null;
 
   const agg = await prisma.invoice.aggregate({ where: { shopId }, _max: { number: true } });
   const nextNumber = (agg._max.number ?? 5000) + 1;

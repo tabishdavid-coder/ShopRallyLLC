@@ -5,6 +5,7 @@ import { z } from "zod";
 
 import { prisma } from "@/db/client";
 import { PaymentMethod, ShopAuditEventType } from "@/generated/prisma";
+import { revalidateEstimatePaths } from "@/lib/estimate-revalidate";
 import { getShopId } from "@/lib/shop";
 import { getCurrentUser } from "@/lib/platform";
 import { rateLimitAction } from "@/lib/rate-limit";
@@ -78,7 +79,9 @@ export async function recordManualPayment(raw: z.input<typeof ManualPaymentInput
 
   let invoice = ro.invoice;
   if (!invoice) {
-    const created = await ensureInvoiceForRepairOrder(repairOrderId, shopId);
+    const created = await ensureInvoiceForRepairOrder(repairOrderId, shopId, {
+      forPaymentCollection: true,
+    });
     if (!created) return { ok: false, error: "Invoice is not available for this repair order." };
     invoice = { id: created.id, balanceCents: created.balanceCents };
   }
@@ -93,7 +96,9 @@ export async function recordManualPayment(raw: z.input<typeof ManualPaymentInput
   });
 
   if (res.ok) {
-    revalidatePath(`/repair-orders/${repairOrderId}/payment`);
+    for (const path of revalidateEstimatePaths(repairOrderId)) {
+      revalidatePath(path);
+    }
     revalidatePath("/dashboard");
   }
 
