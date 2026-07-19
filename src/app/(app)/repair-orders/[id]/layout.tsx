@@ -10,8 +10,6 @@ import { isRoEstimateLikeWorkspacePath, defaultRoOpenHref } from "@/lib/ro-works
 import { RoWorkspacePanel } from "@/components/repair-order/ro-workspace-panel";
 import { RoContextDeck } from "@/components/repair-order/ro-context-deck";
 import { RoApproveActions } from "@/components/repair-order/ro-approve-actions";
-import { PrintMenu } from "@/components/repair-order/print-menu";
-import { ShareMenu } from "@/components/repair-order/share-menu";
 import { RoOdometerHeader } from "@/components/repair-order/ro-odometer-header";
 import { EstimateActionToastProvider } from "@/components/repair-order/estimate-action-toast";
 import { RoMessages } from "@/components/repair-order/ro-messages";
@@ -71,11 +69,6 @@ export default async function RepairOrderLayout({
     membership: undefined,
   };
 
-  const phones = [
-    ro.customer.phone ? { label: `${ro.customer.phone} - Mobile`, value: ro.customer.phone } : null,
-    ro.customer.altPhone ? { label: `${ro.customer.altPhone} - Other`, value: ro.customer.altPhone } : null,
-  ].filter((p): p is { label: string; value: string } => Boolean(p));
-
   const vehicleLabel = ro.vehicle
     ? [ro.vehicle.year, ro.vehicle.make, ro.vehicle.model, ro.vehicle.trim].filter(Boolean).join(" ")
     : null;
@@ -97,18 +90,6 @@ export default async function RepairOrderLayout({
         marketingOptIn={ro.customer.marketingOptIn}
         roId={ro.id}
       />
-      <ShareMenu
-        roId={ro.id}
-        roNumber={ro.number}
-        customerFirstName={ro.customer.firstName}
-        shopName={ro.shop.name}
-        phones={phones}
-        email={ro.customer.email}
-        invoiceId={ro.invoice?.id ?? null}
-        invoiceNumber={ro.invoice?.number ?? null}
-        inspectionId={ro.inspections[0]?.id ?? null}
-      />
-      <PrintMenu roId={ro.id} />
     </>
   );
 

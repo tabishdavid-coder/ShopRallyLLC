@@ -173,7 +173,7 @@ export function EstimateLabContextHeader({
 
             <span>{customerName}</span>
 
-            <Badge className={cn("ml-1.5 align-middle text-[10px]", pill.className)}>{pill.label}</Badge>
+            <Badge variant="outline" className={cn("ml-1.5 align-middle text-[10px]", pill.className)}>{pill.label}</Badge>
 
             <Badge
 

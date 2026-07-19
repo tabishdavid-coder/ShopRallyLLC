@@ -1,0 +1,22 @@
+---
+description: Pointer to vehicle spec UX research + AI enrichment memory (Tekmetric/AutoLeap parity).
+globs:
+  - src/components/**/estimate-lab*
+  - src/components/**/ro-vehicle-specs*
+  - src/components/**/edit-vehicle*
+  - src/components/**/add-vehicle*
+  - src/server/services/smart-ro-intake.ts
+  - src/server/services/vehicle-catalog.ts
+  - src/server/services/vin.ts
+---
+
+# Vehicle spec + AI enrichment
+
+Before building vehicle-spec UI or AI parse→enrich flows, read:
+
+**`agents/ShopRallyCRM/VEHICLE-SPEC-AI-MEMORY.md`**
+
+Key rules:
+- **Do not require VIN** to show or enrich specs — YMM (+ trim/engine) is enough to start; VIN improves accuracy.
+- Hybrid: AI parse → EPA/NHTSA catalog → optional VIN decode → MOTOR when licensed.
+- Tekmetric = right-rail accordion (Vehicle + Fluids…); AutoLeap = header info modal for fluids/battery.

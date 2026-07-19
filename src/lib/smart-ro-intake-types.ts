@@ -22,7 +22,7 @@ export type SmartRoVehicle = {
   drivetrain?: string | null;
   bodyClass?: string | null;
   confidence_score: number;
-  /** True when year/make/model came from free NHTSA (or shop VIN provider) decode. */
+  /** True when year/make/model came from NHTSA (or shop VIN provider) decode. */
   vinDecoded?: boolean;
 };
 

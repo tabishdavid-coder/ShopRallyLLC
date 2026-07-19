@@ -131,6 +131,7 @@ export async function submitCustomerApproval(
   revalidatePath(`/repair-orders/${ro.id}`);
   revalidatePath(`/repair-orders/${ro.id}/estimate`);
   revalidatePath(`/repair-orders/${ro.id}/work-in-progress`);
+  revalidatePath(`/approve/${token}`);
   return { ok: true, alreadyApproved: false };
 }
 

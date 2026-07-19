@@ -56,7 +56,7 @@ export function defaultJobBoardPipelineConfig(): JobBoardPipelineConfig {
         id: "workInProgress",
         kind: "workInProgress",
         title: "Work in Progress",
-        subtitle: "On the lift",
+        subtitle: "Work in progress",
       },
       {
         id: "completed",
@@ -102,6 +102,7 @@ export function resolveJobBoardPipelineConfig(raw: unknown): JobBoardPipelineCon
       "Quotes awaiting authorization",
       "Authorized jobs actively in the bay",
       "Authorized jobs in the bay",
+      "On the lift",
       "Ready to invoice or collect payment",
       "Ready to invoice or collect",
     ]);

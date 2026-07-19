@@ -17,9 +17,9 @@ export type ShopCapabilities = {
   partsTech: boolean;
   /** Growth Engine / marketing campaigns — Pro+ only. */
   marketingCampaigns: boolean;
-  /** VIN/vPIC vehicle specs rail — Pro+ only (Core uses manual YMM). */
+  /** On-demand Vehicle Specs (identity + fluids) — Core + Pro; catalog/AI only on Specs open. */
   vehicleSpecs: boolean;
-  /** Auto.dev plate→VIN lookup — Pro+ only (Core: manual plate + free NHTSA VIN). */
+  /** Auto.dev plate→VIN lookup — Pro+ only (Core: manual plate + NHTSA VIN). */
   autodevDecoding: boolean;
   /** Smart AI repair-order intake — Core-only AI Plus add-on. */
   freeformRoIntake: boolean;
@@ -86,7 +86,7 @@ export function useMarketingCampaignsUiEnabled(): boolean {
   return useShopCapabilities().marketingCampaigns;
 }
 
-/** VIN/vPIC vehicle specs rail — Pro+. */
+/** On-demand Vehicle Specs UI — Core + Pro (not Auto.dev). */
 export function useVehicleSpecsUiEnabled(): boolean {
   return useShopCapabilities().vehicleSpecs;
 }
@@ -104,6 +104,11 @@ export function useAutodevDecodingUiEnabled(): boolean {
 /** Smart AI repair-order intake — Core-only AI Plus add-on. */
 export function useSmartRoIntakeEnabled(): boolean {
   return useShopCapabilities().freeformRoIntake;
+}
+
+/** Alias for Smart AI intake entitlement checks in UI. */
+export function useFreeformRoIntakeEnabled(): boolean {
+  return useSmartRoIntakeEnabled();
 }
 
 /** True when active shop is on Core (STARTER) — Smart intake card is Core-only. */

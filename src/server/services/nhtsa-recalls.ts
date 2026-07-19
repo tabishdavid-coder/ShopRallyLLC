@@ -18,7 +18,7 @@ function pickString(obj: Record<string, unknown>, ...keys: string[]): string {
   return "";
 }
 
-/** Free NHTSA safety recalls for a year/make/model combination. */
+/** NHTSA safety recalls for a year/make/model combination. */
 export async function fetchRecallsByVehicle(opts: {
   year: number;
   make: string;

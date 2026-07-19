@@ -52,6 +52,18 @@ const FreeformParseSchema = z.object({
     .min(1),
   concerns: z.array(z.string()).optional().default([]),
   notes: z.string().nullable().optional(),
+  partHints: z
+    .array(
+      z.object({
+        description: z.string().min(1),
+        vendor: z.string().nullable().optional(),
+        vendorPhone: z.string().nullable().optional(),
+        partNumber: z.string().nullable().optional(),
+        relatedRepair: z.string().nullable().optional(),
+      }),
+    )
+    .optional()
+    .default([]),
 });
 
 type ParsedFreeform = z.infer<typeof FreeformParseSchema>;
@@ -69,7 +81,8 @@ Rules:
 - concerns = customer-stated symptoms or requests in their words (can mirror repairRequests).
 - If no customer info, customerHint should be null.
 - VIN must be 17 characters if present; plate is short alphanumeric.
-- mileage only when explicitly stated.`;
+- mileage only when explicitly stated.
+- partHints: when the user mentions ordering parts, a vendor (AutoZone, O'Reilly, NAPA), vendor phone, or part numbers, add entries with description + vendor details. Link relatedRepair to the matching repair when possible.`;
 
 function normalizeVehicle(parsed: ParsedFreeform["vehicle"]): FreeformVehicleDraft {
   let year = parsed.year ?? null;
@@ -204,6 +217,7 @@ function fallbackParse(text: string): ParsedFreeform {
     repairRequests: [{ description: trimmed }],
     concerns: [trimmed],
     notes: null,
+    partHints: [],
   };
 }
 
@@ -249,6 +263,13 @@ export async function buildFreeformRoDraft(
     concerns,
     notes: parsed.notes?.trim() || null,
     jobs,
+    partHints: (parsed.partHints ?? []).map((p) => ({
+      description: p.description.trim(),
+      vendor: p.vendor?.trim() || null,
+      vendorPhone: p.vendorPhone?.trim() || null,
+      partNumber: p.partNumber?.trim() || null,
+      relatedRepair: p.relatedRepair?.trim() || null,
+    })),
     suggestedCustomerIds: [],
   };
 }

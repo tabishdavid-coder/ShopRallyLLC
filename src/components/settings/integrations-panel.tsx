@@ -48,7 +48,7 @@ export function IntegrationsPanel({
         title="Integrations"
         description={
           isCore
-            ? "Core includes free NHTSA VIN decode and email — Pro adds plate lookup, PartsTech, SMS, and Stripe."
+            ? "Core includes NHTSA VIN decode and email — Pro adds plate lookup, PartsTech, SMS, and Stripe."
             : "Connected services that power VIN decode, parts, payments, messaging, and auth."
         }
         meta={

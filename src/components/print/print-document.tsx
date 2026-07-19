@@ -1,5 +1,6 @@
 import { formatCents, customerDisplayName } from "@/lib/format";
 import { formatPrintVehicleLabel } from "@/lib/print-vehicle-label";
+import { computeNamedFeeLines } from "@/lib/ro-totals";
 import type { RepairOrderDetail } from "@/server/repair-order";
 import { AutoPrint } from "@/components/print/auto-print";
 import { CustomerAcknowledgment } from "@/components/customer-acknowledgment";
@@ -64,6 +65,34 @@ export function PrintDocument({
 
   const totalJobs = ro.laborSubtotalCents + ro.partsSubtotalCents;
   const fees = ro.feesSubtotalCents;
+  const customerFeeLines = showCost
+    ? []
+    : computeNamedFeeLines(
+        ro.fees.map((f) => ({
+          name: f.name,
+          jobId: f.jobId,
+          method: f.method,
+          base: f.base,
+          amount: f.amount,
+          capCents: f.capCents,
+          taxable: f.taxable,
+        })),
+        ro.jobs.map((j) => ({
+          id: j.id,
+          laborTaxable: j.laborTaxable,
+          partsTaxable: j.partsTaxable,
+          laborLines: j.laborLines.map((l) => ({
+            totalCents: l.totalCents,
+            authorized: true,
+            taxable: "taxable" in l ? l.taxable : undefined,
+          })),
+          partLines: j.partLines.map((p) => ({
+            totalCents: p.totalCents,
+            authorized: true,
+            taxable: "taxable" in p ? p.taxable : undefined,
+          })),
+        })),
+      );
   const discount = ro.discountCents;
   const subtotal = totalJobs + fees - discount + (ro.shopSuppliesCents ?? 0);
   const grandTotal = ro.totalCents;
@@ -198,7 +227,18 @@ export function PrintDocument({
         <table className="w-64 text-right">
           <tbody>
             <TRow label="Total Jobs:" value={formatCents(totalJobs)} />
-            {fees > 0 ? <TRow label="Total Fees:" value={formatCents(fees)} /> : null}
+            {customerFeeLines.length === 1 ? (
+              <TRow
+                label={`Fees · ${customerFeeLines[0].name}:`}
+                value={formatCents(customerFeeLines[0].amountCents)}
+              />
+            ) : customerFeeLines.length > 1 ? (
+              customerFeeLines.map((fee, i) => (
+                <TRow key={`${fee.name}-${i}`} label={`${fee.name}:`} value={formatCents(fee.amountCents)} />
+              ))
+            ) : fees > 0 ? (
+              <TRow label="Total Fees:" value={formatCents(fees)} />
+            ) : null}
             {discount > 0 ? <TRow label="Discounts:" value={`-${formatCents(discount)}`} /> : null}
             <TRow label="Subtotal:" value={formatCents(subtotal)} bold />
             <TRow label="Taxes:" value={formatCents(ro.taxCents)} />

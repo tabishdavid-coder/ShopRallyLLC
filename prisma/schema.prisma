@@ -278,6 +278,7 @@ enum ShopAuditEventType {
   RETENTION_JOB_RUN
   DSAR_EXPORT
   RO_ACTIVITY_ADDED
+  RO_CREATED
 }
 
 // Subscription tier assigned by platform admin (per shop / location).

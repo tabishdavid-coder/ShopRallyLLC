@@ -89,6 +89,11 @@ Use shadcn + lucide only.
 - `/home`, `/quick-labor`, `/workflow` still work
 - Jobs layout toggle works at Settings → Estimates → Estimate workspace
 
+## Vehicle spec + AI enrichment (research memory)
+
+SnagIt frame analysis + capability audit → **`agents/ShopRallyCRM/VEHICLE-SPEC-AI-MEMORY.md`**  
+Tekmetric (fluids sidebar) vs AutoLeap (spec modal); hybrid AI→YMM→catalog pipeline; **no VIN gate** for showing specs.
+
 ## Current task
 
 [Paste your specific task here]

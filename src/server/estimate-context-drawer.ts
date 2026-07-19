@@ -2,6 +2,7 @@ import "server-only";
 
 import { prisma } from "@/db/client";
 import { getCustomerDetail } from "@/server/customer-detail";
+import { getCustomerDeferredJobs } from "@/server/deferred-jobs";
 import type { EstimateContextDrawerData } from "@/lib/estimate-context-drawer-types";
 
 /** Load drawer payload for an RO customer — shop-scoped, JSON-safe. */
@@ -31,6 +32,8 @@ export async function loadEstimateContextDrawerData(
       vehicle: { select: { year: true, make: true, model: true } },
     },
   });
+
+  const deferredJobs = await getCustomerDeferredJobs(shopId, customerId);
 
   return {
     detail: {
@@ -78,5 +81,6 @@ export async function loadEstimateContextDrawerData(
         : null,
     })),
     availableCreditCents: 0,
+    deferredJobs,
   };
 }

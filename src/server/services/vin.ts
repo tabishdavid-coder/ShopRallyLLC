@@ -12,7 +12,7 @@ import {
  * VIN + license-plate decoding behind a swappable provider interface.
  *
  * PRIMARY: Auto.dev (rich US-market data — make/model/trim/engine, + plate→VIN)
- * when AUTODEV_API_KEY is set. FALLBACK: free NHTSA vPIC. The rest of the app
+ * when AUTODEV_API_KEY is set. FALLBACK: NHTSA vPIC. The rest of the app
  * only sees our `DecodedVin` model.
  */
 
@@ -176,7 +176,7 @@ const autodevKey = process.env.AUTODEV_API_KEY?.trim();
 
 const nhtsaVinProvider = new NhtsaVinProvider();
 
-/** Shop-plan-aware VIN decode — Core uses free NHTSA only; Pro+ may use Auto.dev when configured. */
+/** Shop-plan-aware VIN decode — Core uses NHTSA only; Pro+ may use Auto.dev when configured. */
 export async function decodeVinForShop(shopId: string, vin: string): Promise<DecodedVin | null> {
   const { canUseFeature } = await import("@/lib/subscription");
   const autodev = await canUseFeature(shopId, "autodevDecoding");

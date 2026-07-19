@@ -16,6 +16,7 @@ import {
   type JobBoardPipelineConfig,
 } from "@/lib/job-board-pipeline";
 import { getJobBoardPipelineConfig } from "@/server/job-board";
+import { revalidateEstimatePaths } from "@/lib/estimate-revalidate";
 import { ShopAuditEventType } from "@/generated/prisma";
 import {
   approveAndStartWork,
@@ -173,9 +174,9 @@ export async function moveRepairOrder(raw: MoveInput): Promise<ActionResult> {
   }
 
   revalidatePath("/job-board");
-  revalidatePath(`/repair-orders/${movedId}`);
-  revalidatePath(`/repair-orders/${movedId}/payment`);
-  revalidatePath(`/repair-orders/${movedId}/work-in-progress`);
+  for (const path of revalidateEstimatePaths(movedId)) {
+    revalidatePath(path);
+  }
   return { ok: true };
 }
 
@@ -260,7 +261,9 @@ export async function createApprovalLink(roId: string): Promise<LinkResult> {
   });
 
   revalidatePath("/job-board");
-  revalidatePath(`/repair-orders/${roId}`);
+  for (const path of revalidateEstimatePaths(roId)) {
+    revalidatePath(path);
+  }
   return { ok: true, url: await appUrl(`/approve/${token}`) };
 }
 
@@ -290,34 +293,11 @@ export async function disableApprovalLink(roId: string): Promise<ActionResult> {
   return { ok: true };
 }
 
-/** Hide a paid, closed RO from the job board (manual archive). */
+/** Hide an RO from the active job board (manual archive). */
 export async function archiveRepairOrder(roId: string): Promise<ActionResult> {
   const shopId = await getShopId();
   const perm = await requirePermission(shopId, "job_board.view");
   if (!perm.ok) return perm;
-
-  const ro = await prisma.repairOrder.findFirst({
-    where: { id: roId, shopId, archivedAt: null },
-    select: {
-      status: true,
-      invoice: {
-        select: {
-          balanceCents: true,
-          payments: { select: { id: true }, take: 1 },
-        },
-      },
-    },
-  });
-  if (!ro) return { ok: false, error: "Repair order not found." };
-  if (ro.status !== ROStatus.COMPLETED && ro.status !== ROStatus.INVOICED) {
-    return { ok: false, error: "Only completed repair orders can be archived." };
-  }
-  if (!ro.invoice?.payments.length) {
-    return { ok: false, error: "Post payment before archiving." };
-  }
-  if ((ro.invoice.balanceCents ?? 0) > 0) {
-    return { ok: false, error: "Balance must be zero before archiving." };
-  }
 
   const updated = await prisma.repairOrder.updateMany({
     where: { id: roId, shopId, archivedAt: null },
@@ -330,12 +310,14 @@ export async function archiveRepairOrder(roId: string): Promise<ActionResult> {
     shopId,
     repairOrderId: roId,
     eventType: ShopAuditEventType.ESTIMATE_AUTHORIZATION_CHANGED,
-    summary: "Archived from job board after payment posted",
+    summary: "Archived from job board",
     metadata: { via: "job_board_archive" },
   });
 
   revalidatePath("/job-board");
-  revalidatePath(`/repair-orders/${roId}`);
+  for (const path of revalidateEstimatePaths(roId)) {
+    revalidatePath(path);
+  }
   return { ok: true };
 }
 

@@ -46,5 +46,11 @@ export const EMPTY_DEMO_SHOP_ID = "shop_eastside";
 /** Core fidelity QA shop — Macuto Auto Repair (plan STARTER). */
 export const MACUTO_SHOP_ID = "shop_macuto";
 
-/** Seeded Macuto estimate RO for Core walkthroughs. */
-export const MACUTO_ESTIMATE_RO_ID = "ro_macuto_1001";
+/**
+ * Macuto Core walkthrough RO (#1001).
+ * Live Neon id (cuid) — the fixed seed id `ro_macuto_1001` is not present in this DB.
+ * Prefer opening from Job Board if this drifts after a re-seed.
+ */
+export const MACUTO_ESTIMATE_RO_ID = "cmrnmr3f4000bhh3453pzj2mp";
+/** Display number for the Macuto walkthrough RO. */
+export const MACUTO_ESTIMATE_RO_NUMBER = 1001;

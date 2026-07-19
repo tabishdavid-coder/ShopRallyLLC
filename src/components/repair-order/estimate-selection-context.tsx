@@ -13,7 +13,12 @@ import {
 import { useRouter } from "next/navigation";
 
 import { laborLineTotal, partLineTotal } from "@/lib/line-calc";
-import { computeRoTotals, type RoTotalsResult } from "@/lib/ro-totals";
+import {
+  computeNamedFeeLines,
+  computeRoTotals,
+  type NamedFeeLine,
+  type RoTotalsResult,
+} from "@/lib/ro-totals";
 import {
   toggleJobAuthorized,
   toggleLaborAuthorized,
@@ -56,6 +61,7 @@ export type JobEditDraft = {
 type Ctx = {
   mergedJobs: Job[];
   totals: RoTotalsResult;
+  feeLines: NamedFeeLine[];
   toggleJob: (jobId: string, authorized: boolean) => void;
   toggleLabor: (jobId: string, lineId: string, authorized: boolean) => void;
   togglePart: (jobId: string, lineId: string, authorized: boolean) => void;
@@ -170,6 +176,69 @@ export function EstimateSelectionProvider({
     [mergedJobs, drafts],
   );
 
+  const totalsJobs = useMemo(
+    () =>
+      mergedJobs.map((j) => {
+        const draft = drafts[j.id];
+        if (draft) {
+          return {
+            id: j.id,
+            laborTaxable: j.laborTaxable,
+            partsTaxable: j.partsTaxable,
+            laborLines: draft.laborLines.map((l) => ({
+              totalCents: laborLineTotal(l),
+              authorized: l.id
+                ? (selection[j.id]?.labor[l.id] ?? l.authorized !== false)
+                : l.authorized !== false,
+              taxable: l.taxable,
+            })),
+            partLines: draft.partLines.map((p) => ({
+              totalCents: partLineTotal(p),
+              authorized: p.id
+                ? (selection[j.id]?.parts[p.id] ?? p.authorized !== false)
+                : p.authorized !== false,
+              taxable: p.taxable,
+            })),
+          };
+        }
+        return {
+          id: j.id,
+          laborTaxable: j.laborTaxable,
+          partsTaxable: j.partsTaxable,
+          laborLines: j.laborLines.map((l) => ({
+            totalCents: l.totalCents,
+            authorized: l.authorized,
+            taxable: "taxable" in l ? l.taxable : undefined,
+          })),
+          partLines: j.partLines.map((p) => ({
+            totalCents: p.totalCents,
+            authorized: p.authorized,
+            taxable: "taxable" in p ? p.taxable : undefined,
+          })),
+        };
+      }),
+    [mergedJobs, drafts, selection],
+  );
+
+  const feeInputs = useMemo(
+    () =>
+      fees.map((f) => ({
+        name: f.name,
+        jobId: f.jobId,
+        method: f.method,
+        base: f.base,
+        amount: f.amount,
+        capCents: f.capCents,
+        taxable: f.taxable,
+      })),
+    [fees],
+  );
+
+  const feeLines = useMemo(
+    () => computeNamedFeeLines(feeInputs, totalsJobs),
+    [feeInputs, totalsJobs],
+  );
+
   const totals = useMemo(
     () =>
       computeRoTotals(
@@ -180,49 +249,8 @@ export function EstimateSelectionProvider({
           taxOnParts,
           taxOnFees,
           taxCapCents,
-          jobs: mergedJobs.map((j) => {
-            const draft = drafts[j.id];
-            if (draft) {
-              return {
-                id: j.id,
-                laborTaxable: j.laborTaxable,
-                partsTaxable: j.partsTaxable,
-                laborLines: draft.laborLines.map((l) => ({
-                  totalCents: laborLineTotal(l),
-                  authorized: l.id ? (selection[j.id]?.labor[l.id] ?? l.authorized !== false) : l.authorized !== false,
-                  taxable: l.taxable,
-                })),
-                partLines: draft.partLines.map((p) => ({
-                  totalCents: partLineTotal(p),
-                  authorized: p.id ? (selection[j.id]?.parts[p.id] ?? p.authorized !== false) : p.authorized !== false,
-                  taxable: p.taxable,
-                })),
-              };
-            }
-            return {
-              id: j.id,
-              laborTaxable: j.laborTaxable,
-              partsTaxable: j.partsTaxable,
-              laborLines: j.laborLines.map((l) => ({
-                totalCents: l.totalCents,
-                authorized: l.authorized,
-                taxable: "taxable" in l ? l.taxable : undefined,
-              })),
-              partLines: j.partLines.map((p) => ({
-                totalCents: p.totalCents,
-                authorized: p.authorized,
-                taxable: "taxable" in p ? p.taxable : undefined,
-              })),
-            };
-          }),
-          fees: fees.map((f) => ({
-            jobId: f.jobId,
-            method: f.method,
-            base: f.base,
-            amount: f.amount,
-            capCents: f.capCents,
-            taxable: f.taxable,
-          })),
+          jobs: totalsJobs,
+          fees: feeInputs,
           discounts: discounts.map((d) => ({
             jobId: d.jobId,
             method: d.method,
@@ -234,8 +262,8 @@ export function EstimateSelectionProvider({
         laborCostCents,
       ),
     [
-      mergedJobs,
-      fees,
+      totalsJobs,
+      feeInputs,
       discounts,
       shopSuppliesCents,
       taxRateBps,
@@ -245,8 +273,6 @@ export function EstimateSelectionProvider({
       taxCapCents,
       partsCostCents,
       laborCostCents,
-      drafts,
-      selection,
     ],
   );
 
@@ -312,8 +338,8 @@ export function EstimateSelectionProvider({
   }, []);
 
   const value = useMemo(
-    () => ({ mergedJobs, totals, toggleJob, toggleLabor, togglePart, setJobDraft, pending }),
-    [mergedJobs, totals, toggleJob, toggleLabor, togglePart, setJobDraft, pending],
+    () => ({ mergedJobs, totals, feeLines, toggleJob, toggleLabor, togglePart, setJobDraft, pending }),
+    [mergedJobs, totals, feeLines, toggleJob, toggleLabor, togglePart, setJobDraft, pending],
   );
 
   return <EstimateSelectionContext.Provider value={value}>{children}</EstimateSelectionContext.Provider>;

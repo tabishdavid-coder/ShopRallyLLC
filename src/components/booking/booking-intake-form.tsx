@@ -66,7 +66,7 @@ type Props = {
   defaultDurationMins: number;
   dropOffEnabled?: boolean;
   dropOffLabel?: string;
-  /** Pro+ Auto.dev plate→VIN — false on Core (manual plate + free NHTSA VIN only). */
+  /** Pro+ Auto.dev plate→VIN — false on Core (manual plate + NHTSA VIN only). */
   plateLookupEnabled?: boolean;
 };
 
@@ -946,7 +946,7 @@ export function BookingIntakeForm({
                 ) : null}
                 {!plateLookupEnabled && showPlateMode ? (
                   <p className="text-xs text-muted-foreground">
-                    VIN decode uses free NHTSA vPIC. Plates are saved manually — no plate lookup on
+                    VIN decode uses NHTSA vPIC. Plates are saved manually — no plate lookup on
                     Core.
                   </p>
                 ) : null}

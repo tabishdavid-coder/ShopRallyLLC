@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
+import { usePathname, useRouter } from "next/navigation";
 import { Eye, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -24,8 +24,11 @@ export function EstimateViewToast({
   initialNotified: boolean;
   roNumber: number;
 }) {
+  const router = useRouter();
+  const pathname = usePathname();
   const [visible, setVisible] = useState(initialViewed && !initialNotified);
   const [number, setNumber] = useState(roNumber);
+  const estimateHref = `/repair-orders/${roId}/estimate`;
 
   useEffect(() => {
     // SSR already knows viewed/notified — polling only needed while waiting for customer open.
@@ -84,6 +87,23 @@ export function EstimateViewToast({
     await markEstimateViewNotified(roId);
   }
 
+  async function handleView() {
+    await dismiss();
+
+    const onEstimateTab =
+      pathname === estimateHref || pathname.startsWith(`${estimateHref}/`);
+
+    if (onEstimateTab) {
+      document.getElementById("estimate-outreach-status")?.scrollIntoView({
+        behavior: "smooth",
+        block: "nearest",
+      });
+      return;
+    }
+
+    router.push(estimateHref);
+  }
+
   return (
     <div
       role="status"
@@ -98,8 +118,14 @@ export function EstimateViewToast({
           They opened the approval link — follow up if needed.
         </p>
       </div>
-      <Button variant="ghost" size="sm" asChild className="shrink-0 text-emerald-900">
-        <Link href={`/repair-orders/${roId}/estimate`}>View</Link>
+      <Button
+        type="button"
+        variant="ghost"
+        size="sm"
+        className="shrink-0 text-emerald-900"
+        onClick={() => void handleView()}
+      >
+        View
       </Button>
       <button
         type="button"

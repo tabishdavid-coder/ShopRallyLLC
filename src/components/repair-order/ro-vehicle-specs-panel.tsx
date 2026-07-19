@@ -8,7 +8,9 @@ import {
 
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import {
+  vehicleCanShowSpecsUi,
   vehicleHasSpecsData,
+  vehicleYmmLabel,
   type VehicleSpecsView,
 } from "@/lib/vehicle-specs-view";
 import { VinDisplay } from "@/components/vin-display";
@@ -97,31 +99,30 @@ function SidebarAccordion({
 }
 
 function VehicleSpecsContent({ specs, rail }: { specs: VehicleSpecsView; rail?: boolean }) {
-  if (!vehicleHasSpecsData(specs)) {
+  if (!vehicleCanShowSpecsUi(specs)) {
     return (
       <p className={rail ? "text-[13px] text-[var(--jb-slate,#5b7295)]" : undefined}>
-        Add a VIN or complete year/make/model on the vehicle to see decoded specifications.
+        Add year, make, and model to see vehicle specs. VIN improves accuracy but is optional.
       </p>
     );
   }
 
+  const ymm = vehicleYmmLabel(specs);
+  const rich = vehicleHasSpecsData(specs);
+
   return (
     <div className="space-y-1.5">
+      {ymm ? <SidebarSpecRow rail={rail} label="Vehicle" value={ymm} /> : null}
       {specs.vin ? (
         <SidebarSpecRow
           rail={rail}
           label="VIN"
           value={<VinDisplay vin={specs.vin} className={rail ? "text-[13px]" : "text-[12px]"} />}
         />
-      ) : null}
-      {[specs.year, specs.make, specs.model, specs.trim].filter(Boolean).length ? (
-        <SidebarSpecRow
-          rail={rail}
-          label="Vehicle"
-          value={[specs.year, specs.make, specs.model, specs.trim].filter(Boolean).join(" ")}
-        />
-      ) : null}
-      {specs.engine ? <SidebarSpecRow rail={rail} label="Engine" value={specs.engine} /> : null}
+      ) : (
+        <SidebarSpecRow rail={rail} label="VIN" value="—" />
+      )}
+      <SidebarSpecRow rail={rail} label="Engine" value={specs.engine} />
       {!rail
         ? specs.engineRows.map((row) => (
             <SidebarSpecRow key={row.label} label={row.label} value={row.value} />
@@ -131,7 +132,11 @@ function VehicleSpecsContent({ specs, rail }: { specs: VehicleSpecsView; rail?: 
       <SidebarSpecRow rail={rail} label="Drivetrain" value={specs.drivetrain} />
       {!rail ? <SidebarSpecRow label="Body" value={specs.bodyClass} /> : null}
       {!rail ? (
-        <p className="pt-1 text-[10px] text-muted-foreground/90">From VIN decode · NHTSA vPIC</p>
+        <p className="pt-1 text-[10px] text-muted-foreground/90">
+          {rich && specs.vin
+            ? "From VIN decode · NHTSA vPIC"
+            : "Identity from vehicle record · catalog enrichment when available"}
+        </p>
       ) : null}
     </div>
   );

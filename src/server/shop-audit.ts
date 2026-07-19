@@ -13,6 +13,8 @@ export type RecordShopAuditInput = {
   invoiceId?: string | null;
   paymentId?: string | null;
   metadata?: Record<string, unknown> | null;
+  /** Backfill / structural events (e.g. RO created before audit pipeline). */
+  createdAt?: Date;
   /** Omit to use the current user; pass `null` for system/customer/webhook events. */
   actor?: { userId: string; email: string } | null;
 };
@@ -36,6 +38,7 @@ const ESTIMATE_EVENT_TYPES: ShopAuditEventType[] = [
   ShopAuditEventType.ESTIMATE_LINK_CREATED,
   ShopAuditEventType.ESTIMATE_LINK_REVOKED,
   ShopAuditEventType.RO_ACTIVITY_ADDED,
+  ShopAuditEventType.RO_CREATED,
 ];
 
 const PAYMENT_EVENT_TYPES: ShopAuditEventType[] = [
@@ -91,6 +94,7 @@ export async function recordShopAuditEvent(
       actorUserId: actor.actorUserId,
       actorEmail: actor.actorEmail,
       metadata: metadata as Prisma.InputJsonValue | undefined,
+      ...(input.createdAt ? { createdAt: input.createdAt } : {}),
     },
   });
 }
@@ -102,6 +106,31 @@ export async function recordShopAuditEventSafe(input: RecordShopAuditInput) {
   } catch (err) {
     console.error("[shop-audit] failed to record", input.eventType, err);
   }
+}
+
+export type RoCreatedAuditSource = "manual" | "freeform_intake" | "smart_intake";
+
+const RO_CREATED_SUMMARY: Record<RoCreatedAuditSource, string> = {
+  manual: "Repair order created",
+  freeform_intake: "Repair order created via AI intake",
+  smart_intake: "Repair order created via smart intake",
+};
+
+/** Seed the RO Activity tab with a structural creation entry (no manual RoActivity row). */
+export async function recordRoCreatedAudit(input: {
+  shopId: string;
+  repairOrderId: string;
+  roNumber: number;
+  source?: RoCreatedAuditSource;
+}) {
+  const source = input.source ?? "manual";
+  await recordShopAuditEventSafe({
+    shopId: input.shopId,
+    repairOrderId: input.repairOrderId,
+    eventType: ShopAuditEventType.RO_CREATED,
+    summary: `${RO_CREATED_SUMMARY[source]} (#${input.roNumber})`,
+    metadata: { roNumber: input.roNumber, source },
+  });
 }
 
 export type ShopAuditTrailScope = "all" | "estimate" | "payment";
@@ -118,7 +147,33 @@ export type ShopAuditEventRow = {
 async function repairOrderInShop(shopId: string, repairOrderId: string) {
   return prisma.repairOrder.findFirst({
     where: { id: repairOrderId, shopId },
+    select: { id: true, number: true, createdAt: true },
+  });
+}
+
+/**
+ * Idempotent seed for the Activity tab — inserts RO_CREATED when missing
+ * (older ROs or best-effort writes that failed silently).
+ */
+async function ensureRoCreatedAudit(
+  shopId: string,
+  repairOrderId: string,
+  ro: { number: number; createdAt: Date },
+) {
+  const existing = await prisma.shopAuditEvent.findFirst({
+    where: { shopId, repairOrderId, eventType: ShopAuditEventType.RO_CREATED },
     select: { id: true },
+  });
+  if (existing) return;
+
+  await recordShopAuditEventSafe({
+    shopId,
+    repairOrderId,
+    eventType: ShopAuditEventType.RO_CREATED,
+    summary: `Repair order created (#${ro.number})`,
+    metadata: { roNumber: ro.number, source: "backfill" },
+    createdAt: ro.createdAt,
+    actor: null,
   });
 }
 
@@ -130,6 +185,10 @@ export async function getRepairOrderAuditTrail(
 ): Promise<ShopAuditEventRow[]> {
   const ro = await repairOrderInShop(shopId, repairOrderId);
   if (!ro) return [];
+
+  if (scope === "all" || scope === "estimate") {
+    await ensureRoCreatedAudit(shopId, repairOrderId, ro);
+  }
 
   const where: Prisma.ShopAuditEventWhereInput = {
     shopId,

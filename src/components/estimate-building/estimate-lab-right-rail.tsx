@@ -18,16 +18,15 @@ import {
 } from "lucide-react";
 
 import { EstimateLabMessagesHost } from "@/components/estimate-building/estimate-lab-messages-host";
-import { useEstimateLabContextDrawerOptional } from "@/components/estimate-building/estimate-lab-context-drawer-provider";
-import { EstimateLabVehicleSpecsSection } from "@/components/estimate-building/estimate-lab-vehicle-specs-section";
+import { EstimateLabVehicleSpecsLazy } from "@/components/estimate-building/estimate-lab-vehicle-specs-lazy";
 import { useEstimateLabPartsOptional } from "@/components/estimate-building/estimate-lab-parts-provider";
 import {
   usePartsTechUiEnabled,
   useStripePaymentsUiEnabled,
-  useVehicleSpecsUiEnabled,
 } from "@/lib/shop-capabilities";
 
 import { EstimateDepositRequestDialog } from "@/components/estimate-building/estimate-deposit-request-dialog";
+import { CustomerFeeRows } from "@/components/customer/customer-fee-rows";
 import {
   type EstimateLabQuickReferenceData,
 } from "@/components/estimate-building/estimate-lab-quick-reference";
@@ -53,7 +52,7 @@ import { DepositRequestStatus } from "@/generated/prisma";
 import type { ROStatus } from "@/generated/prisma";
 import { fmtDateTime, toDate } from "@/lib/datetime";
 import { formatCents } from "@/lib/format";
-import type { EstimateLabVehicleSpecsBundle } from "@/lib/estimate-lab-vehicle-specs";
+import type { NamedFeeLine } from "@/lib/ro-totals";
 import { paymentDisplayStatus } from "@/lib/payment-status";
 import { cn } from "@/lib/utils";
 
@@ -101,6 +100,7 @@ export type EstimateLabFinancialSummary = {
   roDiscountsCents: number;
   serviceFeesCents: number;
   roFeesCents: number;
+  feeLines: NamedFeeLine[];
   taxCents: number;
   taxLabel: string;
   estimateTotalCents: number;
@@ -130,7 +130,8 @@ export type EstimateLabRightRailProps = {
   estimateTotalCents: number;
   profitability?: EstimateLabProfitability | null;
   quickReference?: EstimateLabQuickReferenceData | null;
-  vehicleSpecs?: EstimateLabVehicleSpecsBundle | null;
+  /** When set, Specs rail is on-demand (no eager catalog / AI). */
+  vehicleId?: string | null;
   /** Shop technicians for Status-card assign picker (same source as RO sidebar). */
   technicians?: StaffPick[];
   /** Design-mode-only "preview a payment status" override. Defaults to true; set false on production ROs so the strip always reflects real invoice data. */
@@ -494,12 +495,14 @@ function WorkflowStepper({ roStatus, paid }: { roStatus: ROStatus; paid: boolean
 }
 
 function StatusMetaRow({
+  id,
   label,
   value,
   warn,
   muted,
   title,
 }: {
+  id?: string;
   label: string;
   value: string;
   warn?: boolean;
@@ -508,7 +511,10 @@ function StatusMetaRow({
   title?: string;
 }) {
   return (
-    <div className="flex items-baseline justify-between gap-2 py-[3px] text-[13px]">
+    <div
+      id={id}
+      className="flex items-baseline justify-between gap-2 py-[3px] text-[13px]"
+    >
       <span className="shrink-0 text-[var(--jb-slate,#5b7295)]">{label}</span>
       <span
         className={cn(
@@ -649,6 +655,7 @@ function StatusCard({
               muted={!quickReference.promiseTime}
             />
             <StatusMetaRow
+              id="estimate-outreach-status"
               label="Last outreach"
               value={outreach}
               title={outreachTitle}
@@ -897,7 +904,6 @@ function TotalsCard({
   depositPaid: boolean;
   depositPending: boolean;
 }) {
-  const feesCents = financial.serviceFeesCents + financial.roFeesCents + financial.shopSuppliesCents;
   const discountsCents = financial.serviceDiscountsCents + financial.roDiscountsCents;
 
   return (
@@ -910,7 +916,13 @@ function TotalsCard({
       <div className="px-3.5 py-3">
         <StatusMetaRow label="Labor" value={formatCents(financial.laborCents)} />
         <StatusMetaRow label="Parts" value={formatCents(financial.partsCents)} />
-        {feesCents > 0 ? <StatusMetaRow label="Fees" value={formatCents(feesCents)} /> : null}
+        {financial.shopSuppliesCents > 0 ? (
+          <StatusMetaRow label="Shop supplies" value={formatCents(financial.shopSuppliesCents)} />
+        ) : null}
+        <CustomerFeeRows
+          fees={financial.feeLines}
+          Row={({ label, value }) => <StatusMetaRow label={label} value={value} />}
+        />
         {discountsCents > 0 ? (
           <StatusMetaRow label="Discounts" value={`−${formatCents(discountsCents)}`} muted />
         ) : null}
@@ -929,38 +941,6 @@ function TotalsCard({
           warn={financial.remainingCents > 0}
         />
       </div>
-    </div>
-  );
-}
-
-function VehicleSpecsRailSection({
-  vehicleSpecs,
-  canEdit,
-}: {
-  vehicleSpecs: EstimateLabVehicleSpecsBundle;
-  canEdit: boolean;
-}) {
-  const ctx = useEstimateLabContextDrawerOptional();
-  const vehicleSpecsOk = useVehicleSpecsUiEnabled();
-
-  useEffect(() => {
-    if (!ctx || !vehicleSpecsOk) return;
-    ctx.registerOpenVehicleSpecs(() => {
-      requestAnimationFrame(() => {
-        document.getElementById("estimate-lab-vehicle-specs")?.scrollIntoView({
-          behavior: "smooth",
-          block: "nearest",
-        });
-      });
-    });
-    return () => ctx.registerOpenVehicleSpecs(null);
-  }, [ctx, vehicleSpecsOk]);
-
-  if (!vehicleSpecsOk) return null;
-
-  return (
-    <div id="estimate-lab-vehicle-specs" className={cn(RAIL_CARD, "overflow-hidden")}>
-      <EstimateLabVehicleSpecsSection data={vehicleSpecs} canEdit={canEdit} />
     </div>
   );
 }
@@ -984,7 +964,7 @@ function EstimateLabRightRailBody(props: EstimateLabRightRailProps) {
     estimateTotalCents,
     profitability = null,
     quickReference = null,
-    vehicleSpecs = null,
+    vehicleId = null,
     technicians = [],
     allowPaymentPreview = true,
     invoiceId,
@@ -1047,8 +1027,12 @@ function EstimateLabRightRailBody(props: EstimateLabRightRailProps) {
           depositPending={depositPending}
         />
 
-        {vehicleSpecs ? (
-          <VehicleSpecsRailSection vehicleSpecs={vehicleSpecs} canEdit={canEdit} />
+        {vehicleId ? (
+          <EstimateLabVehicleSpecsLazy
+            vehicleId={vehicleId}
+            excludeRoId={roId}
+            canEdit={canEdit}
+          />
         ) : null}
       </div>
 
@@ -1217,6 +1201,7 @@ export function EstimateLabRightRailLive(
         taxCents: ctx.totals.taxesCents,
         roDiscountsCents: ctx.totals.discountsCents,
         roFeesCents: ctx.totals.feesCents,
+        feeLines: ctx.feeLines,
         remainingCents: Math.max(0, ctx.totals.totalCents - baseFinancial.paidCents),
       }),
       [baseFinancial, ctx.totals],

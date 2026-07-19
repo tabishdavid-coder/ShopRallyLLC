@@ -7,7 +7,9 @@ import { ListTree, Package, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { EstimateLabCannedBrowseSheet } from "@/components/estimate-building/estimate-lab-canned-browse-sheet";
 import { EstimateLabCannedSearch } from "@/components/estimate-building/estimate-lab-canned-search";
+import { EstimateJobActionsCluster } from "@/components/estimate-building/estimate-job-actions-cluster";
 import { EstimateJobLauncher } from "@/components/estimate-building/estimate-job-launcher";
+import { CreateJobAiTrigger } from "@/components/estimate-building/create-job-ai-trigger";
 import { useEstimateLabLabor } from "@/components/estimate-building/estimate-lab-labor-provider";
 import { useEstimateLabParts } from "@/components/estimate-building/estimate-lab-parts-provider";
 import type { CannedJobSummary } from "@/lib/canned-job-types";
@@ -124,6 +126,8 @@ export function EstimateLabToolbar({
             )}
           />
 
+          <CreateJobAiTrigger roId={roId} label="Job with AI" />
+
           <EstimateJobLauncher
             roId={roId}
             cannedJobs={cannedJobs}
@@ -159,26 +163,14 @@ export function EstimateLabToolbar({
           ) : null}
         </div>
       ) : (
-        /* Core: no Labor Book / Parts lookup / Work line — one canned + blank job add */
-        <EstimateJobLauncher
+        /* Core: no Labor Book / Parts lookup / Work line — canned + blank job + AI */
+        <EstimateJobActionsCluster
           roId={roId}
           cannedJobs={cannedJobs}
           cannedJobCategories={cannedJobCategories}
           baseRateCents={baseRateCents}
           partTiers={partTiers}
           laborTiers={laborTiers}
-          vehicleId={vehicleId}
-          customerName={customerName}
-          vehicleLabel={vehicleLabel}
-          specLine={specLine}
-          mileageIn={mileageIn}
-          odometerNotWorking={odometerNotWorking}
-          triggerLabel="+ Job"
-          triggerIcon={<Plus className="size-4" aria-hidden />}
-          triggerClassName={cn(
-            "h-9 gap-1.5 rounded-none bg-[#0B1F3B] px-3.5 text-sm font-medium shadow-none hover:bg-[#0B1F3B]/90",
-            "[&>svg:first-child]:text-white",
-          )}
         />
       )}
 

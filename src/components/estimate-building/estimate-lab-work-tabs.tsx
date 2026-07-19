@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState, type ReactNode } from "react";
+import { useRouter } from "next/navigation";
 import {
   Activity,
   ClipboardList,
@@ -47,6 +48,7 @@ export function EstimateLabWorkTabs({
   servicesFooter,
   onTabChange,
 }: Props) {
+  const router = useRouter();
   const partsTechOk = usePartsTechUiEnabled();
   const visibleTabs = useMemo(
     () => TABS.filter((t) => t.id !== "parts" || partsTechOk),
@@ -60,6 +62,9 @@ export function EstimateLabWorkTabs({
     if (id === "parts" && !partsTechOk) return;
     setActive(id);
     onTabChange?.(id);
+    if (id === "activity") {
+      router.refresh();
+    }
   }
 
   const apShell = isAutopilot3030Shell();

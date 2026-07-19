@@ -192,8 +192,8 @@ function resolveVinDecoder(row: ShopIntegrationRow | null): VendorIntegrationSta
 
   let state: IntegrationConnectionState = "connected";
   const detail = autodevEnv || shopPaid
-    ? "NHTSA vPIC active (free). Auto.dev / paid provider configured for richer decode + plate lookup."
-    : "NHTSA vPIC active (free). Add Auto.dev or DataOne/VinAudit for plate lookup and richer trim data.";
+    ? "NHTSA vPIC active. Auto.dev / paid provider configured for richer decode + plate lookup."
+    : "NHTSA vPIC active. Add Auto.dev or DataOne/VinAudit for plate lookup and richer trim data.";
 
   return {
     key: "vin-decoder",

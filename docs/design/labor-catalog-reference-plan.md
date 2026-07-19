@@ -121,7 +121,7 @@ Per MOTOR DaaS API reference + `docs/SHOPRALLY-DEV.md`:
 
 | Reference | What it provides | Licensing | Fit |
 |-----------|------------------|-----------|-----|
-| **NHTSA vPIC** | VIN decode → Y/M/M/E (vehicle only) | **Free / public** | Already used for vehicle decode; **no labor operations**. Feeds `BaseVehicleID` resolution upstream only. |
+| **NHTSA vPIC** | VIN decode → Y/M/M/E (vehicle only) | **Public** | Already used for vehicle decode; **no labor operations**. Feeds `BaseVehicleID` resolution upstream only. |
 | **Open flat-rate datasets** | None authoritative for OEM-aligned mechanical labor | N/A | **Do not use** scraped Chilton/Haynes/forum times — legal risk + inconsistent with industry CRMs. AI estimates remain fallback only, clearly labeled. |
 
 ### Competitor CRM sourcing

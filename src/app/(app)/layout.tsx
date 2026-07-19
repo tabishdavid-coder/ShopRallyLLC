@@ -100,7 +100,10 @@ export default async function AppLayout({
         ])
       : [null, 0, { notifications: [], unreadCount: 0 }, 0, null, false, false, false, false, false, false, false, null];
 
-  const vehicleSpecsOnPlan = shopSubscription ? shopSubscription.plan !== "STARTER" : false;
+  // On-demand Vehicle Specs (YMM + fluids reference) is available on Core and Pro.
+  // Paid catalog/AI enrich still runs only when the user opens Specs — not on page load.
+  // Auto.dev plate→VIN stays Pro+ via autodevDecodingOnPlan.
+  const vehicleSpecsOnPlan = Boolean(shopSubscription);
   const corePlanShop = shopSubscription ? isCorePlan(shopSubscription.plan) : false;
 
   const showPlatformShopContext = platformAdmin && activeShop && !isPlatformRoute;

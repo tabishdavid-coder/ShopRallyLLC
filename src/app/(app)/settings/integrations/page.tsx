@@ -31,7 +31,7 @@ export default async function IntegrationsSettingsPage() {
       state: autodevOn ? "connected" : "mock",
       detail: autodevOn
         ? "Live VIN decode and US plate→VIN."
-        : "Falls back to free NHTSA VIN decode; plate lookup disabled until a key is set.",
+        : "Falls back to NHTSA VIN decode; plate lookup disabled until a key is set.",
       env: ["AUTODEV_API_KEY"],
     },
     {

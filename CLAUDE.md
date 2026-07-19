@@ -170,7 +170,7 @@ INNGEST_EVENT_KEY=
   Stripe checkout + refund guidance unchanged.
 - `customerDisplayName` now prefers `company` for businesses.
 - ✅ VIN decoder (Milestone 4) — `src/server/services/vin.ts`: `VinProvider`
-  interface + free NHTSA vPIC provider (swap for paid later). `decodeVin` action.
+  interface + NHTSA vPIC provider (swap for paid later). `decodeVin` action.
   Verified: `1HGCM82633A004352` → 2003 Honda Accord EX-V6, 3.0L 6-cyl, etc.
 - ✅ Create-RO chain (FUNCTIONAL) — `/repair-orders/new`
   (`src/components/repair-order/create-ro-form.tsx`): customer search/add (reuses

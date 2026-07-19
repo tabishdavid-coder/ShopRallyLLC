@@ -63,6 +63,40 @@ export type RoTotalsResult = {
   gpPct: number;
 };
 
+export type NamedFeeLine = { name: string; amountCents: number };
+
+/** Per-fee customer-facing amounts from authorized job lines (or all lines when pre-approval). */
+export function computeNamedFeeLines(
+  fees: (RoTotalsFee & { name: string })[],
+  jobs: RoTotalsJob[],
+): NamedFeeLine[] {
+  let labor = 0;
+  let parts = 0;
+  const jobBase = new Map<string, { labor: number; parts: number }>();
+
+  for (const j of jobs) {
+    const activeLabor = j.laborLines.filter((l) => l.authorized);
+    const activeParts = j.partLines.filter((p) => p.authorized);
+    const jl = activeLabor.reduce((x, l) => x + l.totalCents, 0);
+    const jp = activeParts.reduce((x, p) => x + p.totalCents, 0);
+    labor += jl;
+    parts += jp;
+    jobBase.set(j.id, { labor: jl, parts: jp });
+  }
+
+  const baseFor = (jobId: string | null) => {
+    const b = jobId ? jobBase.get(jobId) : null;
+    return b ?? { labor, parts };
+  };
+
+  return fees
+    .map((f) => {
+      const b = baseFor(f.jobId);
+      return { name: f.name, amountCents: adjustmentValue(f, b.labor, b.parts) };
+    })
+    .filter((line) => line.amountCents > 0);
+}
+
 /** Sum authorized lines only, then apply fees/discounts/tax like the server.
  *  `partsCostCents` / `laborCostCents` are shop costs for GP (not customer price). */
 export function computeRoTotals(

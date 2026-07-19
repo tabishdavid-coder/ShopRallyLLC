@@ -6,6 +6,7 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "@/db/client";
 import { getShopId } from "@/lib/shop";
 import { gates } from "@/server/permission-gates";
+import { revalidateEstimatePaths } from "@/lib/estimate-revalidate";
 import { recordShopAuditEventSafe } from "@/server/shop-audit";
 import { RoActivityType, ShopAuditEventType } from "@/generated/prisma";
 
@@ -69,6 +70,8 @@ export async function addRoActivity(
     },
   });
 
-  revalidatePath(`/repair-orders/${ro.id}`);
+  for (const path of revalidateEstimatePaths(ro.id)) {
+    revalidatePath(path);
+  }
   return { ok: true, id: activity.id };
 }

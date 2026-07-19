@@ -63,7 +63,7 @@ export function EstimateLabRoPicker({
               >
                 <span className="flex w-full items-center gap-2">
                   <span className="font-semibold text-foreground">RO #{ro.number}</span>
-                  <Badge className={cn("text-[10px]", pill.className)}>{pill.label}</Badge>
+                  <Badge variant="outline" className={cn("text-[10px]", pill.className)}>{pill.label}</Badge>
                   <span className="ml-auto text-xs text-muted-foreground">{ro.jobCount} jobs</span>
                 </span>
                 <span className="text-xs text-muted-foreground">

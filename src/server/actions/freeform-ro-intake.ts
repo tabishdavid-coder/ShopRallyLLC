@@ -20,6 +20,7 @@ import { revalidateEstimatePaths } from "@/lib/estimate-revalidate";
 import { releasedFeatureDenied } from "@/lib/subscription";
 import { assertShopAiRateLimit } from "@/server/services/ai/client";
 import { buildFreeformRoDraft } from "@/server/services/freeform-ro-intake";
+import { recordRoCreatedAudit } from "@/server/shop-audit";
 
 const ParseInput = z.object({
   text: z.string().trim().min(8).max(4000),
@@ -242,6 +243,14 @@ export async function commitFreeformRoIntake(
 
   await ensureAutoApplyFees(shopId, ro.id);
   await recomputeRoTotals(ro.id);
+
+  await recordRoCreatedAudit({
+    shopId,
+    repairOrderId: ro.id,
+    roNumber: ro.number,
+    source: "freeform_intake",
+  });
+
   for (const path of revalidateEstimatePaths(ro.id)) {
     revalidatePath(path);
   }

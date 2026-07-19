@@ -1,6 +1,7 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { CheckCircle2, Loader2 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -18,6 +19,7 @@ type ApprovalJob = {
   laborHours: number;
   partsCents: number;
   totalCents: number;
+  authorized: boolean;
 };
 
 type ExistingSignature = {
@@ -36,16 +38,21 @@ type EstimateTermsBlock = {
 export function ApproveActions({
   token,
   alreadyApproved,
+  isPartialApproval,
   jobs,
+  approvedTotalCents,
   signature,
   estimateTerms,
 }: {
   token: string;
   alreadyApproved: boolean;
+  isPartialApproval: boolean;
   jobs: ApprovalJob[];
+  approvedTotalCents: number;
   signature: ExistingSignature | null;
   estimateTerms: EstimateTermsBlock;
 }) {
+  const router = useRouter();
   const [done, setDone] = useState(alreadyApproved);
   const [error, setError] = useState<string | null>(null);
   const [pending, start] = useTransition();
@@ -54,9 +61,19 @@ export function ApproveActions({
   const [signerName, setSignerName] = useState("");
   const [signatureCapture, setSignatureCapture] = useState<SignatureCapture | null>(null);
   const [consent, setConsent] = useState(false);
+  const [lastApprovedJobIds, setLastApprovedJobIds] = useState<string[] | null>(null);
+
+  useEffect(() => {
+    setDone(alreadyApproved);
+  }, [alreadyApproved]);
 
   const allSelected = jobs.length > 0 && selected.size === jobs.length;
   const someSelected = selected.size > 0 && selected.size < jobs.length;
+
+  const selectedTotalCents = useMemo(
+    () => jobs.filter((j) => selected.has(j.id)).reduce((s, j) => s + j.totalCents, 0),
+    [jobs, selected],
+  );
 
   const canSubmit = useMemo(
     () =>
@@ -84,32 +101,87 @@ export function ApproveActions({
   function submit() {
     if (!canSubmit || !signatureCapture) return;
     setError(null);
+    const approvedJobIds = [...selected];
     start(async () => {
       const res = await submitCustomerApproval(token, {
-        approvedJobIds: [...selected],
+        approvedJobIds,
         signatureDataUrl: signatureCapture.dataUrl,
         signatureWidth: signatureCapture.width,
         signatureHeight: signatureCapture.height,
         signerName: signerName.trim(),
         consent: true,
       });
-      if (res.ok) setDone(true);
-      else setError(res.error);
+      if (res.ok) {
+        setLastApprovedJobIds(approvedJobIds);
+        setDone(true);
+        router.refresh();
+      } else setError(res.error);
     });
   }
 
   if (done) {
     const signer = signature?.signerName ?? (signerName.trim() || "You");
+    const approvedJobs =
+      lastApprovedJobIds != null
+        ? jobs.filter((j) => lastApprovedJobIds.includes(j.id))
+        : jobs.filter((j) => j.authorized);
+    const declinedJobs =
+      lastApprovedJobIds != null
+        ? jobs.filter((j) => !lastApprovedJobIds.includes(j.id))
+        : jobs.filter((j) => !j.authorized);
+    const showPartial = isPartialApproval || declinedJobs.length > 0;
+
     return (
       <div className="space-y-4">
         <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-5 text-center">
           <CheckCircle2 className="mx-auto mb-2 size-8 text-emerald-600" />
-          <p className="font-semibold text-emerald-800">Estimate approved</p>
+          <p className="font-semibold text-emerald-800">
+            {showPartial ? "Partial estimate approved" : "Estimate approved"}
+          </p>
           <p className="mt-1 text-sm text-emerald-700">
-            Thank you{signer ? `, ${signer}` : ""}! Your shop has been notified and will begin
-            the authorized work. You can close this page.
+            Thank you{signer ? `, ${signer}` : ""}! Your shop has been notified
+            {showPartial
+              ? ` and will begin the ${approvedJobs.length} authorized job${approvedJobs.length === 1 ? "" : "s"}`
+              : " and will begin the authorized work"}
+            . You can close this page.
+          </p>
+          <p className="mt-2 text-sm font-semibold text-emerald-900">
+            Authorized total: {formatCents(approvedTotalCents)}
           </p>
         </div>
+
+        {approvedJobs.length > 0 ? (
+          <div className="rounded-xl border bg-card p-4">
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-brand-navy/70">
+              Authorized work
+            </p>
+            <ul className="space-y-2 text-sm">
+              {approvedJobs.map((j) => (
+                <li key={j.id} className="flex justify-between gap-3">
+                  <span>{j.name}</span>
+                  <span className="shrink-0 font-medium tabular-nums">{formatCents(j.totalCents)}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
+
+        {declinedJobs.length > 0 ? (
+          <div className="rounded-xl border border-dashed bg-muted/30 p-4">
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              Declined — not authorized
+            </p>
+            <ul className="space-y-2 text-sm text-muted-foreground">
+              {declinedJobs.map((j) => (
+                <li key={j.id} className="flex justify-between gap-3">
+                  <span className="line-through">{j.name}</span>
+                  <span className="shrink-0 tabular-nums line-through">{formatCents(j.totalCents)}</span>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ) : null}
+
         {(signature?.imageDataUrl ?? signatureCapture?.dataUrl) ? (
           <div className="rounded-xl border bg-card p-4 text-center">
             <p className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">
@@ -173,6 +245,13 @@ export function ApproveActions({
               </label>
             ))}
           </div>
+
+          {someSelected ? (
+            <p className="text-xs text-muted-foreground">
+              Selected jobs subtotal: {formatCents(selectedTotalCents)} (tax and fees calculated on
+              submit).
+            </p>
+          ) : null}
         </div>
       )}
 
@@ -216,7 +295,7 @@ export function ApproveActions({
         />
         <span className="text-sm leading-snug">
           I authorize the shop to perform the selected work listed above and agree to pay according
-          to the estimate total. I consent to the use of my electronic signature under the ESIGN Act
+          to the authorized total. I consent to the use of my electronic signature under the ESIGN Act
           and understand it has the same legal effect as a handwritten signature.
         </span>
       </label>

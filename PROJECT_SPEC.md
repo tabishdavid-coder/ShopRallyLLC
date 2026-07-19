@@ -486,7 +486,7 @@ Signup steps: Plan → Payment option → Contact → Vehicle(s) → Terms → P
 
 | Integration | Purpose | Notes |
 |-------------|---------|-------|
-| **VIN decoder** | Decode VIN → year/make/model/trim/engine/trans/drivetrain | **NOW: NHTSA vPIC (free)** as primary, behind a swappable `VinService` interface so upgrading to a paid decoder (DataOne/VinAudit) later is a one-file change. |
+| **VIN decoder** | Decode VIN → year/make/model/trim/engine/trans/drivetrain | **NOW: NHTSA vPIC** as primary, behind a swappable `VinService` interface so upgrading to a paid decoder (DataOne/VinAudit) later is a one-file change. |
 | **PartsTech** | Parts catalog search + ordering | User has a PartsTech **username/password** (good for punchout/SSO). Full ordering API may need separate partner API credentials — confirm at M7. |
 | **Stripe** | Card payments + customer maintenance subscriptions | Connect for shop; Billing for platform |
 | **Twilio** | Two-way SMS | |

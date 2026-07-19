@@ -323,6 +323,7 @@ export function EstimateLabContextDrawer({
 
 
   const creditCents = data?.availableCreditCents ?? 0;
+  const deferredCount = data?.deferredJobs?.length ?? 0;
 
   useEffect(() => {
     if (corePlan && tab === "finances") onTabChange("payment");
@@ -443,7 +444,14 @@ export function EstimateLabContextDrawer({
                       : "font-medium text-[#5B7295] hover:text-[#0B1F3B]",
                   )}
                 >
-                  {t.label}
+                  <span className="inline-flex items-center gap-1.5">
+                    {t.label}
+                    {t.id === "deferred" && deferredCount > 0 ? (
+                      <span className="inline-flex min-w-[1.125rem] items-center justify-center rounded-full bg-[#E86A10] px-1.5 py-0.5 text-[10px] font-bold tabular-nums leading-none text-white">
+                        {deferredCount}
+                      </span>
+                    ) : null}
+                  </span>
                 </button>
               ))}
             </div>
@@ -555,7 +563,12 @@ export function EstimateLabContextDrawer({
                     />
                   ) : null}
 
-                  {tab === "deferred" ? <DrawerDeferredTab /> : null}
+                  {tab === "deferred" ? (
+                    <DrawerDeferredTab
+                      jobs={data.deferredJobs ?? []}
+                      currentRoId={roId}
+                    />
+                  ) : null}
 
                   {tab === "orders" ? (
 

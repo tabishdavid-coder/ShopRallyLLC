@@ -8,6 +8,7 @@ import {
   parseMaintenanceOverrides,
   type VehicleMaintenanceMemoryView,
 } from "@/lib/vehicle-maintenance-specs";
+import { extractFluidsEnrichMetaFromMaintenanceSpecs } from "@/lib/vehicle-fluids-enrich";
 
 const HISTORY_STATUSES = [
   ROStatus.APPROVED,
@@ -28,6 +29,7 @@ export async function getVehicleMaintenanceMemory(
   });
 
   const overrides = parseMaintenanceOverrides(vehicle?.maintenanceSpecs);
+  const enrichMeta = extractFluidsEnrichMetaFromMaintenanceSpecs(vehicle?.maintenanceSpecs);
 
   const ros = await prisma.repairOrder.findMany({
     where: {
@@ -58,5 +60,5 @@ export async function getVehicleMaintenanceMemory(
   });
 
   const history = buildHistoryHits(ros);
-  return buildMaintenanceMemoryView(overrides, history);
+  return buildMaintenanceMemoryView(overrides, history, enrichMeta);
 }

@@ -432,7 +432,7 @@ function printMarkdown(rows) {
   push("| **AI COGS** | Gemini (or current provider) | Only for AI Plus seats |");
   push("| **Mobile** | Apple Developer, Google Play, EAS builds, push | Required for AI Plus advisor app |");
   push("| **Payments** | Stripe Billing | Collects Ignition + AI Plus subs (~2.9%+$0.30) |");
-  push("| **Data licenses** | — | **$0** (no MOTOR · NHTSA VIN free) |");
+  push("| **Data licenses** | — | **$0** (no MOTOR · NHTSA VIN) |");
   push("");
 
   push("### Vendor detail at key scales");

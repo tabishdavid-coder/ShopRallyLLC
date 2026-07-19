@@ -1,0 +1,15 @@
+---
+description: Vehicle Specs catalog/AI must load only when user opens Specs button
+alwaysApply: true
+---
+
+# Vehicle Specs — on-demand only (cost)
+
+Metered APIs (EPA/catalog, Gemini/LLM, NHTSA recalls for this panel, Auto.dev enrich) must **not** run on estimate page load or idle rail render.
+
+- **UI:** Compact **Specs** CTA (`EstimateLabVehicleSpecsLazy`). Full Fluids/identity dialog loads data **on open**.
+- **SSR:** Do not call `getVehicleSpecsBundle` or catalog enrich in estimate panel load paths.
+- **Enrichment:** Wire catalog/AI only inside the Specs open/fetch path — never auto-enrich every RO.
+- **VIN:** Still not required to show Specs UI; optional for accuracy.
+
+See `agents/ShopRallyCRM/VEHICLE-SPEC-AI-MEMORY.md` § Cost rule.

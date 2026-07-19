@@ -73,8 +73,20 @@ export type EstimateContextDrawerCarePlan = {
   paymentMode: string;
 };
 
+export type EstimateContextDrawerDeferredJob = {
+  id: string;
+  jobName: string;
+  totalCents: number;
+  roId: string;
+  roNumber: number;
+  roStatus: string;
+  vehicleLabel: string;
+  deferredAt: string;
+};
+
 export type EstimateContextDrawerData = {
   detail: EstimateContextDrawerDetail;
   appointments: EstimateContextDrawerAppointment[];
   availableCreditCents: number;
+  deferredJobs: EstimateContextDrawerDeferredJob[];
 };

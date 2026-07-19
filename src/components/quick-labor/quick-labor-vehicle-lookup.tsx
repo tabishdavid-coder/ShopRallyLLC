@@ -84,7 +84,7 @@ export function QuickLaborVehicleLookup({
         }
       } else if (!autodevDecodingOk) {
         setLookupNote(
-          "Plate lookup is not included on Core. Enter a 17-character VIN for free NHTSA decode.",
+          "Plate lookup is not included on Core. Enter a 17-character VIN for NHTSA decode.",
         );
         onContextChange(null);
       } else {

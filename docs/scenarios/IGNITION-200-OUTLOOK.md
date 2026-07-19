@@ -54,7 +54,7 @@ Base Ignition ARPU ≈ **$47.24/mo** before AI/web attach.
 | **AI COGS** | Gemini (or current provider) | Only for AI Plus seats |
 | **Mobile** | Apple Developer, Google Play, EAS builds, push | Required for AI Plus advisor app |
 | **Payments** | Stripe Billing | Collects Ignition + AI Plus subs (~2.9%+$0.30) |
-| **Data licenses** | — | **$0** (no MOTOR · NHTSA VIN free) |
+| **Data licenses** | — | **$0** (no MOTOR · NHTSA VIN) |
 
 ### Vendor detail at key scales
 

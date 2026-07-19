@@ -13,6 +13,7 @@ import { ensureInvoiceForRepairOrder, getInvoiceShareLink } from "@/server/invoi
 import { requirePermission } from "@/server/permissions";
 import { recordShopAuditEventSafe } from "@/server/shop-audit";
 import { recordInvoicePayment } from "@/server/services/invoice-payments";
+import { reconcileOrphanDepositsForRo } from "@/server/services/deposit-payments";
 import { isStripeEnabled } from "@/lib/stripe";
 import { createInvoiceCheckoutSession } from "@/server/services/stripe-payments";
 
@@ -68,6 +69,12 @@ export async function recordManualPayment(raw: z.input<typeof ManualPaymentInput
   if (!perm.ok) return { ok: false, error: perm.error };
 
   const { repairOrderId, method, amountCents, reference } = parsed.data;
+
+  await reconcileOrphanDepositsForRo({
+    shopId,
+    repairOrderId,
+    auditActor: { userId: user.id, email: user.email },
+  });
 
   const ro = await prisma.repairOrder.findFirst({
     where: { id: repairOrderId, shopId },

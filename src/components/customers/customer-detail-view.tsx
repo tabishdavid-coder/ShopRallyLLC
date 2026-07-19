@@ -362,7 +362,7 @@ export function CustomerDetailView({
                           </td>
                           <td className="px-3 py-2">{ro.vehicleLabel}</td>
                           <td className="px-3 py-2">
-                            <Badge className={cn("text-xs", pill?.className)}>{pill?.label ?? ro.status}</Badge>
+                            <Badge variant="outline" className={cn("text-xs", pill?.className)}>{pill?.label ?? ro.status}</Badge>
                           </td>
                           <td className="px-3 py-2 tabular-nums">{formatCents(ro.totalCents)}</td>
                           <td className="px-3 py-2 tabular-nums">

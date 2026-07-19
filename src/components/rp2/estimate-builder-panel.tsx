@@ -230,7 +230,7 @@ export async function EstimateBuilderPanel({ roId }: { roId: string }) {
             </p>
             <div className="flex flex-wrap items-center gap-2">
               <h2 className="text-sm font-bold text-brand-navy">RO #{ro.number}</h2>
-              <Badge className={cn("rounded-md text-[10px]", pill.className)}>{pill.label}</Badge>
+              <Badge variant="outline" className={cn("rounded-md text-[10px]", pill.className)}>{pill.label}</Badge>
             </div>
           </div>
           <div className="hidden h-8 w-px bg-border sm:block" />

@@ -75,7 +75,7 @@ export async function lookupPlate(state: string, plate: string): Promise<Metered
     return {
       ok: false,
       error:
-        "Plate lookup is not included on Core. Enter the plate manually, decode a 17-character VIN (free NHTSA), or fill in year/make/model.",
+        "Plate lookup is not included on Core. Enter the plate manually, decode a 17-character VIN (NHTSA), or fill in year/make/model.",
     };
   }
   const result = await lookupPlateService(plate, state);

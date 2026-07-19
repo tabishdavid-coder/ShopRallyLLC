@@ -1,10 +1,19 @@
 import { z } from "zod";
 
+import {
+  stripEnrichMetaFromMaintenanceSpecs,
+  type FluidsEnrichMeta,
+  type FluidEnrichSlotKey,
+} from "@/lib/vehicle-fluids-enrich";
+
 /** Advisor overrides stored on Vehicle.maintenanceSpecs */
 export const VehicleMaintenanceOverridesSchema = z.object({
   engineOil: z.string().trim().max(120).optional().nullable(),
   oilCapacity: z.string().trim().max(40).optional().nullable(),
   coolant: z.string().trim().max(80).optional().nullable(),
+  transmissionFluid: z.string().trim().max(120).optional().nullable(),
+  brakeFluid: z.string().trim().max(80).optional().nullable(),
+  acRefrigerant: z.string().trim().max(80).optional().nullable(),
   oilFilter: z.string().trim().max(120).optional().nullable(),
   airFilter: z.string().trim().max(120).optional().nullable(),
   cabinFilter: z.string().trim().max(120).optional().nullable(),
@@ -16,7 +25,7 @@ export const VehicleMaintenanceOverridesSchema = z.object({
 
 export type VehicleMaintenanceOverrides = z.infer<typeof VehicleMaintenanceOverridesSchema>;
 
-export type MaintenanceSpecSource = "manual" | "history";
+export type MaintenanceSpecSource = "manual" | "history" | "ai";
 
 export type MaintenanceSpecRow = {
   key: keyof VehicleMaintenanceOverrides;
@@ -25,6 +34,9 @@ export type MaintenanceSpecRow = {
   source: MaintenanceSpecSource | null;
   roNumber?: number;
   roDate?: string;
+  /** AI enrich confidence (0–1) when source is ai. */
+  confidence?: number;
+  sourceNote?: string | null;
 };
 
 export type VehicleMaintenanceMemoryView = {
@@ -39,6 +51,9 @@ const FLUID_KEYS: (keyof VehicleMaintenanceOverrides)[] = [
   "engineOil",
   "oilCapacity",
   "coolant",
+  "transmissionFluid",
+  "brakeFluid",
+  "acRefrigerant",
 ];
 const FILTER_KEYS: (keyof VehicleMaintenanceOverrides)[] = [
   "oilFilter",
@@ -54,6 +69,9 @@ const LABELS: Record<keyof VehicleMaintenanceOverrides, string> = {
   engineOil: "Engine oil",
   oilCapacity: "Oil capacity",
   coolant: "Coolant",
+  transmissionFluid: "Transmission fluid",
+  brakeFluid: "Brake fluid",
+  acRefrigerant: "A/C refrigerant",
   oilFilter: "Oil filter",
   airFilter: "Air filter",
   cabinFilter: "Cabin filter",
@@ -73,7 +91,8 @@ type HistoryHit = {
 };
 
 export function parseMaintenanceOverrides(raw: unknown): VehicleMaintenanceOverrides {
-  const parsed = VehicleMaintenanceOverridesSchema.safeParse(raw ?? {});
+  const stripped = stripEnrichMetaFromMaintenanceSpecs(raw);
+  const parsed = VehicleMaintenanceOverridesSchema.safeParse(stripped);
   return parsed.success ? parsed.data : {};
 }
 
@@ -110,6 +129,9 @@ export function classifyMaintenanceText(text: string): MaintenancePartCategory |
     return "wiperFront";
   }
   if (/\b(coolant|antifreeze)\b/.test(t)) return "coolant";
+  if (/\b(trans(mission)?\s*fluid|atf|ws\s*fluid|cvt\s*fluid)\b/.test(t)) return "transmissionFluid";
+  if (/\bbrake\s*fluid\b/.test(t) || /\bdot\s*[34]\b/.test(t)) return "brakeFluid";
+  if (/\b(r-?134a|r-?1234yf|refrigerant|a\/c\s*charge)\b/.test(t)) return "acRefrigerant";
   if (/\b(\d+\.?\d*\s*(qt|quart|l|liter|gal|gallon)|\d+w-\d+|motor\s*oil|engine\s*oil|synthetic)\b/.test(t)) {
     return "engineOil";
   }
@@ -174,14 +196,31 @@ export function buildHistoryHits(
   return hits;
 }
 
+function isAiSourcedKey(key: MaintenancePartCategory, enrichMeta: FluidsEnrichMeta | null): boolean {
+  if (!enrichMeta) return false;
+  return enrichMeta.aiKeys.includes(key as FluidEnrichSlotKey);
+}
+
 function rowForKey(
   key: keyof VehicleMaintenanceOverrides,
   overrides: VehicleMaintenanceOverrides,
   history: Map<MaintenancePartCategory, HistoryHit>,
+  enrichMeta: FluidsEnrichMeta | null,
 ): MaintenanceSpecRow {
-  const manual = overrides[key]?.trim() || null;
-  if (manual) {
-    return { key, label: LABELS[key], value: manual, source: "manual" };
+  const stored = overrides[key]?.trim() || null;
+  if (stored) {
+    if (isAiSourcedKey(key, enrichMeta)) {
+      const meta = enrichMeta!.fields[key as FluidEnrichSlotKey];
+      return {
+        key,
+        label: LABELS[key],
+        value: stored,
+        source: "ai",
+        confidence: meta?.confidence,
+        sourceNote: meta?.sourceNote ?? null,
+      };
+    }
+    return { key, label: LABELS[key], value: stored, source: "manual" };
   }
 
   const hit = history.get(key);
@@ -202,11 +241,12 @@ function rowForKey(
 export function buildMaintenanceMemoryView(
   overrides: VehicleMaintenanceOverrides,
   history: Map<MaintenancePartCategory, HistoryHit>,
+  enrichMeta: FluidsEnrichMeta | null = null,
 ): VehicleMaintenanceMemoryView {
   return {
-    fluids: FLUID_KEYS.map((key) => rowForKey(key, overrides, history)),
-    filters: FILTER_KEYS.map((key) => rowForKey(key, overrides, history)),
-    batteries: BATTERY_KEYS.map((key) => rowForKey(key, overrides, history)),
+    fluids: FLUID_KEYS.map((key) => rowForKey(key, overrides, history, enrichMeta)),
+    filters: FILTER_KEYS.map((key) => rowForKey(key, overrides, history, enrichMeta)),
+    batteries: BATTERY_KEYS.map((key) => rowForKey(key, overrides, history, enrichMeta)),
     overrides,
     hasHistory: history.size > 0,
   };

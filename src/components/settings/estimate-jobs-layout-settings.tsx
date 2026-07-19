@@ -134,7 +134,7 @@ export function EstimateJobsLayoutSettings({
         <Button type="button" variant="link" className="h-auto p-0 text-xs" asChild>
           <a href="/job-board">Job board</a>
         </Button>{" "}
-        to open an estimate, or use the Layout link in the jobs toolbar.
+        to open an estimate and preview the layout on the Services tab.
       </p>
     </div>
   );

@@ -18,8 +18,7 @@ import { parseApprovalSignature } from "@/lib/approval-signature";
 import { isEstimateEditable } from "@/lib/estimate-editable";
 import { EstimateActionToastProvider } from "@/components/repair-order/estimate-action-toast";
 import { EstimateLabDisplayProvider } from "@/components/estimate-building/estimate-lab-display-context";
-import { EstimateLabToolbar } from "@/components/estimate-building/estimate-lab-toolbar";
-import { EstimateJobLauncher } from "@/components/estimate-building/estimate-job-launcher";
+import { EstimateJobActionsCluster } from "@/components/estimate-building/estimate-job-actions-cluster";
 import { EstimateLabJobsList } from "@/components/estimate-building/estimate-lab-jobs-list";
 import { EstimateLabPartsProvider } from "@/components/estimate-building/estimate-lab-parts-provider";
 import { EstimateLabLaborProvider } from "@/components/estimate-building/estimate-lab-labor-provider";
@@ -41,13 +40,13 @@ import type { EstimateLabQuickReferenceData } from "@/components/estimate-buildi
 import { loadEstimateContextDrawerData } from "@/server/estimate-context-drawer";
 import { getCustomerPaymentHistory } from "@/server/customer-payment-history";
 import { getDefaultAppointmentDuration } from "@/server/actions/appointments";
-import { computeRoTotals } from "@/lib/ro-totals";
-import { sumPaidCents } from "@/lib/payment-status";
+import { computeNamedFeeLines, computeRoTotals } from "@/lib/ro-totals";
+import { balanceDueCents, sumPaidCents } from "@/lib/payment-status";
 import { inspectionProgress } from "@/lib/inspection";
 import { getDepositRequestForRo } from "@/server/deposit-request";
+import { reconcileOrphanDepositsForRo } from "@/server/services/deposit-payments";
 import { getIntegrationStatusForShop } from "@/server/integrations";
 import { getRoSidebarOptions } from "@/server/ro-sidebar-options";
-import { getVehicleSpecsBundle } from "@/server/vehicle-specs-bundle";
 import {
   getRepairOrderAuditTrail,
   isEstimateScopedAuditEvent,
@@ -70,6 +69,7 @@ function buildLabFinancial(
   ro: RepairOrderDetail,
   totals: ReturnType<typeof computeRoTotals>,
   deposit: { status: string; amountCents: number } | null,
+  fees: RepairOrderDetail["fees"],
 ): EstimateLabFinancialSummary {
   const paidCents = sumPaidCents({
     payments: ro.invoice?.payments,
@@ -87,11 +87,40 @@ function buildLabFinancial(
     roDiscountsCents: totals.discountsCents,
     serviceFeesCents: 0,
     roFeesCents: totals.feesCents,
+    feeLines: computeNamedFeeLines(
+      fees.map((f) => ({
+        name: f.name,
+        jobId: f.jobId,
+        method: f.method,
+        base: f.base,
+        amount: f.amount,
+        capCents: f.capCents,
+        taxable: f.taxable,
+      })),
+      ro.jobs.map((j) => ({
+        id: j.id,
+        laborTaxable: j.laborTaxable,
+        partsTaxable: j.partsTaxable,
+        laborLines: j.laborLines.map((l) => ({
+          totalCents: l.totalCents,
+          authorized: l.authorized,
+        })),
+        partLines: j.partLines.map((p) => ({
+          totalCents: p.totalCents,
+          authorized: p.authorized,
+        })),
+      })),
+    ),
     taxCents: totals.taxesCents,
     taxLabel: `Sales tax ${taxPct}%`,
     estimateTotalCents: totals.totalCents,
     paidCents,
-    remainingCents: Math.max(0, totals.totalCents - paidCents),
+    remainingCents: balanceDueCents({
+      totalCents: totals.totalCents,
+      payments: ro.invoice?.payments,
+      deposit,
+      invoiceBalanceCents: ro.invoice?.balanceCents,
+    }),
   };
 }
 
@@ -151,7 +180,7 @@ export async function EstimateBuildingLabPanel({
   variant?: EstimateWorkspaceVariant;
 }) {
   const shopId = shopIdProp ?? (await getShopId());
-  const ro = await getRepairOrder({ shopId, id: roId });
+  let ro = await getRepairOrder({ shopId, id: roId });
   if (!ro) notFound();
 
   const isLab = variant === "lab";
@@ -197,11 +226,11 @@ export async function EstimateBuildingLabPanel({
     getIntegrationStatusForShop(shopId, "weldon"),
   ]);
 
+  // Vehicle specs / catalog / Gemini are NOT loaded here — on-demand via Specs button only.
   const [
     sidebarOptions,
     auditEvents,
     contextDrawerData,
-    vehicleSpecsBundle,
     defaultAppointmentDurationMins,
     invoiceShareLink,
     stripeEnabled,
@@ -210,14 +239,17 @@ export async function EstimateBuildingLabPanel({
     getRoSidebarOptions(shopId),
     getRepairOrderAuditTrail(shopId, ro.id, "all"),
     loadEstimateContextDrawerData(shopId, ro.customerId),
-    ro.vehicleId
-      ? getVehicleSpecsBundle(shopId, ro.vehicleId, { excludeRoId: ro.id })
-      : Promise.resolve(null),
     getDefaultAppointmentDuration(),
     getInvoiceShareLink({ shopId, repairOrderId: ro.id }),
     isShopOnlinePaymentsEnabled(shopId),
     getCustomerPaymentHistory(shopId, ro.customerId),
   ]);
+
+  if (deposit?.status === "PAID") {
+    await reconcileOrphanDepositsForRo({ shopId, repairOrderId: ro.id });
+    ro = (await getRepairOrder({ shopId, id: roId })) ?? ro;
+  }
+
   const feeTemplates = allFeeTemplates.filter((f) => f.autoApply);
   const filteredFees = filterActiveRoFees(ro.fees, allFeeTemplates);
   const activeRoFees = filteredFees.filter((f) => !f.jobId);
@@ -246,7 +278,7 @@ export async function EstimateBuildingLabPanel({
     taxOnFees: ro.shop.taxOnFees,
     taxCapCents: ro.shop.taxCapCents,
   });
-  const baseFinancial = buildLabFinancial(ro, roTotals, deposit);
+  const baseFinancial = buildLabFinancial(ro, roTotals, deposit, filteredFees);
   const authJobs = buildAuthJobs(ro);
   const gpGoalCents = ro.shop.gpPerHourGoalCents;
   const customerConcerns = ro.vehicleConcerns.filter((c) => c.kind === "CUSTOMER");
@@ -297,11 +329,12 @@ export async function EstimateBuildingLabPanel({
     payments: ro.invoice?.payments,
     deposit,
   });
-  // Prefer invoice balance when payments exist; otherwise subtract paid (incl. legacy deposits).
-  const paymentBalanceDueCents =
-    ro.invoice && (ro.invoice.payments?.length ?? 0) > 0
-      ? ro.invoice.balanceCents
-      : Math.max(0, (ro.invoice?.totalCents ?? ro.totalCents) - paidToDateCents);
+  const paymentBalanceDueCents = balanceDueCents({
+    totalCents: ro.invoice?.totalCents ?? ro.totalCents,
+    payments: ro.invoice?.payments,
+    deposit,
+    invoiceBalanceCents: ro.invoice?.balanceCents,
+  });
   const canArchiveRo =
     (ro.status === ROStatus.COMPLETED || ro.status === ROStatus.INVOICED) &&
     Boolean(ro.invoice?.payments.length) &&
@@ -332,7 +365,7 @@ export async function EstimateBuildingLabPanel({
     deposit,
     estimateTotalCents: ro.totalCents,
     quickReference: buildQuickReference(ro),
-    vehicleSpecs: vehicleSpecsBundle,
+    vehicleId: ro.vehicleId,
     technicians: sidebarOptions.technicians,
     // Design-mode-only payment status override — production always shows real invoice data.
     allowPaymentPreview: variant === "lab",
@@ -401,7 +434,7 @@ export async function EstimateBuildingLabPanel({
         customer={customerRecord}
         vehicle={editableVehicle}
         drawerData={contextDrawerData}
-        vehicleSpecs={vehicleSpecsBundle}
+        vehicleSpecs={null}
       />
 
       {!canEdit && hasJobs ? (
@@ -447,21 +480,6 @@ export async function EstimateBuildingLabPanel({
           ),
           services: (
             <div className={ESTIMATE_JOBS_CANVAS}>
-              <EstimateLabToolbar
-                roId={ro.id}
-                canEdit={canEdit}
-                cannedJobs={cannedJobs}
-                cannedJobCategories={cannedJobCategories}
-                baseRateCents={baseRate}
-                partTiers={ro.shop.partMatrix}
-                laborTiers={ro.shop.laborMatrix}
-                vehicleId={ro.vehicleId}
-                customerName={customerName}
-                vehicleLabel={vehicleLabel}
-                specLine={specLine}
-                mileageIn={ro.mileageIn}
-                odometerNotWorking={ro.odometerNotWorking}
-              />
               <div className={ESTIMATE_JOBS_SCROLL}>
                 {hasJobs ? (
                   <>
@@ -482,6 +500,13 @@ export async function EstimateBuildingLabPanel({
                       approvedAt={ro.authorizedAt}
                       approvalSignature={approvalSignature}
                       cannedJobCategories={cannedJobCategories}
+                      cannedJobs={cannedJobs}
+                      vehicleId={ro.vehicleId}
+                      customerName={customerName}
+                      vehicleLabel={vehicleLabel}
+                      specLine={specLine}
+                      mileageIn={ro.mileageIn}
+                      odometerNotWorking={ro.odometerNotWorking}
                       embedded
                       jobsLayout={jobsLayout}
                     />
@@ -502,24 +527,17 @@ export async function EstimateBuildingLabPanel({
                       No jobs on this estimate yet
                     </p>
                     <p className="mt-1 text-sm text-muted-foreground">
-                      Search canned jobs above, or add a blank job to build the estimate.
+                      Add canned services, a blank job card, or let AI draft a job for you.
                     </p>
                     {canEdit ? (
                       <div className="mt-5 flex justify-center">
-                        <EstimateJobLauncher
+                        <EstimateJobActionsCluster
                           roId={ro.id}
                           cannedJobs={cannedJobs}
                           cannedJobCategories={cannedJobCategories}
                           baseRateCents={baseRate}
                           partTiers={ro.shop.partMatrix}
                           laborTiers={ro.shop.laborMatrix}
-                          vehicleId={ro.vehicleId}
-                          customerName={customerName}
-                          vehicleLabel={vehicleLabel}
-                          specLine={specLine}
-                          mileageIn={ro.mileageIn}
-                          odometerNotWorking={ro.odometerNotWorking}
-                          triggerLabel="Add to estimate"
                         />
                       </div>
                     ) : null}
@@ -643,7 +661,7 @@ export async function EstimateBuildingLabPanel({
       odometerNotWorking={ro.odometerNotWorking}
       canEdit={canEdit}
       drawerData={contextDrawerData}
-      vehicleSpecs={vehicleSpecsBundle}
+      vehicleSpecs={null}
       paymentData={paymentData}
       appointmentEmployees={technicians}
       defaultAppointmentDurationMins={defaultAppointmentDurationMins}

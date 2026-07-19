@@ -85,7 +85,17 @@ export async function markEstimateViewNotified(roId: string): Promise<void> {
   revalidatePath(`/repair-orders/${roId}`);
 }
 
+function revalidateEstimateViewedPaths(roId: string) {
+  revalidatePath("/job-board");
+  revalidatePath("/workflow");
+  revalidatePath("/dashboard");
+  revalidatePath(`/repair-orders/${roId}`);
+}
+
 /** Called from the public approval page on first load. */
 export async function markEstimateViewedByToken(token: string): Promise<void> {
-  await recordEstimateViewed(token);
+  const result = await recordEstimateViewed(token);
+  if (result?.firstView) {
+    revalidateEstimateViewedPaths(result.roId);
+  }
 }

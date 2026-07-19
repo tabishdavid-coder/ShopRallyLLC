@@ -12,6 +12,8 @@ import { ROStatus } from "@/generated/prisma";
 import { gates } from "@/server/permission-gates";
 import { ensureAutoApplyFees } from "@/server/ro-fees";
 import { getLeadSourceNames } from "@/server/actions/marketing";
+import { revalidateEstimatePaths } from "@/lib/estimate-revalidate";
+import { recordRoCreatedAudit } from "@/server/shop-audit";
 
 const CreateROInput = z.object({
   customerId: z.string().min(1),
@@ -142,7 +144,16 @@ export async function createRepairOrder(
   // Auto-apply shop fee templates (RO Settings → Shop Fees).
   await ensureAutoApplyFees(shopId, ro.id);
 
-  revalidatePath("/job-board");
+  await recordRoCreatedAudit({
+    shopId,
+    repairOrderId: ro.id,
+    roNumber: ro.number,
+    source: "manual",
+  });
+
+  for (const path of revalidateEstimatePaths(ro.id)) {
+    revalidatePath(path);
+  }
   return { ok: true, id: ro.id, number: ro.number };
 }
 

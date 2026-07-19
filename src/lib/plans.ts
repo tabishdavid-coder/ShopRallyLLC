@@ -32,7 +32,7 @@ export type PlanFeature =
   | "aiSeoContent"
   | "aiCustomerInsights"
   | "aiReceptionist"
-  /** Auto.dev plate→VIN + rich VIN decode — Pro+ only. Core uses free NHTSA VIN + manual entry. */
+  /** Auto.dev plate→VIN + rich VIN decode — Pro+ only. Core uses NHTSA VIN + manual entry. */
   | "autodevDecoding"
   /** Smart / freeform AI repair-order intake — Core-only AI Plus $20/mo add-on (not Pro/Elite). */
   | "freeformRoIntake";

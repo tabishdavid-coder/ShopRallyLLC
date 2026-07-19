@@ -40,6 +40,8 @@ export function EstimateJobsList({
   jobsLayout,
   onJobOpenParts,
   addJobFooter,
+  showHeaderControls = true,
+  headerAction,
 }: {
   roId: string;
   canEdit: boolean;
@@ -65,6 +67,8 @@ export function EstimateJobsList({
   onJobOpenParts?: (jobId: string, mode: "manual" | "lookup") => void;
   /** Optional footer slot (e.g. lab add-job launcher at list bottom). */
   addJobFooter?: ReactNode;
+  showHeaderControls?: boolean;
+  headerAction?: ReactNode;
 }) {
   const { mergedJobs, toggleJob, toggleLabor, togglePart, setJobDraft } = useEstimateSelection();
   const [allCollapsed, setAllCollapsed] = useState(false);
@@ -93,6 +97,8 @@ export function EstimateJobsList({
         settingsHref="/settings/ro-settings?section=estimate-workspace"
         jobsLayout={jobsLayout}
         approvedAt={approvedVia ? approvedAt : null}
+        showHeaderControls={showHeaderControls}
+        headerAction={headerAction}
       />
       {variant === "lab" && canEdit ? (
         <EstimateLabJobsDndList

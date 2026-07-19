@@ -25,6 +25,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
+import { SmartAiPromptBar } from "@/components/repair-order/smart-ai-prompt-bar";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -305,18 +306,17 @@ export function SmartRoIntakeDialog({
           ) : null}
 
           {step === "input" ? (
-            <div className="space-y-3 rounded-xl border border-border/80 bg-white p-4">
-              <Label htmlFor="smart-ro-text">Intake notes</Label>
-              <Textarea
-                id="smart-ro-text"
+            <div className="space-y-3">
+              <SmartAiPromptBar
                 value={text}
-                onChange={(e) => setText(e.target.value)}
-                placeholder='e.g. "Maria 718-555-0199 — 2018 Honda Accord EX, oil change and front brakes grinding, about 62k miles"'
-                rows={8}
-                className="min-h-[180px] resize-y bg-white"
+                onChange={setText}
+                onSubmit={onParse}
+                pending={pending}
+                placeholder='Maria 718-555-0199 — 2018 Honda Accord EX, oil change and front brakes…'
+                aria-label="Smart AI intake notes"
               />
               <p className="text-xs text-muted-foreground">
-                VINs are decoded via free NHTSA for car details and more accurate labor hours. Gemini
+                VINs are decoded via NHTSA for car details and more accurate labor hours. Gemini
                 returns hours only — shop rate ({laborRateLabel}) is applied on the review screen.
               </p>
             </div>
@@ -766,26 +766,9 @@ export function SmartRoIntakeDialog({
 
         <DialogFooter className="shrink-0 border-t bg-white px-5 py-3.5 sm:px-6">
           {step === "input" ? (
-            <>
-              <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
-                Cancel
-              </Button>
-              <Button
-                type="button"
-                className="bg-brand-navy"
-                disabled={pending || text.trim().length < 8}
-                onClick={onParse}
-              >
-                {pending ? (
-                  <>
-                    <Loader2 className="mr-2 size-4 animate-spin" aria-hidden />
-                    Parsing…
-                  </>
-                ) : (
-                  "Parse with AI"
-                )}
-              </Button>
-            </>
+            <Button type="button" variant="ghost" onClick={() => onOpenChange(false)}>
+              Cancel
+            </Button>
           ) : (
             <>
               <Button type="button" variant="ghost" onClick={() => setStep("input")} disabled={pending}>

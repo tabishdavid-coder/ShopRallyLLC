@@ -19,7 +19,7 @@ export default async function VinDecoderIntegrationPage() {
       <section className="space-y-3 rounded-lg border bg-card p-4">
         <h3 className="font-medium text-sm">Active providers</h3>
         <ul className="space-y-2 text-sm">
-          <StatusRow ok label="NHTSA vPIC" note="Free — always active for VIN decode on Add Vehicle and Create RO." />
+          <StatusRow ok label="NHTSA vPIC" note="Always active for VIN decode on Add Vehicle and Create RO." />
           <StatusRow
             ok={autodevEnv || Boolean(c.hasAutodevApiKey)}
             label="Auto.dev"
@@ -46,7 +46,7 @@ export default async function VinDecoderIntegrationPage() {
             label: "Preferred paid provider",
             type: "select",
             options: [
-              { value: "nhtsa", label: "NHTSA only (free)" },
+              { value: "nhtsa", label: "NHTSA only" },
               { value: "autodev", label: "Auto.dev" },
               { value: "dataone", label: "DataOne / VinAudit" },
             ],

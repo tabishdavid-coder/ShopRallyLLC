@@ -3,6 +3,7 @@ import type { CSSProperties } from "react";
 import type { ROStatus } from "@/generated/prisma";
 
 import type { BoardColumn } from "@/lib/job-board";
+import { RO_STATUS_LABEL, roStatusBadgeColors } from "@/lib/ro-status";
 
 /**
  * ShopRally 3-column board — stage colors inspired by the Mac Auto mock
@@ -73,7 +74,7 @@ export const JOB_BOARD_COLUMN_META: Record<
   },
   workInProgress: {
     title: "Work in Progress",
-    subtitle: "On the lift",
+    subtitle: "Work in progress",
   },
   completed: {
     title: "Completed",
@@ -121,7 +122,7 @@ export function jobBoardColumnStagePill(label: string, hex: string) {
 export const JOB_BOARD_CARD_STATUS_PILL = {
   notStarted: {
     label: JOB_BOARD_COLUMN_META.estimates.subtitle,
-    className: `${PILL_BASE} bg-slate-100 text-slate-600 ring-1 ring-inset ring-slate-200/80`,
+    className: `${PILL_BASE} ${roStatusBadgeColors("ESTIMATE")} ring-1 ring-inset ring-[color-mix(in_oklab,var(--jb-stage-estimates)_28%,transparent)]`,
   },
   inProgress: {
     label: JOB_BOARD_COLUMN_META.workInProgress.subtitle,
@@ -141,7 +142,7 @@ export const JOB_BOARD_CARD_STATUS_PILL = {
   },
   approved: {
     label: "Approved",
-    className: `${PILL_BASE} bg-[color-mix(in_oklab,var(--jb-stage-estimates)_12%,white)] text-[color-mix(in_oklab,var(--jb-stage-estimates)_90%,#0a1a40)] ring-1 ring-inset ring-[color-mix(in_oklab,var(--jb-stage-estimates)_28%,transparent)]`,
+    className: `${PILL_BASE} ${roStatusBadgeColors("APPROVED")} ring-1 ring-inset ring-[color-mix(in_oklab,var(--jb-stage-wip)_28%,transparent)]`,
   },
   sent: {
     label: "Sent",
@@ -173,23 +174,23 @@ export const JOB_BOARD_STATUS_PILL: Record<
 > = {
   ESTIMATE: {
     label: JOB_BOARD_COLUMN_META.estimates.subtitle,
-    className: `${PILL_BASE} bg-[color-mix(in_oklab,var(--jb-stage-estimates)_14%,white)] text-[color-mix(in_oklab,var(--jb-stage-estimates)_90%,#0a1a40)]`,
+    className: `${PILL_BASE} ${roStatusBadgeColors("ESTIMATE")}`,
   },
   APPROVED: {
-    label: "Approved",
-    className: `${PILL_BASE} bg-[color-mix(in_oklab,var(--jb-stage-estimates)_12%,white)] text-[color-mix(in_oklab,var(--jb-stage-estimates)_90%,#0a1a40)]`,
+    label: RO_STATUS_LABEL.APPROVED,
+    className: `${PILL_BASE} ${roStatusBadgeColors("APPROVED")}`,
   },
   IN_PROGRESS: {
     label: JOB_BOARD_COLUMN_META.workInProgress.subtitle,
-    className: `${PILL_BASE} bg-[color-mix(in_oklab,var(--jb-stage-wip)_14%,white)] text-[color-mix(in_oklab,var(--jb-stage-wip)_85%,#3a2a00)]`,
+    className: `${PILL_BASE} ${roStatusBadgeColors("IN_PROGRESS")}`,
   },
   COMPLETED: {
     label: JOB_BOARD_COLUMN_META.completed.subtitle,
-    className: `${PILL_BASE} bg-[color-mix(in_oklab,var(--jb-stage-completed)_12%,white)] text-[color-mix(in_oklab,var(--jb-stage-completed)_90%,#0a2a1a)]`,
+    className: `${PILL_BASE} ${roStatusBadgeColors("COMPLETED")}`,
   },
   INVOICED: {
-    label: "Invoiced",
-    className: `${PILL_BASE} bg-slate-700 text-white`,
+    label: RO_STATUS_LABEL.INVOICED,
+    className: `${PILL_BASE} ${roStatusBadgeColors("INVOICED")}`,
   },
 };
 

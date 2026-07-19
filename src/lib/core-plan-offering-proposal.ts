@@ -53,7 +53,7 @@ export const CORE_OFFERING_MOCK = {
         { name: "Customer profiles", detail: "Search, tags, contact, notes, history" },
         { name: "Vehicle records", detail: "VIN, YMM, plate, mileage, notes" },
         { name: "Free-type Year / Make / Model / Trim", detail: "No catalog lock-in on Core" },
-        { name: "NHTSA VIN decode", detail: "Free VIN decode path (no Auto.dev on Core)" },
+        { name: "NHTSA VIN decode", detail: "NHTSA VIN decode path (no Auto.dev on Core)" },
         { name: "Manual plate entry", detail: "Plate stored without paid plate→VIN" },
         { name: "Job board", detail: "Estimates · WIP · Completed with drag-and-drop", highlight: true },
         { name: "Workflow / board views", detail: "Pipeline visibility for the floor" },

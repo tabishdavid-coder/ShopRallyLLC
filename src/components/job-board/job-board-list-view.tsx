@@ -14,6 +14,7 @@ import type { JobCard as JobCardData } from "@/lib/job-board";
 import type { JobBoardListRow } from "@/lib/job-board-list-utils";
 import { JOB_BOARD_STATUS_PILL } from "@/lib/job-board-theme";
 import { defaultRoOpenHref } from "@/lib/ro-workspace";
+import { roStatusBadgeClass } from "@/lib/ro-status";
 import { cn } from "@/lib/utils";
 
 function stopRowNav(e: React.SyntheticEvent) {
@@ -71,6 +72,37 @@ function listStatusLabel(row: JobBoardListRow): string {
   if (card.authorizedAt) return "Approved";
   if (card.approvalSentAt) return "Sent";
   return JOB_BOARD_STATUS_PILL[card.status]?.label ?? row.column.title;
+}
+
+const LIST_STATUS_BADGE_BASE =
+  "inline-flex rounded-none border px-2 py-0.5 text-[10px] font-semibold";
+
+function listStatusBadgeClass(row: JobBoardListRow): string {
+  const card = row.card;
+  const balanceDue = (card.invoiceBalanceCents ?? 0) > 0 && !card.paymentPosted;
+
+  if (card.paymentPosted) {
+    return cn(
+      LIST_STATUS_BADGE_BASE,
+      "border-emerald-300/80 bg-emerald-50 text-emerald-800",
+    );
+  }
+  if (balanceDue) {
+    return cn(
+      LIST_STATUS_BADGE_BASE,
+      "border-brand-red/35 bg-brand-red/8 text-brand-red",
+    );
+  }
+  if (card.authorizedAt) {
+    return cn(LIST_STATUS_BADGE_BASE, roStatusBadgeClass("APPROVED"));
+  }
+  if (card.approvalSentAt) {
+    return cn(
+      LIST_STATUS_BADGE_BASE,
+      "border-amber-200/90 bg-amber-50 text-amber-800",
+    );
+  }
+  return cn(LIST_STATUS_BADGE_BASE, roStatusBadgeClass(card.status));
 }
 
 export function JobBoardListView({
@@ -151,16 +183,7 @@ export function JobBoardListView({
                           {vehicleLine(row)}
                         </td>
                         <td className="px-3 py-2.5">
-                          <span
-                            className={cn(
-                              "inline-flex rounded-none border px-2 py-0.5 text-[10px] font-semibold",
-                              balanceDue
-                                ? "border-brand-red/35 bg-brand-red/8 text-brand-red"
-                                : card.paymentPosted
-                                  ? "border-emerald-300/80 bg-emerald-50 text-emerald-800"
-                                  : "border-border/70 bg-muted/40 text-muted-foreground",
-                            )}
-                          >
+                          <span className={listStatusBadgeClass(row)}>
                             {listStatusLabel(row)}
                           </span>
                         </td>

@@ -30,6 +30,16 @@ export type FreeformJobDraft = {
   resolution: string;
 };
 
+/** Parts vendor / description hints extracted from freeform text (not committed by intake). */
+export type FreeformPartHint = {
+  description: string;
+  vendor: string | null;
+  vendorPhone: string | null;
+  partNumber: string | null;
+  /** Best-effort link to a repair request or job name. */
+  relatedRepair: string | null;
+};
+
 export type FreeformRoDraft = {
   rawText: string;
   vehicle: FreeformVehicleDraft;
@@ -37,6 +47,7 @@ export type FreeformRoDraft = {
   concerns: string[];
   notes: string | null;
   jobs: FreeformJobDraft[];
+  partHints: FreeformPartHint[];
   /** Suggested customer matches from CRM (server-populated). */
   suggestedCustomerIds: string[];
 };

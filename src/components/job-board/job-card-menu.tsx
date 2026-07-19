@@ -220,12 +220,12 @@ export function JobCardMenu({
           </>
         ) : null}
 
-        {canArchive && onArchive ? (
+        {onArchive ? (
           <>
             <DropdownMenuSeparator />
             <DropdownMenuItem onSelect={onArchive} className="font-medium text-emerald-800 focus:text-emerald-800">
               <Archive className="size-4" />
-              {ap3030 ? `Archive ${AP_TERMS.repairOrder.toLowerCase()}` : "Archive RO"}
+              {ap3030 ? `Archive ${AP_TERMS.repairOrder.toLowerCase()}` : "Archive order"}
             </DropdownMenuItem>
           </>
         ) : null}

@@ -48,6 +48,7 @@ export function vehicleSpecsView(vehicle: {
   };
 }
 
+/** True when decode/catalog identity fields exist (engine/trans/drive/body/VIN). */
 export function vehicleHasSpecsData(view: VehicleSpecsView): boolean {
   return Boolean(
     view.engine ||
@@ -57,4 +58,43 @@ export function vehicleHasSpecsData(view: VehicleSpecsView): boolean {
       view.bodyClass ||
       view.vin,
   );
+}
+
+/** Minimum identity for specs UI — YMM is enough; VIN is not required. */
+export function vehicleHasYmm(view: VehicleSpecsView): boolean {
+  return Boolean(view.year && view.make?.trim() && view.model?.trim());
+}
+
+/** Show Specs / Fluids entry when we have YMM or any richer decode fields. */
+export function vehicleCanShowSpecsUi(view: VehicleSpecsView): boolean {
+  return vehicleHasYmm(view) || vehicleHasSpecsData(view);
+}
+
+export type VehicleSpecsSourceKind = "decoded" | "catalog" | "entered" | "needs_engine";
+
+/** Soft source chip for the identity strip (no VIN gate). */
+export function vehicleSpecsSourceKind(view: VehicleSpecsView): VehicleSpecsSourceKind {
+  if (view.vin && (view.engine || view.transmission || view.drivetrain || view.bodyClass)) {
+    return "decoded";
+  }
+  if (view.engine && vehicleHasYmm(view)) return "catalog";
+  if (vehicleHasYmm(view) && !view.engine) return "needs_engine";
+  return "entered";
+}
+
+export function vehicleSpecsSourceLabel(kind: VehicleSpecsSourceKind): string {
+  switch (kind) {
+    case "decoded":
+      return "Decoded";
+    case "catalog":
+      return "Catalog";
+    case "needs_engine":
+      return "Needs engine";
+    default:
+      return "Entered";
+  }
+}
+
+export function vehicleYmmLabel(view: VehicleSpecsView): string {
+  return [view.year, view.make, view.model, view.trim].filter(Boolean).join(" ");
 }

@@ -51,7 +51,7 @@ Think of it like: **one restaurant kitchen, many customers** — not “build a 
 | **SMS** | Short Message Service — text messaging (off on Ignition; Pro later) |
 | **VIN** | Vehicle Identification Number |
 | **YMM** | Year / Make / Model |
-| **NHTSA** | National Highway Traffic Safety Administration — free public VIN decode source |
+| **NHTSA** | National Highway Traffic Safety Administration — public VIN decode source |
 | **MOTOR** | Licensed motor labor / flat-rate data vendor (off on Ignition; Pro later) |
 | **LLM** | Large Language Model — AI model (e.g. Google Gemini) used for AI Plus |
 | **EAS** | Expo Application Services — cloud builds for the mobile app |
@@ -186,7 +186,7 @@ Detailed commercial list (see also live plan copy in `src/lib/plans.ts`):
 | **AI COGS** | ~**$380** | Gemini for ~100 AI Plus seats (~50% attach) |
 | **Mobile platform** | ~**$55** | Apple / Play amortized + **EAS** builds + push (**APNs** / **FCM**) |
 | **Stripe Billing fees** | ~**$476** | ~2.9% + $0.30 per subscription invoice |
-| **Data licenses (MOTOR / paid VIN)** | **$0** | NHTSA free decode path |
+| **Data licenses (MOTOR / paid VIN)** | **$0** | NHTSA decode path |
 | **Total** | **~$1,911** | **~13% of ARR** |
 
 ### C. Solo OpEx (no employees)

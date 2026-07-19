@@ -43,6 +43,7 @@ function authorizationKind(card: JobCardData): AuthKind {
 type ContextCue = {
   label: string;
   className: string;
+  at?: Date | string | null;
 };
 
 /** Sparse secondary cue — never competes with status / customer / money. */
@@ -57,10 +58,18 @@ function resolveContextCue(card: JobCardData, auth: AuthKind): ContextCue | null
   }
   if (balanceDue) return null;
   if (auth === "customer") {
-    return { label: "Customer approved", className: JOB_BOARD_CONTEXT_CHIP.approved };
+    return {
+      label: "Customer approved",
+      at: card.authorizedAt,
+      className: JOB_BOARD_CONTEXT_CHIP.approved,
+    };
   }
   if (auth === "shop") {
-    return { label: "Shop approved", className: JOB_BOARD_CONTEXT_CHIP.approved };
+    return {
+      label: "Shop approved",
+      at: card.authorizedAt,
+      className: JOB_BOARD_CONTEXT_CHIP.approved,
+    };
   }
   return null;
 }
@@ -261,7 +270,15 @@ export function JobCard({
           {statusPill.label}
         </span>
         {cue ? (
-          <span className={cn("job-board-card-cue", cue.className)}>{cue.label}</span>
+          <span className={cn("job-board-card-cue", cue.className)}>
+            {cue.label}
+            {cue.at ? (
+              <>
+                {" · "}
+                <RelativeTime date={cue.at} />
+              </>
+            ) : null}
+          </span>
         ) : null}
       </div>
 

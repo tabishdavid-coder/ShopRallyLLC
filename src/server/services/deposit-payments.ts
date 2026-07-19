@@ -1,6 +1,8 @@
 import "server-only";
 
-import { PaymentMethod } from "@/generated/prisma";
+import { DepositRequestStatus, PaymentMethod } from "@/generated/prisma";
+import { prisma } from "@/db/client";
+import { isDepositAppliedInPayments } from "@/lib/payment-status";
 import { ensureInvoiceForRepairOrder } from "@/server/invoice";
 import { recordInvoicePayment } from "@/server/services/invoice-payments";
 
@@ -37,4 +39,61 @@ export async function applyDepositTowardInvoice(opts: {
 
   if (!res.ok) return res;
   return { ok: true };
+}
+
+/**
+ * Backfill invoice Payment rows for PAID deposits that were never applied
+ * (e.g. deposit taken before invoice existed, or apply failed best-effort).
+ */
+export async function reconcileOrphanDepositsForRo(opts: {
+  shopId: string;
+  repairOrderId: string;
+  auditActor?: { userId: string; email: string } | null;
+}): Promise<void> {
+  const deposits = await prisma.depositRequest.findMany({
+    where: {
+      shopId: opts.shopId,
+      repairOrderId: opts.repairOrderId,
+      status: DepositRequestStatus.PAID,
+    },
+    select: {
+      id: true,
+      amountCents: true,
+      paidMethod: true,
+      stripePaymentIntentId: true,
+    },
+  });
+  if (deposits.length === 0) return;
+
+  const invoice = await prisma.invoice.findFirst({
+    where: { shopId: opts.shopId, repairOrderId: opts.repairOrderId },
+    select: {
+      payments: { select: { amountCents: true, reference: true } },
+    },
+  });
+
+  for (const dep of deposits) {
+    if (
+      isDepositAppliedInPayments(
+        { id: dep.id, status: DepositRequestStatus.PAID, amountCents: dep.amountCents },
+        invoice?.payments ?? [],
+      )
+    ) {
+      continue;
+    }
+
+    const applied = await applyDepositTowardInvoice({
+      shopId: opts.shopId,
+      repairOrderId: opts.repairOrderId,
+      amountCents: dep.amountCents,
+      method: dep.paidMethod ?? PaymentMethod.OTHER,
+      depositRequestId: dep.id,
+      reference: `Deposit ${dep.id}`,
+      stripePaymentIntentId: dep.stripePaymentIntentId,
+      auditActor: opts.auditActor ?? null,
+    });
+    if (!applied.ok) {
+      console.error("[deposit] reconcile orphan failed", dep.id, applied.error);
+    }
+  }
 }

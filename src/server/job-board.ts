@@ -197,8 +197,7 @@ export async function getJobBoard(opts: {
       balanceCents === 0 &&
       lastPayment != null &&
       (ro.status === "COMPLETED" || ro.status === "INVOICED");
-    const canArchive =
-      paymentPosted && (ro.status === "COMPLETED" || ro.status === "INVOICED");
+    const canArchive = true;
 
     const core = COLUMN_OF[ro.status];
     // Approximate stage entry: no dedicated board-column-entered timestamp.

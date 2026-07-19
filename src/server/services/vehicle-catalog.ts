@@ -6,7 +6,7 @@ import type { VehicleEngineOption, VehicleEpaDetails } from "@/lib/vehicle-catal
 /**
  * Vehicle Year/Make/Model/Trim/Engine catalog for the Add-Vehicle "Select
  * Vehicle" drill-down. Makes are a BUNDLED static list (instant, immune to
- * NHTSA rate limits). Models are fetched per make+year from the free NHTSA
+ * NHTSA rate limits). Models are fetched per make+year from the NHTSA
  * vPIC API (year-scoped). Trims + engines come from the free EPA Fuel Economy
  * API, filtered to the selected NHTSA model. The UI falls back to free-text
  * entry when a provider is unavailable.

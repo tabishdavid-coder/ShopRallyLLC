@@ -61,6 +61,7 @@ import { PaymentTransactionsPanel } from "@/components/repair-order/payment-tran
 import type {
   EstimateContextDrawerAppointment,
   EstimateContextDrawerCarePlan,
+  EstimateContextDrawerDeferredJob,
   EstimateContextDrawerRo,
   EstimateContextDrawerVehicle,
 } from "@/lib/estimate-context-drawer-types";
@@ -792,7 +793,11 @@ function VehicleAccordionCard({
 
           {vehicleSpecsOk && specsOpen && specsData ? (
             <div className="overflow-hidden rounded-lg border border-border bg-muted/10">
-              <EstimateLabVehicleSpecsSection data={specsData} canEdit={canEdit} />
+              <EstimateLabVehicleSpecsSection
+                data={specsData}
+                canEdit={canEdit}
+                showTitle
+              />
             </div>
           ) : null}
 
@@ -890,7 +895,7 @@ function VehicleAccordionCard({
 
           {canEdit && !autodevDecodingOk ? (
             <p className="text-xs text-muted-foreground">
-              Enter the plate manually on Core. Decode a 17-character VIN (free NHTSA) or fill in year / make /
+              Enter the plate manually on Core. Decode a 17-character VIN (NHTSA) or fill in year / make /
               model below.
             </p>
           ) : null}
@@ -1007,13 +1012,83 @@ export function DrawerVehiclesTab({
   );
 }
 
-export function DrawerDeferredTab() {
+export function DrawerDeferredTab({
+  jobs,
+  currentRoId,
+}: {
+  jobs: EstimateContextDrawerDeferredJob[];
+  currentRoId?: string;
+}) {
+  if (jobs.length === 0) {
+    return (
+      <DrawerEmptyState
+        icon={Tag}
+        title="No deferred work"
+        description="Declined or deferred services from inspections will appear here for follow-up."
+      />
+    );
+  }
+
+  const currentRo = currentRoId ? jobs.filter((j) => j.roId === currentRoId) : [];
+  const other = currentRoId ? jobs.filter((j) => j.roId !== currentRoId) : jobs;
+
+  function JobRow({ job }: { job: EstimateContextDrawerDeferredJob }) {
+    const pill = RO_STATUS_PILL[job.roStatus as ROStatus] ?? RO_STATUS_PILL.ESTIMATE;
+    return (
+      <Link
+        href={`/repair-orders/${job.roId}/estimate`}
+        className="block rounded-lg border border-[#DDE5EF] bg-white p-3 transition-colors hover:border-[#1E7FE0]/40 hover:bg-[#f2f8fe]/30"
+      >
+        <div className="flex flex-wrap items-start justify-between gap-2">
+          <div className="min-w-0 space-y-1">
+            <p className="text-sm font-semibold text-[#0B1F3B]">{job.jobName}</p>
+            <div className="flex flex-wrap items-center gap-2 text-xs text-[#5B7295]">
+              <span className="font-medium tabular-nums text-[#1E7FE0]">RO #{job.roNumber}</span>
+              <Badge variant="outline" className={cn("text-[10px]", pill.className)}>
+                {pill.label}
+              </Badge>
+            </div>
+            <p className="flex items-center gap-1.5 text-[11px] text-[#8CA2C0]">
+              <Car className="size-3 shrink-0" />
+              {job.vehicleLabel}
+            </p>
+          </div>
+          <div className="text-right">
+            <p className="text-sm font-semibold tabular-nums text-[#0B1F3B]">
+              {formatCents(job.totalCents)}
+            </p>
+            <p className="mt-0.5 text-[10px] text-[#8CA2C0]">{fmtDate(job.deferredAt)}</p>
+          </div>
+        </div>
+      </Link>
+    );
+  }
+
   return (
-    <DrawerEmptyState
-      icon={Tag}
-      title="No deferred work"
-      description="Declined or deferred services from inspections will appear here for follow-up."
-    />
+    <div className="space-y-4 pb-4">
+      {currentRo.length > 0 ? (
+        <DrawerContentCard title="This repair order">
+          <div className="space-y-2">
+            {currentRo.map((job) => (
+              <JobRow key={job.id} job={job} />
+            ))}
+          </div>
+        </DrawerContentCard>
+      ) : null}
+
+      {other.length > 0 ? (
+        <DrawerContentCard title={currentRo.length > 0 ? "Other deferred work" : "Deferred jobs"}>
+          <p className="mb-3 text-xs text-[#5B7295]">
+            Quoted services the customer declined or did not authorize — follow up on a future visit.
+          </p>
+          <div className="space-y-2">
+            {other.map((job) => (
+              <JobRow key={job.id} job={job} />
+            ))}
+          </div>
+        </DrawerContentCard>
+      ) : null}
+    </div>
   );
 }
 

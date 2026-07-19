@@ -1,6 +1,6 @@
 # Dev 3031 — build state (ShopRallyCRM)
 
-Last updated: 2026-07-18 (job board redesign)
+Last updated: 2026-07-18 (vehicle-spec AI memory)
 
 > **Canonical dev:** **`ShopRally/`** folder only — `npm run dev` → :3031. See `docs/SHOPRALLY-DEV.md`.
 > Do **not** develop shop CRM in the sibling `karvio/` folder (legacy platform fork).
@@ -26,6 +26,7 @@ npm run dev
 
 ## Done
 
+- [x] **Vehicle spec UX + AI audit (2026-07-18)** — SnagIt frame analysis (Tekmetric C2451C6F ~13.6s fluids sidebar; AutoLeap E329F843 ~16.7s spec modal) + ShopRally capability matrix. Memory: `agents/ShopRallyCRM/VEHICLE-SPEC-AI-MEMORY.md`. No implementation yet; next = YMM→EPA catalog enrichment without VIN gate.
 - [x] **Job Board redesign (2026-07-18)** — `/job-board` kanban cards/columns restyled for Tekmetric-inspired scan hierarchy (status pill, RO#, created-ago, customer+phone, vehicle, total) with ShopRally navy/light-blue/red chrome (left rail accent, no teal WIP). DnD, menus, search/filters, RO links preserved. Verify: http://localhost:3031/job-board
 - [x] **Shop-owned email go-live path (2026-07-18)** — Product decision: **the shop owns their email** (From name / From address / Reply-to in Settings → Communications → Email). Platform Resend is transport only; Share + other CRM outbound use `sendShopEmail` with that identity. Doc: `docs/SHOP-EMAIL.md` (operator go-live checklist). Ready/Not-ready UX + Enable/test CTAs + Resend helper banner; `getShopEmailSendStatus` for share roles; provision + seed defaults (`emailEnabled` false until enable/test). **Local audit:** `RESEND_API_KEY` absent → mock/mailto; live DB demo shops have From fields null until Settings filled (seed defaults only apply on fresh seed). Deferred: DNS wizard, per-shop Resend keys, HTML templates, EmailSendLog.
 - [x] **Maintenance Schedule hidden (2026-07-09)** — removed product UI entries from the estimate launcher and Labor Book job-card toolbar; no customer/shop-facing Maintenance Schedule stub remains.

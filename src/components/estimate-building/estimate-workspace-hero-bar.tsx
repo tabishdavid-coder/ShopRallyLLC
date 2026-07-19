@@ -73,7 +73,7 @@ export function EstimateWorkspaceHeroBar({
             <span className="font-normal text-muted-foreground">{vehicleLabel}</span>
           </>
         ) : null}
-        <Badge className={cn("ml-2 align-middle text-[10px]", pill.className)}>{pill.label}</Badge>
+        <Badge variant="outline" className={cn("ml-2 align-middle text-[10px]", pill.className)}>{pill.label}</Badge>
       </h1>
 
       <div className="flex shrink-0 flex-wrap items-center gap-3">

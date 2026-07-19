@@ -82,7 +82,7 @@ export const VENDOR_DEFINITIONS: VendorDefinition[] = [
     description: "Decode VINs to year/make/model/trim/engine when adding vehicles and creating ROs.",
     href: "/vendors/integrations/vin-decoder",
     envVars: ["AUTODEV_API_KEY"],
-    integrationType: "NHTSA vPIC (free) + optional paid providers",
+    integrationType: "NHTSA vPIC + optional paid providers",
     partnershipNote:
       "NHTSA vPIC is active with no key. Upgrade to Auto.dev, DataOne, or VinAudit for richer data and plate lookup.",
   },

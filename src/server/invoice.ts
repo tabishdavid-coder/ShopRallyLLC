@@ -7,6 +7,7 @@ import { appUrl } from "@/lib/app-url";
 import { InvoiceStatus, ROStatus } from "@/generated/prisma";
 import { resolveShopInvoiceTerms } from "@/lib/estimate-terms-default";
 import { buildServiceAdvisor, type ServiceAdvisorInfo } from "@/lib/service-advisor";
+import { computeNamedFeeLines, type NamedFeeLine } from "@/lib/ro-totals";
 import { ensureAutoApplyFees } from "@/server/ro-fees";
 
 /**
@@ -122,6 +123,7 @@ export type InvoiceView = {
   partsSubtotalCents: number;
   shopSuppliesCents: number;
   feesSubtotalCents: number;
+  feeLines: NamedFeeLine[];
   discountCents: number;
   taxCents: number;
   subtotalCents: number;
@@ -182,8 +184,22 @@ export async function getInvoiceView(token: string): Promise<InvoiceView | null>
             select: {
               id: true,
               name: true,
-              laborLines: { select: { hours: true, totalCents: true } },
-              partLines: { select: { totalCents: true } },
+              laborTaxable: true,
+              partsTaxable: true,
+              laborLines: { select: { hours: true, totalCents: true, authorized: true, taxable: true } },
+              partLines: { select: { totalCents: true, authorized: true, taxable: true } },
+            },
+          },
+          fees: {
+            orderBy: { sortOrder: "asc" },
+            select: {
+              name: true,
+              jobId: true,
+              method: true,
+              base: true,
+              amount: true,
+              capCents: true,
+              taxable: true,
             },
           },
         },
@@ -212,6 +228,33 @@ export async function getInvoiceView(token: string): Promise<InvoiceView | null>
     invoiceTermsHtml: ro.shop.invoiceTermsHtml,
   });
 
+  const feeLines = computeNamedFeeLines(
+    ro.fees.map((f) => ({
+      name: f.name,
+      jobId: f.jobId,
+      method: f.method,
+      base: f.base,
+      amount: f.amount,
+      capCents: f.capCents,
+      taxable: f.taxable,
+    })),
+    ro.jobs.map((j) => ({
+      id: j.id,
+      laborTaxable: j.laborTaxable,
+      partsTaxable: j.partsTaxable,
+      laborLines: j.laborLines.map((l) => ({
+        totalCents: l.totalCents,
+        authorized: l.authorized,
+        taxable: l.taxable,
+      })),
+      partLines: j.partLines.map((p) => ({
+        totalCents: p.totalCents,
+        authorized: p.authorized,
+        taxable: p.taxable,
+      })),
+    })),
+  );
+
   return {
     id: inv.id,
     shopId: invRef.shopId,
@@ -227,6 +270,7 @@ export async function getInvoiceView(token: string): Promise<InvoiceView | null>
     partsSubtotalCents: ro.partsSubtotalCents,
     shopSuppliesCents: ro.shopSuppliesCents,
     feesSubtotalCents: ro.feesSubtotalCents,
+    feeLines,
     discountCents: ro.discountCents,
     taxCents: inv.taxCents,
     subtotalCents: inv.subtotalCents,

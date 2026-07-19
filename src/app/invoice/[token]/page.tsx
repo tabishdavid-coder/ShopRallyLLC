@@ -6,6 +6,7 @@ import { PayInvoiceButton } from "@/components/invoice/pay-invoice-button";
 import { ServiceAdvisorCard } from "@/components/service-advisor-card";
 import { CustomerAcknowledgment } from "@/components/customer-acknowledgment";
 import { InvoiceStatus } from "@/generated/prisma";
+import { CustomerFeeRows } from "@/components/customer/customer-fee-rows";
 import { formatCents } from "@/lib/format";
 import { isShopOnlinePaymentsEnabled } from "@/server/services/stripe-connect";
 import { getInvoiceView } from "@/server/invoice";
@@ -81,9 +82,7 @@ export default async function InvoicePage({
             {view.shopSuppliesCents > 0 ? (
               <Row label="Shop supplies" value={formatCents(view.shopSuppliesCents)} />
             ) : null}
-            {view.feesSubtotalCents > 0 ? (
-              <Row label="Fees" value={formatCents(view.feesSubtotalCents)} />
-            ) : null}
+            <CustomerFeeRows fees={view.feeLines} Row={Row} />
             {view.discountCents > 0 ? (
               <Row label="Discounts" value={formatCents(-view.discountCents)} />
             ) : null}

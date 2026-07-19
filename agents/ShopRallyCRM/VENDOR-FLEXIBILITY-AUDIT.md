@@ -47,7 +47,7 @@ Points off (the −): a couple of soft couplings that are cosmetic, not structur
 |---|---|---|---|
 | **Auto.dev (VIN decode)** | **Loose** | Nothing. Falls back to NHTSA automatically (`FallbackVinProvider`). Stale `decodedData` blobs stop being shape-recognized but degrade to `engine`-string parsing. | Canonical fields on `Vehicle` (already). `decodedData` is optional cache only. |
 | **Auto.dev (plate lookup)** | **Loose** | Live plate lookup goes back to `MockPlateLookupProvider` (dev demo plates). Real plate→VIN would need another provider. Not persisted in a vendor-specific way. | Nothing vendor-specific. Plate/state already canonical. |
-| **NHTSA vPIC** | **Loose** | Fallback decoder disappears; if Auto.dev also absent, no free decode. Free/no-key, so effectively always available. | Canonical fields (already). |
+| **NHTSA vPIC** | **Loose** | Fallback decoder disappears; if Auto.dev also absent, no NHTSA decode. Free/no-key, so effectively always available. | Canonical fields (already). |
 | **MOTOR (labor catalog)** | **Medium** | Licensed labor "BOOK" tier + taxonomy overlay disappear; system falls back to shop-history + AI labor (already the default with MOTOR disabled). | `LaborOperation.baseVehicleId` + `motor*Id`, `MotorCatalogNode`, `MotorCatalogApplication`. These are **labor** tables, not `Vehicle`. |
 | **PartsTech** | **Loose–Medium** | Live parts search/punchout → `MockPartsTechProvider`. `RoPart.partstechId` / `vendor` columns become dormant (nullable, no FK). No RO breaks. | Canonical `RoPart` fields; `partstechId` is an optional external ref. |
 | **Carfax (service history)** | **Loose** | Service-history panel → `MockServiceHistoryProvider` sample data. Nothing persisted. | Nothing vendor-locked; lookups are live/ephemeral. |
@@ -84,7 +84,7 @@ export const vinService = buildFallbackChain(resolveDecodeOrder());
 
 4. **Add a `MotorVinProvider implements VinProvider`** that internally calls `resolveMotorBaseVehicleId` + a MOTOR attributes lookup and maps into `DecodedVin`. MOTOR's `BaseVehicleID` stays **inside** the provider / labor layer — it is *not* promoted to a required `Vehicle` column.
 
-5. **Feature-by-plan:** gate premium decoders (MOTOR/Auto.dev) behind plan features the same way MOTOR labor is gated; free NHTSA remains the floor so decode never fully fails.
+5. **Feature-by-plan:** gate premium decoders (MOTOR/Auto.dev) behind plan features the same way MOTOR labor is gated; NHTSA remains the floor so decode never fully fails.
 
 ---
 
