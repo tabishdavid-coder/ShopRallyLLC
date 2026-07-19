@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { Eye, Send } from "lucide-react";
 
 import { JobCardContextActions } from "@/components/job-board/job-card-context-actions";
 import { useJobBoardContextOptional } from "@/components/job-board/job-board-history-provider";
@@ -17,6 +18,7 @@ import {
   JOB_BOARD_CARD_STATUS_PILL,
   JOB_BOARD_CONTEXT_CHIP,
   jobBoardCardClass,
+  jobBoardProgressStep,
   type JobBoardCardStatusPillKey,
 } from "@/lib/job-board-theme";
 
@@ -42,7 +44,6 @@ type ContextCue = {
 function resolveContextCue(card: JobCardData, auth: AuthKind): ContextCue | null {
   const balanceDue = (card.invoiceBalanceCents ?? 0) > 0;
 
-  // Unread is signaled on the Chat icon badge — skip a competing text cue.
   if (card.paymentPosted && card.lastPaymentMethod) {
     return {
       label: `Paid · ${paymentMethodShortLabel(card.lastPaymentMethod)}`,
@@ -55,12 +56,6 @@ function resolveContextCue(card: JobCardData, auth: AuthKind): ContextCue | null
   }
   if (auth === "shop") {
     return { label: "Shop approved", className: JOB_BOARD_CONTEXT_CHIP.approved };
-  }
-  if (card.approvalSentAt) {
-    return { label: "Sent for approval", className: JOB_BOARD_CONTEXT_CHIP.pending };
-  }
-  if (card.estimateViewedAt) {
-    return { label: "Viewed", className: JOB_BOARD_CONTEXT_CHIP.pending };
   }
   return null;
 }
@@ -90,20 +85,26 @@ function resolveStatusPill(
     }
     return { key: "inProgress", ...JOB_BOARD_CARD_STATUS_PILL.inProgress };
   }
+  if (card.estimateViewedAt) {
+    return { key: "viewed", ...JOB_BOARD_CARD_STATUS_PILL.viewed };
+  }
+  if (card.approvalSentAt) {
+    return { key: "sent", ...JOB_BOARD_CARD_STATUS_PILL.sent };
+  }
   return { key: "notStarted", ...JOB_BOARD_CARD_STATUS_PILL.notStarted };
 }
 
-function vehicleLine(v: JobCardData["vehicle"]): string {
+function vehicleYmm(v: JobCardData["vehicle"]): string {
   if (!v) return "No vehicle on file";
   const ymm = [v.year, v.make, v.model].filter(Boolean).join(" ");
-  const plate = v.plate?.trim();
-  const state = v.plateState?.trim();
-  if (!ymm && !plate) return "No vehicle on file";
-  if (plate) {
-    const platePart = state ? `${plate} ${state}` : plate;
-    return ymm ? `${ymm} — ${platePart}` : platePart;
-  }
   return ymm || "No vehicle on file";
+}
+
+function plateLabel(v: JobCardData["vehicle"]): string | null {
+  if (!v?.plate?.trim()) return null;
+  const plate = v.plate.trim();
+  const state = v.plateState?.trim();
+  return state ? `${plate} ${state}` : plate;
 }
 
 export function JobCard({
@@ -125,10 +126,15 @@ export function JobCard({
   const cue = resolveContextCue(card, auth);
   const statusPill = resolveStatusPill(card, column);
   const balanceDue = (card.invoiceBalanceCents ?? 0) > 0 && !card.paymentPosted;
-  const vehicle = vehicleLine(card.vehicle);
+  const ymm = vehicleYmm(card.vehicle);
+  const plate = plateLabel(card.vehicle);
+  const vehicleFull = plate ? `${ymm} — ${plate}` : ymm;
   const name = customerDisplayName(card.customer, { nameOrder: "firstLast" });
   const phone = card.customer.phone?.trim() || null;
   const href = openHref ?? defaultRoOpenHref(card.id);
+  const progress = jobBoardProgressStep(column);
+  const sent = Boolean(card.approvalSentAt);
+  const viewed = Boolean(card.estimateViewedAt);
 
   const historyTarget = {
     customerId: card.customer.id,
@@ -145,9 +151,8 @@ export function JobCard({
 
   return (
     <div className={jobBoardCardClass({ selected, auth, column })}>
-      {/* Top: status · RO# + created + ⋮ */}
+      {/* Top: RO# + sent/viewed · created · stage dot · menu */}
       <div className="job-board-card-header">
-        <span className={statusPill.className}>{statusPill.label}</span>
         <div className="job-board-card-meta">
           <Link
             href={href}
@@ -157,14 +162,31 @@ export function JobCard({
           >
             RO#{card.number}
           </Link>
+          {sent ? (
+            <span className="job-board-card-signal" title="Estimate sent" aria-label="Estimate sent">
+              <Send className="size-3" aria-hidden />
+            </span>
+          ) : null}
+          {viewed ? (
+            <span
+              className="job-board-card-signal"
+              title="Estimate viewed"
+              aria-label="Estimate viewed"
+            >
+              <Eye className="size-3" aria-hidden />
+            </span>
+          ) : null}
           <span className="job-board-card-created">
             <RelativeTime date={card.createdAt} prefix="Created " />
           </span>
+        </div>
+        <div className="flex shrink-0 items-center gap-1.5">
+          <span className="job-board-card-dot" aria-hidden />
           {menu}
         </div>
       </div>
 
-      {/* Who + vehicle */}
+      {/* Who + vehicle + plate pill */}
       <div className="job-board-card-identity">
         <p className="job-board-card-customer-line">
           <button
@@ -181,35 +203,54 @@ export function JobCard({
           </button>
           {phone ? <span className="job-board-card-phone">{phone}</span> : null}
         </p>
-        <p className="job-board-card-vehicle">{vehicle}</p>
+        <p className="job-board-card-vehicle">{ymm}</p>
+        {plate ? <span className="job-board-card-plate">{plate}</span> : null}
       </div>
 
-      {/* Cue (if any) above; quiet actions + money share one baseline */}
-      {cue ? (
-        <span className={cn("job-board-card-cue", cue.className)}>{cue.label}</span>
-      ) : null}
+      {/* Soft status pill + optional cue */}
+      <div className="flex flex-wrap items-center gap-1.5">
+        <span className={statusPill.className}>{statusPill.label}</span>
+        {cue ? (
+          <span className={cn("job-board-card-cue", cue.className)}>{cue.label}</span>
+        ) : null}
+      </div>
+
+      {/* Progress chevrons (3 ShopRally stages) + actions + money */}
       <div className="job-board-card-footer-row">
-        <JobCardContextActions
-          className="job-board-card-inline-actions"
-          iconOnly
-          roId={card.id}
-          roNumber={card.number}
-          customerId={card.customer.id}
-          customerName={name}
-          customerFirstName={card.customer.firstName}
-          customerLastName={card.customer.lastName}
-          customerPhone={card.customer.phone}
-          marketingOptIn={card.customer.marketingOptIn}
-          vehicleId={card.vehicle?.id ?? null}
-          vehicleLabel={vehicle}
-          vehicle={card.vehicle}
-          unreadSmsCount={card.unreadSmsCount}
-        />
+        <div className="flex min-w-0 items-center gap-2">
+          <div className="job-board-card-progress" aria-hidden>
+            {[0, 1, 2].map((step) => (
+              <span
+                key={step}
+                className={cn(
+                  "job-board-card-chevron",
+                  step <= progress && "job-board-card-chevron-on",
+                )}
+              />
+            ))}
+          </div>
+          <JobCardContextActions
+            className="job-board-card-inline-actions"
+            iconOnly
+            roId={card.id}
+            roNumber={card.number}
+            customerId={card.customer.id}
+            customerName={name}
+            customerFirstName={card.customer.firstName}
+            customerLastName={card.customer.lastName}
+            customerPhone={card.customer.phone}
+            marketingOptIn={card.customer.marketingOptIn}
+            vehicleId={card.vehicle?.id ?? null}
+            vehicleLabel={vehicleFull}
+            vehicle={card.vehicle}
+            unreadSmsCount={card.unreadSmsCount}
+          />
+        </div>
         <div className="job-board-card-money">
           <span className="job-board-card-total">{formatCents(card.totalCents)}</span>
           {balanceDue && card.invoiceBalanceCents != null ? (
             <span className="job-board-card-due-label">
-              Balance Due {formatCents(card.invoiceBalanceCents)}
+              {formatCents(card.invoiceBalanceCents)} due
             </span>
           ) : null}
         </div>

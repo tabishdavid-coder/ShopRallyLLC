@@ -1300,13 +1300,16 @@
     box-shadow: inset 0 3px 0 var(--brand-light);
   }
 
-  /* Job board — ShopRally navy / light-blue / red; readable kanban hierarchy */
+  /* Job board — 3-column ShopRally; stage colors from Mac Auto mock (blue / amber / green) */
   .job-board-shell {
     --jb-ink: #0f2744;
     --jb-navy: #16588e;
     --jb-light: #81c4ff;
     --jb-red: #e7222e;
     --jb-green: #137347;
+    --jb-stage-estimates: #2f6fed;
+    --jb-stage-wip: #e8a317;
+    --jb-stage-completed: #2f9e6b;
     --jb-slate: #5a6f8c;
     --jb-faint: #8a9bb3;
     --jb-surface: #eef1f6;
@@ -1314,7 +1317,7 @@
     --jb-card: #ffffff;
     --jb-line: #dce3ed;
     --jb-hover-line: #b7c7db;
-    --jb-radius: 0.4rem;
+    --jb-radius: 0.5rem;
     border-radius: var(--jb-radius);
     border: 1px solid var(--jb-line);
     background: var(--jb-surface);
@@ -1355,14 +1358,90 @@
     scrollbar-width: thin;
   }
 
+  /* 3-stage summary ribbon (mock-inspired, ShopRally columns only) */
+  .job-board-stage-ribbon {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0;
+    overflow: hidden;
+    border-radius: var(--jb-radius, 0.5rem);
+    border: 1px solid var(--jb-line, #dce3ed);
+    background: var(--jb-card, #ffffff);
+    box-shadow: 0 1px 2px rgba(15, 39, 68, 0.04);
+  }
+
+  .job-board-stage-ribbon-seg {
+    position: relative;
+    display: flex;
+    min-width: 0;
+    flex-direction: column;
+    gap: 0.15rem;
+    padding: 0.55rem 0.85rem 0.55rem 1rem;
+    border-right: 1px solid var(--jb-line, #dce3ed);
+  }
+
+  .job-board-stage-ribbon-seg:last-child {
+    border-right: 0;
+  }
+
+  .job-board-stage-ribbon-seg::before {
+    content: "";
+    position: absolute;
+    left: 0;
+    top: 0.45rem;
+    bottom: 0.45rem;
+    width: 3px;
+    border-radius: 999px;
+    background: var(--jb-stage, var(--jb-navy));
+  }
+
+  .job-board-stage-ribbon-seg-estimates {
+    --jb-stage: var(--jb-stage-estimates);
+  }
+  .job-board-stage-ribbon-seg-wip {
+    --jb-stage: var(--jb-stage-wip);
+  }
+  .job-board-stage-ribbon-seg-completed {
+    --jb-stage: var(--jb-stage-completed);
+  }
+
+  .job-board-stage-ribbon-label {
+    font-size: 0.625rem;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--jb-stage, var(--jb-slate));
+  }
+
+  .job-board-stage-ribbon-meta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0.35rem 0.55rem;
+  }
+
+  .job-board-stage-ribbon-count {
+    font-size: 0.8125rem;
+    font-weight: 650;
+    color: var(--jb-ink, #0f2744);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .job-board-stage-ribbon-total {
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--jb-slate, #5a6f8c);
+    font-variant-numeric: tabular-nums;
+  }
+
   .job-board-col {
     display: flex;
     height: 100%;
     min-height: 0;
     flex-direction: column;
     overflow: hidden;
-    border-radius: var(--jb-radius, 0.4rem);
-    background: var(--jb-well, #e8ecf2);
+    border-radius: var(--jb-radius, 0.5rem);
+    background: color-mix(in oklab, var(--jb-well, #e8ecf2) 88%, white);
     border: 1px solid color-mix(in oklab, var(--jb-line, #dce3ed) 80%, transparent);
     gap: 0;
   }
@@ -1374,58 +1453,76 @@
     flex-shrink: 0;
     border: 0;
     border-bottom: 1px solid var(--jb-line, #dce3ed);
+    border-top: 3px solid var(--jb-stage, var(--jb-navy));
     border-radius: 0;
-    background: color-mix(in oklab, var(--jb-card, #ffffff) 92%, var(--jb-well, #e8ecf2));
-    padding: 0.55rem 0.75rem 0.5rem;
+    background: var(--jb-card, #ffffff);
+    padding: 0.6rem 0.75rem 0.55rem;
   }
 
   .job-board-col-header-estimates {
-    box-shadow: inset 3px 0 0 var(--jb-navy, #16588e);
+    --jb-stage: var(--jb-stage-estimates);
   }
 
   .job-board-col-header-wip {
-    box-shadow: inset 3px 0 0 var(--jb-light, #81c4ff);
+    --jb-stage: var(--jb-stage-wip);
   }
 
   .job-board-col-header-completed {
-    box-shadow: inset 3px 0 0 var(--jb-red, #e7222e);
+    --jb-stage: var(--jb-stage-completed);
   }
 
   .job-board-col-heading {
     display: flex;
     min-width: 0;
-    align-items: baseline;
-    gap: 0.35rem;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+  }
+
+  .job-board-col-title-row {
+    display: flex;
+    min-width: 0;
+    align-items: center;
+    gap: 0.4rem;
   }
 
   .job-board-col-title {
-    font-size: 0.875rem;
-    font-weight: 650;
-    letter-spacing: -0.01em;
+    font-size: 0.9375rem;
+    font-weight: 700;
+    letter-spacing: -0.015em;
     text-transform: none;
     color: var(--jb-ink, #0f2744);
     line-height: 1.25;
   }
 
   .job-board-col-count {
-    font-size: 0.875rem;
-    font-weight: 550;
-    color: var(--jb-faint, #8a9bb3);
-  }
-
-  .job-board-col-badge {
     display: none;
   }
 
+  .job-board-col-badge {
+    display: inline-flex;
+    min-width: 1.35rem;
+    height: 1.35rem;
+    align-items: center;
+    justify-content: center;
+    border-radius: 999px;
+    background: color-mix(in oklab, var(--jb-stage, var(--jb-slate)) 12%, white);
+    color: color-mix(in oklab, var(--jb-stage, var(--jb-ink)) 88%, #0a0a0a);
+    font-size: 0.6875rem;
+    font-weight: 700;
+    font-variant-numeric: tabular-nums;
+    padding: 0 0.35rem;
+  }
+
   .job-board-col-subtitle {
-    margin-top: 0.2rem;
+    margin-top: 0.15rem;
     font-size: 0.6875rem;
     line-height: 1.35;
     color: var(--jb-faint, #8a9bb3);
   }
 
   .job-board-col-total {
-    margin-top: 0.25rem;
+    margin-top: 0.2rem;
     display: flex;
     flex-wrap: wrap;
     align-items: baseline;
@@ -1435,10 +1532,10 @@
 
   .job-board-col-total-amount {
     font-size: 0.8125rem;
-    font-weight: 600;
+    font-weight: 650;
     font-variant-numeric: tabular-nums;
     letter-spacing: -0.01em;
-    color: var(--jb-slate, #5a6f8c);
+    color: var(--jb-ink, #0f2744);
   }
 
   .job-board-col-total-label {
@@ -1447,12 +1544,6 @@
     letter-spacing: 0.06em;
     text-transform: uppercase;
     color: var(--jb-faint, #8a9bb3);
-  }
-
-  .job-board-col-header-estimates .job-board-col-total-amount,
-  .job-board-col-header-wip .job-board-col-total-amount,
-  .job-board-col-header-completed .job-board-col-total-amount {
-    color: var(--jb-ink, #0f2744);
   }
 
   .job-board-col-body {
@@ -1473,15 +1564,15 @@
   }
 
   .job-board-col-drop-estimates {
-    background: color-mix(in oklab, var(--jb-navy, #16588e) 6%, var(--jb-well, #e8ecf2));
+    background: color-mix(in oklab, var(--jb-stage-estimates) 8%, var(--jb-well, #e8ecf2));
   }
 
   .job-board-col-drop-wip {
-    background: color-mix(in oklab, var(--jb-light, #81c4ff) 18%, var(--jb-well, #e8ecf2));
+    background: color-mix(in oklab, var(--jb-stage-wip) 10%, var(--jb-well, #e8ecf2));
   }
 
   .job-board-col-drop-completed {
-    background: color-mix(in oklab, var(--jb-red, #e7222e) 5%, var(--jb-well, #e8ecf2));
+    background: color-mix(in oklab, var(--jb-stage-completed) 8%, var(--jb-well, #e8ecf2));
   }
 
   .job-board-col-empty {
@@ -1499,27 +1590,37 @@
     text-align: center;
   }
 
-  /* Flat white card — type hierarchy only, no left rail / footer chrome */
+  /* White card — mock hierarchy + stage accent dot */
   .job-board-card {
     position: relative;
     display: flex;
     min-height: 0;
     flex-direction: column;
-    gap: 0.65rem;
+    gap: 0.55rem;
     overflow: hidden;
-    border-radius: var(--jb-radius, 0.4rem);
+    border-radius: calc(var(--jb-radius, 0.5rem) + 0.05rem);
     border: 1px solid var(--jb-line, #dce3ed);
     background: var(--jb-card, #ffffff);
-    padding: 0.75rem 0.85rem 0.7rem;
-    box-shadow: 0 1px 2px rgba(15, 39, 68, 0.035);
+    padding: 0.75rem 0.85rem 0.65rem;
+    box-shadow: 0 1px 3px rgba(15, 39, 68, 0.05);
     transition:
       border-color 0.15s ease,
       box-shadow 0.15s ease;
   }
 
+  .job-board-card-estimates {
+    --jb-card-stage: var(--jb-stage-estimates);
+  }
+  .job-board-card-workInProgress {
+    --jb-card-stage: var(--jb-stage-wip);
+  }
+  .job-board-card-completed {
+    --jb-card-stage: var(--jb-stage-completed);
+  }
+
   .job-board-card:hover {
     border-color: var(--jb-hover-line, #b7c7db);
-    box-shadow: 0 2px 10px rgba(15, 39, 68, 0.06);
+    box-shadow: 0 3px 12px rgba(15, 39, 68, 0.07);
   }
 
   .job-board-card-header {
@@ -1533,22 +1634,42 @@
   .job-board-card-meta {
     display: flex;
     min-width: 0;
-    flex-shrink: 0;
+    flex: 1;
     align-items: center;
     gap: 0.35rem;
   }
 
   .job-board-card-ro-number {
     font-size: 0.8125rem;
-    font-weight: 600;
-    color: var(--jb-navy, #16588e);
+    font-weight: 700;
+    color: var(--jb-ink, #0f2744);
     letter-spacing: -0.01em;
     text-decoration: none;
     white-space: nowrap;
   }
 
   .job-board-card-ro-number:hover {
+    color: var(--jb-stage-estimates);
     text-decoration: underline;
+  }
+
+  .job-board-card-signal {
+    display: inline-flex;
+    align-items: center;
+    color: var(--jb-stage-estimates);
+    opacity: 0.85;
+  }
+
+  .job-board-card-signal-muted {
+    color: var(--jb-faint, #8a9bb3);
+  }
+
+  .job-board-card-dot {
+    width: 0.45rem;
+    height: 0.45rem;
+    border-radius: 999px;
+    background: var(--jb-card-stage, var(--jb-stage-estimates));
+    flex-shrink: 0;
   }
 
   .job-board-card-created {
@@ -1556,6 +1677,41 @@
     line-height: 1;
     color: var(--jb-faint, #8a9bb3);
     white-space: nowrap;
+  }
+
+  .job-board-card-plate {
+    display: inline-flex;
+    width: fit-content;
+    max-width: 100%;
+    align-items: center;
+    border-radius: 0.3rem;
+    border: 1px solid var(--jb-line, #dce3ed);
+    background: color-mix(in oklab, var(--jb-well, #e8ecf2) 55%, white);
+    padding: 0.1rem 0.4rem;
+    font-size: 0.625rem;
+    font-weight: 650;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--jb-slate, #5a6f8c);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .job-board-card-progress {
+    display: flex;
+    align-items: center;
+    gap: 0.15rem;
+  }
+
+  .job-board-card-chevron {
+    width: 0;
+    height: 0;
+    border-top: 0.28rem solid transparent;
+    border-bottom: 0.28rem solid transparent;
+    border-left: 0.38rem solid color-mix(in oklab, var(--jb-faint, #8a9bb3) 55%, transparent);
+  }
+
+  .job-board-card-chevron-on {
+    border-left-color: var(--jb-card-stage, var(--jb-stage-estimates));
   }
 
   .job-board-card-menu-btn {

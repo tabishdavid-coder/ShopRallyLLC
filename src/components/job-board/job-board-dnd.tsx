@@ -49,7 +49,10 @@ import { customerDisplayName, formatCents } from "@/lib/format";
 import {
   apBayPipelineEmptyHint,
 } from "@/lib/autopilot3030/bay-pipeline";
-import { JOB_BOARD_COLUMN } from "@/lib/job-board-theme";
+import {
+  JOB_BOARD_COLUMN,
+  JOB_BOARD_COLUMN_META,
+} from "@/lib/job-board-theme";
 import { cn } from "@/lib/utils";
 
 type Columns = Record<string, JobCardData[]>;
@@ -310,6 +313,18 @@ export function JobBoardDnd({
     });
   }
 
+  const coreRibbon =
+    !compact &&
+    columnDefs.some((c) => c.kind === "estimates") &&
+    columnDefs.some((c) => c.kind === "workInProgress") &&
+    columnDefs.some((c) => c.kind === "completed");
+
+  const ribbonSegs: { key: BoardColumn; className: string }[] = [
+    { key: "estimates", className: "job-board-stage-ribbon-seg-estimates" },
+    { key: "workInProgress", className: "job-board-stage-ribbon-seg-wip" },
+    { key: "completed", className: "job-board-stage-ribbon-seg-completed" },
+  ];
+
   return (
     <JobBoardHistoryProvider
       appointmentEmployees={appointmentEmployees}
@@ -324,11 +339,37 @@ export function JobBoardDnd({
         onDragOver={onDragOver}
         onDragEnd={onDragEnd}
       >
-        <div className="h-full min-h-0">
+        <div className="flex h-full min-h-0 flex-col gap-3">
+        {coreRibbon ? (
+          <div className="job-board-stage-ribbon shrink-0" aria-label="Board stage summary">
+            {ribbonSegs.map((seg) => {
+              const def = columnDefs.find(
+                (c) => pipelineColumnStyleKind(c.kind) === seg.key,
+              );
+              const cards = def ? (columns[def.id] ?? []) : [];
+              const meta = JOB_BOARD_COLUMN_META[seg.key];
+              return (
+                <div key={seg.key} className={cn("job-board-stage-ribbon-seg", seg.className)}>
+                  <span className="job-board-stage-ribbon-label">{meta.ribbonLabel}</span>
+                  <div className="job-board-stage-ribbon-meta">
+                    <span className="job-board-stage-ribbon-count">
+                      {cards.length} {cards.length === 1 ? "job" : "jobs"}
+                    </span>
+                    {showColumnTotals ? (
+                      <span className="job-board-stage-ribbon-total">
+                        {formatCents(columnTotal(cards))}
+                      </span>
+                    ) : null}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        ) : null}
         <div
           className={cn(
-            "grid h-full min-h-0 gap-3",
-            compact ? "h-full flex-1" : "flex-1 gap-3.5",
+            "grid min-h-0 flex-1 gap-3",
+            compact ? "h-full" : "gap-3.5",
           )}
           style={{
             gridTemplateColumns: `repeat(${columnOrder.length}, minmax(280px, 1fr))`,
@@ -438,25 +479,25 @@ function Column({
   const { setNodeRef, isOver } = useDroppable({ id: columnId });
   const theme = JOB_BOARD_COLUMN[styleKind];
   const canDelete = kind === "custom";
+  // Core stages use short Mac Auto–style captions; custom columns keep their subtitle.
+  const caption =
+    kind !== "custom" && styleKind in JOB_BOARD_COLUMN_META
+      ? JOB_BOARD_COLUMN_META[styleKind].subtitle
+      : subtitle;
   return (
     <div className="job-board-col">
       <div className={cn(theme.header, "relative", canDelete && "pr-9")}>
         <div className="min-w-0">
           <div className="job-board-col-heading">
-            <h2 className="job-board-col-title">
-              {title}
-              <span className="job-board-col-count"> ({cards.length})</span>
-            </h2>
-          </div>
-          {/* Subtitle kept for a11y / custom columns; visually quiet on core stages */}
-          {subtitle && kind === "custom" ? (
-            <p className="job-board-col-subtitle">{subtitle}</p>
-          ) : null}
-          {totalCents != null ? (
-            <p className="job-board-col-total">
+            <div className="job-board-col-title-row">
+              <h2 className="job-board-col-title">{title}</h2>
+              <span className="job-board-col-badge">{cards.length}</span>
+            </div>
+            {totalCents != null ? (
               <span className="job-board-col-total-amount">{formatCents(totalCents)}</span>
-            </p>
-          ) : null}
+            ) : null}
+          </div>
+          {caption ? <p className="job-board-col-subtitle">{caption}</p> : null}
         </div>
         {canDelete ? (
           <JobBoardDeleteColumnButton

@@ -38,19 +38,19 @@ export function defaultJobBoardPipelineConfig(): JobBoardPipelineConfig {
         id: "estimates",
         kind: "estimates",
         title: "Estimates",
-        subtitle: "Quotes awaiting authorization",
+        subtitle: "Build & send",
       },
       {
         id: "workInProgress",
         kind: "workInProgress",
         title: "Work in Progress",
-        subtitle: "Authorized jobs in the bay",
+        subtitle: "On the lift",
       },
       {
         id: "completed",
         kind: "completed",
         title: "Completed",
-        subtitle: "Ready to invoice or collect",
+        subtitle: "Ready for pickup",
       },
     ],
   };
@@ -85,12 +85,16 @@ export function resolveJobBoardPipelineConfig(raw: unknown): JobBoardPipelineCon
     const fallback = defaults.columns.find((c) => c.kind === kind)!;
     if (!saved) return fallback;
     const title = legacyCoreTitles.has(saved.title.trim()) ? fallback.title : saved.title;
+    const legacyCoreSubtitles = new Set([
+      "Quotes awaiting customer or shop authorization",
+      "Quotes awaiting authorization",
+      "Authorized jobs actively in the bay",
+      "Authorized jobs in the bay",
+      "Ready to invoice or collect payment",
+      "Ready to invoice or collect",
+    ]);
     const subtitle =
-      !saved.subtitle ||
-      saved.subtitle ===
-        "Quotes awaiting customer or shop authorization" ||
-      saved.subtitle === "Authorized jobs actively in the bay" ||
-      saved.subtitle === "Ready to invoice or collect payment"
+      !saved.subtitle || legacyCoreSubtitles.has(saved.subtitle)
         ? fallback.subtitle
         : saved.subtitle;
     return { ...fallback, ...saved, title, subtitle, id: kind, kind };

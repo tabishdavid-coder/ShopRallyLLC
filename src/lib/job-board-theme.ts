@@ -2,26 +2,42 @@ import type { ROStatus } from "@/generated/prisma";
 
 import type { BoardColumn } from "@/lib/job-board";
 
-/** ShopRally pipeline stage labels — industry-standard shop terminology. */
+/**
+ * ShopRally 3-column board — stage colors inspired by the Mac Auto mock
+ * (blue → amber → green) without adopting the mock’s 6-column layout.
+ */
+export const JOB_BOARD_STAGE_COLOR: Record<
+  BoardColumn,
+  { cssVar: string; hex: string; label: string }
+> = {
+  estimates: { cssVar: "--jb-stage-estimates", hex: "#2f6fed", label: "Estimates" },
+  workInProgress: { cssVar: "--jb-stage-wip", hex: "#e8a317", label: "In Progress" },
+  completed: { cssVar: "--jb-stage-completed", hex: "#2f9e6b", label: "Completed" },
+};
+
+/** ShopRally pipeline stage labels — short mock-style captions. */
 export const JOB_BOARD_COLUMN_META: Record<
   BoardColumn,
-  { title: string; subtitle: string }
+  { title: string; subtitle: string; ribbonLabel: string }
 > = {
   estimates: {
     title: "Estimates",
-    subtitle: "Quotes awaiting authorization",
+    subtitle: "Build & send",
+    ribbonLabel: "ESTIMATES",
   },
   workInProgress: {
     title: "Work in Progress",
-    subtitle: "Authorized jobs in the bay",
+    subtitle: "On the lift",
+    ribbonLabel: "IN PROGRESS",
   },
   completed: {
     title: "Completed",
-    subtitle: "Ready to invoice or collect",
+    subtitle: "Ready for pickup",
+    ribbonLabel: "COMPLETED",
   },
 };
 
-/** Column chrome classes — subtle brand accents (navy / light-blue / red). */
+/** Column chrome classes — colored top bar + soft tinted well. */
 export const JOB_BOARD_COLUMN: Record<
   BoardColumn,
   { header: string; body: string; dropOver: string }
@@ -43,52 +59,57 @@ export const JOB_BOARD_COLUMN: Record<
   },
 };
 
-/** Sparse text cues — no bordered chips (keeps cards scannable). */
+/** Soft status pills — mock-inspired, still ShopRally (no teal clone). */
+const PILL_BASE =
+  "job-board-card-status-pill inline-flex h-5 w-fit max-w-[10rem] shrink-0 items-center truncate rounded-md px-1.5 text-[10px] font-semibold leading-none tracking-[0.01em]";
+
+export const JOB_BOARD_CARD_STATUS_PILL = {
+  notStarted: {
+    label: "Draft",
+    className: `${PILL_BASE} bg-slate-100 text-slate-600 ring-1 ring-inset ring-slate-200/80`,
+  },
+  inProgress: {
+    label: "In bay",
+    className: `${PILL_BASE} bg-[color-mix(in_oklab,var(--jb-stage-wip)_14%,white)] text-[color-mix(in_oklab,var(--jb-stage-wip)_85%,#3a2a00)] ring-1 ring-inset ring-[color-mix(in_oklab,var(--jb-stage-wip)_28%,transparent)]`,
+  },
+  balanceDue: {
+    label: "Balance due",
+    className: `${PILL_BASE} bg-brand-red/10 text-brand-red ring-1 ring-inset ring-brand-red/25`,
+  },
+  paid: {
+    label: "Paid",
+    className: `${PILL_BASE} bg-emerald-50 text-emerald-800 ring-1 ring-inset ring-emerald-200`,
+  },
+  completed: {
+    label: "Ready for pickup",
+    className: `${PILL_BASE} bg-[color-mix(in_oklab,var(--jb-stage-completed)_12%,white)] text-[color-mix(in_oklab,var(--jb-stage-completed)_90%,#0a2a1a)] ring-1 ring-inset ring-[color-mix(in_oklab,var(--jb-stage-completed)_28%,transparent)]`,
+  },
+  approved: {
+    label: "Approved",
+    className: `${PILL_BASE} bg-[color-mix(in_oklab,var(--jb-stage-estimates)_12%,white)] text-[color-mix(in_oklab,var(--jb-stage-estimates)_90%,#0a1a40)] ring-1 ring-inset ring-[color-mix(in_oklab,var(--jb-stage-estimates)_28%,transparent)]`,
+  },
+  sent: {
+    label: "Sent",
+    className: `${PILL_BASE} bg-amber-50 text-amber-800 ring-1 ring-inset ring-amber-200/90`,
+  },
+  viewed: {
+    label: "Viewed",
+    className: `${PILL_BASE} bg-amber-50 text-amber-800 ring-1 ring-inset ring-amber-200/90`,
+  },
+} as const;
+
+export type JobBoardCardStatusPillKey = keyof typeof JOB_BOARD_CARD_STATUS_PILL;
+
+/** Sparse text cues — secondary to the status pill. */
 const CUE_BASE =
   "inline-flex max-w-full truncate text-[11px] font-medium leading-none tracking-[0.01em]";
 
 export const JOB_BOARD_CONTEXT_CHIP = {
   paid: `${CUE_BASE} text-emerald-700`,
-  approved: `${CUE_BASE} text-brand-navy/80`,
-  pending: `${CUE_BASE} text-muted-foreground`,
+  approved: `${CUE_BASE} text-[color:var(--jb-stage-estimates)]`,
+  pending: `${CUE_BASE} text-amber-700`,
   alert: `${CUE_BASE} text-brand-red`,
 } as const;
-
-const PILL_BASE =
-  "job-board-card-status-pill inline-flex h-5 w-fit max-w-[9rem] shrink-0 items-center truncate rounded px-1.5 text-[10px] font-semibold leading-none tracking-[0.01em]";
-
-/**
- * Primary card status pill — ShopRally navy / light-blue / red (never Tekmetric teal).
- * Small and calm so status → who → money stays the scan path.
- */
-export const JOB_BOARD_CARD_STATUS_PILL = {
-  notStarted: {
-    label: "Not Started",
-    className: `${PILL_BASE} bg-brand-navy text-white`,
-  },
-  inProgress: {
-    label: "In Progress",
-    className: `${PILL_BASE} bg-brand-navy/12 text-brand-navy`,
-  },
-  balanceDue: {
-    label: "Balance Due",
-    className: `${PILL_BASE} bg-brand-red text-white`,
-  },
-  paid: {
-    label: "Paid",
-    className: `${PILL_BASE} bg-emerald-700 text-white`,
-  },
-  completed: {
-    label: "Completed",
-    className: `${PILL_BASE} bg-emerald-700/10 text-emerald-800`,
-  },
-  approved: {
-    label: "Approved",
-    className: `${PILL_BASE} bg-brand-navy text-white`,
-  },
-} as const;
-
-export type JobBoardCardStatusPillKey = keyof typeof JOB_BOARD_CARD_STATUS_PILL;
 
 /** Legacy status pills — used outside job cards (dashboard widgets, list view). */
 export const JOB_BOARD_STATUS_PILL: Record<
@@ -97,23 +118,23 @@ export const JOB_BOARD_STATUS_PILL: Record<
 > = {
   ESTIMATE: {
     label: "Estimate",
-    className: `${PILL_BASE} bg-brand-navy text-white`,
+    className: `${PILL_BASE} bg-[color-mix(in_oklab,var(--jb-stage-estimates)_14%,white)] text-[color-mix(in_oklab,var(--jb-stage-estimates)_90%,#0a1a40)]`,
   },
   APPROVED: {
     label: "Approved",
-    className: `${PILL_BASE} bg-brand-light/35 text-brand-navy ring-1 ring-inset ring-brand-navy/15`,
+    className: `${PILL_BASE} bg-[color-mix(in_oklab,var(--jb-stage-estimates)_12%,white)] text-[color-mix(in_oklab,var(--jb-stage-estimates)_90%,#0a1a40)]`,
   },
   IN_PROGRESS: {
     label: "In Progress",
-    className: `${PILL_BASE} bg-brand-light/35 text-brand-navy ring-1 ring-inset ring-brand-navy/15`,
+    className: `${PILL_BASE} bg-[color-mix(in_oklab,var(--jb-stage-wip)_14%,white)] text-[color-mix(in_oklab,var(--jb-stage-wip)_85%,#3a2a00)]`,
   },
   COMPLETED: {
     label: "Completed",
-    className: `${PILL_BASE} bg-emerald-50 text-emerald-800 ring-1 ring-inset ring-emerald-200`,
+    className: `${PILL_BASE} bg-[color-mix(in_oklab,var(--jb-stage-completed)_12%,white)] text-[color-mix(in_oklab,var(--jb-stage-completed)_90%,#0a2a1a)]`,
   },
   INVOICED: {
     label: "Invoiced",
-    className: `${PILL_BASE} bg-emerald-600 text-white`,
+    className: `${PILL_BASE} bg-slate-700 text-white`,
   },
 };
 
@@ -128,4 +149,11 @@ export function jobBoardCardClass(opts: {
   if (opts.column) parts.push(`job-board-card-${opts.column}`);
   if (opts.selected) parts.push("job-board-card-selected");
   return parts.join(" ");
+}
+
+/** Progress step index 0–2 for the three ShopRally columns. */
+export function jobBoardProgressStep(column?: BoardColumn): number {
+  if (column === "workInProgress") return 1;
+  if (column === "completed") return 2;
+  return 0;
 }
