@@ -2,8 +2,15 @@ import { z } from "zod";
 
 import type { MaintenancePartCategory } from "@/lib/vehicle-maintenance-specs";
 
-/** Minimum confidence (0–1) before we persist or display an AI fluid value. */
-export const FLUIDS_ENRICH_CONFIDENCE_MIN = 0.75;
+/**
+ * Minimum confidence (0–1) before we persist or display an AI fluid value.
+ * Raised after OEM-catalog comparisons showed LLM “verified” values were often wrong
+ * (e.g. R-134a vs R-1234yf, VW 502.00 vs 508.00). Prefer empty over wrong.
+ */
+export const FLUIDS_ENRICH_CONFIDENCE_MIN = 0.88;
+
+/** Bump to invalidate cached AI fluids after prompt / gate changes. */
+export const FLUIDS_ENRICH_SCHEMA_VERSION = "v2";
 
 /** Stored under Vehicle.maintenanceSpecs._fluidsEnrich (not advisor-editable fields). */
 export const FLUIDS_ENRICH_META_KEY = "_fluidsEnrich" as const;
@@ -84,6 +91,7 @@ export function buildFluidsIdentityKey(vehicle: VehicleIdentityForFluids): strin
   if (!year || !make || !model) return null;
 
   const parts = [
+    FLUIDS_ENRICH_SCHEMA_VERSION,
     String(year),
     make.toLowerCase(),
     model.toLowerCase(),
@@ -147,20 +155,61 @@ export function fluidsEnrichCacheValid(
   return Boolean(meta && meta.identityKey === identityKey);
 }
 
+/**
+ * Reject known LLM failure modes that fail OEM-catalog comparisons.
+ * Returns null when the value should not be shown.
+ */
+export function sanitizeFluidEnrichValue(
+  key: FluidEnrichSlotKey,
+  value: string,
+  vehicle: VehicleIdentityForFluids,
+): string | null {
+  const v = value.trim();
+  if (!v) return null;
+  const year = vehicle.year ?? 0;
+  const make = (vehicle.make ?? "").toLowerCase();
+  const lower = v.toLowerCase();
+
+  // Most US light vehicles from ~2017+ use R-1234yf, not R-134a.
+  if (key === "acRefrigerant" && year >= 2017) {
+    if (/\br-?134a\b/.test(lower) && !/\b1234yf\b|\br-?1234/.test(lower)) {
+      return null;
+    }
+  }
+
+  // VW/Audi modern 0W-20 is typically 508 00 — not legacy 502 00.
+  if (
+    key === "engineOil" &&
+    year >= 2019 &&
+    (make.includes("volkswagen") || make.includes("vw") || make.includes("audi"))
+  ) {
+    if (/\b502\.?\s*00\b/.test(lower) && !/\b508\.?\s*00\b/.test(lower)) {
+      return null;
+    }
+  }
+
+  return v;
+}
+
 export function acceptFluidEnrichField(
   field: FluidEnrichField | null | undefined,
+  key: FluidEnrichSlotKey,
+  vehicle: VehicleIdentityForFluids,
 ): { value: string; confidence: number; sourceNote: string | null } | null {
   if (!field?.value?.trim()) return null;
   if (field.confidence < FLUIDS_ENRICH_CONFIDENCE_MIN) return null;
+  const sanitized = sanitizeFluidEnrichValue(key, field.value, vehicle);
+  if (!sanitized) return null;
   return {
-    value: field.value.trim(),
+    value: sanitized,
     confidence: field.confidence,
     sourceNote: field.sourceNote?.trim() || null,
   };
 }
 
+/** Never claim OEM verification — AI values are suggestions until catalog-backed. */
 export function fluidEnrichSourceLabel(confidence: number): string {
-  if (confidence >= 0.9) return "AI · high confidence";
-  if (confidence >= FLUIDS_ENRICH_CONFIDENCE_MIN) return "AI · verified";
+  if (confidence >= 0.95) return "AI · suggested · check OEM";
+  if (confidence >= FLUIDS_ENRICH_CONFIDENCE_MIN) return "AI · suggested";
   return "AI";
 }

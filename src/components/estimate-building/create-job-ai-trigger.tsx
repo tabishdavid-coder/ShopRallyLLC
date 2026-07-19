@@ -28,7 +28,7 @@ export function CreateJobAiTrigger({
   focusJobId = null,
 }: Props) {
   const entitled = useSmartRoIntakeEnabled();
-  const inputRef = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
   const [expanded, setExpanded] = useState(false);
   const [text, setText] = useState("");
   const [error, setError] = useState<string | null>(null);
@@ -94,12 +94,13 @@ export function CreateJobAiTrigger({
       <>
         <div
           className={cn(
-            "flex min-w-[min(100%,28rem)] flex-1 basis-[18rem] flex-col gap-1",
+            "flex min-w-[min(100%,36rem)] flex-1 basis-[22rem] flex-col gap-1",
             className,
           )}
         >
           <SmartAiPromptBar
             ref={inputRef}
+            variant="toolbar"
             value={text}
             onChange={(next) => {
               setText(next);
@@ -110,7 +111,7 @@ export function CreateJobAiTrigger({
             pending={pending}
             placeholder={
               focusJobId
-                ? "e.g. Add rotors to this job"
+                ? "e.g. Add rotors to this job — include parts if needed"
                 : "e.g. Add rotors to the brake pad job"
             }
             aria-label="Describe work to add with AI"

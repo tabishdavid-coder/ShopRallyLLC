@@ -18,7 +18,10 @@ import {
 } from "lucide-react";
 
 import { EstimateLabMessagesHost } from "@/components/estimate-building/estimate-lab-messages-host";
-import { EstimateLabVehicleSpecsLazy } from "@/components/estimate-building/estimate-lab-vehicle-specs-lazy";
+import {
+  EstimateLabVehicleSpecsLazy,
+  type VehicleSpecsIdentitySummary,
+} from "@/components/estimate-building/estimate-lab-vehicle-specs-lazy";
 import { useEstimateLabPartsOptional } from "@/components/estimate-building/estimate-lab-parts-provider";
 import {
   usePartsTechUiEnabled,
@@ -132,6 +135,8 @@ export type EstimateLabRightRailProps = {
   quickReference?: EstimateLabQuickReferenceData | null;
   /** When set, Specs rail is on-demand (no eager catalog / AI). */
   vehicleId?: string | null;
+  /** Lightweight identity for always-visible rail (no Specs API). */
+  vehicleIdentitySummary?: VehicleSpecsIdentitySummary | null;
   /** Shop technicians for Status-card assign picker (same source as RO sidebar). */
   technicians?: StaffPick[];
   /** Design-mode-only "preview a payment status" override. Defaults to true; set false on production ROs so the strip always reflects real invoice data. */
@@ -965,6 +970,7 @@ function EstimateLabRightRailBody(props: EstimateLabRightRailProps) {
     profitability = null,
     quickReference = null,
     vehicleId = null,
+    vehicleIdentitySummary = null,
     technicians = [],
     allowPaymentPreview = true,
     invoiceId,
@@ -1032,6 +1038,7 @@ function EstimateLabRightRailBody(props: EstimateLabRightRailProps) {
             vehicleId={vehicleId}
             excludeRoId={roId}
             canEdit={canEdit}
+            identitySummary={vehicleIdentitySummary}
           />
         ) : null}
       </div>

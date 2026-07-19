@@ -283,7 +283,7 @@ export function SmartRoIntakeDialog({
       <DialogContent
         className={cn(
           "flex max-h-[92vh] w-[calc(100vw-2rem)] flex-col gap-0 overflow-hidden p-0",
-          step === "staging" ? "sm:max-w-5xl lg:max-w-6xl" : "sm:max-w-xl",
+          step === "staging" ? "sm:max-w-5xl lg:max-w-6xl" : "sm:max-w-3xl lg:max-w-4xl",
         )}
       >
         <DialogHeader className="shrink-0 border-b border-border/80 bg-white px-5 py-3.5 sm:px-6">
@@ -293,7 +293,7 @@ export function SmartRoIntakeDialog({
           </DialogTitle>
           <DialogDescription>
             {step === "input"
-              ? "Describe the customer, vehicle, and requested work in plain language."
+              ? "Paste or type the full story — customer, vehicle, VIN, and work — in one place."
               : "Review and correct AI-extracted data. Highlighted fields need your attention."}
           </DialogDescription>
         </DialogHeader>
@@ -306,16 +306,21 @@ export function SmartRoIntakeDialog({
           ) : null}
 
           {step === "input" ? (
-            <div className="space-y-3">
+            <div className="mx-auto w-full max-w-3xl space-y-3">
               <SmartAiPromptBar
+                variant="composer"
                 value={text}
                 onChange={setText}
                 onSubmit={onParse}
                 pending={pending}
-                placeholder='Maria 718-555-0199 — 2018 Honda Accord EX, oil change and front brakes…'
+                placeholder={
+                  "Maria Lopez · 718-555-0199 · tabish.david@gmail.com\n" +
+                  "2018 Honda Accord EX · VIN 1HGCV1F3XJA000000 · 62,400 mi\n" +
+                  "Customer concern: oil change, front brakes grinding, check engine light…"
+                }
                 aria-label="Smart AI intake notes"
               />
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs leading-relaxed text-muted-foreground">
                 VINs are decoded via NHTSA for car details and more accurate labor hours. Gemini
                 returns hours only — shop rate ({laborRateLabel}) is applied on the review screen.
               </p>

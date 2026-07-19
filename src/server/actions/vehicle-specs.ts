@@ -349,6 +349,34 @@ export async function enrichVehicleFluidsOnSpecsOpen(
     return { status: "skipped_no_ymm", note: null, ran: false, filledCount: 0 };
   }
 
+  const existingMeta = extractFluidsEnrichMetaFromMaintenanceSpecs(vehicle.maintenanceSpecs);
+  const cacheHit =
+    !options?.forceRefresh && fluidsEnrichCacheValid(existingMeta, identityKey);
+
+  // Stale AI cache (schema bump / identity change): clear AI-written slots so we re-enrich.
+  let workingSpecs = vehicle.maintenanceSpecs;
+  if (!cacheHit && existingMeta?.aiKeys?.length) {
+    const overrides = parseMaintenanceOverrides(vehicle.maintenanceSpecs);
+    for (const key of existingMeta.aiKeys) {
+      delete overrides[key];
+    }
+    const hasAny = Object.values(overrides).some((v) => Boolean(v?.trim()));
+    workingSpecs = buildMaintenanceSpecsPayload(overrides, null, hasAny);
+    await prisma.vehicle.update({
+      where: { id: vehicle.id },
+      data: { maintenanceSpecs: workingSpecs as object },
+    });
+  }
+
+  if (cacheHit) {
+    return {
+      status: "skipped_cache",
+      note: fluidsEnrichNoteForStatus("skipped_cache", 0),
+      ran: false,
+      filledCount: 0,
+    };
+  }
+
   const { getVehicleMaintenanceMemory } = await import("@/server/vehicle-maintenance-memory");
   const memory = await getVehicleMaintenanceMemory(shopId, vehicleId, {
     excludeRoId: options?.excludeRoId,
@@ -357,16 +385,6 @@ export async function enrichVehicleFluidsOnSpecsOpen(
   const emptySlots = FLUID_ENRICH_SLOT_KEYS.filter((key) => !fluidSlotFilled(memory, key));
   if (emptySlots.length === 0) {
     return { status: "skipped_complete", note: null, ran: false, filledCount: 0 };
-  }
-
-  const existingMeta = extractFluidsEnrichMetaFromMaintenanceSpecs(vehicle.maintenanceSpecs);
-  if (!options?.forceRefresh && fluidsEnrichCacheValid(existingMeta, identityKey)) {
-    return {
-      status: "skipped_cache",
-      note: fluidsEnrichNoteForStatus("skipped_cache", 0),
-      ran: false,
-      filledCount: 0,
-    };
   }
 
   const aiSuiteReleased = await isReleased(shopId, "aiSuite");
@@ -383,16 +401,13 @@ export async function enrichVehicleFluidsOnSpecsOpen(
     const { lookupVehicleFluidsWithAi } = await import("@/server/services/vehicle-fluids-enrich");
     const aiResult = await lookupVehicleFluidsWithAi(shopId, vehicle, vehicle.decodedData);
 
-    const overrides = parseMaintenanceOverrides(vehicle.maintenanceSpecs);
-    const nextAiKeys = new Set<FluidEnrichSlotKey>(
-      existingMeta?.identityKey === identityKey ? existingMeta.aiKeys : [],
-    );
-    const nextFieldMeta: FluidsEnrichMeta["fields"] =
-      existingMeta?.identityKey === identityKey ? { ...existingMeta.fields } : {};
+    const overrides = parseMaintenanceOverrides(workingSpecs);
+    const nextAiKeys = new Set<FluidEnrichSlotKey>();
+    const nextFieldMeta: FluidsEnrichMeta["fields"] = {};
 
     let filledCount = 0;
     for (const key of emptySlots) {
-      const accepted = acceptFluidEnrichField(aiResult[key]);
+      const accepted = acceptFluidEnrichField(aiResult[key], key, vehicle);
       if (!accepted) continue;
       overrides[key] = accepted.value;
       nextAiKeys.add(key);

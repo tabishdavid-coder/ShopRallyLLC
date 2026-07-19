@@ -147,19 +147,20 @@ Free text / shop notes / intake
 
 ---
 
-## UI placement — LOCKED 2026-07-18 (building today)
+## UI placement — LOCKED (UI-first plan shipped)
 
 **ShopRally blend: AutoLeap access + Tekmetric depth, horizontal on desktop.**
 
 | Surface | Pattern | Status |
 |---------|---------|--------|
-| **Always visible** | Identity strip (YMM, engine, VIN/plate, source chip) on right rail | ✅ `VehicleSpecsReferenceBody` rail layout |
-| **One click** | Info icon → **wide** `max-w-5xl` dialog: left identity (~34%) \| right Fluids grid | ✅ `EstimateLabVehicleSpecsDialog` |
+| **Always visible** | Hero YMM + **info** icon; right-rail **Vehicle** card (YMM, engine, VIN, source chip) from RO props — **no API** | ✅ `EstimateWorkspaceHeroBar` + `EstimateLabVehicleSpecsLazy` |
+| **One click** | Info / Specs → **wide** `max-w-5xl` dialog: left identity \| right Fluids grid | ✅ `EstimateLabVehicleSpecsDialog` + `VehicleSpecsReferenceBody` |
+| **Rail Fluids accordion** | Collapsed “Fluids — Open Specs to load” (cost-safe teaser) | ✅ lazy rail Collapsible |
 | **Drawer** | Same stacked body under Vehicle specs toggle | ✅ context drawer panels |
-| **VIN gate** | **No** — YMM is enough to show Specs UI; empty Fluids say “Enrich from YMM” | ✅ `vehicleCanShowSpecsUi` |
+| **VIN gate** | **No** — YMM is enough; empty Fluids until Specs open / enrich | ✅ `vehicleCanShowSpecsUi` |
 
 Shared body: `src/components/estimate-building/vehicle-specs-reference.tsx`  
-Fluids slots today: maintenance memory + empty catalog placeholders (EPA fill = next build).
+Open event: `src/lib/vehicle-specs-open.ts` (`shoprally:open-vehicle-specs`) for hero ↔ rail.
 
 ### Cost rule (LOCKED) — on-demand Specs only
 
@@ -167,20 +168,18 @@ Fluids slots today: maintenance memory + empty catalog placeholders (EPA fill = 
 
 | When | Allowed |
 |------|---------|
-| Estimate SSR / open RO | Identity already on `Vehicle` row only — **no** specs bundle, **no** catalog |
-| User clicks **Specs** | `fetchVehicleSpecsBundle` (DB) then optional catalog enrich |
+| Estimate SSR / open RO | Identity from `Vehicle` row props only — **no** specs bundle, **no** catalog |
+| User clicks **Specs** / hero info | `openVehicleSpecsSession` (DB + optional VIN decode / EPA engines / fluids enrich) |
 | User never opens Specs | **Zero** catalog / AI charges for this feature |
 
-Implementation: `EstimateLabVehicleSpecsLazy` — compact rail CTA; fetch on open.  
-Future enrichment actions must be invoked **only** from that open path.
-
-### Specs open session (2026-07-19)
+### Specs open session (enrich — no VIN required)
 
 `openVehicleSpecsSession(vehicleId)` on every Specs open:
 1. **Always** reloads vehicle from DB (VIN edits on the RO show immediately).
 2. If VIN present and engine/trans/drive thin → **NHTSA decode + persist** (on Specs open only).
 3. If engine still empty → return **EPA engine option list**; user picks via Select (no silent guess).
 4. `applySpecsEngineChoice` saves engine + transmission/drive/body from EPA details.
+5. `enrichVehicleFluidsOnSpecsOpen` fills empty fluid slots (AI gated; advisor/history first).
 
 ---
 

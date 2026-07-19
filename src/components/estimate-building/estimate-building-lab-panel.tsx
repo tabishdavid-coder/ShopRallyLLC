@@ -366,6 +366,19 @@ export async function EstimateBuildingLabPanel({
     estimateTotalCents: ro.totalCents,
     quickReference: buildQuickReference(ro),
     vehicleId: ro.vehicleId,
+    vehicleIdentitySummary: v
+      ? {
+          vin: v.vin,
+          year: v.year,
+          make: v.make,
+          model: v.model,
+          trim: v.trim,
+          engine: v.engine,
+          transmission: v.transmission,
+          drivetrain: v.drivetrain,
+          bodyClass: v.bodyClass,
+        }
+      : null,
     technicians: sidebarOptions.technicians,
     // Design-mode-only payment status override — production always shows real invoice data.
     allowPaymentPreview: variant === "lab",

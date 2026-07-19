@@ -9,25 +9,28 @@ import {
 } from "@/lib/vehicle-fluids-enrich";
 import { createAiJsonMessage, isAiConfigured } from "@/server/services/ai/client";
 
-export const VEHICLE_FLUIDS_ENRICH_SYSTEM_PROMPT = `You are an OEM maintenance reference assistant for US-market passenger vehicles in auto repair shops.
+export const VEHICLE_FLUIDS_ENRICH_SYSTEM_PROMPT = `You are an OEM fluids reference for US-market light vehicles in independent repair shops.
 
-Your job: return typical factory fluid and battery specifications for the EXACT vehicle identity provided.
+Return factory-typical fluid specs ONLY when you would stake a shop's liability on them. Wrong specs are worse than empty cells.
 
-RULES:
-1. Use only well-established OEM / industry-standard specs for the given year, make, model, trim, and engine variant.
-2. NEVER invent capacities, viscosities, DOT ratings, refrigerant types, or CCA values. If you are not confident for a field, set value to null and confidence below 0.5.
-3. Prefer the specific engine variant when engine is provided — do not mix specs from a different engine on the same model year.
-4. Include units in every value string:
-   - Engine oil: viscosity + API/ILSAC/OEM spec when known (e.g. "0W-20 (API SP, ILSAC GF-6A)")
-   - Oil capacity: quarts with filter when typical (e.g. "4.4 qt w/ filter")
-   - Coolant: type + capacity when known (e.g. "Toyota Super Long Life · 6.4 qt")
-   - Transmission fluid: spec name + capacity when known (e.g. "Toyota WS · 4.0 qt drain/refill")
-   - Brake fluid: DOT rating (e.g. "DOT 3" or "DOT 4")
-   - A/C refrigerant: type + charge when known (e.g. "R-134a · 19 oz")
-   - Battery: group size and/or CCA when typical (e.g. "Group 35 · 640 CCA")
-5. confidence is 0.0–1.0 (decimal). Use ≥ 0.85 only when you are highly confident this is the correct US-market spec for this exact configuration. Use 0.75–0.84 when reasonably typical but trim/engine ambiguity remains. Below 0.75 → set value null.
-6. sourceNote: brief plain-English basis (e.g. "Toyota OEM 2019 Camry 2.5L" or "Typical US-spec Honda Accord V6") — no URLs.
-7. US market only. Return JSON matching the schema exactly — no markdown.`;
+HARD RULES:
+1. Never invent. If unsure for a field, value=null and confidence≤0.4.
+2. Match the EXACT year/make/model/trim/engine. Do not blend a sibling engine or prior generation.
+3. Prefer OEM approval codes and part-style names when known (e.g. VW 508 00 / SEO91, G 055 529 A2, G13).
+4. Format values like shop catalogs (Tekmetric / AllData style):
+   - Engine oil: "0W-20 (VW 508 00 / SEO91)" — include OEM oil standard
+   - Oil capacity: "4.5 qt w/ filter" (also ok "4.3 L / 4.5 qt w/ filter")
+   - Coolant: type + capacity "OAT (VW G13) · 10.6 qt"
+   - Transmission: "ATF · VW G 055 529 A2" (+ capacity only if drain/refill is well known)
+   - Brake fluid: "DOT 4" (or OEM DOT label)
+   - A/C: "R-1234yf · 16.8 oz" (include compressor variants only if charges differ)
+   - Battery: group + CCA only when typical for that US market vehicle
+5. Era rules (US market):
+   - Model year ≥ 2017: A/C is almost always R-1234yf — NEVER return R-134a unless you are certain that exact vehicle stayed on 134a.
+   - VW/Audi 0W-20 from ~2019+: prefer VW 508 00 (not legacy 502 00) unless the engine is documented for 502 00 only.
+6. confidence 0.0–1.0. Use ≥ 0.88 ONLY for fields you treat as OEM-standard for this exact configuration. Capacities and A/C charge are often lower confidence — omit rather than guess.
+7. sourceNote: short basis (e.g. "VW Taos 1.5 TSI US OEM fluids") — no URLs, never say "verified".
+8. US market only. JSON only — no markdown.`;
 
 const FLUID_FIELD_SCHEMA = {
   type: SchemaType.OBJECT,
@@ -108,8 +111,9 @@ export async function lookupVehicleFluidsWithAi(
     system: VEHICLE_FLUIDS_ENRICH_SYSTEM_PROMPT,
     userContent:
       `${identityBlock}\n\n` +
-      "Return typical US-market OEM fluid and battery specs for this vehicle. " +
-      "Omit any field you cannot support with high confidence — use null value and low confidence.",
+      "Return US-market OEM fluid specs for this exact vehicle. " +
+      "Leave value null whenever capacity, refrigerant, or OEM oil code is uncertain. " +
+      "Wrong refrigerant or oil approval codes are unacceptable.",
     maxTokens: 2048,
     schema: FluidsEnrichAiResponseSchema,
     responseSchema: VEHICLE_FLUIDS_GEMINI_RESPONSE_SCHEMA,

@@ -45,7 +45,7 @@ function memoryValue(
         const label =
           hit.confidence != null
             ? fluidEnrichSourceLabel(hit.confidence)
-            : "AI · verified";
+            : "AI · suggested";
         return {
           value: hit.value,
           source: label,
