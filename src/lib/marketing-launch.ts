@@ -223,7 +223,10 @@ export const IGNITION_PLAN_MARKETING = {
   /** Short audience line under the plan name (Garage360 / AutoLeap pattern). */
   bestFor:
     "All-in-one auto repair shop management for independents — bay and counter in one login.",
-  /** Feature bullets under the price — short one-capability lines (Shopmonkey/AutoLeap style). */
+  /**
+   * Feature bullets under the price — short one-capability lines for the Ignition card.
+   * Order matches the launch-plan card layout (PartsTech first; no seat counts).
+   */
   features: [
     { label: "PartsTech catalog & punchout" },
     { label: "Job board" },
@@ -231,7 +234,7 @@ export const IGNITION_PLAN_MARKETING = {
     { label: "Digital estimates" },
     { label: "Email approvals" },
     { label: "Invoices" },
-    { label: "Digital vehicle inspections (photo checklists customers can see)" },
+    { label: "Digital vehicle inspections customers can see" },
     { label: "Live Operations Daily Snapshot every morning" },
     { label: "Appointments" },
     { label: "Payment tracking" },
@@ -241,7 +244,7 @@ export const IGNITION_PLAN_MARKETING = {
   ],
   /** Compact AI Plus teaser under the Ignition card (add-on, not a peer plan). */
   addonTeaser: {
-    eyebrow: "Optional add-on",
+    eyebrow: "Optional add-ons",
     title: "AI Plus",
     blurb: "Paste a note → AI drafts the RO. Labor assist + advisor app.",
   },
