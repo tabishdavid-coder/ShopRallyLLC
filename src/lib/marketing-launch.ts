@@ -184,6 +184,21 @@ export const CATEGORY_POSITIONING = {
 } as const;
 
 /**
+ * Home hero — AutoLeap/Shopmonkey structure (split + product frame), ShopRally voice.
+ * Brand first → one headline → short support → one Reserve CTA. No seat counts.
+ */
+export const HOME_HERO = {
+  headline: "Run the bay and the counter as one.",
+  supportPreLaunch:
+    "All-in-one shop management for independents — job board, PartsTech on the estimate, digital inspections, and email approvals in one login. Launching Q4 2026.",
+  supportLive:
+    "All-in-one shop management for independents — job board, PartsTech on the estimate, digital inspections, and email approvals in one login.",
+  /** Soft proof line under CTA — not a seat counter. */
+  proofLine: "Built for independent shops · founding seats open for Q4",
+  reciprocityLead: "Liked what you saw? Reserve a founding seat for Q4 2026.",
+} as const;
+
+/**
  * “How it works for your shop” — plain shop-owner outcomes (not feature laundry lists).
  * Website & SEO stays a companion offer — never listed here as Ignition CRM.
  */
@@ -223,7 +238,10 @@ export const IGNITION_PLAN_MARKETING = {
   /** Short audience line under the plan name (Garage360 / AutoLeap pattern). */
   bestFor:
     "All-in-one auto repair shop management for independents — bay and counter in one login.",
-  /** Feature bullets under the price — short one-capability lines (Shopmonkey/AutoLeap style). */
+  /**
+   * Feature bullets under the price — short one-capability lines for the Ignition card.
+   * Order matches the launch-plan card layout (PartsTech first; no seat counts).
+   */
   features: [
     { label: "PartsTech catalog & punchout" },
     { label: "Job board" },
@@ -231,7 +249,7 @@ export const IGNITION_PLAN_MARKETING = {
     { label: "Digital estimates" },
     { label: "Email approvals" },
     { label: "Invoices" },
-    { label: "Digital vehicle inspections (photo checklists customers can see)" },
+    { label: "Digital vehicle inspections customers can see" },
     { label: "Live Operations Daily Snapshot every morning" },
     { label: "Appointments" },
     { label: "Payment tracking" },
@@ -241,7 +259,7 @@ export const IGNITION_PLAN_MARKETING = {
   ],
   /** Compact AI Plus teaser under the Ignition card (add-on, not a peer plan). */
   addonTeaser: {
-    eyebrow: "Optional add-on",
+    eyebrow: "Optional add-ons",
     title: "AI Plus",
     blurb: "Paste a note → AI drafts the RO. Labor assist + advisor app.",
   },
