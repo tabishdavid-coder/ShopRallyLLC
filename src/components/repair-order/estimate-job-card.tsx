@@ -1240,7 +1240,6 @@ export function EstimateJobCard({
                         }}
                         handlers={{
                           onLaborFromGuide: addLaborLookup,
-                          onCustomLabor: addLaborLine,
                         }}
                       />
                     </td>
@@ -1545,7 +1544,6 @@ export function EstimateJobCard({
                         }}
                         handlers={{
                           onPartFromGuide: addPartLookup,
-                          onCustomPart: () => addInlinePartRow(p.lineType ?? "part"),
                         }}
                       />
                     </td>
