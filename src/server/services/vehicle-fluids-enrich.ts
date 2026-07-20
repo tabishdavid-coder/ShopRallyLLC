@@ -42,7 +42,7 @@ const FLUID_FIELD_SCHEMA = {
   required: ["value", "confidence", "sourceNote"],
 };
 
-export const VEHICLE_FLUIDS_GEMINI_RESPONSE_SCHEMA: ResponseSchema = {
+export const VEHICLE_FLUIDS_GEMINI_RESPONSE_SCHEMA = {
   type: SchemaType.OBJECT,
   properties: {
     engineOil: { ...FLUID_FIELD_SCHEMA, nullable: true },
@@ -53,7 +53,7 @@ export const VEHICLE_FLUIDS_GEMINI_RESPONSE_SCHEMA: ResponseSchema = {
     acRefrigerant: { ...FLUID_FIELD_SCHEMA, nullable: true },
     battery: { ...FLUID_FIELD_SCHEMA, nullable: true },
   },
-};
+} as ResponseSchema;
 
 function formatIdentityBlock(vehicle: VehicleIdentityForFluids, decodedSnippets?: string | null): string {
   const lines = [

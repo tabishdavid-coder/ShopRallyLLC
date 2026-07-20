@@ -15,6 +15,7 @@ import { recordShopAuditEventSafe } from "@/server/shop-audit";
 import { recordInvoicePayment } from "@/server/services/invoice-payments";
 import { reconcileOrphanDepositsForRo } from "@/server/services/deposit-payments";
 import { isStripeEnabled } from "@/lib/stripe";
+import { canUseFeature } from "@/lib/subscription";
 import { createInvoiceCheckoutSession } from "@/server/services/stripe-payments";
 
 export type InvoiceCheckoutResult =
@@ -42,6 +43,15 @@ export async function startStaffInvoiceCheckout(repairOrderId: string): Promise<
   const shopId = await getShopId();
   const perm = await requirePermission(shopId, "payments.collect");
   if (!perm.ok) return { ok: false, error: perm.error };
+
+  // Fail-closed on Ignition/Core — Stripe Connect collect is Pro+.
+  if (!(await canUseFeature(shopId, "stripePayments"))) {
+    return {
+      ok: false,
+      error:
+        "Online card collect is not included on Ignition. Record a manual payment, or upgrade to Pro.",
+    };
+  }
 
   const user = await getCurrentUser();
   const link = await getInvoiceShareLink({ shopId, repairOrderId });

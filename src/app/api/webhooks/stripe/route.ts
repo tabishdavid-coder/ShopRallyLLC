@@ -7,6 +7,10 @@ import { handleCheckoutSessionCompleted } from "@/server/services/stripe-payment
 import { handleDepositCheckoutCompleted } from "@/server/services/stripe-deposit";
 import { handleMaintenanceCheckoutCompleted } from "@/server/services/stripe-maintenance";
 import { handleSeoCheckoutCompleted, SEO_CHECKOUT_KIND } from "@/server/services/seo-stripe-checkout";
+import {
+  handlePlanCheckoutCompleted,
+  PLAN_CHECKOUT_KIND,
+} from "@/server/services/plan-stripe-checkout";
 import { handleAccountDeauthorized, handleAccountUpdated } from "@/server/services/stripe-connect";
 
 export const dynamic = "force-dynamic";
@@ -64,6 +68,8 @@ export async function POST(request: Request) {
           await handleMaintenanceCheckoutCompleted(session);
         } else if (session.metadata?.checkoutKind === SEO_CHECKOUT_KIND) {
           await handleSeoCheckoutCompleted(session);
+        } else if (session.metadata?.checkoutKind === PLAN_CHECKOUT_KIND) {
+          await handlePlanCheckoutCompleted(session);
         } else if (session.metadata?.checkoutKind === "estimate_deposit") {
           await handleDepositCheckoutCompleted(session);
         } else {

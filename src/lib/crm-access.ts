@@ -99,9 +99,8 @@ export function sectionNavAllowed(
   sectionId: string,
   opts?: { growthPlanOk?: boolean },
 ): boolean {
-  // Growth section stays in the IA for all shops; plan entitlement is enforced in-route / CTAs.
-  if (sectionId === "growth") return true;
-  void opts;
+  // Growth is Pro+ — omit from chrome when plan/release is off (Ignition / Core launch).
+  if (sectionId === "growth") return opts?.growthPlanOk === true;
   const keys = CRM_SECTION_PERMISSIONS[sectionId];
   if (sectionId === "dashboard") {
     return CRM_DASHBOARD_NAV_HREFS.some((href) => navHrefAllowed(effective, href));
@@ -159,7 +158,15 @@ export function isGrowthNavExemptHref(href: string): boolean {
  */
 export function isPlanHiddenNavHref(
   href: string,
-  flags: { growth: boolean; maintenancePrograms: boolean; sms: boolean },
+  flags: {
+    growth: boolean;
+    maintenancePrograms: boolean;
+    sms: boolean;
+    /** Stripe Connect / payments hub — Pro+. */
+    stripePayments?: boolean;
+    /** Licensed MOTOR Labor Book (`/quick-labor`) — Pro+. */
+    motorLabor?: boolean;
+  },
 ): boolean {
   if (isGrowthNavExemptHref(href)) return false;
   if (!flags.growth && (href === "/marketing" || href.startsWith("/marketing/"))) {
@@ -172,6 +179,18 @@ export function isPlanHiddenNavHref(
     return true;
   }
   if (!flags.sms && href === "/messages") return true;
+  if (
+    flags.stripePayments === false &&
+    (href === "/payments" || href.startsWith("/payments/"))
+  ) {
+    return true;
+  }
+  if (
+    flags.motorLabor === false &&
+    (href === "/quick-labor" || href.startsWith("/quick-labor/"))
+  ) {
+    return true;
+  }
   return false;
 }
 

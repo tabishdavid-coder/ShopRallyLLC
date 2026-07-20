@@ -2,7 +2,6 @@ import { Crown, Layers, Monitor } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { MARKET_POSITIONING } from "@/lib/marketing-launch";
-import { PLANS, shoprallyAllInMonthly, shoprallyOverdriveMonthly } from "@/lib/plans";
 
 const TIER_STYLES = {
   legacy: {
@@ -28,20 +27,9 @@ const TIER_STYLES = {
   },
 } as const;
 
+/** Uses MARKET_POSITIONING as-is (Ignition dollars when PHASE_ONE_LAUNCH). */
 export function MarketPositioningSection({ compact = false }: { compact?: boolean }) {
-  const momentumPrice = shoprallyAllInMonthly(true);
-  const overdrivePrice = shoprallyOverdriveMonthly(true);
-
-  const tiers = MARKET_POSITIONING.tiers.map((tier) => {
-    if (tier.id === "premium") {
-      return {
-        ...tier,
-        priceLabel: `From $${momentumPrice}/mo`,
-        subPrice: `${PLANS.ENTERPRISE.name} $${overdrivePrice}/mo — AI, ShopSite & Local SEO`,
-      };
-    }
-    return tier;
-  });
+  const tiers = MARKET_POSITIONING.tiers;
 
   return (
     <section className={cn(compact ? "py-0" : "border-y border-brand-navy/10 bg-white py-16 sm:py-20")}>
@@ -74,7 +62,6 @@ export function MarketPositioningSection({ compact = false }: { compact?: boolea
                     style.card,
                   )}
                 >
-                  {/* Badge row — reserved height so premium aligns with siblings */}
                   <div className="mb-4 min-h-[1.375rem]">
                     {isPremium ? (
                       <span className="inline-flex rounded-full bg-brand-red px-3 py-0.5 text-[10px] font-bold uppercase tracking-wide text-white">

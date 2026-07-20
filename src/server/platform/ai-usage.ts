@@ -21,6 +21,7 @@ const FEATURE_LABEL: Record<AiFeature, string> = {
   VOICE_RECEPTIONIST: "Voice receptionist",
   SUPPORT_FAQ: "Support FAQ",
   LABOR_GUIDE: "Labor Book",
+  FREEFORM_RO_INTAKE: "Freeform RO intake",
 };
 
 export function aiFeatureLabel(feature: AiFeature): string {

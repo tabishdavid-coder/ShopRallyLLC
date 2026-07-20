@@ -13,7 +13,7 @@ This is the short orientation doc. For folder-level navigation, see [`PM-REPO-MA
 |------|--------|
 | **Product** | ShopRally — cloud shop-management CRM for auto repair |
 | **Canonical repo folder** | `ShopRally/` only (e.g. `C:\Users\...\ShopRally` or your Git clone) |
-| **Public site** | [getshoprally.com](https://getshoprally.com) |
+| **Public site** | [getShopRally.com](https://getshoprally.com) |
 | **Brand contact email** | **hello@getshoprally.com** |
 | **Local dev** | `npm run dev` → **http://localhost:3031** |
 
@@ -138,7 +138,7 @@ Hand these off with credentials stored in your team password manager — not in 
 - [ ] **Stripe** — platform + Connect dashboard
 - [ ] **Twilio** — SMS number + webhook URL
 - [ ] **Resend** — sending domain
-- [ ] **Domain DNS** — getshoprally.com (and any tenant custom domains)
+- [ ] **Domain DNS** — getShopRally.com / getshoprally.com (and any tenant custom domains)
 - [ ] **Local `.env`** — copy from `.env.example`; set `PLATFORM_ADMIN_EMAIL=hello@getshoprally.com`
 
 **First local run:**

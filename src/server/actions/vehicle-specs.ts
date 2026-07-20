@@ -361,10 +361,17 @@ export async function enrichVehicleFluidsOnSpecsOpen(
       delete overrides[key];
     }
     const hasAny = Object.values(overrides).some((v) => Boolean(v?.trim()));
-    workingSpecs = buildMaintenanceSpecsPayload(overrides, null, hasAny);
+    const clearedSpecs = buildMaintenanceSpecsPayload(overrides, null, hasAny);
+    workingSpecs =
+      clearedSpecs === Prisma.DbNull ? null : (clearedSpecs as Prisma.JsonObject);
     await prisma.vehicle.update({
       where: { id: vehicle.id },
-      data: { maintenanceSpecs: workingSpecs as object },
+      data: {
+        maintenanceSpecs:
+          clearedSpecs === Prisma.DbNull
+            ? Prisma.DbNull
+            : (clearedSpecs as Prisma.InputJsonValue),
+      },
     });
   }
 

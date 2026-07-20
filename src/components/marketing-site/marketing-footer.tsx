@@ -1,19 +1,26 @@
 import Link from "next/link";
 
 import { ShopRallyLogo } from "@/components/brand/shoprally-logo";
+import {
+  MARKETING_LAUNCH,
+  marketingPrimaryCta,
+  marketingPrimaryHref,
+  marketingSecondaryCta,
+  marketingSecondaryHref,
+} from "@/lib/marketing-launch";
 import { PLATFORM_CONTACT_EMAIL } from "@/lib/support";
+
+const preLaunch = MARKETING_LAUNCH.preLaunch;
 
 const FOOTER_LINKS = {
   Product: [
-    { href: "/features", label: "Shop management" },
-    { href: "/features", label: "Growth Engine" },
-    { href: "/pricing", label: "Pricing" },
-    { href: "/launch", label: "Join waitlist" },
-    { href: "/demo", label: "Book a demo" },
+    { href: "/features", label: "What's included" },
+    { href: "/pricing", label: "Ignition pricing" },
+    { href: marketingPrimaryHref(preLaunch), label: marketingPrimaryCta({ preLaunch }) },
+    { href: marketingSecondaryHref(preLaunch), label: marketingSecondaryCta(preLaunch) },
   ],
   Company: [
     { href: "/login", label: "Sign in" },
-    { href: "/login?portal=platform", label: "Platform admin" },
     { href: "/launch", label: "Founding shops" },
   ],
   Legal: [
@@ -31,8 +38,9 @@ export function MarketingFooter() {
           <div className="sm:col-span-2 lg:col-span-1">
             <ShopRallyLogo href="/" variant="onDark" />
             <p className="mt-4 max-w-xs text-sm leading-relaxed text-white/70">
-              Cloud shop management for independent repair shops — CRM, Growth Engine, and optional
-              monthly ShopSite &amp; Local SEO subscriptions.
+              {preLaunch
+                ? "Cloud shop CRM for independent repair shops. Ignition launches Q4 2026 with PartsTech included — founding seats open now. Pro and Elite come later."
+                : "Cloud shop CRM for independent repair shops — Ignition runs the bay with PartsTech included. Pro and Elite come later."}
             </p>
           </div>
 

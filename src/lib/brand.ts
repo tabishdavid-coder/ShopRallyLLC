@@ -4,7 +4,9 @@ export const BRAND = {
   name: "ShopRally",
   legalName: "ShopRally LLC",
   formerName: "RepairPilot",
-  domain: "getshoprally.com",
+  /** Branded spelling for human-facing copy (DNS host is case-insensitive). */
+  domain: "getShopRally.com",
+  /** Canonical HTTPS origin — always lowercase host in env/URLs. */
   url: "https://getshoprally.com",
   tagline: "Shop management that keeps every bay moving.",
   /** Public platform contact — marketing, support, billing, owner ops copy */

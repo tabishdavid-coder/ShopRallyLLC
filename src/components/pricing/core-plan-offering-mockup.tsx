@@ -141,7 +141,7 @@ export function CorePlanOfferingMockup() {
             </p>
             <ul className="mt-3 space-y-2.5 text-sm leading-snug text-slate-600">
               <li>
-                Today’s card shows ~10 bullets — customers under-count DVIs, approvals, job board,
+                Today’s card shows ~10 bullets — customers under-count digital vehicle inspections, approvals, job board,
                 GP, assignments, inventory, and snapshot.
               </li>
               <li>
@@ -278,7 +278,7 @@ export function CorePlanOfferingMockup() {
               <ul className="mt-4 space-y-2 text-sm text-slate-600">
                 <li>Card bullets live on `PLANS.STARTER` + Billing / Subscription.</li>
                 <li>Grouped breakdown ships on `/pricing` under What’s included.</li>
-                <li>AI Plus remains Core-only at $20/mo.</li>
+                <li>AI Plus remains Core-only at $49.99/mo.</li>
                 <li>Edit groups in `core-plan-offering-proposal.ts`; edit card bullets in `plans.ts`.</li>
               </ul>
               <p className="mt-6 text-xs text-slate-500">

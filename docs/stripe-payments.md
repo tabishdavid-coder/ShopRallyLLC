@@ -2,13 +2,17 @@
 
 Matches the Tekmetric-style flow from the setup screenshot (Step 2 CRM lane).
 
+> **Ignition / Core:** customer card collect (Stripe Connect) is **Pro+**. Core shops use **manual Record** only.  
+> Platform subscription billing (Ignition plan + AI Plus) uses separate price env vars — see below and `docs/IGNITION-GO-LIVE.md`.
+
 ## Prerequisites
 
 1. **Stripe Dashboard** → activate **Checkout** and **Invoices** (Step 3 in setup guide).
 2. Copy keys into `.env`:
    - `STRIPE_SECRET_KEY=sk_test_…`
    - `STRIPE_WEBHOOK_SECRET=whsec_…` (from Stripe CLI or Dashboard webhook)
-   - `APP_URL=http://localhost:3000`
+   - `APP_URL=http://localhost:3031` (ShopRally local)
+   - Optional Ignition self-serve: `STRIPE_PRICE_IGNITION_MONTHLY`, `STRIPE_PRICE_IGNITION_ANNUAL`, `STRIPE_PRICE_AI_PLUS_MONTHLY`
 3. Start webhook forwarding (local dev):
 
 ```bash

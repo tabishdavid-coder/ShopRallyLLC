@@ -82,7 +82,7 @@ Do not use **`karvio/`** for marketing work unless explicitly syncing.
 ### Do not confuse with
 
 - **SEO Autopilot** — GSC, crawl, SEO tabs (`agents/SeoAutopilot/`)
-- **ShopRally marketing site** — `src/app/(marketing)/` (ShopRally.com, not tenant sites)
+- **ShopRally marketing site** — `src/app/(marketing)/` (getShopRally.com, not tenant sites)
 
 ---
 

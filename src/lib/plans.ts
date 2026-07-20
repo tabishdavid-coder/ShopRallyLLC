@@ -34,7 +34,7 @@ export type PlanFeature =
   | "aiReceptionist"
   /** Auto.dev plate→VIN + rich VIN decode — Pro+ only. Core uses NHTSA VIN + manual entry. */
   | "autodevDecoding"
-  /** Smart / freeform AI repair-order intake — Core-only AI Plus $20/mo add-on (not Pro/Elite). */
+  /** Smart / freeform AI repair-order intake — Core-only AI Plus add-on (not Pro/Elite). */
   | "freeformRoIntake";
 
 export type PlanLimits = {
@@ -43,13 +43,14 @@ export type PlanLimits = {
   /** null = unlimited */
   maxRepairOrdersPerMonth: number | null;
   /**
-   * Shared calendar-month meter for successful VIN decode + plate lookup.
-   * null = unlimited (Pro / Elite). Core includes 100; overage billed in packs.
+   * Shared calendar-month meter for successful paid VIN/plate lookups (Auto.dev).
+   * null = unlimited / not metered. Ignition uses free NHTSA VIN only — null.
+   * Pro/Elite: null (unlimited Auto.dev VIN + plate). Legacy Core 100-pack overage retired.
    */
   maxVinPlateDecodesPerMonth: number | null;
 };
 
-/** Core overage: $10 per additional 100 successful VIN/plate decodes (manual / Stripe Billing later). */
+/** @deprecated Ignition no longer meters NHTSA VIN; kept for billing helpers on old meters. */
 export const VIN_PLATE_DECODE_OVERAGE = {
   packSize: 100,
   packCents: 1000,
@@ -121,22 +122,23 @@ export const LABOR_PLAN_COPY = {
   billingMomentum: "Licensed MOTOR labor data",
   featuresIgnition: "Licensed MOTOR on Pro+",
   faqAnswer:
-    "Licensed MOTOR labor data is included on Pro and Elite — flat-rate guides and procedures in the estimate. Ignition uses the shop labor library. Ignition includes 100 VIN & plate decodes per month ($10 per additional 100); Pro and Elite are unlimited, plus OEM specs and fluid capacities.",
+    "Licensed MOTOR labor data is included on Pro and Elite — flat-rate guides and procedures in the estimate. Ignition uses the shop labor library. OEM specs and fluid capacities are on Pro+.",
 } as const;
 
-/** Shared VIN + plate decode meter — Core allowance + overage packs. */
+/** VIN / plate decode packaging — Ignition = unlimited free NHTSA VIN; plate→VIN is Pro+. */
 export const VIN_PLATE_DECODE_PLAN_COPY = {
-  coreIncluded: 100,
-  overagePackLabel: "$10 / additional 100",
+  /** @deprecated Ignition is unlimited NHTSA VIN (null meter). Kept for any legacy references. */
+  coreIncluded: null as number | null,
+  overagePackLabel: "N/A on Ignition",
   comparisonByPlan: {
-    STARTER: "100 / mo · then $10 / 100",
-    PROFESSIONAL: "Unlimited",
-    ENTERPRISE: "Unlimited",
+    STARTER: "Unlimited NHTSA VIN",
+    PROFESSIONAL: "Unlimited VIN + plate",
+    ENTERPRISE: "Unlimited VIN + plate",
   } satisfies Record<ShopPlan, string>,
-  billingCore: "100 VIN & plate decodes / mo · $10 per extra 100",
-  billingProPlus: "Unlimited VIN & plate decoding",
+  billingCore: "Unlimited NHTSA VIN decode",
+  billingProPlus: "Unlimited VIN & plate decoding (Auto.dev)",
   faqAnswer:
-    "Ignition includes 100 successful VIN or plate decodes per calendar month (shared meter). Additional packs are $10 per 100 — usage is metered and shown in Settings → Subscription; overage is billed manually until Stripe Billing. Pro and Elite include unlimited decoding.",
+    "Ignition includes unlimited VIN decoding via free NHTSA vPIC — no monthly cap. Paid plate→VIN lookup is on Pro and Elite.",
 } as const;
 
 /** Operations Daily Snapshot — included on every plan tier. */
@@ -157,11 +159,14 @@ export const DASHBOARD_PLAN_COPY = {
     "Every plan includes Live Operations Daily Snapshot — a clear view of today's and upcoming shop activity so owners and advisors stay ahead of the day without digging through reports.",
 } as const;
 
-/** Digital vehicle inspections (DVIs) — included on every plan tier. */
+/** Digital vehicle inspections — included on every plan tier. */
 export const DVI_PLAN_COPY = {
-  planHighlight: "Digital vehicle inspections (DVIs) — MPI, photo markup & R/Y/G ratings",
-  billingItem: "Digital vehicle inspections (DVIs) — templates, photo markup & customer share links",
-  featuresAllTiers: "DVIs with photo markup & MPI templates on every plan",
+  planHighlight:
+    "Digital vehicle inspections — multi-point templates, photo markup & R/Y/G ratings",
+  billingItem:
+    "Digital vehicle inspections — templates, photo markup & customer share links",
+  featuresAllTiers:
+    "Digital vehicle inspections with photo markup & multi-point templates on every plan",
   comparisonAllTiers: {
     STARTER: true,
     PROFESSIONAL: true,
@@ -180,7 +185,7 @@ export const PLAN_TRAINING: Record<
     headline: "Self-serve with demo support",
     sessions: "Product guides & early demo",
     description:
-      "Get started on the job board, repair orders, DVIs, and Operations Daily Snapshot — book a demo if you want a guided walkthrough.",
+      "Get started on the job board, repair orders, digital vehicle inspections, and Operations Daily Snapshot — book a demo if you want a guided walkthrough.",
   },
   PROFESSIONAL: {
     headline: "Self-serve with product resources",
@@ -207,9 +212,9 @@ export const PLATFORM_MODULES = [
   },
   {
     id: "dvi",
-    name: "DVIs",
+    name: "Digital vehicle inspections",
     description:
-      "Digital vehicle inspections with MPI templates, photo markup, red/yellow/green ratings, and customer share links.",
+      "Photo checklists customers can see — multi-point templates, photo markup, red/yellow/green ratings, and share links.",
     icon: "clipboard" as const,
     pricingNote: "All monthly tiers",
   },
@@ -224,7 +229,7 @@ export const PLATFORM_MODULES = [
     id: "labor",
     name: "Labor Book",
     description:
-      "Licensed MOTOR labor data is included on Pro and Elite. Ignition uses the shop labor library. Ignition includes 100 VIN & plate decodes / mo ($10 per extra 100); Pro and Elite are unlimited, with OEM specs and fluid capacities on Pro+.",
+      "Licensed MOTOR labor data is included on Pro and Elite. Ignition uses the shop labor library. Ignition includes unlimited NHTSA VIN decode. Pro and Elite add plate lookup plus OEM specs and fluid capacities.",
     icon: "wrench" as const,
     pricingNote: "Licensed MOTOR on Pro+",
   },
@@ -274,6 +279,9 @@ export type WebPresenceService = {
   priceLabel: string;
   /** One-time launch & configuration — charged once when service starts. */
   setupCents: number;
+  /** Short one-capability lines for pricing cards (Ignition-style bullets). */
+  bullets: string[];
+  /** Compact summary — keep for non-card surfaces; cards prefer `bullets`. */
   description: string;
   savingsNote?: string;
 };
@@ -293,13 +301,16 @@ export const WEB_PRESENCE_LAUNCH_SETUP = {
     includes: [
       "On-page SEO, meta tags & JSON-LD structured data",
       "Google Search Console & sitemap setup",
-      "Google Business Profile guidance & Growth Engine SEO baseline",
+      "Google Business Profile optimization & organic local search presence",
+      "Local Google Ads review & optimization when campaigns already exist",
+      "Growth Engine SEO baseline",
     ],
   },
   bundle: {
     setupCents: 54900,
     includes: [
       "Coordinated ShopSite build + Local SEO launch",
+      "Google Business Profile & local Google Ads optimization when applicable",
       "Single go-live with domain, GSC & booking connected",
     ],
     savingsNote: "Save $99 vs separate ShopSite and SEO launch setup.",
@@ -322,6 +333,13 @@ export const WEB_PRESENCE_SERVICES: WebPresenceService[] = [
     monthlyCents: 9900,
     priceLabel: "$99/mo",
     setupCents: WEB_PRESENCE_LAUNCH_SETUP.shopsite.setupCents,
+    bullets: [
+      "Branded shop website",
+      "Hosting & SSL",
+      "Custom domain setup",
+      "Booking widget",
+      "Ongoing content updates",
+    ],
     description:
       "Branded shop website, hosting, SSL, custom domain setup, booking widget, and ongoing content updates.",
     savingsNote: "Agency site retainers often run $150–300/mo.",
@@ -332,8 +350,16 @@ export const WEB_PRESENCE_SERVICES: WebPresenceService[] = [
     monthlyCents: 12900,
     priceLabel: "$129/mo",
     setupCents: WEB_PRESENCE_LAUNCH_SETUP.seo.setupCents,
+    bullets: [
+      "On-page SEO",
+      "Structured data (JSON-LD)",
+      "Search Console monitoring",
+      "Google Business Profile & organic local",
+      "Local Google Ads optimization when advertising",
+      "Growth Engine SEO runs",
+    ],
     description:
-      "On-page SEO, structured data (JSON-LD), Search Console monitoring, Google Business guidance, and Growth Engine SEO runs.",
+      "On-page SEO, structured data, Search Console, Google Business Profile & organic local, local Google Ads optimization when advertising, and Growth Engine SEO runs.",
     savingsNote: "SEO agency retainers often start at $500+/mo.",
   },
   {
@@ -342,7 +368,15 @@ export const WEB_PRESENCE_SERVICES: WebPresenceService[] = [
     monthlyCents: 19900,
     priceLabel: "$199/mo",
     setupCents: WEB_PRESENCE_LAUNCH_SETUP.bundle.setupCents,
-    description: "ShopSite and Local SEO together — full web presence on two subscriptions billed as one.",
+    bullets: [
+      "Everything in ShopSite",
+      "Everything in Local SEO",
+      "Google Business Profile + local Ads help",
+      "One bill for full web presence",
+      "Save $29/mo vs buying separately",
+    ],
+    description:
+      "ShopSite and Local SEO together — full web presence on two subscriptions billed as one.",
     savingsNote: "Save $29/mo vs subscribing to ShopSite and Local SEO separately ($228/mo).",
   },
 ];
@@ -408,9 +442,9 @@ export const COMPETITOR_BENCHMARK = {
     examples: "Mitchell / Protractor class · marketing & website retainers separate",
   },
   incumbents: [
-    { name: "Garage360 Basic", crm: 79, marketing: 0, note: "Quotes & invoices · no DVI, inventory, or labor guides" },
-    { name: "Garage360 Clever", crm: 119, marketing: 0, note: "DVI, inventory & QB · no SMS, booking, or campaigns" },
-    { name: "Torque360 Starter", crm: 90, marketing: 0, note: "DVI & PartsTech · 5 co-users · one-way SMS only" },
+    { name: "Garage360 Basic", crm: 79, marketing: 0, note: "Quotes & invoices · no digital vehicle inspections, inventory, or labor guides" },
+    { name: "Garage360 Clever", crm: 119, marketing: 0, note: "Digital vehicle inspections, inventory & QB · no SMS, booking, or campaigns" },
+    { name: "Torque360 Starter", crm: 90, marketing: 0, note: "Digital vehicle inspections & PartsTech · 5 co-users · one-way SMS only" },
     { name: "Garage360 Genius", crm: 199, marketing: 0, note: "Labor guides & diagrams · bolt-on marketing ~+$80/mo typical" },
     { name: "Torque360 Turbo", crm: 180, marketing: 0, note: "Two-way SMS & review mgmt · no AI, SEO, or maintenance programs" },
     { name: "Tekmetric", crm: 179, marketing: 345, note: "Marketing add-on · Scale tier ~$409/mo" },
@@ -422,7 +456,7 @@ export const COMPETITOR_BENCHMARK = {
   typicalStackMonthly: 524,
   /** Garage360 Basic — entry sticker price. */
   basicCrmMonthly: 79,
-  /** Ops-comparable tier (Garage360 Clever class — DVI + reports). */
+  /** Ops-comparable tier (Garage360 Clever class — digital inspections + reports). */
   entryCrmMonthly: 119,
   typicalTopCrmTier: 409,
   typicalWebsiteSetup: 2000,
@@ -450,13 +484,25 @@ export const PUBLIC_PLAN_ORDER: ShopPlan[] = PHASE_ONE_LAUNCH
 /** Full tier catalog — platform admin & future multi-tier launch. */
 export const PLATFORM_PLAN_ORDER: ShopPlan[] = ["STARTER", "PROFESSIONAL", "ENTERPRISE"];
 
+/** AI Plus monthly list price (cents) — Core-only add-on. */
+export const AI_PLUS_MONTHLY_CENTS = 4999;
+
+/** AI Plus monthly dollars for marketing math / totals. */
+export function aiPlusMonthlyDollars(): number {
+  return AI_PLUS_MONTHLY_CENTS / 100;
+}
+
+export function aiPlusPriceLabel(): string {
+  return `$${aiPlusMonthlyDollars().toFixed(2)}/mo`;
+}
+
 export const PHASE_ONE_COPY = {
   headline: "One plan. Everything to run your shop.",
   subhead:
-    "Ignition is ShopRally's launch plan — unlimited users & ROs, job board, digital estimates & approvals, DVIs, appointments, payment tracking, and Live Operations Daily Snapshot. No tier maze.",
-  addonHeadline: "AI Plus — optional",
+    "Ignition is ShopRally's launch plan — unlimited users & ROs, job board, PartsTech parts ordering, digital estimates & approvals, digital vehicle inspections, appointments, payment tracking, and Live Operations Daily Snapshot. No tier maze.",
+  addonHeadline: "Recommended — AI Plus",
   addonSubhead:
-    "Core plan only — add freeform AI repair-order intake, labor-hour assist, and the ShopRally advisor app for $20/mo.",
+    "Most founding shops reserve Ignition + AI Plus for Q4 2026: freeform RO intake, labor-hour assist, and the advisor app — so the counter moves as fast as the conversation at launch.",
 } as const;
 
 /** Optional monthly add-ons — stack on eligible tiers only. */
@@ -464,10 +510,10 @@ export const PLAN_ADDONS: PlanAddOn[] = [
   {
     id: "ai-plus",
     name: "AI Plus",
-    priceLabel: "$20/mo",
+    priceLabel: aiPlusPriceLabel(),
     description:
-      "Freeform AI repair-order intake, labor-hour assist, and the ShopRally advisor mobile app. Core plan add-on only.",
-    vsIndustry: "Competitor AI receptionist add-ons often list at $59–99/mo.",
+      "Paste a note → AI drafts the RO (vehicle, concerns, labor hours). Plus labor assist and the ShopRally advisor mobile app. Ignition add-on only.",
+    vsIndustry: "Competitor AI add-ons often list at $59–99/mo — and still don't draft the RO.",
     tiers: "core-only",
     phaseOne: true,
   },
@@ -516,9 +562,9 @@ export const PLAN_ADDONS: PlanAddOn[] = [
 const starterFeatures: PlanFeatureSet = {
   maxUsers: null,
   maxRepairOrdersPerMonth: null,
-  maxVinPlateDecodesPerMonth: VIN_PLATE_DECODE_PLAN_COPY.coreIncluded,
+  maxVinPlateDecodesPerMonth: null,
   cannedJobs: true,
-  partsTech: false,
+  partsTech: true,
   laborGuide: true,
   motorLabor: false,
   customerEmail: true,
@@ -616,25 +662,27 @@ export const PLANS: Record<ShopPlan, PlanDefinition> = {
     name: "Core",
     marketingName: "Ignition",
     subtitle: "Shop plan",
-    tagline: "Everything to run your shop — job board, DVIs, estimates, appointments & live ops.",
-    monthlyCents: 4999,
-    annualMonthlyCents: 4499,
-    valueNote: "Full shop CRM · DVIs · Live Operations Daily Snapshot · payment tracking",
-    savingsNote: "Full shop CRM · DVIs · Live Operations Daily Snapshot · payment tracking",
+    tagline:
+      "Everything to run your shop — job board, digital vehicle inspections, estimates, PartsTech parts ordering, appointments & live ops.",
+    monthlyCents: 8999,
+    annualMonthlyCents: 8499,
+    valueNote:
+      "Full shop CRM · PartsTech · digital vehicle inspections · Live Operations Daily Snapshot · payment tracking",
+    savingsNote:
+      "Full shop CRM · PartsTech · digital vehicle inspections · Live Operations Daily Snapshot · payment tracking",
     pricingCard: {
-      bestFor: "Independent shops going cloud-first — one plan, one price",
+      bestFor:
+        "Independent shops that want one system for the bay and the counter — including PartsTech parts on the estimate",
       bullets: [
-        "Unlimited users",
-        "Unlimited ROs & estimates",
-        "Job board + full RO workspace",
+        "PartsTech catalog & punchout — search vendors and drop parts onto the RO",
+        "Job board + full RO workspace (Estimates → WIP → Done)",
+        "Digital estimates, email approvals & invoices",
+        "Digital vehicle inspections (photo checklists customers can see)",
+        "Live Operations Daily Snapshot every morning",
         "Canned jobs & shop labor library",
-        "Digital estimates, approvals & invoices (email)",
-        "Digital vehicle inspections",
-        "Live Operations Daily Snapshot",
-        "Appointments",
-        "Payment tracking",
-        "NHTSA VIN decode",
-        "Inventory basics & shop catalog",
+        "Appointments + payment tracking",
+        "Unlimited users, ROs & NHTSA VIN decode",
+        "Customers, vehicles & inventory basics",
       ],
     },
     features: starterFeatures,
@@ -657,7 +705,7 @@ export const PLANS: Record<ShopPlan, PlanDefinition> = {
         "Unlimited VIN & plate decoding",
         "OEM service specs",
         "OEM fluid capacities",
-        "Parts, inventory & PartsTech",
+        "Advanced inventory & multi-vendor parts workflows",
         "Stripe Connect payments",
         "Two-way SMS",
         "Online booking",
@@ -770,7 +818,7 @@ export function buildPriceComparisonRows(annual: boolean): PriceComparisonRow[] 
       crmLabel: `$${starter}/mo`,
       marketingLabel: "—",
       stackTotal: starter,
-      note: "Ignition CRM · DVIs · Live Operations Daily Snapshot · appointments · payment tracking · NHTSA VIN · shop catalog",
+      note: "Ignition CRM · PartsTech · digital vehicle inspections · Live Operations Daily Snapshot · appointments · payment tracking · NHTSA VIN",
       shoprally: true,
     },
     {
@@ -822,11 +870,11 @@ export const COMPARISON_ROWS: {
     values: { STARTER: true, PROFESSIONAL: true, ENTERPRISE: true },
   },
   {
-    label: "Digital vehicle inspections (DVIs)",
+    label: "Digital vehicle inspections",
     values: DVI_PLAN_COPY.comparisonAllTiers,
   },
   {
-    label: "MPI templates & R/Y/G ratings",
+    label: "Multi-point inspection templates & R/Y/G ratings",
     values: DVI_PLAN_COPY.comparisonAllTiers,
   },
   {
@@ -846,12 +894,20 @@ export const COMPARISON_ROWS: {
     values: { STARTER: false, PROFESSIONAL: true, ENTERPRISE: true },
   },
   {
-    label: "Parts catalog (PartsTech) & inventory",
-    values: { STARTER: false, PROFESSIONAL: true, ENTERPRISE: true },
+    label: "PartsTech catalog & punchout",
+    values: { STARTER: true, PROFESSIONAL: true, ENTERPRISE: true },
   },
   {
-    label: "License plate & VIN decoding",
+    label: "Inventory basics",
+    values: { STARTER: true, PROFESSIONAL: true, ENTERPRISE: true },
+  },
+  {
+    label: "VIN decoding",
     values: VIN_PLATE_DECODE_PLAN_COPY.comparisonByPlan,
+  },
+  {
+    label: "License plate → VIN lookup",
+    values: { STARTER: false, PROFESSIONAL: true, ENTERPRISE: true },
   },
   {
     label: "OEM service specs",
@@ -875,7 +931,8 @@ export const COMPARISON_ROWS: {
     values: { STARTER: false, PROFESSIONAL: true, ENTERPRISE: true },
   },
   {
-    label: "Text-to-approve & digital invoicing",
+    // Ignition = email only; SMS approve/share is Pro+ (see Two-way SMS row).
+    label: "Email estimates, approvals & invoices",
     values: { STARTER: true, PROFESSIONAL: true, ENTERPRISE: true },
   },
   {
@@ -1002,6 +1059,129 @@ export const COMPARISON_ROWS: {
   },
 ];
 
+/**
+ * Phase-one /pricing `#feature-comparison` — only capabilities that ship with Ignition.
+ * Keeps Pro/Elite/add-on rows out of the expandable “Ignition feature list” so founding
+ * shops aren’t shown a matrix of gaps and deferred SKUs.
+ * Full {@link COMPARISON_ROWS} remains for multi-tier GTM when `PHASE_ONE_LAUNCH` is false.
+ */
+export const IGNITION_LAUNCH_COMPARISON_ROWS: {
+  label: string;
+  category?: string;
+  values: Record<ShopPlan, string | boolean>;
+}[] = [
+  {
+    label: "Users",
+    category: "Limits",
+    values: { STARTER: "Unlimited", PROFESSIONAL: "Unlimited", ENTERPRISE: "Unlimited" },
+  },
+  {
+    label: "Repair orders / month",
+    values: { STARTER: "Unlimited", PROFESSIONAL: "Unlimited", ENTERPRISE: "Unlimited" },
+  },
+  { label: "Per location pricing", values: { STARTER: true, PROFESSIONAL: true, ENTERPRISE: true } },
+  {
+    label: "Job board & kanban",
+    category: "Shop CRM",
+    values: { STARTER: true, PROFESSIONAL: true, ENTERPRISE: true },
+  },
+  {
+    label: "Customers, vehicles & repair orders",
+    values: { STARTER: true, PROFESSIONAL: true, ENTERPRISE: true },
+  },
+  {
+    label: "RO / estimate workspace",
+    values: { STARTER: true, PROFESSIONAL: true, ENTERPRISE: true },
+  },
+  {
+    label: "Digital vehicle inspections",
+    values: DVI_PLAN_COPY.comparisonAllTiers,
+  },
+  {
+    label: "Multi-point inspection templates & R/Y/G ratings",
+    values: DVI_PLAN_COPY.comparisonAllTiers,
+  },
+  {
+    label: "Photo markup on inspection items",
+    values: DVI_PLAN_COPY.comparisonAllTiers,
+  },
+  {
+    label: "Customer inspection share links",
+    values: DVI_PLAN_COPY.comparisonAllTiers,
+  },
+  {
+    label: "Canned jobs & shop labor library",
+    values: { STARTER: true, PROFESSIONAL: true, ENTERPRISE: true },
+  },
+  {
+    label: "PartsTech catalog & punchout",
+    values: { STARTER: true, PROFESSIONAL: true, ENTERPRISE: true },
+  },
+  {
+    label: "Inventory basics",
+    values: { STARTER: true, PROFESSIONAL: true, ENTERPRISE: true },
+  },
+  {
+    label: "VIN decoding",
+    values: VIN_PLATE_DECODE_PLAN_COPY.comparisonByPlan,
+  },
+  {
+    label: "Appointments",
+    category: "Scheduling & payments",
+    values: { STARTER: true, PROFESSIONAL: true, ENTERPRISE: true },
+  },
+  {
+    label: "Payment tracking (manual)",
+    values: { STARTER: true, PROFESSIONAL: true, ENTERPRISE: true },
+  },
+  {
+    label: "Email estimates, approvals & invoices",
+    values: { STARTER: true, PROFESSIONAL: true, ENTERPRISE: true },
+  },
+  {
+    label: "Operations Daily Snapshot",
+    category: "Insights & support",
+    values: DASHBOARD_PLAN_COPY.comparisonAllTiers,
+  },
+  {
+    label: "Shop reports",
+    values: { STARTER: true, PROFESSIONAL: true, ENTERPRISE: true },
+  },
+  {
+    label: "In-depth training included",
+    values: {
+      STARTER: PLAN_TRAINING.STARTER.sessions,
+      PROFESSIONAL: PLAN_TRAINING.PROFESSIONAL.sessions,
+      ENTERPRISE: PLAN_TRAINING.ENTERPRISE.sessions,
+    },
+  },
+];
+
+/**
+ * Deferred vs Ignition — labeled separately under the launch feature list.
+ * Not shown as Ignition-included checks.
+ */
+export const IGNITION_COMING_LATER_FEATURES = [
+  { name: "Licensed MOTOR labor data", note: "Pro+" },
+  { name: "Stripe Connect card capture", note: "Pro+" },
+  { name: "Two-way SMS", note: "Pro+" },
+  { name: "Growth Engine / marketing campaigns", note: "Pro+" },
+  { name: "Online booking widget", note: "Pro+" },
+  { name: "Google review management", note: "Pro+" },
+  { name: "Auto.dev plate→VIN", note: "Pro+" },
+  { name: "OEM service specs & fluid capacities", note: "Pro+" },
+  { name: "Markup matrices", note: "Pro+" },
+  { name: "Advanced reporting & analytics", note: "Pro+" },
+  { name: "QuickBooks & third-party integrations", note: "Pro+" },
+  { name: "AI receptionist & Elite AI suite", note: "Elite / add-on" },
+  { name: "Maintenance / care programs", note: "Elite" },
+] as const;
+
+/** Rows for the public pricing comparison table (phase-one vs full matrix). */
+export function getPublicComparisonRows(): typeof COMPARISON_ROWS {
+  return PHASE_ONE_LAUNCH ? IGNITION_LAUNCH_COMPARISON_ROWS : COMPARISON_ROWS;
+}
+
 /** Estimated monthly if buying CRM + marketing + website separately elsewhere. */
 export function estimatedCompetitorStackMonthly(): number {
   return COMPETITOR_BENCHMARK.typicalStackMonthly;
@@ -1037,18 +1217,11 @@ export type ShopPlanContext = {
   planFeatures?: unknown;
 };
 
-/** Merge plan defaults with optional per-shop JSON overrides (ignores `_release`).
- * Core never gets PartsTech — overrides cannot re-enable (Pro+ only). */
+/** Merge plan defaults with optional per-shop JSON overrides (ignores `_release`). */
 export function resolvePlanFeatures(shop: ShopPlanContext): PlanFeatureSet {
   const base = PLANS[shop.plan].features;
   const overrides = stripReleaseFromPlanFeatures(shop.planFeatures);
-  const merged: PlanFeatureSet = overrides
-    ? { ...base, ...(overrides as Partial<PlanFeatureSet>) }
-    : { ...base };
-  if (shop.plan === "STARTER") {
-    merged.partsTech = false;
-  }
-  return merged;
+  return overrides ? { ...base, ...(overrides as Partial<PlanFeatureSet>) } : { ...base };
 }
 
 export function shopHasFeature(shop: ShopPlanContext, feature: PlanFeature): boolean {
@@ -1101,7 +1274,11 @@ export function annualSavingsDollars(plan: PlanDefinition): number {
   return Math.round(((plan.monthlyCents - plan.annualMonthlyCents) * 12) / 100);
 }
 
-/** Integration partners shown on marketing/pricing pages. */
+/**
+ * Integration partners for multi-tier GTM (when Pro/Elite are public).
+ * Do not use this strip for Ignition-only / founding waitlist — it reads as
+ * "available integrations today" and mixes Pro tools into the launch plan.
+ */
 export const INTEGRATION_PARTNERS = [
   "PartsTech",
   "Stripe",
@@ -1110,32 +1287,57 @@ export const INTEGRATION_PARTNERS = [
   "Google Business",
 ] as const;
 
+/**
+ * Phase-one Ignition capability chips for /pricing — founding launch scope,
+ * not a partner/integrations matrix. Keep Pro+ tools out of this list.
+ */
+export const IGNITION_LAUNCH_HIGHLIGHTS = [
+  "PartsTech catalog & punchout",
+  "Unlimited NHTSA VIN",
+  "Email estimates & approvals",
+  "Digital vehicle inspections",
+  "Job board & RO workspace",
+  "Live Operations Daily Snapshot",
+  "Appointments & payment tracking",
+  "Canned jobs & shop labor library",
+] as const;
+
 /** Pricing page FAQ — mirrors Garage360/Torque360 objection handling. */
 export const PRICING_FAQ = [
   {
     q: "Which plan should I choose?",
     a: PHASE_ONE_LAUNCH
-      ? "Phase one is simple: Ignition ($49.99/mo) is the only plan we sell publicly — unlimited users & ROs, job board, full RO workspace, canned jobs & shop labor library, digital estimates/approvals/invoices (email), digital vehicle inspections, Live Operations Daily Snapshot, appointments, payment tracking, NHTSA VIN decode, and inventory basics. Add AI Plus ($20/mo) for freeform AI repair-order intake, labor assist, and the advisor mobile app. Pro and Elite tiers are coming later for licensed MOTOR, Growth Engine, Stripe Connect, SMS, and white-glove onboarding."
-      : "Ignition for a lean single-bay shop getting off paper — unlimited users & ROs, job board, DVIs, email estimates & approvals, Live Operations Daily Snapshot, appointments, payment tracking, and shop catalog. Ignition does not include Stripe Connect or licensed MOTOR. Pro when you want licensed MOTOR included, unlimited VIN/plate decoding, OEM specs & fluids, PartsTech, Stripe Connect, SMS, booking, Growth Engine, and Google review management. Elite when you want AI receptionist, ShopSite, Local SEO, and maintenance programs in one bill.",
+      ? "Ignition ($89.99/mo) is the plan we're launching in Q4 2026 — not available for self-serve today. We're taking 50 founding shops: unlimited users & ROs, job board, full RO workspace, PartsTech parts catalog & punchout, canned jobs & shop labor library, digital estimates/approvals/invoices (email), digital vehicle inspections, Live Operations Daily Snapshot, appointments, payment tracking, unlimited NHTSA VIN decode, and inventory basics. Add AI Plus ($49.99/mo) for freeform AI repair-order intake, labor assist, and the advisor mobile app. Pro and Elite come later."
+      : "Ignition for shops that want CRM + PartsTech in one bill — unlimited users & ROs, job board, digital vehicle inspections, email estimates & approvals, Live Operations Daily Snapshot, appointments, payment tracking, PartsTech punchout, and shop catalog. Ignition does not include Stripe Connect or licensed MOTOR. Pro when you want licensed MOTOR, unlimited VIN & plate decoding, OEM specs & fluids, SMS, booking, Growth Engine, and Google review management. Elite when you want AI receptionist, ShopSite, Local SEO, and maintenance programs in one bill.",
   },
   {
-    q: "How does ShopSite and SEO pricing work?",
-    a: "ShopSite ($99/mo) and Local SEO ($129/mo) are separate monthly subscriptions on any CRM tier. Subscribe to both for $199/mo with the bundle. A one-time launch setup applies when each service starts ($349 ShopSite, $299 Local SEO, or $549 bundle). Elite includes monthly fees and launch setup.",
+    q: "What's not on Ignition yet?",
+    a: PHASE_ONE_LAUNCH
+      ? "Licensed MOTOR, Stripe Connect card capture, two-way SMS, Growth Engine campaigns, online booking, maintenance programs, and AI receptionist stay on the Pro/Elite roadmap. PartsTech parts ordering is included on Ignition. ShopSite and Local SEO are a separate Website & SEO product line (see the Website & SEO tab) — not buried in Ignition CRM pricing."
+      : "ShopSite ($99/mo) and Local SEO ($129/mo) are separate monthly subscriptions on any CRM tier. Subscribe to both for $199/mo with the bundle. A one-time launch setup applies when each service starts ($349 ShopSite, $299 Local SEO, or $549 bundle). Elite includes monthly fees and launch setup.",
+  },
+  {
+    q: "Can I get a website and SEO?",
+    a: "Yes — ShopSite and Local SEO are available at launch as their own offer, billed separately from Ignition CRM. Use the Website & SEO tab on this page, then request a website & SEO setup (demo form with need=website). High-level: hosted shop site, local SEO, Google Business Profile / organic local presence, and local Google Ads optimization when you're already running ads — plus a one-time launch build. We don't guarantee rankings or ROI, and not every SEO Autopilot feature is inside Ignition.",
   },
   {
     q: "Can I change plans anytime?",
-    a: "Yes. Upgrade or downgrade anytime. Changes take effect immediately and billing is prorated.",
+    a: PHASE_ONE_LAUNCH
+      ? "Ignition is the only CRM plan on the founding waitlist for Q4 2026. Website & SEO is requested separately. When Pro and Elite open later, you'll be able to upgrade CRM — we'll announce that separately."
+      : "Yes. Upgrade or downgrade anytime. Changes take effect immediately and billing is prorated.",
   },
   {
     q: "Is there a setup fee?",
-    a: "No setup fee on CRM plans. ShopSite and Local SEO add-ons have a one-time launch setup when you first subscribe ($349 / $299, or $549 for the bundle). Elite includes launch setup. Optional white-glove data migration is $399 one-time (also included on Elite).",
+    a: PHASE_ONE_LAUNCH
+      ? "No CRM setup fee on Ignition. Founding shops get priority onboarding help. ShopSite and Local SEO (separate product line) have a one-time launch setup when we build your site or SEO ($349 / $299, or $549 bundle) — see the Website & SEO tab."
+      : "No setup fee on CRM plans. ShopSite and Local SEO add-ons have a one-time launch setup when you first subscribe ($349 / $299, or $549 for the bundle). Elite includes launch setup. Optional white-glove data migration is $399 one-time (also included on Elite).",
   },
   {
     q: "What's included in the founding-shop pricing?",
-    a: "Founding shops lock in launch rates on annual billing before we raise public pricing. Spots are limited.",
+    a: "Founding shops lock in Ignition launch rates on annual billing before we raise public pricing. Spots are limited. Priority demos and feedback access included.",
   },
   {
-    q: "Are digital vehicle inspections (DVIs) included?",
+    q: "Are digital vehicle inspections included?",
     a: DVI_PLAN_COPY.faqAnswer,
   },
   {
@@ -1147,20 +1349,26 @@ export const PRICING_FAQ = [
     a: LABOR_PLAN_COPY.faqAnswer,
   },
   {
-    q: "How do VIN and plate decode limits work?",
+    q: "How does VIN decoding work on Ignition?",
     a: VIN_PLATE_DECODE_PLAN_COPY.faqAnswer,
   },
   {
-    q: "What are MOTOR labor guides?",
-    a: "MOTOR labor data is licensed flat-rate guides and procedures in the estimate. It is included on Pro and Elite. Ignition uses the shop labor library.",
+    q: "What about MOTOR labor guides?",
+    a: PHASE_ONE_LAUNCH
+      ? "Licensed MOTOR flat-rate data is planned for Pro and Elite — not on Ignition. Ignition uses your shop labor library and canned jobs."
+      : "MOTOR labor data is licensed flat-rate guides and procedures in the estimate. It is included on Pro and Elite. Ignition uses the shop labor library.",
   },
   {
     q: "Do you integrate with PartsTech and QuickBooks?",
-    a: "PartsTech and Stripe Connect are on Pro and Elite (not Ignition). QuickBooks integration is on our roadmap — contact us for timeline.",
+    a: PHASE_ONE_LAUNCH
+      ? "PartsTech catalog & punchout ships with Ignition at launch. QuickBooks, Stripe Connect, Twilio SMS, and other Pro-class integrations are not part of Ignition — they stay on the later Pro/Elite roadmap."
+      : "PartsTech is on every plan. Stripe Connect is on Pro and Elite. QuickBooks integration is on our roadmap — contact us for timeline.",
   },
   {
     q: "How does additional locations work?",
-    a: "Each location is billed separately. Add a second shop for $79/mo — shared customer history, separate job boards.",
+    a: PHASE_ONE_LAUNCH
+      ? "Ignition is priced per shop location. Multi-location tooling and discounted add-on locations are part of the later roadmap — talk to us if you run more than one roof today."
+      : "Each location is billed separately. Add a second shop for $79/mo — shared customer history, separate job boards.",
   },
   {
     q: "Can I cancel anytime?",
@@ -1168,11 +1376,15 @@ export const PRICING_FAQ = [
   },
   {
     q: "Is training included?",
-    a: "Elite includes a dedicated onboarding specialist and migration. Ignition and Pro are self-serve with product training resources — book a demo if you want a guided go-live.",
+    a: PHASE_ONE_LAUNCH
+      ? "Ignition includes product guides and early demo support. Book a demo for a guided walkthrough of the bay loop. Dedicated white-glove onboarding is planned for Elite later."
+      : "Elite includes a dedicated onboarding specialist and migration. Ignition and Pro are self-serve with product training resources — book a demo if you want a guided go-live.",
   },
   {
     q: "Can I switch from another shop system?",
-    a: "Yes. We offer optional white-glove migration ($399 one-time, included on Elite) and founding shops get priority onboarding help.",
+    a: PHASE_ONE_LAUNCH
+      ? "Yes. Founding shops get priority onboarding help. Formal white-glove migration packages are planned alongside Pro/Elite — tell us what you're on today when you book a demo."
+      : "Yes. We offer optional white-glove migration ($399 one-time, included on Elite) and founding shops get priority onboarding help.",
   },
 ] as const;
 

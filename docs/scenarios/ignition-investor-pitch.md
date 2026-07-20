@@ -3,7 +3,7 @@
 **Audience:** Founder + potential investors / angels  
 **Date:** 2026-07-14  
 **Team model:** **Solo founder — no planned hires through 200 shops**  
-**Product packaging (locked):** Ignition **$49.99/month** · annual **$44.99/month equivalent** · optional **AI Plus $20/month**  
+**Product packaging (locked):** Ignition **$89.99/month** · annual **$84.99/month equivalent** · **PartsTech included** · optional **AI Plus $49.99/month**  
 **Runner:** `node scripts/ignition-200-outlook.mjs`  
 **Screen:** [`ignition-200-outlook.html`](./ignition-200-outlook.html) · pitch HTML: [`ignition-investor-pitch.html`](./ignition-investor-pitch.html)
 
@@ -20,7 +20,7 @@ ShopRally is a **multi-tenant SaaS (Software as a Service)** product:
 | **One** Vercel project (hosts the Next.js web app) | Their login, data, and traffic share that same deployment |
 | **One** Neon Postgres database | Rows tagged with `shopId` (tenant isolation) |
 | **One** Clerk application (auth) | Each shop can be an Organization inside that same app |
-| **One** domain (e.g. app.shoprally.com) | Paths / org context separate shops; no new server per logo |
+| **One** domain (e.g. app.getshoprally.com) | Paths / org context separate shops; no new server per logo |
 
 **Cost does go up with more shops**, but only because **usage** rises (more requests, more database storage, more emails, more AI seats) — you do **not** buy a new Vercel account or new server for shop #2, #50, or #200.
 
@@ -45,7 +45,7 @@ Think of it like: **one restaurant kitchen, many customers** — not “build a 
 | **API** | Application Programming Interface — how services talk to each other |
 | **TLS / SSL** | Transport Layer Security / Secure Sockets Layer — HTTPS encryption (included on Vercel) |
 | **WAF** | Web Application Firewall — blocks common web attacks |
-| **DNS** | Domain Name System — how shoprally.com points to the host |
+| **DNS** | Domain Name System — how getshoprally.com points to the host |
 | **PITR** | Point-In-Time Recovery — database restore to a prior moment (Neon paid plans) |
 | **MAU** | Monthly Active Users — Clerk billing metric |
 | **SMS** | Short Message Service — text messaging (off on Ignition; Pro later) |
@@ -91,8 +91,8 @@ Think of it like: **one restaurant kitchen, many customers** — not “build a 
 
 | | |
 |--|--|
-| **Price** | **$49.99/month** per shop location ( **$44.99/month** on annual billing ) |
-| **Upsell** | **AI Plus $20/month** — freeform / Smart RO intake, labor assist, **advisor mobile app** |
+| **Price** | **$89.99/month** per shop location ( **$84.99/month** on annual billing ) · PartsTech included |
+| **Upsell** | **AI Plus $49.99/month** — freeform / Smart RO intake, labor assist, **advisor mobile app** |
 | **Infrastructure** | **Single shared stack** (Vercel + Neon + Clerk …) — not per-shop servers |
 | **Team** | **Solo founder** — no hiring plan through 200 shops |
 | **Gross story @ 200** | ~**$14.3k MRR** · ~**$172k ARR** · vendors ~**$1.9k/month** · **~87% contribution after vendors** |
@@ -116,7 +116,7 @@ Detailed commercial list (see also live plan copy in `src/lib/plans.ts`):
 - **NHTSA** VIN decode  
 - Inventory basics & shop catalog  
 
-**Explicitly not on Ignition (keeps COGS low):** licensed **MOTOR** labor data, PartsTech punchout, two-way **SMS**, Stripe Connect text-to-pay, Growth Engine campaigns.
+**Explicitly not on Ignition (keeps COGS focused):** licensed **MOTOR** labor data, two-way **SMS**, Stripe Connect text-to-pay, Growth Engine campaigns. **PartsTech is included** on Ignition.
 
 ---
 
@@ -125,7 +125,7 @@ Detailed commercial list (see also live plan copy in `src/lib/plans.ts`):
 ```
                     ┌─────────────────────────────────────┐
                     │   ONE Vercel deployment (Next.js)    │
-                    │   app.shoprally.com                  │
+                    │   app.getshoprally.com               │
                     └──────────────┬──────────────────────┘
                                    │
            ┌───────────────────────┼───────────────────────┐
@@ -216,9 +216,9 @@ That is the solo-operator case investors should underwrite — **not** a 4-perso
 
 | Lever | Assumption |
 |-------|------------|
-| Ignition list | $49.99 / month |
+| Ignition list | $89.99 / month |
 | Annual mix | 55% of logos on annual → blended base **ARPU ~$47.24** before add-ons |
-| AI Plus price | $20 / month (includes mobile) |
+| AI Plus price | $49.99 / month (includes mobile) |
 | AI Plus attach @ 200 | **50%** of shops |
 | Web presence attach | Soft **12%** blended ~$120 ARPU (ShopSite / SEO) — optional |
 | Blended ARPU @ 200 | **~$71.64** |
@@ -248,7 +248,7 @@ If AI Plus attach is 70%: ARPU rises ~$4; Gemini COGS rises with seats.
 
 | Side | Economics |
 |------|-----------|
-| **Customer** | Pays AI Plus **$20/month** — gets Smart intake + labor assist + **advisor mobile app** |
+| **Customer** | Pays AI Plus **$49.99/month** — gets Smart intake + labor assist + **advisor mobile app** |
 | **Platform cash COGS** | Apple **$99/year**, Google Play **$25 once**, Expo/**EAS** build minutes, push (**APNs**/**FCM**) → modeled **~$9 → $55/month** as shops/builds grow |
 | **AI inference COGS** | Gemini ~**$2.50–$3.80 per AI Plus seat per month** at moderate usage |
 | **Separate mobile host per shop?** | **No** — one App Store / Play listing; shops log into the same binary against the same API |

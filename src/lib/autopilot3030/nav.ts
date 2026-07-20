@@ -485,8 +485,7 @@ export const AP_CATALOG_MODULE_NAV_ITEMS: ApNavLink[] = [
 ];
 
 /**
- * Catalog chips filtered by plan — Vendor Connect (PartsTech) is Pro+ only.
- * Uses the same gate as settings redirects so Core never sees PartsTech chips.
+ * Catalog chips filtered by plan — Vendor Connect (PartsTech) follows `partsTech` entitlement (Ignition+).
  */
 export function apCatalogNavItemsForPlan(features: PlanFeatureSet): ApNavLink[] {
   return AP_CATALOG_MODULE_NAV_ITEMS.filter((item) =>

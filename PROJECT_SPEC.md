@@ -1,7 +1,7 @@
 # ShopRally — Product Specification
 
 > Cloud-based, multi-tenant shop-management CRM for auto repair shops.
-> Modeled on the workflows of Tekmetric. Own product, own branding (getshoprally.com).
+> Modeled on the workflows of Tekmetric. Own product, own branding (getShopRally.com).
 
 ---
 
@@ -376,7 +376,7 @@ Add `maintenancePrograms Boolean` to `PlanFeature` in `src/lib/plans.ts`
 ┌─────────────────────────────────────────────────────────────────┐
 │ Maintenance Programs          [Preview public page] [Copy embed]│
 ├─────────────────────────────────────────────────────────────────┤
-│ ☑ Enable public plans page    URL: getshoprally.com/plans/iohaus│
+│ ☑ Enable public plans page    URL: getShopRally.com/plans/iohaus│
 │ Hero title: [Making Every Day Car Maintenance Easy        ]    │
 │ Hero subtitle: [textarea                                    ]    │
 ├─────────────────────────────────────────────────────────────────┤

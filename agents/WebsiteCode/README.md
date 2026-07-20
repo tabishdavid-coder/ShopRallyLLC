@@ -42,7 +42,7 @@ Dedicated agent for **ShopSite microsites**, the **shop-side editor**, and **Mas
 
 - **ShopRallyCRM** — shop CRM shell, RO workspace, dashboard (`agents/ShopRallyCRM/`)
 - **SEO Autopilot** — GSC, crawl, SEO Autopilot tabs (`agents/SeoAutopilot/`) — overlaps domain/GSC; coordinate before editing shared actions
-- **ShopRally marketing site** — `src/app/(marketing)/` — ShopRally.com product pages, not tenant ShopSites
+- **ShopRally marketing site** — `src/app/(marketing)/` — getShopRally.com product pages, not tenant ShopSites
 - **Master CRM (general)** — billing, shops table (`agents/MasterCRM/`) — website pipeline UI is in scope here
 
 ## Architecture doc

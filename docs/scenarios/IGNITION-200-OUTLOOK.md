@@ -9,9 +9,9 @@
 
 | Item | Price | Notes |
 |------|------:|-------|
-| **Ignition** (Core CRM) | **$49.99/mo** ($44.99/mo annual) | Job board, ROs, DVIs, email share/approve, shop labor library, appointments, payment tracking, Live Ops Snapshot, NHTSA VIN |
-| **AI Plus** | **$20/mo** | Smart / freeform RO intake · labor assist · **advisor mobile app** |
-| MOTOR / PartsTech / SMS / Stripe Connect | — | **Off** until Pro |
+| **Ignition** (Core CRM) | **$89.99/mo** ($84.99/mo annual) | Job board, ROs, DVIs, email share/approve, **PartsTech**, shop labor library, appointments, payment tracking, Live Ops Snapshot, NHTSA VIN |
+| **AI Plus** | **$49.99/mo** | Smart / freeform RO intake · labor assist · **advisor mobile app** |
+| MOTOR / SMS / Stripe Connect | — | **Off** until Pro |
 | ShopSite / Local SEO | $99–$199/mo | Optional attach (soft) |
 
 Base Ignition ARPU ≈ **$47.24/mo** before AI/web attach.
@@ -236,4 +236,4 @@ Assumes vendor costs from model + $8–12k/mo living/ops burn while growing (fou
 
 - Prior (higher-price) Core model: [`CORE-TO-200-SHOPS.md`](./CORE-TO-200-SHOPS.md), [`CORE-PNL-SCALE.md`](./CORE-PNL-SCALE.md)
 - Hosting compare: [`VERCEL-VS-BUBBLE.md`](./VERCEL-VS-BUBBLE.md)
-- Live packaging: `src/lib/plans.ts` (Ignition $49.99 · AI Plus $20)
+- Live packaging: `src/lib/plans.ts` (Ignition $89.99 · PartsTech · AI Plus $49.99)

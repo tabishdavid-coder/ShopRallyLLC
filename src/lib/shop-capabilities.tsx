@@ -13,13 +13,15 @@ export type ShopCapabilities = {
   stripePayments: boolean;
   /** Licensed MOTOR Labor Book — Pro+ only. */
   motorLabor: boolean;
-  /** PartsTech / vendor parts lookup — Pro+ only. */
+  /** PartsTech / vendor parts lookup — included on Ignition (Core) and above. */
   partsTech: boolean;
   /** Growth Engine / marketing campaigns — Pro+ only. */
   marketingCampaigns: boolean;
+  /** Maintenance / Care Plans — Elite (or entitled) only. */
+  maintenancePrograms: boolean;
   /** On-demand Vehicle Specs (identity + fluids) — Core + Pro; catalog/AI only on Specs open. */
   vehicleSpecs: boolean;
-  /** Auto.dev plate→VIN lookup — Pro+ only (Core: manual plate + NHTSA VIN). */
+  /** Auto.dev plate→VIN lookup — Pro+ only (Core: NHTSA VIN). */
   autodevDecoding: boolean;
   /** Smart AI repair-order intake — Core-only AI Plus add-on. */
   freeformRoIntake: boolean;
@@ -35,6 +37,7 @@ const DEFAULT: ShopCapabilities = {
   motorLabor: false,
   partsTech: false,
   marketingCampaigns: false,
+  maintenancePrograms: false,
   vehicleSpecs: false,
   autodevDecoding: false,
   freeformRoIntake: false,
@@ -76,7 +79,7 @@ export function useMotorLaborUiEnabled(): boolean {
   return useShopCapabilities().motorLabor;
 }
 
-/** PartsTech / vendor parts lookup UI — Pro+ only (never Core). */
+/** PartsTech / vendor parts lookup UI — Ignition+ when plan feature is on. */
 export function usePartsTechUiEnabled(): boolean {
   return useShopCapabilities().partsTech;
 }

@@ -325,9 +325,11 @@ export function ApSidebar({
   const pathname = usePathname();
   const caps = useShopCapabilities();
   const planFlags = {
-    growth: caps.growth,
+    growth: caps.marketingCampaigns,
     maintenancePrograms: caps.maintenancePrograms,
     sms: caps.sms,
+    stripePayments: caps.stripePayments,
+    motorLabor: caps.motorLabor,
   };
   const [collapsed, setCollapsed] = useState(false);
 

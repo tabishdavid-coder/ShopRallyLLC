@@ -30,7 +30,7 @@ export type ParseFreeformRoResult =
   | { ok: true; draft: FreeformRoDraft }
   | { ok: false; error: string };
 
-/** AI parse + labor lookup for freeform RO intake ($20/mo add-on). */
+/** AI parse + labor lookup for freeform RO intake (AI Plus add-on). */
 export async function parseFreeformRoIntake(raw: z.infer<typeof ParseInput>): Promise<ParseFreeformRoResult> {
   const parsed = ParseInput.safeParse(raw);
   if (!parsed.success) return { ok: false, error: "Enter a short description of the vehicle and work needed." };

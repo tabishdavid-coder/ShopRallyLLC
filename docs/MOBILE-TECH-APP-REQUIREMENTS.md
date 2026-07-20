@@ -204,8 +204,7 @@ ShopRally/
 | Apple Developer Program enrollment | Owner | ☐ |
 | Google Play Console enrollment | Owner | ☐ |
 | App icons + screenshots (6.7" iPhone, Pixel) | Design | ☐ |
-| Privacy policy URL (getshoprally.com) | Legal | ☐ |
-| App description + keywords | GTM | ☐ |
+| Privacy policy URL (getShopRally.com) | Legal | ☐ || App description + keywords | GTM | ☐ |
 | TestFlight + Play internal testing | Eng | ☐ |
 | Production API + push certs | Eng | ☐ |
 

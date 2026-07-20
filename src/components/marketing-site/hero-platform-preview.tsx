@@ -2,53 +2,39 @@
 
 import {
   BarChart3,
-  Bot,
   Calendar,
   CheckCircle2,
   ClipboardCheck,
-  CreditCard,
-  Globe,
   LayoutGrid,
-  MessageSquare,
+  Mail,
   Package,
-  Repeat,
-  Send,
-  Sparkles,
-  Star,
   Wrench,
-  Zap,
 } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 
+/** Ignition launch modules only — no Pro/Elite chrome. */
 const MODULES = [
   { id: "crm", label: "Shop CRM", icon: Wrench },
-  { id: "dashboard", label: "Live dashboard", icon: BarChart3 },
   { id: "jobboard", label: "Job Board", icon: LayoutGrid },
-  { id: "dvi", label: "DVIs", icon: ClipboardCheck },
-  { id: "payments", label: "Payments", icon: Zap },
-  { id: "growth", label: "Growth Engine", icon: Sparkles },
-  { id: "website", label: "ShopSite", icon: Globe },
-  { id: "parts", label: "PartsTech", icon: Package },
-  { id: "ai", label: "AI Reception", icon: Bot },
+  { id: "estimates", label: "Estimates", icon: Mail },
+  { id: "partstech", label: "PartsTech", icon: Package },
+  { id: "dvi", label: "Inspections", icon: ClipboardCheck },
+  { id: "appts", label: "Appointments", icon: Calendar },
   { id: "reports", label: "Daily Snapshot", icon: BarChart3 },
-  { id: "subs", label: "Subscriptions", icon: Repeat },
 ] as const;
 
 const FEATURE_CHIPS = [
+  "PartsTech catalog & punchout",
   "Operations Daily Snapshot",
   "Digital vehicle inspections",
-  "Licensed MOTOR on Pro+",
-  "Plate & VIN decode",
-  "OEM specs & fluids",
-  "Approval links",
-  "Two-way SMS",
-  "Growth Engine",
-  "Google review management",
-  "Online booking",
-  "Inventory",
-  "Canned jobs",
-  "Stripe Connect",
+  "Canned jobs & shop labor",
+  "Email estimates & approvals",
+  "Job board",
+  "Appointments",
+  "Payment tracking",
+  "Unlimited NHTSA VIN",
+  "Unlimited users & ROs",
 ] as const;
 
 export function HeroPlatformPreview({ className }: { className?: string }) {
@@ -60,11 +46,10 @@ export function HeroPlatformPreview({ className }: { className?: string }) {
           <div className="size-2.5 rounded-full bg-brand-light" />
           <div className="size-2.5 rounded-full bg-white/40" />
           <span className="ml-2 text-xs font-medium text-white/90">
-            ShopRally · CRM, inspections, Growth Engine, payments &amp; AI
+            ShopRally Ignition · job board, PartsTech, inspections &amp; live ops
           </span>
         </div>
 
-        {/* Module ribbon — scroll on small screens */}
         <div className="border-b border-brand-navy/10 bg-brand-light/10 px-3 py-2">
           <div className="scrollbar-none flex gap-1 overflow-x-auto pb-0.5">
             {MODULES.map((mod) => {
@@ -83,9 +68,7 @@ export function HeroPlatformPreview({ className }: { className?: string }) {
           </div>
         </div>
 
-        {/* Workflow panels */}
-        <div className="grid gap-px bg-brand-navy/5 sm:grid-cols-2 xl:grid-cols-4">
-          {/* Shop CRM */}
+        <div className="grid gap-px bg-brand-navy/5 sm:grid-cols-2 xl:grid-cols-3">
           <div className="bg-white p-4">
             <p className="text-[10px] font-bold uppercase tracking-wide text-brand-navy/60">Shop CRM</p>
             <div className="mt-2 rounded-lg border border-brand-light/40 bg-brand-light/5 p-3">
@@ -97,6 +80,10 @@ export function HeroPlatformPreview({ className }: { className?: string }) {
               </div>
               <p className="mt-2 text-xs font-semibold text-brand-navy">Mike Johnson</p>
               <p className="text-[11px] text-slate-500">2019 Ford F-150 · Brake job</p>
+              <p className="mt-1.5 inline-flex items-center gap-1 rounded bg-brand-navy/8 px-1.5 py-0.5 text-[10px] font-semibold text-brand-navy">
+                <Package className="size-2.5" aria-hidden />
+                PartsTech · pads &amp; rotors
+              </p>
               <p className="mt-2 text-sm font-bold tabular-nums text-brand-navy">$1,840</p>
             </div>
             <div className="mt-2 rounded-lg border border-slate-200 p-3">
@@ -116,23 +103,15 @@ export function HeroPlatformPreview({ className }: { className?: string }) {
                 <p className="text-[10px] text-slate-500">8 estimates · 5 WIP · 7 done</p>
               </div>
             </div>
-            <div className="mt-2 flex items-center gap-2 rounded-lg border border-emerald-200/80 bg-emerald-50/80 px-3 py-2">
-              <BarChart3 className="size-3.5 shrink-0 text-emerald-700" />
-              <div>
-                <p className="text-xs font-semibold text-brand-navy">Operations Daily Snapshot</p>
-                <p className="text-[10px] text-slate-500">6 ROs · 3 appts · next up today</p>
-              </div>
-            </div>
           </div>
 
-          {/* Inspections */}
           <div className="bg-white p-4">
             <p className="text-[10px] font-bold uppercase tracking-wide text-brand-navy/60">
-              Digital vehicle inspections (DVIs)
+              Digital vehicle inspections
             </p>
             <div className="mt-2 rounded-lg border border-brand-light/40 bg-brand-light/5 p-3">
               <div className="flex items-center justify-between gap-2">
-                <p className="text-xs font-semibold text-brand-navy">MPI · RO#1038</p>
+                <p className="text-xs font-semibold text-brand-navy">Multi-point · RO#1038</p>
                 <span className="text-[10px] font-bold text-brand-light">10/12</span>
               </div>
               <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-brand-navy/10">
@@ -156,101 +135,64 @@ export function HeroPlatformPreview({ className }: { className?: string }) {
             <div className="mt-2 flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2">
               <ClipboardCheck className="size-3.5 shrink-0 text-emerald-700" />
               <div>
-                <p className="text-xs font-semibold text-emerald-900">Photo markup sent</p>
+                <p className="text-xs font-semibold text-emerald-900">Photo markup ready</p>
                 <p className="text-[10px] text-emerald-700">3 items added to estimate</p>
               </div>
             </div>
           </div>
 
-          {/* Growth Engine */}
-          <div className="bg-white p-4">
+          <div className="bg-white p-4 sm:col-span-2 xl:col-span-1">
             <p className="text-[10px] font-bold uppercase tracking-wide text-brand-navy/60">
-              Growth Engine
+              Estimates &amp; ops
             </p>
             <div className="mt-2 space-y-2">
-              <div className="flex items-center gap-2 rounded-lg border border-brand-light/50 bg-brand-light/10 px-3 py-2">
-                <Send className="size-3.5 shrink-0 text-brand-navy" />
+              <div className="flex items-center gap-2 rounded-lg border border-brand-navy/20 bg-brand-navy/[0.05] px-3 py-2">
+                <Package className="size-3.5 shrink-0 text-brand-navy" />
                 <div className="min-w-0">
-                  <p className="truncate text-xs font-semibold text-brand-navy">Approval link sent</p>
-                  <p className="text-[10px] text-slate-500">SMS · Mike Johnson · 2m ago</p>
+                  <p className="truncate text-xs font-semibold text-brand-navy">PartsTech</p>
+                  <p className="text-[10px] text-slate-500">
+                    Catalog punchout · included with Ignition
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 rounded-lg border border-brand-light/50 bg-brand-light/10 px-3 py-2">
+                <Mail className="size-3.5 shrink-0 text-brand-navy" />
+                <div className="min-w-0">
+                  <p className="truncate text-xs font-semibold text-brand-navy">Estimate emailed</p>
+                  <p className="text-[10px] text-slate-500">Mike Johnson · approval link · 2m ago</p>
                 </div>
               </div>
               <div className="flex items-center gap-2 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-2">
                 <Calendar className="size-3.5 shrink-0 text-emerald-700" />
                 <div>
-                  <p className="text-xs font-semibold text-emerald-900">Online booking</p>
+                  <p className="text-xs font-semibold text-emerald-900">Appointment</p>
                   <p className="text-[10px] text-emerald-700">Thu 9:00 AM · Oil change</p>
                 </div>
               </div>
-              <div className="flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2">
-                <Star className="size-3.5 shrink-0 fill-amber-500 text-amber-500" />
+              <div className="flex items-center gap-2 rounded-lg border border-brand-navy/10 bg-brand-navy/[0.03] px-3 py-2">
+                <BarChart3 className="size-3.5 shrink-0 text-brand-navy" />
                 <div>
-                  <p className="text-xs font-semibold text-amber-950">Review request sent</p>
-                  <p className="text-[10px] text-amber-800">Google · post-RO automation</p>
+                  <p className="text-xs font-semibold text-brand-navy">Operations Daily Snapshot</p>
+                  <p className="text-[10px] text-slate-500">6 ROs · 3 appts · next up today</p>
                 </div>
               </div>
-              <div className="flex items-center gap-2 rounded-lg border border-slate-200 px-3 py-2">
-                <MessageSquare className="size-3.5 shrink-0 text-brand-navy" />
+              <div className="flex items-center gap-2 rounded-lg border border-emerald-200/80 bg-emerald-50/80 px-3 py-2">
+                <CheckCircle2 className="size-3.5 shrink-0 text-emerald-700" />
                 <div>
-                  <p className="text-xs font-semibold text-brand-navy">Win-back campaign</p>
-                  <p className="text-[10px] text-slate-500">142 lapsed · scheduled</p>
+                  <p className="text-xs font-semibold text-emerald-900">Payment recorded</p>
+                  <p className="text-[10px] text-emerald-700">Cash · $640 · RO#1038</p>
                 </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Payments, parts & AI */}
-          <div className="bg-white p-4">
-            <p className="text-[10px] font-bold uppercase tracking-wide text-brand-navy/60">
-              Payments &amp; ops
-            </p>
-            <div className="mt-2 rounded-lg border border-emerald-200 bg-emerald-50 p-3">
-              <div className="flex items-center gap-2">
-                <CheckCircle2 className="size-4 text-emerald-600" />
-                <p className="text-xs font-bold text-emerald-900">Approved via text</p>
-              </div>
-              <p className="mt-1 text-[11px] text-emerald-800">RO#1042 · $1,840 · Stripe</p>
-            </div>
-            <div className="mt-2 flex items-center gap-2 rounded-lg border border-brand-navy/15 bg-brand-navy/5 px-3 py-2">
-              <CreditCard className="size-3.5 shrink-0 text-brand-navy" />
-              <div>
-                <p className="text-xs font-semibold text-brand-navy">Text-to-pay</p>
-                <p className="text-[10px] text-slate-500">$640 collected today</p>
-              </div>
-            </div>
-            <div className="mt-2 flex items-center gap-2 rounded-lg border border-brand-light/40 bg-brand-light/10 px-3 py-2">
-              <Package className="size-3.5 shrink-0 text-brand-navy" />
-              <div>
-                <p className="text-xs font-semibold text-brand-navy">PartsTech order</p>
-                <p className="text-[10px] text-slate-500">4 parts · RO#1042 · in cart</p>
-              </div>
-            </div>
-            <div className="mt-2 flex items-center gap-2 rounded-lg border border-brand-red/20 bg-brand-red/5 px-3 py-2">
-              <Repeat className="size-3.5 shrink-0 text-brand-red" />
-              <div>
-                <p className="text-xs font-semibold text-brand-navy">Maintenance plans</p>
-                <p className="text-[10px] text-slate-500">12 subscribers · $49/mo avg</p>
-              </div>
-            </div>
-            <div className="mt-2 flex items-center gap-2 rounded-lg border border-brand-navy/15 bg-gradient-to-r from-brand-navy/5 to-brand-light/10 px-3 py-2">
-              <Bot className="size-3.5 shrink-0 text-brand-navy" />
-              <div>
-                <p className="text-xs font-semibold text-brand-navy">AI after-hours SMS</p>
-                <p className="text-[10px] text-slate-500">Booked appt · 9:14 PM last night</p>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Feature chip strip */}
         <div className="border-t border-brand-navy/10 bg-brand-light/[0.12] px-4 py-3">
           <div className="flex flex-wrap justify-center gap-1.5">
             {FEATURE_CHIPS.map((chip) => (
               <span
                 key={chip}
-                className={cn(
-                  "rounded-full border border-brand-navy/10 bg-white px-2.5 py-0.5 text-[10px] font-semibold text-brand-navy shadow-sm",
-                )}
+                className="rounded-full border border-brand-navy/10 bg-white px-2.5 py-0.5 text-[10px] font-semibold text-brand-navy shadow-sm"
               >
                 {chip}
               </span>
@@ -258,14 +200,12 @@ export function HeroPlatformPreview({ className }: { className?: string }) {
           </div>
         </div>
 
-        {/* Bottom strip */}
         <div className="flex flex-wrap items-center justify-between gap-2 border-t border-brand-navy/10 bg-brand-navy px-4 py-2.5 text-[11px] text-white/90">
           <span className="font-medium">
-            CRM · Operations Daily Snapshot · job board · DVIs · estimates · shop labor library ·
-            Growth Engine · payments · ShopSite · SEO · AI
+            CRM · job board · PartsTech · digital inspections · email estimates · appointments · Daily Snapshot
           </span>
           <span className="rounded-full bg-brand-light px-2.5 py-0.5 text-[10px] font-bold text-brand-navy">
-            Premium all-in-one
+            Ignition
           </span>
         </div>
       </div>

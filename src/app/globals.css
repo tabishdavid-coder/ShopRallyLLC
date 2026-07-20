@@ -1879,6 +1879,64 @@
         0 0 0 10px rgb(16 185 129 / 0.2);
     }
   }
+
+  /* Website + SEO offer — subtle entrance + atmosphere drift */
+  @keyframes sr-wp-fade-up {
+    from {
+      opacity: 0;
+      transform: translateY(14px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  @keyframes sr-wp-drift {
+    0%,
+    100% {
+      transform: translate3d(0, 0, 0);
+    }
+    50% {
+      transform: translate3d(12px, -10px, 0);
+    }
+  }
+
+  .sr-website-seo .sr-wp-fade {
+    animation: sr-wp-fade-up 0.55s ease-out both;
+  }
+
+  .sr-website-seo .sr-wp-fade-delay-1 {
+    animation-delay: 0.08s;
+  }
+  .sr-website-seo .sr-wp-fade-delay-2 {
+    animation-delay: 0.14s;
+  }
+  .sr-website-seo .sr-wp-fade-delay-3 {
+    animation-delay: 0.2s;
+  }
+  .sr-website-seo .sr-wp-fade-delay-4 {
+    animation-delay: 0.26s;
+  }
+  .sr-website-seo .sr-wp-fade-delay-5 {
+    animation-delay: 0.32s;
+  }
+
+  .sr-website-seo .sr-wp-drift {
+    animation: sr-wp-drift 14s ease-in-out infinite;
+  }
+
+  .sr-website-seo .sr-wp-drift-slow {
+    animation: sr-wp-drift 18s ease-in-out infinite reverse;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .sr-website-seo .sr-wp-fade,
+    .sr-website-seo .sr-wp-drift,
+    .sr-website-seo .sr-wp-drift-slow {
+      animation: none !important;
+    }
+  }
 }
 
 /* Stable scrollbar utilities for AP shell (avoids Turbopack arbitrary-value bugs) */

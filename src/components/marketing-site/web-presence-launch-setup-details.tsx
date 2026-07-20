@@ -1,7 +1,6 @@
 import { ChevronDown } from "lucide-react";
 
 import {
-  PLANS,
   WEB_PRESENCE_LAUNCH_SETUP,
   WEB_PRESENCE_SERVICES,
   formatWebPresenceSetupCents,
@@ -79,8 +78,8 @@ export function WebPresenceLaunchSetupDetails({ className }: { className?: strin
           ) : null}
         </ul>
         <p className="text-xs text-slate-500">
-          {PLANS.ENTERPRISE.name} includes ShopSite, Local SEO, and launch setup — no separate launch
-          charge.
+          Billed separately from Ignition CRM. A future Elite CRM plan may bundle ShopSite, Local SEO,
+          and launch setup — until then these stay on the Website &amp; SEO product line.
         </p>
       </div>
     </details>

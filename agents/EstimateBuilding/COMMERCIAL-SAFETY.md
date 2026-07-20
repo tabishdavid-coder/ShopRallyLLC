@@ -75,7 +75,7 @@ These patterns appear across Tekmetric, AutoLeap, Shopmonkey, Mitchell, Protract
 | **Palette** | Charcoal primary, cyan accent, red destructive | No AutoLeap teal bar; no Tekmetric-only navy sidebar as sole story |
 | **Shell** | Existing ShopRally sidebar + RO workspace (trade dress audit approved 2026-07-03) | Not 3030 command rail yet; not AutoLeap top tab strip |
 | **Terminology (production)** | Estimate tab, Repair Order, Smart Jobs, Get approval | 3030 glossary (Quote, Service Ticket, Work Lines) reserved for Autopilot merge |
-| **Branding** | ShopRally / RepairPilot wordmark, RP monogram | No competitor marks |
+| **Branding** | ShopRally wordmark / mark | No competitor marks |
 | **Browse modal** | Navy header, ShopRally tokens, "All systems" breadcrumb root | No MOTOR/Mitchell/AutoLeap source tabs (not built) |
 | **Data** | Shop-owned canned templates + NHTSA VIN + internal labor tree | No scraped competitor UI assets |
 

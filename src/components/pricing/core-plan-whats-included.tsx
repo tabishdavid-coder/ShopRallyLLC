@@ -50,10 +50,11 @@ export function CorePlanWhatsIncluded() {
             What&apos;s included
           </p>
           <h2 className="mt-3 text-3xl font-bold tracking-tight text-brand-navy sm:text-4xl">
-            Everything in Ignition — by area
+            Ignition founding checklist — by area
           </h2>
           <p className="mt-3 text-sm leading-relaxed text-slate-600 sm:text-base">
-            {total}+ capabilities across the shop floor. Red checks are the biggest everyday wins.
+            Launch scope for founding shops ({total}+ line items). Red checks are the biggest everyday
+            wins. Pro+ roadmap items stay in the dashed box below — not mixed in here.
           </p>
         </div>
 
@@ -65,7 +66,7 @@ export function CorePlanWhatsIncluded() {
 
         <div className="mx-auto mt-10 max-w-3xl rounded-xl border border-dashed border-slate-300 bg-white/80 p-5">
           <p className="text-xs font-semibold uppercase tracking-[0.14em] text-slate-500">
-            Not on Ignition (coming on Pro / Elite)
+            Coming later · Pro / Elite (not Ignition)
           </p>
           <ul className="mt-3 flex flex-wrap gap-x-4 gap-y-2 text-sm text-slate-600">
             {m.notIncluded.map((item) => (

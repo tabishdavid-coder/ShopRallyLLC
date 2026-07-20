@@ -262,7 +262,7 @@ export async function smartRoIntakeDenied(shopId: string): Promise<string | null
     return "Reactivate your Core subscription to use Smart AI Intake.";
   }
   if (!sub.features.freeformRoIntake) {
-    return "Add AI Plus ($20/mo) on Core to unlock Smart AI repair-order intake.";
+    return "Add AI Plus ($49.99/mo) on Core to unlock Smart AI repair-order intake.";
   }
   const module = FEATURE_RELEASE_MODULE.freeform_ro_intake;
   if (module && !(await isReleased(shopId, module))) {

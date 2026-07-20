@@ -1,6 +1,6 @@
 # ShopRally brand — locked direction
 
-**ShopRally** (formerly RepairPilot). Domain: `getshoprally.com`. Legal entity: **ShopRally LLC**.
+**ShopRally** (formerly RepairPilot). Domain: **getShopRally.com** (DNS: `getshoprally.com`). Legal entity: **ShopRally LLC**.
 
 Source kit: `shoprally-brand-kit/BRAND.md` and `shoprally-brand-kit/svg/`.
 

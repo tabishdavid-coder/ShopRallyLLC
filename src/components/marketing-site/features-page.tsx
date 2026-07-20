@@ -3,101 +3,138 @@
 import Link from "next/link";
 import {
   BarChart3,
+  BookOpen,
   Calendar,
+  CheckCircle2,
   ClipboardCheck,
-  Globe,
-  MessageSquare,
+  Mail,
   Package,
-  Search,
-  Star,
+  Sparkles,
+  Users,
   Wrench,
-  Zap,
 } from "lucide-react";
 
+import { AiPlusShowcase } from "@/components/marketing-site/ai-plus-showcase";
 import { HeroPlatformPreview } from "@/components/marketing-site/hero-platform-preview";
 import { MarketPositioningSection } from "@/components/marketing-site/market-positioning-section";
 import { Button } from "@/components/ui/button";
-import { MARKETING_LAUNCH } from "@/lib/marketing-launch";
-import { COMPETITOR_BENCHMARK, LABOR_PLAN_COPY, PLANS, shoprallyAllInMonthly, shoprallyOverdriveMonthly } from "@/lib/plans";
+import {
+  AI_PLUS_MARKETING,
+  MARKETING_LAUNCH,
+  marketingPrimaryHref,
+  marketingSecondaryCta,
+  marketingSecondaryHref,
+} from "@/lib/marketing-launch";
+import {
+  PHASE_ONE_LAUNCH,
+  PLANS,
+  aiPlusPriceLabel,
+  planMarketingDisplayName,
+  shoprallyStarterMonthly,
+} from "@/lib/plans";
+
+const ignitionName = planMarketingDisplayName(PLANS.STARTER);
 
 const MODULES = [
   {
     icon: Wrench,
-    title: "Shop management",
+    title: "Shop CRM & job board",
     description:
-      "Repair orders, job board, canned jobs, parts, inventory, and tech board — DVIs included on every plan.",
-    items: ["Kanban job board", "Digital vehicle inspections", "Operations Daily Snapshot", "Digital estimates & invoices via email"],
-    accent: "from-brand-navy/10 to-brand-light/10 border-brand-navy/20",
-  },
-  {
-    icon: Zap,
-    title: "Payments & vehicle data",
-    description:
-      "Licensed MOTOR on Pro+ only (not a Core add-on). Core includes 100 VIN & plate decodes / mo ($10 per extra 100; unlimited on Pro+), OEM specs on Pro+, and Stripe Connect payouts on Pro+.",
+      "Repair orders, kanban job board, PartsTech parts on the estimate, customers, vehicles, and inventory — connected from concern to invoice.",
     items: [
-      "Licensed MOTOR on Pro+ only",
-      "VIN & plate decode — 100/mo on Core · unlimited on Pro+",
-      "OEM specs & fluid capacities on Pro+",
-      LABOR_PLAN_COPY.featuresIgnition,
+      "Unlimited users & repair orders",
+      "Kanban job board (Estimates / WIP / Completed)",
+      "Full RO workspace with canned jobs",
+      "PartsTech catalog & punchout — included with Ignition",
+      "Shop labor library (not licensed MOTOR)",
     ],
-    accent: "from-brand-light/10 to-brand-light/20 border-brand-light/30",
   },
   {
-    icon: Star,
-    title: "Growth Engine",
+    icon: ClipboardCheck,
+    title: "Inspections & approvals",
     description:
-      "Marketing built in — booking, SMS, automations & win-back, and Google review management on Pro. Full AI suite on Elite.",
-    items: ["Two-way SMS", "Online booking", "Growth Engine — automations & win-back", "Google review management"],
-    accent: "from-brand-light/20 to-brand-light/5 border-brand-light/50",
+      "Digital vehicle inspections and email estimate/approval links so customers can review from their phone.",
+    items: [
+      "Digital vehicle inspections (photo checklists customers can see)",
+      "Email estimates & approval links",
+      "Digital invoices via email",
+      "Manual payment recording in-shop",
+    ],
   },
   {
-    icon: Globe,
-    title: "Website & SEO",
+    icon: BarChart3,
+    title: "Day-to-day operations",
     description:
-      "Two separate monthly subscriptions — ShopSite for your hosted website and Local SEO for rankings, Search Console, and Growth Engine SEO.",
-    items: ["ShopSite $99/mo", "Local SEO $129/mo", "Bundle $199/mo", `Launch setup included on ${PLANS.ENTERPRISE.name}`],
-    accent: "from-brand-navy/5 to-white border-brand-navy/15",
+      "See today’s work, keep appointments on the calendar, and track what’s owed — without a second system.",
+    items: [
+      "Live Operations Daily Snapshot",
+      "Appointments",
+      "Payment tracking",
+      "Unlimited NHTSA VIN decode",
+    ],
+  },
+  {
+    icon: Sparkles,
+    title: "AI Plus (recommended)",
+    description: AI_PLUS_MARKETING.subhead,
+    items: [
+      "Freeform RO intake",
+      "Labor-hour assist",
+      "Advisor mobile app",
+      "Less double-entry at the counter",
+    ],
   },
 ] as const;
 
 const HIGHLIGHTS = [
   { icon: Calendar, label: "Appointments" },
-  { icon: MessageSquare, label: "Two-way SMS" },
+  { icon: Mail, label: "Email share & approve" },
   { icon: ClipboardCheck, label: "Inspections" },
-  { icon: Package, label: "Inventory" },
-  { icon: Globe, label: "ShopSite" },
-  { icon: Search, label: "Local SEO" },
-  { icon: BarChart3, label: "Operations Daily Snapshot" },
+  { icon: Package, label: "PartsTech punchout" },
+  { icon: BookOpen, label: "Canned jobs" },
+  { icon: Users, label: "Unlimited users" },
+  { icon: BarChart3, label: "Daily Snapshot" },
+] as const;
+
+const COMING_LATER = [
+  "Licensed MOTOR · Stripe Connect",
+  "Two-way SMS · online booking · Growth Engine",
+  "AI receptionist · Elite AI suite",
+  "Maintenance / care programs",
 ] as const;
 
 export function FeaturesPageContent() {
   const preLaunch = MARKETING_LAUNCH.preLaunch;
+  const price = shoprallyStarterMonthly(true);
+
   return (
     <>
       <section className="border-b border-brand-navy/10 bg-gradient-to-b from-brand-light/15 to-white">
         <div className="mx-auto max-w-7xl px-4 py-14 text-center sm:px-6 sm:py-16">
           <p className="text-xs font-semibold uppercase tracking-wider text-brand-red">Product</p>
           <h1 className="mt-2 text-3xl font-bold text-brand-navy sm:text-4xl lg:text-5xl">
-            Premium shop software — one platform
+            {ignitionName} — everything to run your shop
           </h1>
           <p className="mx-auto mt-4 max-w-2xl text-lg text-slate-600">
-            Between legacy desktop CRM and budget bolt-on stacks — ShopRally connects CRM, payments,
-            marketing, and maintenance with training included on every tier.
+            One launch plan: job board, PartsTech catalog &amp; punchout, digital vehicle
+            inspections, email estimates &amp; approvals, appointments, payment tracking, and Live
+            Operations Daily Snapshot. PartsTech is included with Ignition at launch. Pro and Elite
+            stay on the roadmap.
           </p>
-          <p className="mx-auto mt-3 max-w-xl text-sm font-medium text-brand-navy">
-            {PLANS.PROFESSIONAL.name}: ${shoprallyAllInMonthly(true)}/mo · {PLANS.ENTERPRISE.name}: $
-            {shoprallyOverdriveMonthly(true)}/mo · vs ~${COMPETITOR_BENCHMARK.legacy.typicalMonthly}/mo legacy
-            stacks
-          </p>
+          {PHASE_ONE_LAUNCH ? (
+            <p className="mx-auto mt-3 max-w-xl text-sm font-medium text-brand-navy">
+              {ignitionName} from ${price}/mo · AI Plus recommended {aiPlusPriceLabel()}
+            </p>
+          ) : null}
           <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
             <Button size="lg" className="bg-brand-navy" asChild>
-              <Link href={preLaunch ? MARKETING_LAUNCH.primaryHref : "/signup"}>
-                {preLaunch ? MARKETING_LAUNCH.primaryCta : "Start free trial"}
+              <Link href={`${marketingPrimaryHref(preLaunch)}?ai=1`}>
+                {AI_PLUS_MARKETING.ctaWithAi}
               </Link>
             </Button>
             <Button size="lg" variant="outline" className="border-brand-navy text-brand-navy" asChild>
-              <Link href={MARKETING_LAUNCH.secondaryHref}>
-                {preLaunch ? MARKETING_LAUNCH.secondaryCta : "Book a demo"}
+              <Link href={marketingSecondaryHref(preLaunch)}>
+                {marketingSecondaryCta(preLaunch)}
               </Link>
             </Button>
           </div>
@@ -107,24 +144,36 @@ export function FeaturesPageContent() {
         </div>
       </section>
 
-      <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6">
-        <div className="grid gap-6 lg:grid-cols-2">
+      <AiPlusShowcase />
+
+      <MarketPositioningSection />
+
+      <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20">
+        <div className="mx-auto max-w-2xl text-center">
+          <p className="text-xs font-semibold uppercase tracking-wider text-brand-red">
+            With {ignitionName}
+          </p>
+          <h2 className="mt-2 text-3xl font-bold text-brand-navy">
+            What founding shops get at launch
+          </h2>
+        </div>
+        <div className="mt-12 grid gap-6 md:grid-cols-2">
           {MODULES.map((mod) => {
             const Icon = mod.icon;
             return (
               <div
                 key={mod.title}
-                className={`rounded-2xl border-2 bg-gradient-to-br p-6 sm:p-8 ${mod.accent}`}
+                className="rounded-2xl border border-brand-navy/15 bg-white p-6 shadow-sm"
               >
-                <div className="flex size-12 items-center justify-center rounded-xl bg-brand-navy text-white">
-                  <Icon className="size-6" />
+                <div className="flex size-11 items-center justify-center rounded-xl bg-brand-navy text-white">
+                  <Icon className="size-5" />
                 </div>
-                <h2 className="mt-4 text-xl font-bold text-brand-navy">{mod.title}</h2>
+                <h3 className="mt-4 text-xl font-bold text-brand-navy">{mod.title}</h3>
                 <p className="mt-2 text-sm leading-relaxed text-slate-600">{mod.description}</p>
-                <ul className="mt-4 grid gap-2 sm:grid-cols-2">
+                <ul className="mt-4 space-y-2">
                   {mod.items.map((item) => (
-                    <li key={item} className="flex items-center gap-2 text-sm text-slate-700">
-                      <span className="size-1.5 shrink-0 rounded-full bg-brand-red" />
+                    <li key={item} className="flex gap-2 text-sm text-slate-700">
+                      <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-brand-navy" />
                       {item}
                     </li>
                   ))}
@@ -135,19 +184,18 @@ export function FeaturesPageContent() {
         </div>
       </section>
 
-      <section className="border-y border-brand-navy/10 bg-brand-navy text-white">
-        <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6">
-          <h2 className="text-center text-2xl font-bold">And dozens more capabilities</h2>
-          <div className="mt-8 grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
+      <section className="border-y border-brand-navy/10 bg-slate-50">
+        <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6">
+          <div className="flex flex-wrap justify-center gap-3">
             {HIGHLIGHTS.map((h) => {
               const Icon = h.icon;
               return (
                 <div
                   key={h.label}
-                  className="flex flex-col items-center rounded-xl border border-white/10 bg-white/5 px-4 py-5 text-center"
+                  className="inline-flex items-center gap-2 rounded-full border border-brand-navy/15 bg-white px-4 py-2 text-sm font-medium text-brand-navy"
                 >
-                  <Icon className="size-6 text-brand-light" />
-                  <p className="mt-2 text-sm font-medium">{h.label}</p>
+                  <Icon className="size-4" />
+                  {h.label}
                 </div>
               );
             })}
@@ -155,17 +203,51 @@ export function FeaturesPageContent() {
         </div>
       </section>
 
+      <section id="coming-later" className="scroll-mt-20 bg-brand-navy text-white">
+        <div className="mx-auto max-w-3xl px-4 py-16 text-center sm:px-6">
+          <p className="text-xs font-semibold uppercase tracking-wider text-brand-light">
+            Coming later · Pro &amp; Elite
+          </p>
+          <h2 className="mt-2 text-2xl font-bold sm:text-3xl">Not on {ignitionName} at launch</h2>
+          <p className="mt-3 text-white/75">
+            Roadmap only — not sold with founding Ignition seats. We&apos;ll open Pro and Elite when
+            they&apos;re ready, not before.
+          </p>
+          <ul className="mx-auto mt-8 grid max-w-xl gap-2 text-left sm:grid-cols-1">
+            {COMING_LATER.map((item) => (
+              <li
+                key={item}
+                className="rounded-lg border border-dashed border-white/20 bg-white/5 px-4 py-3 text-sm text-white/80"
+              >
+                {item}
+              </li>
+            ))}
+          </ul>
+          <p className="mx-auto mt-6 max-w-md text-sm text-white/70">
+            ShopSite &amp; Local SEO — including Google Business Profile and local Google Ads
+            optimization when you advertise — are a companion offer at launch, not on this CRM
+            roadmap list.{" "}
+            <Link
+              href="/pricing?tab=website"
+              className="font-semibold text-brand-light underline-offset-2 hover:underline"
+            >
+              View Website &amp; SEO pricing
+            </Link>
+          </p>
+        </div>
+      </section>
+
       <section className="mx-auto max-w-4xl px-4 py-16 text-center sm:px-6">
         <h2 className="text-2xl font-bold text-brand-navy">See how it fits your shop</h2>
         <p className="mt-3 text-slate-600">
-          Compare plans or talk to our team about migration from Tekmetric, Shopmonkey, AutoLeap, or pen and paper.
+          Review {ignitionName} pricing or book a walkthrough of the bay workflow.
         </p>
         <div className="mt-6 flex flex-col items-center justify-center gap-3 sm:flex-row">
           <Button className="bg-brand-red hover:bg-brand-red/90" asChild>
             <Link href="/pricing">View pricing</Link>
           </Button>
           <Button variant="outline" className="border-brand-navy text-brand-navy" asChild>
-            <Link href="/demo">Request demo</Link>
+            <Link href={marketingSecondaryHref(preLaunch)}>{marketingSecondaryCta(preLaunch)}</Link>
           </Button>
         </div>
       </section>

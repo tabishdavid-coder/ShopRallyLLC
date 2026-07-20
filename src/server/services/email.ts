@@ -8,8 +8,9 @@ import "server-only";
  *   RESEND_API_KEY — Resend API key (platform-operated; each shop sends from its
  *                    own verified domain/address configured in Settings → Email)
  *
- * Legacy EMAIL_FROM is only used when no per-shop from address is supplied (e.g.
- * internal platform notifications). Customer-facing CRM sends use sendShopEmail().
+ * Legacy EMAIL_FROM is used for internal platform mail (marketing lead alerts,
+ * booking staff notify via getEmail()). Prefer sendPlatformEmail() for ops inbox
+ * notifications. Customer-facing CRM sends use sendShopEmail().
  */
 
 export type EmailResult = { id: string; status: string };

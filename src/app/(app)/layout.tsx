@@ -81,7 +81,7 @@ export default async function AppLayout({
     }
   }
 
-  const [activeShop, customerCount, notificationData, unreadSmsCount, intakeConfig, smsOnPlan, stripeOnPlan, motorLaborOnPlan, partsTechOnPlan, marketingOnPlan, autodevDecodingOnPlan, smartRoIntakeOnPlan, shopSubscription] =
+  const [activeShop, customerCount, notificationData, unreadSmsCount, intakeConfig, smsOnPlan, stripeOnPlan, motorLaborOnPlan, partsTechOnPlan, marketingOnPlan, maintenanceOnPlan, autodevDecodingOnPlan, smartRoIntakeOnPlan, shopSubscription] =
     dbSeeded
       ? await Promise.all([
           getCurrentShop(),
@@ -94,11 +94,12 @@ export default async function AppLayout({
           canUseReleasedFeature(activeShopId, "motorLabor"),
           canUseReleasedFeature(activeShopId, "parts"),
           canUseReleasedFeature(activeShopId, "marketing_campaigns"),
+          canUseReleasedFeature(activeShopId, "maintenance_programs"),
           canUseFeature(activeShopId, "autodevDecoding"),
           canUseSmartRoIntake(activeShopId),
           getShopSubscription(activeShopId),
         ])
-      : [null, 0, { notifications: [], unreadCount: 0 }, 0, null, false, false, false, false, false, false, false, null];
+      : [null, 0, { notifications: [], unreadCount: 0 }, 0, null, false, false, false, false, false, false, false, false, null];
 
   // On-demand Vehicle Specs (YMM + fluids reference) is available on Core and Pro.
   // Paid catalog/AI enrich still runs only when the user opens Specs — not on page load.
@@ -149,6 +150,7 @@ export default async function AppLayout({
           motorLabor: motorLaborOnPlan,
           partsTech: partsTechOnPlan,
           marketingCampaigns: marketingOnPlan,
+          maintenancePrograms: maintenanceOnPlan,
           vehicleSpecs: vehicleSpecsOnPlan,
           autodevDecoding: autodevDecodingOnPlan,
           freeformRoIntake: smartRoIntakeOnPlan,

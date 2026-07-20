@@ -1,9 +1,9 @@
 import { FeaturesPageContent } from "@/components/marketing-site/features-page";
 
 export const metadata = {
-  title: "Product — ShopRally",
+  title: "What's included — ShopRally Ignition",
   description:
-    "Shop management, payments, Growth Engine marketing, and monthly ShopSite & Local SEO — all in ShopRally.",
+    "Ignition includes job board, digital vehicle inspections, email estimates & approvals, canned jobs, appointments, payment tracking, and Live Operations Daily Snapshot. Pro & Elite coming later.",
 };
 
 export default function FeaturesPage() {

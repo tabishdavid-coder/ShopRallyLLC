@@ -23,6 +23,18 @@ Outbound path: `sendShopEmail()` → Resend with shop From / Reply-To. Not ready
 | Shop `emailFromAddress` | Customer-facing estimate/invoice/campaign sends (shop-owned) |
 | `PLATFORM_ADMIN_EMAIL` | Stub platform admin auth only — not shown as public contact |
 
+### Marketing lead notifications
+
+Demo, trial signup, founding waitlist, and website-need forms create a `SupportTicket` and email the ops inbox (`PLATFORM_LEAD_NOTIFY_EMAIL` / `PLATFORM_CONTACT_EMAIL` / `hello@getshoprally.com`) via `sendPlatformEmail` → Resend.
+
+| Env | Role |
+|-----|------|
+| `RESEND_API_KEY` | Required for live lead emails (Vercel Production) |
+| `EMAIL_FROM` | Recommended From on a verified domain; defaults to `ShopRally <hello@getshoprally.com>` |
+| `PLATFORM_LEAD_NOTIFY_EMAIL` | Optional ops inbox override (comma-separated) |
+
+If Resend is unset, the form still succeeds (DB ticket + `/platform/leads`); server logs `[marketing-lead-email] RESEND_API_KEY not configured`. Code: `src/server/services/marketing-lead-notify.ts`.
+
 ## Operator go-live checklist
 
 Do these in order. Steps 1–3 are platform ops; 4–6 are per shop.

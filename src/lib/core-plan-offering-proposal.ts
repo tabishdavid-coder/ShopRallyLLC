@@ -27,10 +27,10 @@ export const CORE_PLAN_CARD_BULLETS: readonly string[] = PLANS.STARTER.pricingCa
 export const CORE_OFFERING_MOCK = {
   planName: "Core",
   marketingName: "Ignition",
-  priceMonthly: 49.99,
-  priceAnnualMonthly: 44.99,
+  priceMonthly: 89.99,
+  priceAnnualMonthly: 84.99,
   tagline: "Everything to run the shop floor — without locking you into Pro bolt-ons.",
-  bestFor: "Independent shops going cloud-first with a full CRM, estimates, DVIs, and daily ops.",
+  bestFor: "Independent shops going cloud-first with a full CRM, estimates, digital vehicle inspections, and daily ops.",
   priceNote: "Per location · cancel anytime · no CRM setup fee",
   groups: [
     {
@@ -53,8 +53,7 @@ export const CORE_OFFERING_MOCK = {
         { name: "Customer profiles", detail: "Search, tags, contact, notes, history" },
         { name: "Vehicle records", detail: "VIN, YMM, plate, mileage, notes" },
         { name: "Free-type Year / Make / Model / Trim", detail: "No catalog lock-in on Core" },
-        { name: "NHTSA VIN decode", detail: "NHTSA VIN decode path (no Auto.dev on Core)" },
-        { name: "Manual plate entry", detail: "Plate stored without paid plate→VIN" },
+        { name: "Unlimited NHTSA VIN decode", detail: "Free NHTSA vPIC — no monthly cap" },
         { name: "Job board", detail: "Estimates · WIP · Completed with drag-and-drop", highlight: true },
         { name: "Workflow / board views", detail: "Pipeline visibility for the floor" },
         { name: "Global customer search", detail: "Find people and ROs fast" },
@@ -68,6 +67,11 @@ export const CORE_OFFERING_MOCK = {
       items: [
         { name: "Full repair-order workspace", detail: "Summary, Estimate, Inspections, WIP, Payment", highlight: true },
         { name: "Inline service / estimate grid", detail: "Labor, parts, fees, discounts — edit in place" },
+        {
+          name: "PartsTech catalog & punchout",
+          detail: "Search suppliers and drop parts onto the RO — no retyping between tabs",
+          highlight: true,
+        },
         { name: "Canned jobs & shop labor library", detail: "Your shop’s menus and rates", highlight: true },
         { name: "Line amounts, discounts & net", detail: "Per-line $ / % discount with net adjust" },
         { name: "Job fees & RO adjustments", detail: "Shop fees and discounts on the estimate" },
@@ -166,19 +170,19 @@ export const CORE_OFFERING_MOCK = {
   ] satisfies CoreOfferingGroup[],
   notIncluded: [
     { name: "Licensed MOTOR labor data", note: "Pro+" },
-    { name: "PartsTech vendor punchout", note: "Pro+" },
     { name: "Stripe Connect / text-to-pay", note: "Pro+" },
     { name: "Two-way SMS & campaigns", note: "Pro+" },
     { name: "Growth Engine automations", note: "Pro+" },
     { name: "Online booking widget", note: "Pro+" },
+    { name: "Maintenance / care programs", note: "Pro+" },
     { name: "Markup matrices", note: "Pro+" },
     { name: "Auto.dev plate→VIN", note: "Pro+" },
-    { name: "ShopSite & Local SEO", note: "Add-on or Elite" },
+    // ShopSite & Local SEO: companion product line — not Ignition CRM "coming later"
     { name: "AI receptionist suite", note: "Elite / add-on" },
   ],
   addon: {
     name: "AI Plus",
-    price: "$20/mo",
+    price: "$49.99/mo",
     blurb: "Optional on Core only — supercharge intake without buying Pro.",
     items: [
       { name: "Smart / freeform AI repair-order intake" },

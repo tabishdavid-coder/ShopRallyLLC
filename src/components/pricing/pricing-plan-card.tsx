@@ -2,12 +2,17 @@ import Link from "next/link";
 import { ArrowRight, Check } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
-import { MARKETING_LAUNCH } from "@/lib/marketing-launch";
+import {
+  marketingPrimaryCta,
+  marketingPrimaryHint,
+  marketingPrimaryHref,
+} from "@/lib/marketing-launch";
 import {
   annualSavingsDollars,
   planCardBullets,
   planDisplayPrice,
   planListPrice,
+  planMarketingDisplayName,
   type PlanDefinition,
 } from "@/lib/plans";
 import type { ShopPlan } from "@/generated/prisma";
@@ -81,7 +86,7 @@ export function PricingPlanCard({
 
         <header className="mt-3">
           <h2 className="text-[1.75rem] font-bold leading-none tracking-tight text-brand-navy">
-            {plan.name}
+            {planMarketingDisplayName(plan)}
           </h2>
           <p className="mt-3 min-h-[2.75rem] text-sm leading-relaxed text-slate-600">
             {bestFor}
@@ -147,11 +152,14 @@ export function PricingPlanCard({
             variant={isPopular ? "default" : "outline"}
             asChild
           >
-            <Link href={preLaunch ? MARKETING_LAUNCH.primaryHref : "/signup"}>
-              {preLaunch ? MARKETING_LAUNCH.primaryCta : "Start 14-day trial"}
+            <Link href={marketingPrimaryHref(preLaunch)}>
+              {marketingPrimaryCta({ preLaunch })}
               <ArrowRight className="ml-1.5 size-4 opacity-80" aria-hidden />
             </Link>
           </Button>
+          <p className="text-center text-[11px] leading-snug text-slate-500">
+            {marketingPrimaryHint(preLaunch)}
+          </p>
           {onCompareFeatures ? (
             <button
               type="button"

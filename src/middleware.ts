@@ -4,6 +4,12 @@ import { NextResponse, type NextRequest } from "next/server";
 import { isClerkConfigured } from "@/lib/clerk-auth-client";
 import { isPrimaryAppHost, slugFromSitesSubdomain } from "@/lib/custom-domain";
 import {
+  isMarketingOnlyProduction,
+  isMarketingPublicPath,
+  isProdLockedPath,
+  MARKETING_GATE_REDIRECT,
+} from "@/lib/marketing-prod-gate";
+import {
   ACTIVE_SHOP_COOKIE,
   DEMO_SHOP_ID,
   EMPTY_DEMO_SHOP_ID,
@@ -88,7 +94,48 @@ async function resolveCustomHostRewrite(
   return null;
 }
 
+/**
+ * Production without Clerk: marketing + waitlist only.
+ * Redirect CRM/platform stub entry points so the public site cannot open the app open-door.
+ */
+function marketingOnlyProdGate(request: NextRequest): NextResponse | null {
+  if (!isMarketingOnlyProduction()) return null;
+
+  const { pathname } = request.nextUrl;
+
+  if (isMarketingPublicPath(pathname)) return null;
+
+  // Block non-public APIs (tRPC, internal actions endpoints, etc.)
+  if (pathname.startsWith("/api/")) {
+    return NextResponse.json(
+      { error: "Shop access opens Q4 2026 — reserve a founding seat at /launch" },
+      { status: 403 },
+    );
+  }
+
+  if (isProdLockedPath(pathname) || isCrmRoute(pathname) || pathname.startsWith("/platform")) {
+    const url = request.nextUrl.clone();
+    url.pathname = MARKETING_GATE_REDIRECT;
+    url.search = "";
+    url.searchParams.set("from", "app");
+    return NextResponse.redirect(url);
+  }
+
+  // Unknown non-marketing app paths — send to founding reserve.
+  if (!pathname.startsWith("/_next")) {
+    const url = request.nextUrl.clone();
+    url.pathname = MARKETING_GATE_REDIRECT;
+    url.searchParams.set("from", "app");
+    return NextResponse.redirect(url);
+  }
+
+  return null;
+}
+
 async function shoprallyMiddleware(request: NextRequest) {
+  const gate = marketingOnlyProdGate(request);
+  if (gate) return gate;
+
   const { pathname } = request.nextUrl;
   const host = request.headers.get("host") ?? "";
   const requestHeaders = new Headers(request.headers);

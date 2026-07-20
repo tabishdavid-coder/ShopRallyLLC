@@ -25,7 +25,7 @@ Read `agents/WebsiteCode/BUILD-STATE.md` for current progress.
 
 - **SEO Autopilot** — GSC, crawl, `seo-automation/**` (shared domain actions)
 - **ShopRallyCRM** — shop shell; don't refactor CRM chrome here
-- **Not ShopSite:** `src/app/(marketing)/` = ShopRally.com product marketing
+- **Not ShopSite:** `src/app/(marketing)/` = getShopRally.com product marketing
 
 ## Docs
 

@@ -48,7 +48,7 @@ export function IntegrationsPanel({
         title="Integrations"
         description={
           isCore
-            ? "Core includes NHTSA VIN decode and email — Pro adds plate lookup, PartsTech, SMS, and Stripe."
+            ? "Ignition includes NHTSA VIN decode, email, and PartsTech — Pro adds plate lookup, SMS, and Stripe."
             : "Connected services that power VIN decode, parts, payments, messaging, and auth."
         }
         meta={
@@ -62,7 +62,7 @@ export function IntegrationsPanel({
         {isCore ? (
           <>
             Your {planName ?? "Core"} plan shows integrations included with your subscription. Upgrade to{" "}
-            {PLANS.PROFESSIONAL.name} for PartsTech, two-way SMS, and online payments.{" "}
+            {PLANS.PROFESSIONAL.name} for two-way SMS and online payments.{" "}
           </>
         ) : (
           <>

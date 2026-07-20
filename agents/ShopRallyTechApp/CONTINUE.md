@@ -7,7 +7,7 @@ A **separate product surface** from the ShopRally web CRM (Dev 3031). Technician
 | Surface | Agent | URL / platform |
 |---------|-------|----------------|
 | Web CRM | ShopRallyCRM | http://localhost:3031 |
-| Marketing site | WebsiteCode | getshoprally.com |
+| Marketing site | WebsiteCode | getShopRally.com |
 | **Tech mobile app** | **ShopRallyTechApp (you)** | App Store + Play Store |
 
 ## Read first

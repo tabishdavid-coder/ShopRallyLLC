@@ -119,7 +119,7 @@ export function PartsHub({
 
   function launchPartsTech(jobId?: string | null) {
     if (!partsTech) {
-      toast("error", "PartsTech is on Pro+. Add parts manually or upgrade your plan.");
+      toast("error", "PartsTech isn't enabled for this shop. Add parts manually or check Settings → Subscription.");
       return;
     }
     setError(null);
@@ -362,12 +362,12 @@ export function PartsHub({
                   <Button
                     variant="outline"
                     className="gap-1.5"
-                    title="PartsTech catalog is included on Pro and Elite"
+                    title="PartsTech isn't enabled for this shop"
                     onClick={() =>
-                      toast("error", "PartsTech is on Pro+. Add parts manually or upgrade your plan.")
+                      toast("error", "PartsTech isn't enabled for this shop. Add parts manually or check Settings → Subscription.")
                     }
                   >
-                    <ShoppingCart className="size-4" /> PartsTech (Pro+)
+                    <ShoppingCart className="size-4" /> PartsTech
                   </Button>
                 )}
                 <Button variant="outline" onClick={() => { setError(null); setView("phone"); }} className="gap-1.5">

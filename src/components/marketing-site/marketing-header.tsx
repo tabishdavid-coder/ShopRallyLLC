@@ -7,7 +7,11 @@ import { useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { ShopRallyLogo } from "@/components/brand/shoprally-logo";
-import { MARKETING_LAUNCH } from "@/lib/marketing-launch";
+import {
+  MARKETING_LAUNCH,
+  marketingPrimaryCta,
+  marketingPrimaryHref,
+} from "@/lib/marketing-launch";
 import { cn } from "@/lib/utils";
 
 const NAV = [
@@ -27,6 +31,8 @@ export function MarketingHeader() {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
   const preLaunch = MARKETING_LAUNCH.preLaunch;
+  const primaryHref = marketingPrimaryHref(preLaunch);
+  const primaryLabel = marketingPrimaryCta({ preLaunch });
 
   return (
     <header className="sticky top-0 z-40 border-b border-brand-navy/10 bg-white/90 backdrop-blur-md">
@@ -54,15 +60,10 @@ export function MarketingHeader() {
 
         <div className="hidden items-center justify-end gap-2 md:flex">
           <Button variant="ghost" size="sm" className="text-brand-navy" asChild>
-            <Link href={MARKETING_LAUNCH.secondaryHref}>{MARKETING_LAUNCH.secondaryCta}</Link>
-          </Button>
-          <Button variant="ghost" size="sm" className="text-brand-navy" asChild>
             <Link href="/login">Sign in</Link>
           </Button>
           <Button size="sm" className="bg-brand-navy hover:bg-brand-navy/90" asChild>
-            <Link href={preLaunch ? MARKETING_LAUNCH.primaryHref : "/signup"}>
-              {preLaunch ? MARKETING_LAUNCH.primaryCta : "Start free trial"}
-            </Link>
+            <Link href={primaryHref}>{primaryLabel}</Link>
           </Button>
         </div>
 
@@ -97,11 +98,11 @@ export function MarketingHeader() {
               Sign in
             </Link>
             <Link
-              href={preLaunch ? MARKETING_LAUNCH.primaryHref : "/signup"}
+              href={primaryHref}
               onClick={() => setOpen(false)}
               className="mt-2 rounded-lg bg-brand-navy px-3 py-2.5 text-center text-sm font-semibold text-white"
             >
-              {preLaunch ? MARKETING_LAUNCH.primaryCta : "Start free trial"}
+              {primaryLabel}
             </Link>
           </nav>
         </div>

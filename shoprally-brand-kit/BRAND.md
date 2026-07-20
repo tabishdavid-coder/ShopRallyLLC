@@ -42,5 +42,5 @@ Rule: orange = action, navy = trust, azure = bridge. Never recolor the chevron s
 4. "Rally" is always orange; "Shop" is navy on light, white on dark. Never both orange.
 5. Do not rotate, outline, shadow, or gradient the mark.
 
-Domains (register): getshoprally.com (primary), shoprallyhq.com, shoprally.io, shoprally.app
+Domains (register): getShopRally.com / getshoprally.com (primary), shoprallyhq.com, shoprally.io, shoprally.app
 Trademark: file ITU, Class 42 - "customer retention and marketing software for automotive repair facilities."

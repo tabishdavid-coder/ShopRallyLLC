@@ -261,27 +261,30 @@ export async function getSeoAutopilotPlanView(
       description: "Score, activity summary, and GSC clicks sent on the 1st.",
       status: hasWebsiteSeo ? ("active" as const) : ("upgrade" as const),
     },
-  ].map((row) => ({
-    id: row.id,
-    catalogId: row.catalogId ?? null,
-    checkoutAvailable:
-      stripeCheckoutEnabled &&
-      row.catalogId != null &&
-      resolveSeoStripePriceId(row.catalogId) != null &&
-      (row.status === "available" || row.status === "upgrade"),
-    name: row.name,
-    priceLabel: row.priceLabel,
-    description: row.description,
-    status: row.status,
-    statusLabel:
-      row.status === "included"
-        ? "Included"
-        : row.status === "active"
-          ? "Active"
-          : row.status === "upgrade"
-            ? "Upgrade"
-            : "Available add-on",
-  }));
+  ].map((row) => {
+    const status = row.status as "available" | "upgrade" | "active" | "included";
+    return {
+      id: row.id,
+      catalogId: row.catalogId ?? null,
+      checkoutAvailable:
+        stripeCheckoutEnabled &&
+        row.catalogId != null &&
+        resolveSeoStripePriceId(row.catalogId) != null &&
+        (status === "available" || status === "upgrade"),
+      name: row.name,
+      priceLabel: row.priceLabel,
+      description: row.description,
+      status,
+      statusLabel:
+        status === "included"
+          ? "Included"
+          : status === "active"
+            ? "Active"
+            : status === "upgrade"
+              ? "Upgrade"
+              : "Available add-on",
+    };
+  });
 
   return {
     planName: plan.name,

@@ -45,7 +45,7 @@ Do not revert to `CrmShell` as default chrome without explicit approval.
 
 ## Deploy (Vercel)
 
-Project: **getshoprally/ShopRally** (or your Vercel project name)
+Project: **`getshoprally/shoprally`** (linked via `.vercel/project.json`)
 
 ```bash
 cd ShopRally
@@ -55,4 +55,5 @@ npx vercel --prod   # production
 
 Build runs `prisma generate`, `prisma migrate deploy`, then `next build` (see `vercel.json`).
 
-Production URL: **https://getshoprally.com**
+- **Custom domain (goal):** https://getshoprally.com
+- **Vercel Production aliases:** https://shoprally.vercel.app (prefer); also https://shoprally-getshoprally.vercel.app

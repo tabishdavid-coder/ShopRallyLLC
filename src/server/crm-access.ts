@@ -2,9 +2,10 @@ import "server-only";
 
 import {
   buildAllowedNavHrefs,
-  buildAllowedSectionIds,
+  buildAllowedShellSectionIds,
   CRM_NAV_HREF_PERMISSIONS,
   isCrmAccessExemptPath,
+  isGrowthNavExemptHref,
   roTabSegmentAllowed,
   routeAllowedByPermissions,
   routeRuleForPath,
@@ -25,13 +26,16 @@ const HREF_PLAN_FEATURES: Partial<Record<string, SubscriptionFeature>> = {
   "/orders": "parts",
   "/vendors/integrations": "parts",
   "/maintenance-programs/subscribers": "maintenance_programs",
-  "/marketing/payment-account": "marketing_campaigns",
-  "/settings/marketing": "marketing_campaigns",
+  "/quick-labor": "motorLabor",
+  "/payments": "stripePayments",
+  "/payments/account": "stripePayments",
+  "/payments/terminals": "stripePayments",
   "/settings/booking": "booking",
   "/settings/markups": "markupMatrices",
   "/settings/markups/parts": "markupMatrices",
   "/settings/markups/labor": "markupMatrices",
   "/settings/communications/phone-sms": "sms",
+  "/messages": "sms",
   "/settings/payments": "stripePayments",
   "/settings/integrations/stripe": "stripePayments",
 };
@@ -44,19 +48,21 @@ type PlanRouteGate = {
 };
 
 /**
- * Deep route gates (settings / vendors). Main sidebar destinations
- * (Labor Book, Messages, Growth, Payments, Catalog) stay visible on Core so
- * shops see the full CRM IA — Pro features still enforce entitlement in-page.
+ * Deep route gates for Ignition/Core launch — Pro modules blocked at the route layer.
+ * Lead Sources (`/settings/marketing`) stays on Core (not Growth Engine).
  */
 const PLAN_ROUTE_GATES: PlanRouteGate[] = [
   { prefix: "/orders", feature: "parts", released: true },
   { prefix: "/vendors", feature: "parts", released: true },
-  { prefix: "/settings/marketing", feature: "marketing_campaigns", released: true },
+  { prefix: "/quick-labor", feature: "motorLabor", released: true },
+  { prefix: "/payments", feature: "stripePayments" },
   { prefix: "/settings/booking", feature: "booking", released: true },
   { prefix: "/settings/markups", feature: "markupMatrices" },
   { prefix: "/settings/communications/phone-sms", feature: "sms" },
+  { prefix: "/messages", feature: "sms", released: true },
   { prefix: "/settings/payments", feature: "stripePayments" },
   { prefix: "/settings/integrations/stripe", feature: "stripePayments" },
+  { prefix: "/maintenance-programs", feature: "maintenance_programs", released: true },
 ];
 
 const RELEASED_FEATURES = new Set<SubscriptionFeature>([
@@ -128,11 +134,8 @@ export async function getCrmAccessContext(shopId: string): Promise<CrmAccessCont
       ? Object.keys(CRM_NAV_HREF_PERMISSIONS)
       : buildAllowedNavHrefs(effective);
   const allowedNavHrefs = await filterNavHrefsByPlan(shopId, permissionHrefs);
-  const allowedSectionIds = buildAllowedSectionIds(effective, growthPlanOk);
-
-  if (effective === "all") {
-    return { effective, allowedNavHrefs, allowedSectionIds, growthPlanOk };
-  }
+  // Shell + CRM section ids — Growth omitted when plan/release is off (Core/Ignition).
+  const allowedSectionIds = buildAllowedShellSectionIds(effective, growthPlanOk);
 
   return {
     effective,
@@ -155,8 +158,16 @@ export async function checkCrmRouteAccess(
   const effective = await getEffectivePermissions(shopId);
 
   if (growthRoute(pathname)) {
-    // Grow pages stay reachable so Core shows the full Business → Growth IA;
-    // individual products still use canUseReleasedFeature inside the page.
+    // Stripe Connect wall under /marketing/payment-account stays reachable (own upsell).
+    if (!isGrowthNavExemptHref(pathname)) {
+      const features = await growthFeaturesForPath(pathname);
+      const ok = await Promise.all(
+        features.map((f) => canUseReleasedFeature(shopId, f)),
+      );
+      if (!ok.some(Boolean)) {
+        return { allowed: false, reason: "plan" };
+      }
+    }
     const rule = routeRuleForPath(pathname);
     if (rule && !routeAllowedByPermissions(effective, pathname)) {
       return { allowed: false, reason: "permission" };

@@ -129,7 +129,7 @@ type PartRow = {
   brand: string;
   description: string;
   /** Extra notes under the part — stored as description line 2+ (no PartLine.details column). */
-  details: string;
+  details?: string;
   partNumber: string;
   quantity: number;
   costCents: number;
@@ -706,7 +706,7 @@ export function EstimateJobCard({
   function addPartLookup() {
     if (!canEdit) return;
     if (!partsTech) {
-      toast("error", "PartsTech is on Pro+. Add parts manually or upgrade your plan.");
+      toast("error", "PartsTech isn't enabled for this shop. Add parts manually or check Settings → Subscription.");
       return;
     }
     if (onOpenParts) {
@@ -1869,10 +1869,10 @@ export function EstimateJobCard({
                 title={
                   partsTech
                     ? "PartsTech — search catalogs and import parts"
-                    : "PartsTech catalog is included on Pro and Elite"
+                    : "PartsTech isn't enabled for this shop"
                 }
               >
-                <ShoppingCart className="size-4" /> {partsTech ? "PartsTech" : "PartsTech (Pro+)"}
+                <ShoppingCart className="size-4" /> {partsTech ? "PartsTech" : "PartsTech (unavailable)"}
               </Button>
             </div>
           ) : null}

@@ -21,7 +21,8 @@ export async function countDecodeUsageThisMonth(shopId: string): Promise<number>
 
 /**
  * Record one successful provider hit (VIN decode or plate lookup that returned data).
- * Failed lookups must not call this. Does not hard-block — Core overage is allowed.
+ * Failed lookups must not call this. Ignition (NHTSA VIN) is unlimited / unmetered for billing;
+ * logging remains for analytics. Plate→VIN is Pro+ only.
  */
 export async function recordDecodeUsage(
   shopId: string,
@@ -61,7 +62,7 @@ export async function getDecodeUsageSummary(args: {
   };
 }
 
-/** Soft notice after a Core decode that is in or past the included allowance. */
+/** Soft notice when a metered plan is at/over its decode allowance (legacy; Ignition is unlimited). */
 export function decodeOverageNotice(summary: DecodeUsageSummary): string | null {
   if (summary.unlimited || summary.limit === null) return null;
   if (summary.usedThisMonth < summary.limit) return null;
@@ -69,7 +70,7 @@ export function decodeOverageNotice(summary: DecodeUsageSummary): string | null 
     summary.overageCentsEstimate > 0
       ? ` Estimated overage this month: $${(summary.overageCentsEstimate / 100).toFixed(0)} ($10 per additional 100).`
       : "";
-  return `You've used ${summary.usedThisMonth} of ${summary.limit} included VIN & plate decodes this month.${overage} Upgrade to Pro for unlimited, or continue — overage is billed manually until Stripe Billing.`;
+  return `You've used ${summary.usedThisMonth} of ${summary.limit} included paid VIN/plate lookups this month.${overage}`;
 }
 
 export function planDecodeLimit(plan: ShopPlan): number | null {

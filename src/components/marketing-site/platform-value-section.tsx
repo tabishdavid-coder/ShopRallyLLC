@@ -1,27 +1,54 @@
-import { Bot, BookOpen, BarChart3, ClipboardCheck, Globe, GraduationCap, MessageSquare, Repeat, Wrench, Zap } from "lucide-react";
+import {
+  BarChart3,
+  BookOpen,
+  Calendar,
+  ClipboardCheck,
+  Mail,
+  Package,
+  Sparkles,
+  Users,
+  Wrench,
+} from "lucide-react";
 
-import { DASHBOARD_PLAN_COPY, DVI_PLAN_COPY, LABOR_PLAN_COPY, PHASE_ONE_LAUNCH, PLANS } from "@/lib/plans";
+import {
+  DASHBOARD_PLAN_COPY,
+  DVI_PLAN_COPY,
+  PHASE_ONE_LAUNCH,
+  PLANS,
+  aiPlusPriceLabel,
+  planMarketingDisplayName,
+} from "@/lib/plans";
 
+const ignitionName = planMarketingDisplayName(PLANS.STARTER);
+
+/** Launch pillars — Ignition only. */
 const VALUE_PILLARS = [
   {
     icon: Wrench,
     title: "Run the shop",
     description: "Repair orders, job board, customers, vehicles, and inventory — connected end to end.",
-    tiers: `${PLANS.STARTER.name} & up`,
+    tiers: ignitionName,
+  },
+  {
+    icon: Package,
+    title: "PartsTech on the estimate",
+    description:
+      "Search supplier catalogs and punch parts onto the RO — included with Ignition at launch, not a bolt-on.",
+    tiers: `${ignitionName} · included`,
   },
   {
     icon: ClipboardCheck,
     title: "Digital vehicle inspections",
     description:
-      "MPI templates, photo markup on findings, red/yellow/green ratings, and customer share links — on every plan.",
+      "Multi-point photo checklists customers can see — markup on findings, red/yellow/green ratings, and share links.",
     tiers: DVI_PLAN_COPY.featuresAllTiers,
   },
   {
     icon: BookOpen,
-    title: "Labor & vehicle data",
+    title: "Canned jobs & shop labor",
     description:
-      "Licensed MOTOR on Pro and Elite (coming). Ignition includes 100 VIN & plate decodes / mo ($10 per extra 100); Pro and Elite will be unlimited, with OEM specs and fluid capacities on Pro+.",
-    tiers: LABOR_PLAN_COPY.featuresIgnition,
+      "Build estimates from your shop labor library and canned jobs. Licensed MOTOR stays on the Pro roadmap.",
+    tiers: ignitionName,
   },
   {
     icon: BarChart3,
@@ -31,41 +58,29 @@ const VALUE_PILLARS = [
     tiers: DASHBOARD_PLAN_COPY.featuresAllTiers,
   },
   {
-    icon: Zap,
-    title: "Get paid",
-    description: "Digital estimates & invoices via email, approval links, and Stripe Connect on Pro+.",
-    tiers: `${PLANS.STARTER.name} email · ${PLANS.PROFESSIONAL.name}+ payments`,
-  },
-  {
-    icon: MessageSquare,
-    title: "Grow locally",
-    description: "Two-way SMS, online booking, Growth Engine automations & win-back, and Google review management.",
-    tiers: `${PLANS.PROFESSIONAL.name}`,
-  },
-  {
-    icon: Globe,
-    title: "Get found",
-    description: "ShopSite ($99/mo) and Local SEO ($129/mo) — separate subscriptions, or $199/mo bundled. Launch setup once.",
-    tiers: `Add-ons or ${PLANS.ENTERPRISE.name} included`,
-  },
-  {
-    icon: Repeat,
-    title: "Recurring revenue",
-    description: "Maintenance programs with a customer member portal.",
-    tiers: PLANS.ENTERPRISE.name,
-  },
-  {
-    icon: GraduationCap,
-    title: "White-glove onboarding",
+    icon: Mail,
+    title: "Email estimates & invoices",
     description:
-      "Dedicated onboarding specialist and migration included on Elite — Ignition is self-serve with demo support.",
-    tiers: PLANS.ENTERPRISE.name,
+      "Send approval and invoice links by email. Manual payment recording in-shop. Card collect via Stripe Connect comes later on Pro.",
+    tiers: ignitionName,
   },
   {
-    icon: Bot,
-    title: "AI when you need it",
-    description: "After-hours receptionist, review reply drafting, campaign drafting, and SEO content.",
-    tiers: PLANS.ENTERPRISE.name,
+    icon: Calendar,
+    title: "Appointments",
+    description: "Keep the calendar tied to customers, vehicles, and repair orders.",
+    tiers: ignitionName,
+  },
+  {
+    icon: Users,
+    title: "Unlimited users & ROs",
+    description: "No seat tax for advisors and techs. One Ignition price per location.",
+    tiers: ignitionName,
+  },
+  {
+    icon: Sparkles,
+    title: "AI Plus (recommended)",
+    description: `Paste a note → draft RO. Labor assist + advisor app — ${aiPlusPriceLabel()} on Ignition.`,
+    tiers: `Recommended · ${aiPlusPriceLabel()}`,
   },
 ] as const;
 
@@ -76,11 +91,14 @@ export function PlatformValueSection() {
         <div className="mx-auto max-w-2xl text-center">
           <p className="text-xs font-semibold uppercase tracking-wider text-brand-red">What you get</p>
           <h2 className="mt-3 text-3xl font-bold text-brand-navy sm:text-4xl">
-            {PHASE_ONE_LAUNCH ? "One plan to start — room to grow" : "Premium platform — pick your tier"}
+            {PHASE_ONE_LAUNCH
+              ? `${ignitionName} — launching Q4 2026`
+              : "Premium platform — pick your tier"}
           </h2>
           <p className="mt-4 text-slate-600">
-            CRM, marketing, payments, and AI — with live training included from day one, not sold as an
-            onboarding upsell.
+            {PHASE_ONE_LAUNCH
+              ? "Shop CRM for the bay: estimates, PartsTech, digital vehicle inspections, job board, appointments, and live ops — without selling Pro modules as if they're live today."
+              : "CRM, marketing, payments, and AI — with live training included from day one."}
           </p>
         </div>
 

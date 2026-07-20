@@ -19,17 +19,21 @@ Track every change on branch `cursor/core-plan-fidelity-5e7c` so we can merge sa
 | 2026-07-13 | Vehicle decode | Core: no Auto.dev plate→VIN — manual plate entry + NHTSA VIN only (`autodevDecoding` plan gate) | `plans.ts`, `vehicles.ts`, `vin.ts`, vehicle drawer/edit/add dialogs | ⬜ Macuto verify |
 | 2026-07-13 | Settings | Prune Core admin settings to plan-included sections; redirect blocked settings → Subscription | `settings-plan-gates.ts`, settings layout/nav | ⬜ Macuto verify |
 | 2026-07-13 | AI intake | Smart RO Intake gated to Core + AI Plus add-on only | `plans.ts`, `shop-capabilities.tsx`, `smart-ro-intake.ts` | ⬜ Macuto verify |
-| 2026-07-14 | PartsTech | **Open PR #26** — keep PartsTech fully gated off Core (nav / Parts Center / Vendor Connect / `testVendorConnection`) | `nav.ts`, `module-subnav.tsx`, `shop-capabilities.tsx`, `vendor-integrations.ts` | ⬜ pending merge |
-| 2026-07-14 | Vehicle form | **Open PR #27** — free-type Year/Make/Model/Trim on Core (skip catalog pickers); hide registration state from VIN decode header | `add-vehicle-dialog.tsx`, vehicle form controls | ⬜ pending merge |
-| 2026-07-14 | Customer drawer | **Open PR #29** — hide Finances tab on Core; remove Credit Memo stub from drawer rail | `estimate-lab-context-drawer*.tsx` | ⬜ pending merge |
+| 2026-07-14 | PartsTech | **Merged PR #26** — PartsTech fully gated off Core (nav / Parts Center / Vendor Connect / `testVendorConnection`) | `nav.ts`, `module-subnav.tsx`, `shop-capabilities.tsx`, `vendor-integrations.ts` | ✅ on main |
+| 2026-07-14 | Vehicle form | **Merged PR #27** — free-type Year/Make/Model/Trim on Core; hide registration state from VIN decode header | `add-vehicle-dialog.tsx`, vehicle form controls | ✅ on main |
+| 2026-07-14 | Customer drawer | **Merged PR #29** — hide Finances tab on Core; remove Credit Memo stub from drawer rail | `estimate-lab-context-drawer*.tsx` | ✅ on main |
+| 2026-07-19 | Nav / routes | Ignition go-live: Growth section uses real caps; hide Payments hub + Labor Book on Core; `/messages` route gated; Lead Sources stays; `maintenancePrograms` capability | `crm-access.ts`, `ap-sidebar.tsx`, `shop-capabilities.tsx`, `(app)/layout.tsx` | ✅ code landed |
+| 2026-07-19 | Payments | Staff Stripe Collect fail-closed on Core (`startStaffInvoiceCheckout`) | `payments.ts`, `stripe-connect.ts` | ✅ code landed |
+| 2026-07-19 | Billing | Ignition + AI Plus Stripe Checkout (platform prices) + webhook `shop_plan` | `plan-stripe-checkout.ts`, `billing.ts`, `subscription-billing-actions.tsx` | ✅ code landed |
+| 2026-07-19 | Docs | Go-live + server audit + founding-shop ops | `docs/IGNITION-GO-LIVE.md`, `CORE-SERVER-AUDIT.md`, `PLATFORM-FOUNDING-SHOPS.md` | — |
 
-### Open Core gatekeeping PRs (not yet on `main`)
+### Gatekeeping PRs (merged)
 
-| PR | Branch | Intent |
+| PR | Intent | Status |
 |----|--------|--------|
-| [#26](https://github.com/tabishdavid-coder/ShopRallyLLC/pull/26) | `cursor/core-partstech-gate-keep-5e7c` | PartsTech stays off Core |
-| [#27](https://github.com/tabishdavid-coder/ShopRallyLLC/pull/27) | `cursor/core-manual-ymm-type-5e7c` | Manual YMM typing + VIN header cleanup |
-| [#29](https://github.com/tabishdavid-coder/ShopRallyLLC/pull/29) | `cursor/core-hide-finances-tab-5e7c` | Hide Finances / Credit Memo on Core |
+| [#26](https://github.com/tabishdavid-coder/ShopRallyLLC/pull/26) | PartsTech stays off Core | ✅ merged |
+| [#27](https://github.com/tabishdavid-coder/ShopRallyLLC/pull/27) | Manual YMM typing + VIN header cleanup | ✅ merged |
+| [#29](https://github.com/tabishdavid-coder/ShopRallyLLC/pull/29) | Hide Finances / Credit Memo on Core | ✅ merged |
 
 ### Template (copy for new rows)
 

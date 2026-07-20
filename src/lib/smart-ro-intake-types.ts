@@ -1,6 +1,6 @@
 /** Smart RO Intake — Gemini structured payload (staging only until user confirms). */
 
-export const SMART_RO_ADDON_LABEL = "$20/mo · Core add-on (AI Plus)";
+export const SMART_RO_ADDON_LABEL = "$49.99/mo · Core add-on (AI Plus)";
 
 export const CONFIDENCE_WARN_THRESHOLD = 70;
 

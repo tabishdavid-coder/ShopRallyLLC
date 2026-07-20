@@ -52,4 +52,4 @@ export type FreeformRoDraft = {
   suggestedCustomerIds: string[];
 };
 
-export const FREEFORM_RO_ADDON_LABEL = "$20/mo add-on";
+export const FREEFORM_RO_ADDON_LABEL = "$49.99/mo add-on";

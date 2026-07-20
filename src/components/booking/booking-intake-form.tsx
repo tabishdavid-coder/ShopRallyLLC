@@ -66,7 +66,7 @@ type Props = {
   defaultDurationMins: number;
   dropOffEnabled?: boolean;
   dropOffLabel?: string;
-  /** Pro+ Auto.dev plate→VIN — false on Core (manual plate + NHTSA VIN only). */
+  /** Pro+ Auto.dev plate→VIN — false on Core (NHTSA VIN only). */
   plateLookupEnabled?: boolean;
 };
 

@@ -14,9 +14,9 @@ When a shop is on **Core**, this document defines what they **see**, **can click
 const starterFeatures: PlanFeatureSet = {
   maxUsers: null,
   maxRepairOrdersPerMonth: null,
-  maxVinPlateDecodesPerMonth: VIN_PLATE_DECODE_PLAN_COPY.coreIncluded,
+  maxVinPlateDecodesPerMonth: null, // unlimited NHTSA VIN
   cannedJobs: true,
-  partsTech: false,
+  partsTech: true,
   laborGuide: true,
   motorLabor: false,
   customerEmail: true,
@@ -59,7 +59,7 @@ const starterFeatures: PlanFeatureSet = {
 | `/maintenance-programs/**` | ❌ | Same | ⬜ verify |
 | Messages / SMS inbox prominence | ❌ | `capabilities.sms` in shell | ⬜ verify |
 | Payments nav / Stripe Connect | ❌ | Manual Record path; Stripe Collect hidden | 🟡 gated 2026-07-13 |
-| Customer drawer Finances / Credit Memo | ❌ | Drawer tab + stub removed (PR #29) | 🟡 open PR |
+| Customer drawer Finances / Credit Memo | ❌ | Drawer tab + stub removed (PR #29 merged) | ✅ |
 | Reports (basic) | ✅ | `reports: true` | ⬜ verify |
 | Settings → Subscription | ✅ | Shows Core plan; blocked settings redirect | 🟡 gated 2026-07-13 |
 
@@ -73,10 +73,10 @@ const starterFeatures: PlanFeatureSet = {
 | Licensed MOTOR (BOOK) hours | ❌ | Hidden + server blocked (`motorEnabledForShop`) |
 | Labor Book nav / toolbar lookup | ❌ | Hidden on Core (2026-07-13) |
 | AI labor drafts / Smart intake | Core + AI Plus add-on only | Gated 2026-07-13 |
-| Free-type YMM (no catalog required) | ✅ | Open PR #27 |
+| Free-type YMM (no catalog required) | ✅ | PR #27 merged |
 | Markup matrices auto-apply | ❌ | `markupMatrices: false` |
-| PartsTech ordering / Vendor Connect | ❌ | `partsTech: false` — keep gate (open PR #26) |
-| Auto.dev plate→VIN | ❌ | Manual plate + NHTSA VIN only |
+| PartsTech ordering / Vendor Connect | ✅ | `partsTech: true` on Ignition (2026-07-19 packaging) |
+| Auto.dev plate→VIN | ❌ | Unlimited NHTSA VIN only |
 
 **Known gap (2026-07-12):** `motorEnabledForShop` exists but resolver may still serve MOTOR when platform env is on — **must enforce per shop**.
 

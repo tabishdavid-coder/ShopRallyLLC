@@ -7,13 +7,19 @@ import { Building2, Shield, Wrench } from "lucide-react";
 import { ShopRallyLogo } from "@/components/brand/shoprally-logo";
 
 import { Button } from "@/components/ui/button";
+import {
+  MARKETING_LAUNCH,
+  marketingPrimaryCta,
+  marketingPrimaryHref,
+} from "@/lib/marketing-launch";
 import { cn } from "@/lib/utils";
 
 const PORTALS = [
   {
     id: "shop",
     title: "Shop CRM",
-    description: "Service writers, advisors, techs, and shop owners — manage repair orders, customers, and daily operations.",
+    description:
+      "Service writers, advisors, techs, and shop owners — manage repair orders, customers, and daily operations.",
     href: "/dashboard",
     icon: Wrench,
     cta: "Sign in to shop",
@@ -32,9 +38,41 @@ const PORTALS = [
   },
 ] as const;
 
-export function LoginPageContent() {
+type LoginPageContentProps = {
+  /** Production without Clerk — hide stub “Continue to shop/platform” entry. */
+  marketingOnlyProduction?: boolean;
+};
+
+export function LoginPageContent({ marketingOnlyProduction = false }: LoginPageContentProps) {
   const searchParams = useSearchParams();
   const highlight = searchParams.get("portal") === "platform" ? "platform" : "shop";
+
+  if (marketingOnlyProduction) {
+    return (
+      <div className="mx-auto max-w-xl px-4 py-16 sm:px-6 sm:py-24">
+        <div className="text-center">
+          <ShopRallyLogo href="/" size="sm" className="mx-auto" />
+          <h1 className="mt-6 text-3xl font-bold text-brand-navy">Shop access opens Q4 2026</h1>
+          <p className="mx-auto mt-3 max-w-md text-slate-600">
+            ShopRally CRM isn&apos;t open for sign-in yet. Reserve one of{" "}
+            {MARKETING_LAUNCH.foundingSpotsTotal} founding seats and we&apos;ll invite you when
+            Ignition launches.
+          </p>
+          <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+            <Button size="lg" className="bg-brand-navy" asChild>
+              <Link href={marketingPrimaryHref()}>{marketingPrimaryCta()}</Link>
+            </Button>
+            <Button size="lg" variant="outline" className="border-brand-navy text-brand-navy" asChild>
+              <Link href="/demo">Book a demo</Link>
+            </Button>
+          </div>
+          <p className="mx-auto mt-4 max-w-sm text-xs text-slate-500">
+            {MARKETING_LAUNCH.cta.primaryHintPreLaunch}
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="mx-auto max-w-4xl px-4 py-16 sm:px-6 sm:py-24">
@@ -42,7 +80,8 @@ export function LoginPageContent() {
         <ShopRallyLogo href="/" size="sm" className="mx-auto" />
         <h1 className="mt-6 text-3xl font-bold text-brand-navy">Sign in to ShopRally</h1>
         <p className="mx-auto mt-2 max-w-lg text-slate-600">
-          Choose where you&apos;re headed. Shop staff use the CRM; platform operators use the admin console.
+          Choose where you&apos;re headed. Shop staff use the CRM; platform operators use the admin
+          console.
         </p>
       </div>
 
@@ -79,8 +118,8 @@ export function LoginPageContent() {
         </div>
         <p className="mt-3 text-sm font-medium text-brand-navy">Secure sign-in coming soon</p>
         <p className="mx-auto mt-1 max-w-md text-xs text-slate-600">
-          Full Clerk authentication is on the roadmap. For now, development access routes directly to your
-          shop dashboard or platform console.
+          Full Clerk authentication is on the roadmap. For now, development access routes directly to
+          your shop dashboard or platform console.
         </p>
         <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
           <Button size="sm" className="bg-brand-navy" asChild>
@@ -94,8 +133,8 @@ export function LoginPageContent() {
 
       <p className="mt-8 text-center text-sm text-slate-500">
         New here?{" "}
-        <Link href="/signup" className="font-semibold text-brand-red hover:underline">
-          Start your 14-day free trial
+        <Link href="/launch" className="font-semibold text-brand-red hover:underline">
+          {marketingPrimaryCta()}
         </Link>
       </p>
     </div>

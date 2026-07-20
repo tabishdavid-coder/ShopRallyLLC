@@ -66,6 +66,7 @@ export function AutopilotShell({
     motorLabor: false,
     partsTech: false,
     marketingCampaigns: false,
+    maintenancePrograms: false,
     vehicleSpecs: false,
     autodevDecoding: false,
     freeformRoIntake: false,

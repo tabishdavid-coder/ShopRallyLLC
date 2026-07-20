@@ -38,7 +38,7 @@ export type BillingUsage = {
   vinPlateDecodesThisMonth: number;
   /** null = unlimited (Pro / Elite). */
   vinPlateDecodesLimit: number | null;
-  /** Estimated overage cents for Core ($10 / 100 after included). Not auto-charged yet. */
+  /** Estimated overage cents when a decode meter applies. Ignition is unlimited (always 0). */
   vinPlateOverageCentsEstimate: number;
 };
 
@@ -86,7 +86,8 @@ export const BILLING_PLAN_FEATURES: Record<
       "Live Operations Daily Snapshot",
       "Appointments",
       "Payment tracking",
-      "NHTSA VIN decode",
+      "Unlimited NHTSA VIN decode",
+      "PartsTech catalog & punchout",
       "Inventory basics & shop catalog",
     ],
   },
@@ -97,7 +98,7 @@ export const BILLING_PLAN_FEATURES: Record<
       "Unlimited VIN & plate decoding",
       "OEM service specs",
       "OEM fluid capacities",
-      "Parts, inventory & PartsTech",
+      "Advanced inventory workflows",
       "Stripe Connect payments",
       "Two-way SMS",
       "Online booking",

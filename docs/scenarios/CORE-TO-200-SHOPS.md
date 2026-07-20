@@ -1,6 +1,6 @@
 # ShopRally Scale Plan — Core → 200 + AI Instant Quote
 
-> **Updated packaging (2026-07-14):** Ignition is locked at **$49.99/mo** + **AI Plus $20/mo** (mobile included).  
+> **Updated packaging (2026-07-19):** Ignition is locked at **$89.99/mo** (PartsTech included) + **AI Plus $49.99/mo**.  
 > Use the new outlook: **[`IGNITION-200-OUTLOOK.md`](./IGNITION-200-OUTLOOK.md)** · screen [`ignition-200-outlook.html`](./ignition-200-outlook.html) · investor pitch [`ignition-investor-pitch.md`](./ignition-investor-pitch.md) / [`ignition-investor-pitch.html`](./ignition-investor-pitch.html) · `node scripts/ignition-200-outlook.mjs`  
 
 > This document keeps the earlier higher-price Core scenario for comparison.
@@ -36,7 +36,7 @@
 
 | Item | Detail | Price / limit |
 |------|--------|---------------|
-| Core CRM | Job board, ROs, DVIs, email share, shop labor library, 100 VIN/plate | $119 / $109 annual |
+| Core CRM | Job board, ROs, DVIs, email share, shop labor library, PartsTech, unlimited NHTSA VIN | $89.99 / $84.99 annual |
 | AI Instant Quote (included) | NL → YMM + job + ballpark $ | **40 quotes/mo** |
 | AI Instant Quote add-on | Higher allowance · sales wedge | **$39/mo** |
 | AI overage | Beyond free tier (heavy non-addon users) | **$15 / 100** |

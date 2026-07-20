@@ -1,18 +1,18 @@
 # Dev 3031 — build state (ShopRallyCRM)
 
-Last updated: 2026-07-18 (vehicle-spec AI memory)
+Last updated: 2026-07-19 (Ignition go-live gates)
 
 > **Canonical dev:** **`ShopRally/`** folder only — `npm run dev` → :3031. See `docs/SHOPRALLY-DEV.md`.
 > Do **not** develop shop CRM in the sibling `karvio/` folder (legacy platform fork).
 
-## Active session — Macuto Core QA
+## Active session — Ignition (Core) market go-live
 
-**Tracking branch:** `cursor/core-plan-fidelity-5e7c` (docs + changelog; product gates land via focused PRs)  
-**QA shop:** **Macuto Auto Repair** (`shop_macuto`, code **MAC**) — platform admin default tenant  
-**Plan:** Core (`STARTER`) @ $49.99/mo · optional AI Plus add-on  
-**On `main`:** phase-one rebrand, settings prune, estimate-toolbar / growth / Labor Book / payments / Auto.dev plate gates  
-**Open Core gate PRs:** [#26](https://github.com/tabishdavid-coder/ShopRallyLLC/pull/26) PartsTech · [#27](https://github.com/tabishdavid-coder/ShopRallyLLC/pull/27) free-type YMM · [#29](https://github.com/tabishdavid-coder/ShopRallyLLC/pull/29) Finances tab  
-**Track:** `docs/CORE-PLAN-FIDELITY.md` · `agents/ShopRallyCRM/CORE-PLAN-FIDELITY-CHANGELOG.md` · `src/lib/settings-plan-gates.ts`
+**QA shop:** **Macuto Auto Repair** (`shop_macuto`) — verified `plan=STARTER` in DB  
+**Plan:** Ignition / Core (`STARTER`) @ $59.99/mo · optional AI Plus $49.99/mo  
+**Landed:** Growth/Payments/Labor Book/Messages chrome + route gates; Stripe Collect fail-closed; Ignition+AI Plus Checkout; ops docs  
+**PRs #26/#27/#29:** merged  
+**Ops docs:** `docs/IGNITION-GO-LIVE.md` · `docs/CORE-SERVER-AUDIT.md` · `docs/PLATFORM-FOUNDING-SHOPS.md`  
+**Track:** `docs/CORE-PLAN-FIDELITY.md` · `agents/ShopRallyCRM/CORE-PLAN-FIDELITY-CHANGELOG.md`
 
 ### Quick open
 
@@ -26,6 +26,7 @@ npm run dev
 
 ## Done
 
+- [x] **Ignition go-live product+ops (2026-07-19)** — Core nav/route fidelity (Growth, Payments hub, Labor Book, Messages); staff Stripe Collect fail-closed; Ignition + AI Plus platform Checkout + webhook; `/pricing` Ignition-only (`PHASE_ONE_LAUNCH`); Macuto STARTER verified; P0 checklists in `PHASED-ROLLOUT` / `IGNITION-GO-LIVE`. Operator still sets Vercel Clerk/`APP_URL`/Resend/release kills + Stripe Price IDs.
 - [x] **Vehicle spec UX + AI audit (2026-07-18)** — SnagIt frame analysis (Tekmetric C2451C6F ~13.6s fluids sidebar; AutoLeap E329F843 ~16.7s spec modal) + ShopRally capability matrix. Memory: `agents/ShopRallyCRM/VEHICLE-SPEC-AI-MEMORY.md`. No implementation yet; next = YMM→EPA catalog enrichment without VIN gate.
 - [x] **Job Board redesign (2026-07-18)** — `/job-board` kanban cards/columns restyled for Tekmetric-inspired scan hierarchy (status pill, RO#, created-ago, customer+phone, vehicle, total) with ShopRally navy/light-blue/red chrome (left rail accent, no teal WIP). DnD, menus, search/filters, RO links preserved. Verify: http://localhost:3031/job-board
 - [x] **Shop-owned email go-live path (2026-07-18)** — Product decision: **the shop owns their email** (From name / From address / Reply-to in Settings → Communications → Email). Platform Resend is transport only; Share + other CRM outbound use `sendShopEmail` with that identity. Doc: `docs/SHOP-EMAIL.md` (operator go-live checklist). Ready/Not-ready UX + Enable/test CTAs + Resend helper banner; `getShopEmailSendStatus` for share roles; provision + seed defaults (`emailEnabled` false until enable/test). **Local audit:** `RESEND_API_KEY` absent → mock/mailto; live DB demo shops have From fields null until Settings filled (seed defaults only apply on fresh seed). Deferred: DNS wizard, per-shop Resend keys, HTML templates, EmailSendLog.

@@ -155,6 +155,8 @@ type PartRow = {
   id?: string;
   brand: string;
   description: string;
+  /** Optional notes under the part (newline-joined with description when persisted). */
+  details?: string;
   partNumber: string;
   quantity: number;
   costCents: number;

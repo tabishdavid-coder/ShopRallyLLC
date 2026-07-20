@@ -38,10 +38,12 @@ import {
 import { subnavBarClass, subnavTabClass } from "@/lib/subnav-styles";
 import { cn } from "@/lib/utils";
 import {
+  PHASE_ONE_LAUNCH,
   PLANS,
   PUBLIC_PLAN_ORDER,
   billingStatusLabel,
   formatPriceFromCents,
+  planMarketingDisplayName,
   planDisplayPrice,
 } from "@/lib/plans";
 import type { ShopPlan } from "@/generated/prisma";
@@ -49,6 +51,7 @@ import type { BillingOverview, BillingInvoice } from "@/lib/billing-shared";
 import { BILLING_PLAN_FEATURES, comparePlanAction } from "@/lib/billing-shared";
 import type { PlanFeature } from "@/lib/plans";
 import { settingsUpgradeLabel } from "@/lib/settings-plan-gates";
+import { SubscriptionBillingActions } from "@/components/settings/subscription-billing-actions";
 import {
   createBillingPortalSession,
   createUpgradeCheckoutSession,
@@ -87,11 +90,12 @@ export function BillingModule({
       <div>
         <h1 className="text-xl font-bold tracking-tight">Billing</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Your ShopRally subscription — separate from{" "}
-          <Link href="/payments" className="font-medium text-brand-navy hover:underline">
-            customer payments
-          </Link>{" "}
-          (Stripe Connect).
+          Your ShopRally subscription
+          {PHASE_ONE_LAUNCH ? " (Ignition)" : ""}
+          {overview.subscription.plan === "STARTER"
+            ? " — customer card capture (Stripe Connect) is on Pro+"
+            : " — separate from customer payments (Stripe Connect)"}
+          .
         </p>
       </div>
 
@@ -132,7 +136,7 @@ function YourPlanTab({ overview }: { overview: BillingOverview }) {
               Current plan
             </p>
             <div className="mt-1 flex flex-wrap items-center gap-2">
-              <h2 className="text-2xl font-bold">{def.name}</h2>
+              <h2 className="text-2xl font-bold">{planMarketingDisplayName(def)}</h2>
               <span className="inline-flex items-center gap-1 text-lg font-semibold tabular-nums">
                 {planDisplayPrice(def, false)}
                 <span className="text-sm font-normal text-muted-foreground">/shop/month</span>
@@ -181,6 +185,24 @@ function YourPlanTab({ overview }: { overview: BillingOverview }) {
             </dd>
           </div>
         </dl>
+
+        {plan === "STARTER" ? (
+          <div className="mt-5 border-t pt-4">
+            <p className="mb-2 text-sm font-medium">
+              {subscription.billingStatus === "ACTIVE" && subscription.stripeCustomerId
+                ? "Manage Ignition & AI Plus"
+                : "Activate Ignition billing"}
+            </p>
+            <SubscriptionBillingActions
+              showIgnitionCheckout={
+                subscription.billingStatus !== "ACTIVE" || !subscription.stripeCustomerId
+              }
+              showAiPlusCheckout
+              aiPlusEnabled={Boolean(subscription.features.freeformRoIntake)}
+              showBillingPortal={Boolean(subscription.stripeCustomerId)}
+            />
+          </div>
+        ) : null}
       </div>
 
       <UsageMeters usage={usage} plan={plan} />
@@ -292,7 +314,7 @@ function PlanColumn({
           Most Popular
         </span>
       ) : null}
-      <p className="text-lg font-bold">{plan.name}</p>
+      <p className="text-lg font-bold">{planMarketingDisplayName(plan)}</p>
       <p className="mt-1 text-2xl font-bold tabular-nums">
         {planDisplayPrice(plan, false)}
         <span className="text-sm font-normal text-muted-foreground"> /shop/month</span>
@@ -305,10 +327,19 @@ function PlanColumn({
       <p className="mt-2 min-h-[2.5rem] text-sm text-muted-foreground">{plan.tagline}</p>
 
       <div className="mt-4">
-        {action === "current" ? (
+        {action === "current" && billingStatus === "ACTIVE" ? (
           <Button className="w-full bg-brand-navy" disabled>
             <Check className="mr-1.5 size-4" />
             Current plan
+          </Button>
+        ) : action === "current" ? (
+          <Button
+            className="w-full bg-brand-navy"
+            disabled={pending}
+            onClick={handlePlanAction}
+          >
+            {pending ? <Loader2 className="size-4 animate-spin" /> : null}
+            Subscribe
           </Button>
         ) : (
           <Button
@@ -353,7 +384,7 @@ function UsageMeters({
     usage.vinPlateOverageCentsEstimate > 0
       ? `$${(usage.vinPlateOverageCentsEstimate / 100).toFixed(0)} estimated overage ($10 / 100) — billed manually until Stripe Billing`
       : plan === "STARTER"
-        ? "Included allowance · $10 per additional 100 after 100"
+        ? "Unlimited NHTSA VIN decode"
         : null;
 
   return (
@@ -374,7 +405,7 @@ function UsageMeters({
           limit={usage.repairOrdersLimit}
         />
         <UsageMeter
-          label="VIN & plate decodes"
+          label={plan === "STARTER" ? "NHTSA VIN decode" : "VIN & plate decodes"}
           used={usage.vinPlateDecodesThisMonth}
           limit={usage.vinPlateDecodesLimit}
           footnote={decodeOverage}

@@ -3,7 +3,7 @@
 Guidance for AI assistants (Claude Code / Cursor) working in this repo.
 Read this and `PROJECT_SPEC.md` at the start of every session.
 
-**Folder:** `shoprally/` (formerly `repairpilot2/`). Legacy `repairpilot/` is archived.
+**Folder:** `ShopRally/` (this repo). Legacy `repairpilot/` is archived as `_archive-repairpilot/`.
 
 ---
 
@@ -85,8 +85,8 @@ multi-tenant rules, file storage, and background-job plan.
   `--destructive` = red, `--ring` = dark blue, `--accent` = gentle light-blue hover wash,
   `--chart-3`/`--sidebar-ring` = light blue. **Sidebar = dark blue with a RED active state**
   (`--sidebar-primary` = brand red). `--radius: 0.4rem` (tight/enterprise).
-  Sidebar header: white **RP** monogram tile (navy R + red P) + "Repair"+red"Pilot"
-  wordmark. Dashboard hero = navy→red gradient; KPI chips navy/red/green/amber.
+  Sidebar header: ShopRally mark + wordmark (see `BRAND` / brand kit). Dashboard hero =
+  navy→red gradient; KPI chips navy/red/green/amber.
   **Semantic colors kept** (NOT rebranded): inspection R/Y/G, status pills
   (In-Progress blue / Completed green), error red, money/payment green, the
   green "Add labor" + button in the labor guide. Charts: chart-1 navy, chart-2 red.

@@ -20,9 +20,13 @@ Annual rates shown on `/pricing` (list / monthly billing in parentheses):
 
 | Plan | Annual /mo | Monthly /mo | Headline offer |
 |------|------------|-------------|----------------|
-| **Core** | **$44.99** | $49.99 | Unlimited users & ROs, job board + RO workspace, canned jobs & shop labor library, digital estimates/approvals/invoices (email), digital vehicle inspections, **Live Operations Daily Snapshot**, appointments, payment tracking, NHTSA VIN decode, inventory basics; **no SMS**, **no Stripe Connect**, **no licensed MOTOR** |
-| **Pro** | **$239** | $279 | Everything in Core, plus licensed MOTOR, **unlimited** VIN & plate decode, OEM specs & fluid capacities, PartsTech, **two-way SMS**, **Stripe Connect**, online booking, Growth Engine (automations & win-back), Google review management |
+| **Core** | **$84.99** | $89.99 | Unlimited users & ROs, job board + RO workspace, **PartsTech catalog & punchout**, canned jobs & shop labor library, digital estimates/approvals/invoices (email), digital vehicle inspections, **Live Operations Daily Snapshot**, appointments, payment tracking, **unlimited NHTSA VIN decode**, inventory basics; **no SMS**, **no Stripe Connect**, **no licensed MOTOR** |
+| **Pro** | **$239** | $279 | Everything in Core, plus licensed MOTOR, **unlimited VIN & plate decode** (Auto.dev), OEM specs & fluid capacities, PartsTech, **two-way SMS**, **Stripe Connect**, online booking, Growth Engine (automations & win-back), Google review management |
 | **Elite** | **$409** | $479 | Everything in Pro, plus AI receptionist + review replies, ShopSite & Local SEO included ($228/mo value), maintenance programs, AI SEO/campaign drafting, dedicated onboarding · migration included |
+
+**Ignition (public):** Core marketed as **Ignition** at **$89.99/mo** ($84.99/mo annual) with **PartsTech included**. Optional **AI Plus $49.99/mo** (Core-only).
+
+**Launch (pre-GA):** Public site says **launching Q4 2026**, **50 founding seats**, **not available yet** — CTAs reserve a seat (waitlist), not instant software access. Flip when `MARKETING_LAUNCH.preLaunch = false`.
 
 **Web presence add-ons (Core/Pro):** ShopSite **$99/mo**, Local SEO **$129/mo**, bundle **$199/mo** (+ launch setup). Included on Elite.
 

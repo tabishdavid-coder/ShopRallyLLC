@@ -13,7 +13,7 @@ Your job is to build and maintain **ShopSite** (customer microsites), the **shop
 | **Platform pipeline** | Platform operator | `/platform/websites/**` |
 | **Host routing** | Middleware | custom domains → `/sites/{slug}` |
 
-**Not in scope:** ShopRally.com marketing (`src/app/(marketing)/`), general CRM shell, RO workspace, SEO Autopilot tabs (unless coordinating on shared domain/GSC actions).
+**Not in scope:** getShopRally.com marketing (`src/app/(marketing)/`), general CRM shell, RO workspace, SEO Autopilot tabs (unless coordinating on shared domain/GSC actions).
 
 ---
 

@@ -1,8 +1,9 @@
 # Phased rollout — protect live shops
 
-**Last updated:** 2026-07-10  
+**Last updated:** 2026-07-19  
 **Code:** `src/lib/release-flags.ts`, `src/lib/subscription.ts` (`isReleased` / `canUseReleasedFeature`)  
-**Ops:** Platform → Shops → shop detail → **Release flags**
+**Ops:** Platform → Shops → shop detail → **Release flags**  
+**Ignition go-live:** [`docs/IGNITION-GO-LIVE.md`](./IGNITION-GO-LIVE.md) · server audit [`docs/CORE-SERVER-AUDIT.md`](./CORE-SERVER-AUDIT.md) · founding shops [`docs/PLATFORM-FOUNDING-SHOPS.md`](./PLATFORM-FOUNDING-SHOPS.md)
 
 ---
 
@@ -140,20 +141,24 @@ Before inviting the first paying founding shop:
 
 ### Billing
 - [ ] `APP_URL` set to production domain
-- [ ] Plan assignment (Core) on founding shops
-- [ ] Stripe Connect optional for P0; document if deferred
+- [ ] Plan assignment (Core / STARTER) on founding shops
+- [ ] Stripe Connect **deferred** for Ignition (manual Record only) — see `docs/stripe-connect-shop-payments.md`
+- [ ] Optional fast follow: `STRIPE_PRICE_IGNITION_MONTHLY` / `ANNUAL` + `STRIPE_PRICE_AI_PLUS_MONTHLY` (platform Checkout, not Connect)
 
 ### Release safety
 - [ ] Confirm `VERCEL_ENV=production` → Phase 1+ modules dark by default
+- [ ] Prod env: `RELEASE_FLAGS_OPEN=false` (or unset; production defaults dark)
+- [ ] Kill switches in Vercel: `SMS_ENABLED=false`, `MOTOR_ENABLED=false`, `RELEASE_KILL_*` as needed
 - [ ] Platform admin can open **Release flags** on a shop detail page
-- [ ] Kill switches documented in Vercel env
-- [ ] SMS / MOTOR / PartsTech / Growth return clear “not released” errors when dark
+- [ ] SMS / MOTOR / PartsTech / Growth return clear “not released” / plan errors when dark (see `docs/CORE-SERVER-AUDIT.md`)
 
 ### Ops
 - [ ] Neon prod backups / point-in-time recovery enabled
-- [ ] `prisma migrate deploy` in CI/CD
-- [ ] Twilio / Resend webhooks point at prod domain only when those modules release
-- [ ] Support contact path works (`/support` or email)
+- [ ] `prisma migrate deploy` in CI/CD (never `db push` in prod)
+- [ ] Resend configured for estimate/invoice/approve email (`RESEND_API_KEY`)
+- [ ] Twilio webhooks point at prod domain only when SMS releases
+- [ ] Support contact path works (`/support` + `PLATFORM_CONTACT_EMAIL`)
 
 ### Preview gate
 - [ ] Last P0 PR passed Vercel Preview smoke above before merge to `main`
+- [ ] Macuto + one freshly provisioned Core shop bay loop (see `docs/PLATFORM-FOUNDING-SHOPS.md`)

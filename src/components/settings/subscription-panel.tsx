@@ -2,6 +2,7 @@ import Link from "next/link";
 import { ExternalLink, Sparkles } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
+import { SubscriptionBillingActions } from "@/components/settings/subscription-billing-actions";
 import {
   PLANS,
   PHASE_ONE_LAUNCH,
@@ -52,6 +53,8 @@ export function SubscriptionPanel({
   planName,
   planTagline,
   upgradeFeature,
+  planFeaturesOverride,
+  hasStripeCustomer,
 }: {
   plan: ShopPlan;
   billingStatus: BillingStatus;
@@ -59,12 +62,20 @@ export function SubscriptionPanel({
   planName: string;
   planTagline: string;
   upgradeFeature?: PlanFeature | null;
+  /** Live shop planFeatures (for AI Plus entitlement). */
+  planFeaturesOverride?: unknown;
+  hasStripeCustomer?: boolean;
 }) {
-  const features = resolvePlanFeatures({ plan });
+  const features = resolvePlanFeatures({
+    plan,
+    planFeatures: planFeaturesOverride,
+  });
   const def = PLANS[plan];
   const upgrade = nextPlanTier(plan);
   const includedFeatureKeys = subscriptionFeatureLabelsForPlan(plan);
   const isCore = plan === "STARTER";
+  const needsIgnitionCheckout =
+    isCore && (billingStatus === "TRIAL" || billingStatus === "CANCELED" || !hasStripeCustomer);
 
   return (
     <div className="max-w-2xl space-y-6">
@@ -98,17 +109,28 @@ export function SubscriptionPanel({
           /mo per location (annual) · {formatPriceFromCents(def.monthlyCents)}/mo monthly
         </p>
 
-        <p className="mt-3 text-xs text-muted-foreground">
-          Stripe Billing self-serve checkout and customer portal coming soon. Contact support to upgrade today.
-        </p>
+        <div className="mt-4">
+          <SubscriptionBillingActions
+            showIgnitionCheckout={needsIgnitionCheckout}
+            showAiPlusCheckout={isCore}
+            aiPlusEnabled={Boolean(features.freeformRoIntake)}
+            showBillingPortal={Boolean(hasStripeCustomer)}
+          />
+        </div>
+        {needsIgnitionCheckout ? (
+          <p className="mt-2 text-xs text-muted-foreground">
+            Checkout uses Stripe when price IDs are configured (
+            <code className="text-[10px]">STRIPE_PRICE_IGNITION_*</code>). Otherwise contact support.
+          </p>
+        ) : null}
 
-        {upgrade ? (
+        {upgrade && !PHASE_ONE_LAUNCH ? (
           <div className="mt-4 flex flex-wrap items-center gap-2 rounded-md border border-brand-light/40 bg-brand-light/10 px-3 py-3">
             <Sparkles className="size-4 text-brand-navy" />
             <p className="flex-1 text-sm text-on-brand-wash">
               Upgrade to <strong className="text-brand-navy">{PLANS[upgrade].name}</strong> — {PLANS[upgrade].tagline}
             </p>
-            <Button size="sm" className="bg-brand-navy" disabled title="Stripe Billing checkout — coming soon">
+            <Button size="sm" className="bg-brand-navy" disabled title="Pro/Elite self-serve — phase two">
               Upgrade
             </Button>
           </div>
@@ -176,12 +198,19 @@ export function SubscriptionPanel({
               <p className="text-sm font-medium">AI Plus</p>
               <p className="mt-1 text-sm text-muted-foreground">
                 Core-only add-on — Smart AI repair-order intake, labor-hour assist, and the ShopRally
-                advisor mobile app — $20/mo.
+                advisor mobile app — $49.99/mo.
               </p>
             </div>
-            <Button variant="outline" size="sm" disabled title="Add-on checkout — coming soon">
-              Add AI Plus
-            </Button>
+            {features.freeformRoIntake ? (
+              <p className="text-xs font-medium text-emerald-700">Included on this shop</p>
+            ) : (
+              <SubscriptionBillingActions
+                showIgnitionCheckout={false}
+                showAiPlusCheckout
+                aiPlusEnabled={false}
+                showBillingPortal={false}
+              />
+            )}
           </div>
         ) : (
           <p className="mt-2 text-sm text-muted-foreground">
@@ -220,7 +249,7 @@ export function SubscriptionPanel({
           <div className="mt-3 border-t pt-3 text-sm text-muted-foreground">
             <p className="font-medium text-foreground">Need Pro features?</p>
             <p className="mt-1">
-              Markup matrices, two-way SMS, PartsTech, Stripe payments, and Growth Engine tools are on{" "}
+              Markup matrices, two-way SMS, Stripe payments, and Growth Engine tools are on{" "}
               {PLANS.PROFESSIONAL.name} and above.
             </p>
             {upgrade ? (
@@ -232,10 +261,15 @@ export function SubscriptionPanel({
         )}
       </div>
 
-      <div className="flex flex-wrap gap-2">
-        <Button variant="outline" size="sm" className="gap-1.5" disabled title="Stripe customer portal — coming soon">
-          Manage billing
-        </Button>
+      <div className="flex flex-wrap items-center gap-2">
+        {hasStripeCustomer ? (
+          <SubscriptionBillingActions
+            showIgnitionCheckout={false}
+            showAiPlusCheckout={false}
+            aiPlusEnabled={Boolean(features.freeformRoIntake)}
+            showBillingPortal
+          />
+        ) : null}
         <Button variant="outline" size="sm" className="gap-1.5" asChild>
           <Link href="/pricing" target="_blank">
             {PHASE_ONE_LAUNCH ? "View pricing" : "View all plans"}

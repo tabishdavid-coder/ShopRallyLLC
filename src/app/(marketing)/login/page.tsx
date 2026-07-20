@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 
 import { LoginPageContent } from "@/components/marketing-site/login-page";
+import { isMarketingOnlyProduction } from "@/lib/marketing-prod-gate";
 
 export const metadata = {
   title: "Sign in — ShopRally",
@@ -8,9 +9,11 @@ export const metadata = {
 };
 
 export default function LoginPage() {
+  const marketingOnlyProduction = isMarketingOnlyProduction();
+
   return (
     <Suspense>
-      <LoginPageContent />
+      <LoginPageContent marketingOnlyProduction={marketingOnlyProduction} />
     </Suspense>
   );
 }

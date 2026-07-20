@@ -66,7 +66,7 @@ export function EstimateLabJobsList(
           <EstimateJobActionsCluster
             roId={roId}
             cannedJobs={cannedJobs}
-            cannedJobCategories={cannedJobCategories}
+            cannedJobCategories={cannedJobCategories ?? []}
             baseRateCents={baseRateCents}
             partTiers={partTiers}
             laborTiers={laborTiers}
