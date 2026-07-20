@@ -37,7 +37,22 @@ const sections = [
     icon: MessageSquare,
     items: [
       { label: "Twilio SMS", value: process.env.TWILIO_ACCOUNT_SID ? "Live credentials" : "Mock mode", tone: "warn" as const },
-      { label: "Outbound email", value: process.env.RESEND_API_KEY ? "Resend configured" : "Mailto fallback", tone: "warn" as const },
+      {
+        label: "Outbound email",
+        value: (() => {
+          const key = process.env.RESEND_API_KEY?.trim() ?? "";
+          if (!key) return "Mailto fallback (no RESEND_API_KEY)";
+          if (key === "[SENSITIVE]" || !key.startsWith("re_")) {
+            return "Resend key invalid/placeholder — set re_… in Vercel";
+          }
+          const from = process.env.EMAIL_FROM?.trim() ?? "";
+          const fromOk = from.includes("@") && from !== "[SENSITIVE]";
+          return fromOk
+            ? "Resend configured"
+            : "Resend key OK — EMAIL_FROM missing (using onboarding@resend.dev)";
+        })(),
+        tone: "warn" as const,
+      },
     ],
   },
 ];

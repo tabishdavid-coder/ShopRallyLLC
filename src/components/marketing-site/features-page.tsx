@@ -124,7 +124,7 @@ export function FeaturesPageContent() {
             vehicle inspections, email estimates &amp; approvals, appointments, payment tracking, and
             Live Operations Daily Snapshot. PartsTech is included with Ignition at launch. Pro and
             Elite stay on the roadmap.
-            {preLaunch ? ` Launching ${MARKETING_LAUNCH.launchQuarter} — not live yet.` : ""}
+            {preLaunch ? ` Launching ${MARKETING_LAUNCH.launchQuarter}.` : ""}
           </p>
           {PHASE_ONE_LAUNCH ? (
             <p className="mx-auto mt-3 max-w-xl text-sm font-medium text-brand-navy">

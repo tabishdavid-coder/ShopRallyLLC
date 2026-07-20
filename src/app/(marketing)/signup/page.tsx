@@ -5,7 +5,7 @@ import { SignupPageContent } from "@/components/marketing-site/signup-page";
 export const metadata = {
   title: "Reserve Ignition + AI Plus — Q4 2026 | ShopRally",
   description:
-    "Reserve a ShopRally founding seat for the Q4 2026 launch. Ignition + optional AI Plus — not live software yet. 50 founding spots.",
+    "Reserve a ShopRally founding seat for the Q4 2026 launch. Ignition + optional AI Plus — we'll invite you when we open.",
 };
 
 export default function SignupPage() {

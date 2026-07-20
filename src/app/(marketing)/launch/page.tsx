@@ -3,7 +3,7 @@ import { LaunchPageContent } from "@/components/marketing-site/launch-page";
 export const metadata = {
   title: "Reserve a founding seat — Q4 2026 | ShopRally",
   description:
-    "ShopRally Ignition launches Q4 2026. Reserve one of 50 founding seats — not available yet. Founding pricing and priority onboarding when we open.",
+    "ShopRally Ignition launches Q4 2026. Reserve a founding seat — founding pricing and priority onboarding when we open.",
 };
 
 type LaunchPageProps = {

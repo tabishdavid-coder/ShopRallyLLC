@@ -26,7 +26,6 @@ import { OutcomeMetricsStrip } from "@/components/marketing-site/outcome-metrics
 import { Button } from "@/components/ui/button";
 import {
   CATEGORY_POSITIONING,
-  getFoundingSpotMessaging,
   HOW_SHOPRALLY_WORKS,
   MARKETING_LAUNCH,
   marketingPrimaryCta,
@@ -122,9 +121,8 @@ const COMING_LATER = [
   "AI receptionist & maintenance programs",
 ] as const;
 
-export function HomePageContent({ foundingSpotsClaimed = 0 }: { foundingSpotsClaimed?: number }) {
+export function HomePageContent() {
   const preLaunch = MARKETING_LAUNCH.preLaunch;
-  const foundingMessaging = getFoundingSpotMessaging(foundingSpotsClaimed);
   const ignitionName = planMarketingDisplayName(PLANS.STARTER);
 
   return (
@@ -137,9 +135,7 @@ export function HomePageContent({ foundingSpotsClaimed = 0 }: { foundingSpotsCla
             <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-brand-red/25 bg-brand-red/5 px-4 py-1.5 text-xs font-semibold text-brand-red">
               <Star className="size-3.5 fill-brand-red" />
               {preLaunch
-                ? foundingMessaging.urgency === "critical"
-                  ? foundingMessaging.primary
-                  : `${CATEGORY_POSITIONING.shortCategory} · ${MARKETING_LAUNCH.launchQuarter}`
+                ? `${CATEGORY_POSITIONING.shortCategory} · ${MARKETING_LAUNCH.launchQuarter}`
                 : `${CATEGORY_POSITIONING.shortCategory} · ${ignitionName}`}
             </div>
 
@@ -152,7 +148,7 @@ export function HomePageContent({ foundingSpotsClaimed = 0 }: { foundingSpotsCla
 
             <p className="mx-auto mt-5 max-w-2xl text-lg leading-relaxed text-slate-600">
               {preLaunch
-                ? `${CATEGORY_POSITIONING.productLine}. ${ignitionName} brings the job board, PartsTech on the estimate, digital vehicle inspections, email estimates & approvals, appointments, and Live Operations Daily Snapshot into one plan — launching ${MARKETING_LAUNCH.launchQuarter}. Not live yet.`
+                ? `${CATEGORY_POSITIONING.productLine}. ${ignitionName} brings the job board, PartsTech on the estimate, digital vehicle inspections, email estimates & approvals, appointments, and Live Operations Daily Snapshot into one plan — launching ${MARKETING_LAUNCH.launchQuarter}.`
                 : PHASE_ONE_LAUNCH
                   ? `${PHASE_ONE_COPY.subhead} ${ignitionName} from $${shoprallyStarterMonthly(true)}/mo — AI Plus optional +${aiPlusPriceLabel()}.`
                   : `Premium all-in-one auto repair shop management software — ${ignitionName} from $${shoprallyStarterMonthly(true)}/mo.`}
@@ -187,7 +183,7 @@ export function HomePageContent({ foundingSpotsClaimed = 0 }: { foundingSpotsCla
           {preLaunch ? (
             <div className="mx-auto mt-10 max-w-xl text-center">
               <p className="mb-3 text-sm font-medium text-slate-600">
-                Liked what you saw? Reserve one of 50 founding seats for Q4 2026 — not live software yet.
+                Liked what you saw? Reserve a founding seat for Q4 2026.
               </p>
               <FoundingWaitlistForm variant="compact" />
             </div>
@@ -391,7 +387,7 @@ export function HomePageContent({ foundingSpotsClaimed = 0 }: { foundingSpotsCla
               </h2>
               <p className="mt-2 text-slate-600">
                 Tell us what&apos;s slowing the shop — we&apos;ll show how Ignition will help at the Q4
-                2026 launch, then reserve one of 50 seats. No instant access.
+                2026 launch, then reserve a founding seat. No instant access.
               </p>
               <Button className="mt-5 bg-brand-navy" asChild>
                 <Link href="/launch">
@@ -412,7 +408,7 @@ export function HomePageContent({ foundingSpotsClaimed = 0 }: { foundingSpotsCla
           </h2>
           <p className="mx-auto mt-3 max-w-xl text-slate-600">
             {preLaunch
-              ? `Only ${MARKETING_LAUNCH.foundingSpotsTotal} founding spots. Software launches ${MARKETING_LAUNCH.launchQuarter} — reserving a seat does not give access today.`
+              ? `Software launches ${MARKETING_LAUNCH.launchQuarter} — reserving a seat does not give access today.`
               : "Start a 14-day trial with no card, or book a walkthrough if you'd rather see it first."}
           </p>
           <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">

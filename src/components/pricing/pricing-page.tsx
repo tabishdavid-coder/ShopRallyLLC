@@ -12,8 +12,6 @@ import { PlatformValueSection } from "@/components/marketing-site/platform-value
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import {
-  foundingSpotsRemaining,
-  getFoundingSpotMessaging,
   MARKETING_LAUNCH,
   marketingPrimaryCta,
   marketingPrimaryHref,
@@ -58,7 +56,7 @@ function tabFromSearchParam(raw: string | null): PricingProductTab {
   return "crm";
 }
 
-export function PricingPageContent({ foundingSpotsClaimed = 0 }: { foundingSpotsClaimed?: number }) {
+export function PricingPageContent() {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
@@ -68,8 +66,6 @@ export function PricingPageContent({ foundingSpotsClaimed = 0 }: { foundingSpots
   const [annual, setAnnual] = useState(true);
   const [featuresOpen, setFeaturesOpen] = useState(false);
   const preLaunch = MARKETING_LAUNCH.preLaunch;
-  const foundingRemaining = foundingSpotsRemaining(foundingSpotsClaimed);
-  const foundingMessaging = getFoundingSpotMessaging(foundingSpotsClaimed);
   const ignitionPrice = shoprallyStarterMonthly(annual);
   const ignitionPlan = PLANS.STARTER;
   const ignitionMarketingName = planMarketingDisplayName(ignitionPlan);
@@ -99,7 +95,7 @@ export function PricingPageContent({ foundingSpotsClaimed = 0 }: { foundingSpots
             {productTab === "website"
               ? WEB_PRESENCE_MARKETING.eyebrow
               : preLaunch
-                ? foundingMessaging.primary
+                ? MARKETING_LAUNCH.launchWindowLabel
                 : "Phase one · one plan"}
           </div>
           <h1 className="text-3xl font-bold tracking-tight text-brand-navy sm:text-4xl">
@@ -113,9 +109,7 @@ export function PricingPageContent({ foundingSpotsClaimed = 0 }: { foundingSpots
             ) : (
               <>
                 {ignitionMarketingName} from ${ignitionPrice}/mo — PartsTech included.{" "}
-                {preLaunch
-                  ? `${foundingRemaining} founding seats · Q4 2026 · not live yet.`
-                  : "No CRM setup fees · month-to-month."}
+                {preLaunch ? "Launching Q4 2026." : "No CRM setup fees · month-to-month."}
               </>
             )}
           </p>
@@ -174,11 +168,7 @@ export function PricingPageContent({ foundingSpotsClaimed = 0 }: { foundingSpots
       ) : (
         <>
           {PHASE_ONE_LAUNCH ? (
-            <IgnitionPlanShowcase
-              annual={annual}
-              onAnnualChange={setAnnual}
-              foundingRemaining={foundingRemaining}
-            />
+            <IgnitionPlanShowcase annual={annual} onAnnualChange={setAnnual} />
           ) : (
             <section className="relative overflow-hidden px-4 py-16 sm:px-6 sm:py-24">
               <div
@@ -276,7 +266,7 @@ export function PricingPageContent({ foundingSpotsClaimed = 0 }: { foundingSpots
                 </h2>
                 <p className="mx-auto mt-2 max-w-xl text-sm text-slate-600">
                   {preLaunch
-                    ? "Q4 2026 founding invite — not live software yet. This is Ignition's launch checklist, not a Pro integrations matrix."
+                    ? "Q4 2026 founding invite. This is Ignition's launch checklist, not a Pro integrations matrix."
                     : "Everything below ships with Ignition. Pro-class integrations stay off this list until those plans open."}
                 </p>
                 <div className="mt-5 flex flex-wrap justify-center gap-2">
@@ -444,7 +434,7 @@ export function PricingPageContent({ foundingSpotsClaimed = 0 }: { foundingSpots
                 <>
                   <p className="text-xl font-bold text-brand-navy">Reserve Ignition for Q4 2026</p>
                   <p className="mt-2 text-sm text-slate-600">
-                    {foundingRemaining} of 50 founding spots · not live software yet
+                    Launching Q4 2026 · we&apos;ll invite you at launch
                   </p>
                   <div className="mt-6 flex flex-wrap justify-center gap-2">
                     <Button className="bg-brand-navy" asChild>

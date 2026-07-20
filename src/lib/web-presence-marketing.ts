@@ -63,6 +63,23 @@ export const WEB_PRESENCE_MARKETING = {
   ctaHint: "Tell us you need a site + local SEO — separate from Ignition founding seats.",
   ctaSecondary: "Ignition CRM pricing",
   crossLinkLabel: "Website & SEO — separate from Ignition",
+  /** /demo?need=website — outcome headline + reciprocity before the ask */
+  intakeHeadline: "Get found. Book more work.",
+  intakeSubhead:
+    "ShopSite + Local SEO as a companion offer — Google Business Profile, organic local presence, and local Google Ads help when you advertise. Billed separately from Ignition CRM.",
+  intakeValueLead: "What we'll follow up about",
+  intakeValueMirror: [
+    "Hosted ShopSite for your shop brand",
+    "Local SEO + Google Business Profile",
+    "Local Google Ads tuning if you already run ads",
+    "One-time launch setup — not bundled into Ignition",
+  ] as const,
+  intakeFormTitle: "Request Website & SEO",
+  intakeFormHint:
+    "Three required fields. Separate from Ignition CRM — no ranking or ROI promises.",
+  intakeSubmit: "Send my Website & SEO request",
+  intakeMessageSeed:
+    "I'm interested in ShopSite + Local SEO (separate from Ignition CRM) — including Google Business Profile and local Google Ads optimization when applicable. Please follow up about website & SEO setup.",
 } as const;
 
 export function webPresenceRequestDemoHref(): string {

@@ -13,11 +13,25 @@ export type PlatformEmailSendResult =
   | { mode: "skipped"; reason: string }
   | { mode: "failed"; error: string };
 
-/** From address for platform/ops mail (not shop-owned CRM sends). */
+/**
+ * From address for platform/ops mail (not shop-owned CRM sends).
+ *
+ * Prefer `EMAIL_FROM` when it looks like a real address. Until getshoprally.com
+ * is verified in Resend, use Resend's onboarding sender — `hello@getshoprally.com`
+ * as From will 403 without domain verification.
+ */
 export function platformEmailFromAddress(): string {
   const configured = process.env.EMAIL_FROM?.trim();
-  if (configured) return configured;
-  return `${BRAND.name} <${PLATFORM_CONTACT_EMAIL}>`;
+  if (
+    configured &&
+    configured.includes("@") &&
+    configured !== "[SENSITIVE]" &&
+    !/placeholder|changeme|xxx/i.test(configured)
+  ) {
+    return configured;
+  }
+  // Safe default while custom domain DNS is pending in Resend.
+  return `${BRAND.name} <onboarding@resend.dev>`;
 }
 
 /**
@@ -32,7 +46,12 @@ export function platformOpsNotifyEmails(): string[] {
   const list = raw
     .split(",")
     .map((e) => e.trim().toLowerCase())
-    .filter((e) => e.includes("@"));
+    .filter(
+      (e) =>
+        e.includes("@") &&
+        e !== "[sensitive]" &&
+        !/placeholder|changeme|xxx/i.test(e),
+    );
   return list.length > 0 ? list : [PLATFORM_CONTACT_EMAIL.toLowerCase()];
 }
 
@@ -60,13 +79,22 @@ export async function sendPlatformEmail(opts: {
   }
 
   if (!resendPlatformConfigured()) {
+    const raw = process.env.RESEND_API_KEY?.trim() ?? "";
+    const reason = !raw
+      ? "RESEND_API_KEY unset"
+      : raw === "[SENSITIVE]" || !raw.startsWith("re_")
+        ? "RESEND_API_KEY invalid/placeholder (need a real re_… key from resend.com)"
+        : "RESEND_API_KEY unset";
     console.warn(
-      `[${tag}] RESEND_API_KEY not configured — email not sent (form/ticket still saved). Subject: ${opts.subject} → ${recipients.join(", ")}`,
+      `[${tag}] ${reason} — email not sent (form/ticket still saved). Subject: ${opts.subject} → ${recipients.join(", ")}`,
     );
-    return { mode: "skipped", reason: "RESEND_API_KEY unset" };
+    return { mode: "skipped", reason };
   }
 
   const from = platformEmailFromAddress();
+  console.info(
+    `[${tag}] Sending via Resend from=${from} to=${recipients.join(",")} subject=${opts.subject}`,
+  );
   let last: EmailResult | null = null;
   const errors: string[] = [];
   for (const to of recipients) {
@@ -81,7 +109,9 @@ export async function sendPlatformEmail(opts: {
       });
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
-      console.error(`[${tag}] Resend send failed → ${to}:`, message);
+      console.error(
+        `[${tag}] Resend send failed from=${from} → ${to}: ${message}`,
+      );
       errors.push(`${to}: ${message}`);
     }
   }

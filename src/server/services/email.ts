@@ -35,9 +35,16 @@ export type ResendSendInput = {
   replyTo?: string;
 };
 
-/** Whether the platform Resend API key is set. */
+/**
+ * Whether the platform Resend API key looks usable.
+ * Rejects empty values and Cursor/CLI placeholder corruption (`[SENSITIVE]`).
+ */
 export function resendPlatformConfigured(): boolean {
-  return Boolean(process.env.RESEND_API_KEY?.trim());
+  const key = process.env.RESEND_API_KEY?.trim() ?? "";
+  if (!key || key === "[SENSITIVE]") return false;
+  // Resend live keys are `re_…`. Reject obvious placeholders so we log clearly
+  // instead of calling the API with garbage.
+  return key.startsWith("re_");
 }
 
 function defaultFromAddress(): string | null {

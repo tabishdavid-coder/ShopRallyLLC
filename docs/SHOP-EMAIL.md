@@ -29,11 +29,13 @@ Demo, trial signup, founding waitlist, and website-need forms create a `SupportT
 
 | Env | Role |
 |-----|------|
-| `RESEND_API_KEY` | Required for live lead emails (Vercel Production) |
-| `EMAIL_FROM` | Recommended From on a verified domain; defaults to `ShopRally <hello@getshoprally.com>` |
-| `PLATFORM_LEAD_NOTIFY_EMAIL` | Optional ops inbox override (comma-separated) |
+| `RESEND_API_KEY` | Required for live lead emails (Vercel Production). Must be a real `re_…` key from [resend.com](https://resend.com/api-keys) — never a placeholder. |
+| `EMAIL_FROM` | From address. Until **getshoprally.com** is verified in Resend, use `ShopRally <onboarding@resend.dev>`. After DNS verify, switch to `ShopRally <hello@getshoprally.com>`. |
+| `PLATFORM_LEAD_NOTIFY_EMAIL` | Ops inbox override (comma-separated). With `onboarding@resend.dev`, Resend often only delivers to the Resend account owner email until the domain is verified. |
 
-If Resend is unset, the form still succeeds (DB ticket + `/platform/leads`); server logs `[marketing-lead-email] RESEND_API_KEY not configured`. Code: `src/server/services/marketing-lead-notify.ts`.
+If Resend is unset/invalid, the form still succeeds (DB ticket + `/platform/leads`); server logs `[marketing-lead-email] …`. Code: `src/server/services/marketing-lead-notify.ts`.
+
+**Cursor/CLI gotcha:** Piping secrets through agent shells can store the literal string `[SENSITIVE]` in Vercel. Prefer pasting `RESEND_API_KEY` in the **Vercel Dashboard** (Settings → Environment Variables), not via `vercel env add` from Cursor.
 
 ## Operator go-live checklist
 

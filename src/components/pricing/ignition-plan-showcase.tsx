@@ -24,7 +24,6 @@ import {
 type IgnitionPlanShowcaseProps = {
   annual: boolean;
   onAnnualChange: (annual: boolean) => void;
-  foundingRemaining?: number;
 };
 
 /**
@@ -34,7 +33,6 @@ type IgnitionPlanShowcaseProps = {
 export function IgnitionPlanShowcase({
   annual,
   onAnnualChange,
-  foundingRemaining,
 }: IgnitionPlanShowcaseProps) {
   const plan = PLANS.STARTER;
   const name = planMarketingDisplayName(plan);
@@ -140,11 +138,6 @@ export function IgnitionPlanShowcase({
                 </Link>
               </Button>
               <p className="text-center text-[11px] leading-relaxed text-slate-500">{m.ctaHint}</p>
-              {typeof foundingRemaining === "number" && preLaunch ? (
-                <p className="text-center text-xs font-medium text-slate-500">
-                  {foundingRemaining} of 50 founding seats · launching Q4 2026 · not available yet
-                </p>
-              ) : null}
             </div>
 
             <button

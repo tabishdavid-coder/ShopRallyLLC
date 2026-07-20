@@ -26,8 +26,7 @@ import {
 
 const BAY_OPTIONS = ["1–2 bays", "3–5 bays", "6–10 bays", "11+ bays"] as const;
 
-const WEBSITE_MESSAGE_SEED =
-  "I'm interested in ShopSite + Local SEO (separate from Ignition CRM) — including Google Business Profile and local Google Ads optimization when applicable. Please follow up about website & SEO setup.";
+const FIELD_CLASS = "border-slate-300 bg-white text-slate-900 placeholder:text-slate-400";
 
 export function DemoPageContent() {
   const searchParams = useSearchParams();
@@ -45,7 +44,7 @@ export function DemoPageContent() {
 
   useEffect(() => {
     if (!needWebsite) return;
-    setMessage((prev) => (prev.trim() ? prev : WEBSITE_MESSAGE_SEED));
+    setMessage((prev) => (prev.trim() ? prev : WEB_PRESENCE_MARKETING.intakeMessageSeed));
   }, [needWebsite]);
 
   function submit(e: React.FormEvent) {
@@ -57,7 +56,7 @@ export function DemoPageContent() {
         email,
         shopName,
         phone: phone || undefined,
-        bayCount: bayCount || undefined,
+        bayCount: needWebsite ? undefined : bayCount || undefined,
         currentSoftware: currentSoftware || undefined,
         message: message || undefined,
         need: needWebsite ? WEB_PRESENCE_MARKETING.needQuery : undefined,
@@ -98,63 +97,82 @@ export function DemoPageContent() {
   return (
     <>
       <section className="border-b border-brand-navy/10 bg-gradient-to-br from-brand-navy via-brand-navy to-brand-navy/90 text-white">
-        <div className="mx-auto grid max-w-7xl gap-10 px-4 py-14 sm:px-6 lg:grid-cols-2 lg:items-center lg:py-20">
+        <div className="mx-auto grid max-w-7xl gap-10 px-4 py-14 sm:px-6 lg:grid-cols-2 lg:items-start lg:py-20">
           <div>
             <div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-semibold text-brand-light">
               {needWebsite ? <Globe className="size-3.5" /> : <Play className="size-3.5" />}
               {needWebsite ? WEB_PRESENCE_MARKETING.eyebrow : "Personalized walkthrough"}
             </div>
             <h1 className="mt-4 text-3xl font-bold sm:text-4xl lg:text-5xl">
-              {needWebsite ? "Request Website & SEO setup" : "See ShopRally in action"}
+              {needWebsite ? WEB_PRESENCE_MARKETING.intakeHeadline : "See ShopRally in action"}
             </h1>
             <p className="mt-4 max-w-lg text-white/80 leading-relaxed">
               {needWebsite
-                ? "Tell us about your shop — we&apos;ll follow up on ShopSite and Local SEO as a companion offer, billed separately from Ignition CRM. Not a Pro/Elite pitch."
-                : "Book a demo of Ignition — job board, PartsTech on the estimate, digital vehicle inspections, email approvals, appointments, and Live Operations Daily Snapshot. We&apos;ll walk the bay loop, not a Pro/Elite pitch."}
+                ? WEB_PRESENCE_MARKETING.intakeSubhead
+                : "Book a demo of Ignition — job board, PartsTech on the estimate, digital vehicle inspections, email approvals, appointments, and Live Operations Daily Snapshot. We'll walk the bay loop, not a Pro/Elite pitch."}
             </p>
-            <ul className="mt-6 space-y-2 text-sm text-white/85">
-              {(needWebsite
-                ? [
-                    "ShopSite + Local SEO — separate from Ignition pricing",
-                    "Google Business Profile + organic local presence; Ads optimization if you already run them",
-                    "High-level site + local presence setup (not every SEO Autopilot feature; no ranking/ROI promises)",
-                    "Honest talk about launch timing vs CRM founding seats",
-                    "Optional: reserve Ignition CRM on the same conversation",
-                  ]
-                : [
-                    "30-minute live walkthrough of Ignition",
-                    "Job board → PartsTech → estimate → email approve → invoice",
-                    "Honest talk about what ships now vs later",
-                    "Founding-shop pricing for early adopters",
-                  ]
-              ).map((item) => (
-                <li key={item} className="flex items-center gap-2">
-                  <CheckCircle2 className="size-4 shrink-0 text-brand-light" />
-                  {item}
-                </li>
-              ))}
-            </ul>
+
             {needWebsite ? (
-              <p className="mt-4 text-sm text-white/70">
-                Prefer to scan pricing first?{" "}
-                <Link href={webPresencePricingTabHref()} className="font-semibold text-brand-light underline-offset-2 hover:underline">
-                  Website &amp; SEO on /pricing
-                </Link>
-              </p>
-            ) : null}
+              <div className="mt-8 max-w-lg">
+                <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-brand-light/80">
+                  {WEB_PRESENCE_MARKETING.intakeValueLead}
+                </p>
+                <ul className="mt-3 space-y-2.5">
+                  {WEB_PRESENCE_MARKETING.intakeValueMirror.map((item) => (
+                    <li
+                      key={item}
+                      className="flex items-start gap-2.5 rounded-lg border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-white/90"
+                    >
+                      <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-brand-light" />
+                      <span>{item}</span>
+                    </li>
+                  ))}
+                </ul>
+                <p className="mt-4 text-xs leading-relaxed text-white/60">
+                  {WEB_PRESENCE_MARKETING.honestyNote}
+                </p>
+                <p className="mt-3 text-sm text-white/70">
+                  Prefer to scan pricing first?{" "}
+                  <Link
+                    href={webPresencePricingTabHref()}
+                    className="font-semibold text-brand-light underline-offset-2 hover:underline"
+                  >
+                    Website &amp; SEO on /pricing
+                  </Link>
+                </p>
+              </div>
+            ) : (
+              <ul className="mt-6 space-y-2 text-sm text-white/85">
+                {[
+                  "30-minute live walkthrough of Ignition",
+                  "Job board → PartsTech → estimate → email approve → invoice",
+                  "Honest talk about what ships now vs later",
+                  "Founding-shop pricing for early adopters",
+                ].map((item) => (
+                  <li key={item} className="flex items-center gap-2">
+                    <CheckCircle2 className="size-4 shrink-0 text-brand-light" />
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            )}
           </div>
 
-          <div className="rounded-2xl border border-white/15 bg-white p-6 shadow-2xl sm:p-8">
+          {/*
+            Critical: parent section is text-white. Reset dark text on the card so
+            inputs are not white-on-white (looks like “can’t type”).
+          */}
+          <div className="rounded-2xl border border-white/15 bg-white p-6 text-slate-900 shadow-2xl sm:p-8">
             <div className="flex items-center gap-2 text-brand-navy">
-              <Calendar className="size-5" />
+              {needWebsite ? <Globe className="size-5" /> : <Calendar className="size-5" />}
               <h2 className="text-lg font-bold">
-                {needWebsite ? "Request Website & SEO" : "Request a demo"}
+                {needWebsite ? WEB_PRESENCE_MARKETING.intakeFormTitle : "Request a demo"}
               </h2>
             </div>
             <p className="mt-1 text-sm text-slate-600">
               {needWebsite
-                ? "Separate from Ignition CRM — fill this out and we&apos;ll email you about site + SEO setup."
-                : "Fill out the form and we&apos;ll email you to schedule a time."}
+                ? WEB_PRESENCE_MARKETING.intakeFormHint
+                : "Fill out the form and we'll email you to schedule a time."}
             </p>
 
             <form onSubmit={submit} className="mt-6 grid gap-4">
@@ -165,23 +183,27 @@ export function DemoPageContent() {
                   </Label>
                   <Input
                     id="demo-name"
+                    name="name"
+                    autoComplete="name"
                     value={name}
                     onChange={(e) => setName(e.target.value)}
                     required
-                    className="border-slate-300"
+                    className={FIELD_CLASS}
                   />
                 </div>
                 <div className="space-y-1.5">
                   <Label htmlFor="demo-email" className="text-slate-900">
-                    Email *
+                    Work email *
                   </Label>
                   <Input
                     id="demo-email"
+                    name="email"
                     type="email"
+                    autoComplete="email"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
-                    className="border-slate-300"
+                    className={FIELD_CLASS}
                   />
                 </div>
               </div>
@@ -192,65 +214,99 @@ export function DemoPageContent() {
                 </Label>
                 <Input
                   id="demo-shop"
+                  name="organization"
+                  autoComplete="organization"
                   value={shopName}
                   onChange={(e) => setShopName(e.target.value)}
                   required
-                  className="border-slate-300"
+                  placeholder="Main Street Auto"
+                  className={FIELD_CLASS}
                 />
               </div>
 
-              <div className="grid gap-4 sm:grid-cols-2">
+              {needWebsite ? (
                 <div className="space-y-1.5">
                   <Label htmlFor="demo-phone" className="text-slate-900">
-                    Phone
+                    Phone <span className="font-normal text-slate-500">(optional)</span>
                   </Label>
                   <Input
                     id="demo-phone"
+                    name="tel"
+                    type="tel"
+                    autoComplete="tel"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
-                    className="border-slate-300"
+                    className={FIELD_CLASS}
                   />
                 </div>
-                <div className="space-y-1.5">
-                  <Label className="text-slate-900">Shop size</Label>
-                  <Select value={bayCount} onValueChange={setBayCount}>
-                    <SelectTrigger className="border-slate-300">
-                      <SelectValue placeholder="Select…" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {BAY_OPTIONS.map((o) => (
-                        <SelectItem key={o} value={o}>
-                          {o}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+              ) : (
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="space-y-1.5">
+                    <Label htmlFor="demo-phone" className="text-slate-900">
+                      Phone
+                    </Label>
+                    <Input
+                      id="demo-phone"
+                      name="tel"
+                      type="tel"
+                      autoComplete="tel"
+                      value={phone}
+                      onChange={(e) => setPhone(e.target.value)}
+                      className={FIELD_CLASS}
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-slate-900">Shop size</Label>
+                    <Select value={bayCount} onValueChange={setBayCount}>
+                      <SelectTrigger className={FIELD_CLASS}>
+                        <SelectValue placeholder="Select…" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {BAY_OPTIONS.map((o) => (
+                          <SelectItem key={o} value={o}>
+                            {o}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
                 </div>
-              </div>
+              )}
 
               <div className="space-y-1.5">
                 <Label htmlFor="demo-current" className="text-slate-900">
-                  Current shop software
+                  {needWebsite ? (
+                    <>
+                      Current website or Google Business Profile{" "}
+                      <span className="font-normal text-slate-500">(optional)</span>
+                    </>
+                  ) : (
+                    "Current shop software"
+                  )}
                 </Label>
                 <Input
                   id="demo-current"
                   value={currentSoftware}
                   onChange={(e) => setCurrentSoftware(e.target.value)}
-                  placeholder="Tekmetric, Shopmonkey, pen & paper…"
-                  className="border-slate-300"
+                  placeholder={
+                    needWebsite
+                      ? "yoursite.com or GBP link — or leave blank"
+                      : "Tekmetric, Shopmonkey, pen & paper…"
+                  }
+                  className={FIELD_CLASS}
                 />
               </div>
 
               <div className="space-y-1.5">
                 <Label htmlFor="demo-message" className="text-slate-900">
-                  Anything else?
+                  {needWebsite ? "Anything we should know?" : "Anything else?"}
                 </Label>
                 <Textarea
                   id="demo-message"
                   value={message}
                   onChange={(e) => setMessage(e.target.value)}
-                  rows={3}
-                  className="border-slate-300"
+                  rows={needWebsite ? 2 : 3}
+                  className={FIELD_CLASS}
                 />
               </div>
 
@@ -266,8 +322,13 @@ export function DemoPageContent() {
                 className="w-full gap-2 bg-brand-red hover:bg-brand-red/90"
               >
                 {pending ? <Loader2 className="size-4 animate-spin" /> : null}
-                {needWebsite ? WEB_PRESENCE_MARKETING.ctaPrimary : "Request demo"}
+                {needWebsite ? WEB_PRESENCE_MARKETING.intakeSubmit : "Request demo"}
               </Button>
+              {needWebsite ? (
+                <p className="text-center text-xs text-slate-500">
+                  {WEB_PRESENCE_MARKETING.ctaHint}
+                </p>
+              ) : null}
             </form>
 
             <p className="mt-4 text-center text-xs text-slate-500">

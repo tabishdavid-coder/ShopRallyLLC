@@ -24,7 +24,7 @@ export const FOUNDING_WAITLIST_DRIP: MarketingDripEmail[] = [
 
 Thanks for reserving a ShopRally founding seat.
 
-Ignition launches in Q4 2026 — you don't have software access yet. You're one of 50 founding shops in line for:
+Ignition launches in Q4 2026. Your founding seat puts you in line for:
 • Invite at Q4 2026 launch (not instant access)
 • Founding-shop pricing locked for life (annual billing)
 • Priority onboarding when we open
@@ -49,7 +49,7 @@ Quick snapshot of why shops are switching to ShopRally:
 • AI Plus (+$49.99/mo): freeform AI intake, labor assist & advisor app
 ${PHASE_ONE_LAUNCH ? "• Pro & Elite tiers — licensed MOTOR, Growth Engine, payments — coming in phase two\n• Website & SEO (ShopSite + Local SEO) — separate companion offer at launch" : `• ${PLANS.PROFESSIONAL.name}: licensed MOTOR + Growth Engine + reviews\n• ${PLANS.ENTERPRISE.name}: AI, maintenance programs · ShopSite/Local SEO also à la carte`}
 
-Only 50 founding spots for the Q4 2026 launch. Compare plans: https://getshoprally.com/pricing
+Ignition launches Q4 2026. Compare plans: https://getshoprally.com/pricing
 
 — ShopRally`,
   },
@@ -60,7 +60,7 @@ Only 50 founding spots for the Q4 2026 launch. Compare plans: https://getshopral
     preview: "Your spot is reserved — next steps inside.",
     body: `Hi {{first_name}},
 
-ShopRally Ignition launches Q4 2026. Your founding seat is reserved — software isn't live yet.
+ShopRally Ignition launches Q4 2026. Your founding seat is reserved — we'll invite you at launch.
 
 If you haven't booked a preview demo, now's a good time — we'll map your migration from Tekmetric, Shopmonkey, AutoLeap, or spreadsheets.
 

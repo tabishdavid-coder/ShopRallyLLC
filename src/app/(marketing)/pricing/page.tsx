@@ -1,7 +1,6 @@
 import { Suspense } from "react";
 
 import { PricingPageContent } from "@/components/pricing/pricing-page";
-import { getFoundingWaitlistStats } from "@/server/marketing-launch-stats";
 
 export const metadata = {
   title: "Pricing — All-in-one shop management · Ignition & Website & SEO",
@@ -9,8 +8,7 @@ export const metadata = {
     "ShopRally Ignition is all-in-one auto repair shop management software at $89.99/mo — launches Q4 2026 with PartsTech and digital vehicle inspections. Website & SEO (ShopSite + Local SEO) is a separate companion offer. Reserve a founding seat or request a site.",
 };
 
-export default async function PricingPage() {
-  const waitlist = await getFoundingWaitlistStats();
+export default function PricingPage() {
   return (
     <Suspense
       fallback={
@@ -19,7 +17,7 @@ export default async function PricingPage() {
         </div>
       }
     >
-      <PricingPageContent foundingSpotsClaimed={waitlist.claimed} />
+      <PricingPageContent />
     </Suspense>
   );
 }

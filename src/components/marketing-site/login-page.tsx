@@ -54,9 +54,8 @@ export function LoginPageContent({ marketingOnlyProduction = false }: LoginPageC
           <ShopRallyLogo href="/" size="sm" className="mx-auto" />
           <h1 className="mt-6 text-3xl font-bold text-brand-navy">Shop access opens Q4 2026</h1>
           <p className="mx-auto mt-3 max-w-md text-slate-600">
-            ShopRally CRM isn&apos;t open for sign-in yet. Reserve one of{" "}
-            {MARKETING_LAUNCH.foundingSpotsTotal} founding seats and we&apos;ll invite you when
-            Ignition launches.
+            ShopRally CRM opens for sign-in in {MARKETING_LAUNCH.launchQuarter}. Reserve a founding
+            seat and we&apos;ll invite you when Ignition launches.
           </p>
           <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
             <Button size="lg" className="bg-brand-navy" asChild>

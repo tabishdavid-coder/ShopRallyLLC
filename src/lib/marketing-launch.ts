@@ -17,9 +17,9 @@ export const MARKETING_LAUNCH = {
   launchWindowLabel: "Launching Q4 2026",
   launchQuarter: "Q4 2026",
   foundingProgramLabel: "Founding Shop Program",
-  /** Hard cap — only this many founding seats before public launch. */
+  /** Internal waitlist cap for stats — do not display remaining/total in public UI. */
   foundingSpotsTotal: 50,
-  /** Fallback when live waitlist count is unavailable; prefer marketing-launch-stats. */
+  /** Fallback claimed count for internal stats when live waitlist count is unavailable. */
   foundingSpotsClaimed: 13,
 
   /** Pre-launch destinations (waitlist + demo). */
@@ -33,13 +33,12 @@ export const MARKETING_LAUNCH = {
   cta: {
     /** Pre-launch primary — reserve founding access for Q4 2026. */
     primary: "Reserve a founding seat",
-    /** Only when ≤5 spots — still invitation, not countdown theater. */
-    primaryCritical: "Claim one of the last seats",
+    /** @deprecated Same as primary — seat-count urgency retired. */
+    primaryCritical: "Reserve a founding seat",
     /** Form submit — waitlist, not instant access. */
     formSubmit: "Reserve my seat — free, no card",
     /** Under-CTA honesty while waitlist-backed. */
-    primaryHintPreLaunch:
-      "Not available yet — launching Q4 2026 · 50 founding spots · we'll invite you then",
+    primaryHintPreLaunch: "Launching Q4 2026 · no card · we'll invite you at launch",
     /** Under-CTA when self-serve is live. */
     primaryHintPostLaunch: "14-day trial · no card · cancel anytime",
     /** Secondary — one phrase only. */
@@ -92,29 +91,21 @@ export function marketingPrimaryHint(preLaunch: boolean = MARKETING_LAUNCH.preLa
     : MARKETING_LAUNCH.cta.primaryHintPostLaunch;
 }
 
+/** Internal remaining helper — do not surface counts in public marketing UI. */
 export function foundingSpotsRemaining(
   claimed: number = MARKETING_LAUNCH.foundingSpotsClaimed,
 ) {
   return Math.max(0, MARKETING_LAUNCH.foundingSpotsTotal - claimed);
 }
 
-export type FoundingSpotUrgency = "open" | "warm" | "hot" | "critical";
+export type FoundingSpotUrgency = "open";
 
-export function getFoundingSpotMessaging(claimed: number) {
-  const remaining = foundingSpotsRemaining(claimed);
-  const urgency: FoundingSpotUrgency =
-    remaining <= 5 ? "critical" : remaining <= 12 ? "hot" : remaining <= 25 ? "warm" : "open";
-
+/** Public strip copy — Q4 window + reserve CTA only (no seat counts / urgency meters). */
+export function getFoundingSpotMessaging(_claimed?: number) {
   return {
-    primary:
-      remaining <= 5
-        ? `${remaining} of ${MARKETING_LAUNCH.foundingSpotsTotal} founding seats left`
-        : `${remaining} of ${MARKETING_LAUNCH.foundingSpotsTotal} founding seats open`,
-    secondary:
-      claimed > 0
-        ? `Launching ${MARKETING_LAUNCH.launchQuarter} · ${claimed} shop${claimed === 1 ? "" : "s"} on the list — not live software yet`
-        : `Launching ${MARKETING_LAUNCH.launchQuarter} · reserve a seat — software isn't available yet`,
-    urgency,
+    primary: MARKETING_LAUNCH.launchWindowLabel,
+    secondary: "Reserve a founding seat — we'll invite you at launch",
+    urgency: "open" as FoundingSpotUrgency,
   };
 }
 
@@ -254,7 +245,7 @@ export const IGNITION_PLAN_MARKETING = {
     title: "AI Plus",
     blurb: "Paste a note → AI drafts the RO. Labor assist + advisor app.",
   },
-  ctaHint: `No card today · not live yet · invite at ${MARKETING_LAUNCH.launchQuarter} launch`,
+  ctaHint: `No card today · invite at ${MARKETING_LAUNCH.launchQuarter} launch`,
 } as const;
 
 /**
@@ -388,12 +379,12 @@ export const MARKET_POSITIONING = {
 } as const;
 
 export const FOUNDING_BENEFITS = [
-  "One of 50 founding seats for the Q4 2026 launch",
+  "Founding seat for the Q4 2026 launch",
   "Founding Ignition pricing locked when we open (annual)",
   "PartsTech catalog & punchout included with Ignition at launch",
   "Priority onboarding — we set up with you, not at you",
   "Your feedback shapes what we ship next",
-  "Not live software yet — we invite you at Q4 2026 launch",
+  "We'll invite you at the Q4 2026 launch",
 ] as const;
 
 export const VS_BUDGET_COMPETITORS = [

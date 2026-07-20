@@ -129,7 +129,7 @@ export function EasyStartPath({
         </h2>
         <p className="mt-3 text-slate-600 leading-relaxed">
           Not a sales quiz. Pick what hurts most; we show how Ignition will help at launch. Then reserve
-          one of 50 founding seats for Q4 2026 — you won&apos;t get login access today.
+          a founding seat for Q4 2026 — login access opens then.
         </p>
         <p className="mt-4 text-sm font-medium text-slate-700">{STATUS_QUO_COST}</p>
         <ul className="mt-6 space-y-3">
