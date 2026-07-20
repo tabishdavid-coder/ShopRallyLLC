@@ -25,7 +25,9 @@ import { FoundingWaitlistForm } from "@/components/marketing-site/founding-waitl
 import { OutcomeMetricsStrip } from "@/components/marketing-site/outcome-metrics-strip";
 import { Button } from "@/components/ui/button";
 import {
+  CATEGORY_POSITIONING,
   getFoundingSpotMessaging,
+  HOW_SHOPRALLY_WORKS,
   MARKETING_LAUNCH,
   marketingPrimaryCta,
   marketingPrimaryHint,
@@ -45,28 +47,17 @@ import {
   shoprallyStarterMonthly,
 } from "@/lib/plans";
 
-const PILLARS = [
+const HOW_IT_WORKS_ICONS = [Wrench, Zap, BarChart3] as const;
+const HOW_IT_WORKS_ACCENTS = [
   {
-    icon: Wrench,
-    title: "Run the bay",
-    description:
-      "Job board, repair orders, PartsTech on the estimate, canned jobs, and your shop labor library — one workspace from concern to invoice.",
     accent: "border-brand-navy/20 bg-brand-navy/5",
     iconBg: "bg-brand-navy text-white",
   },
   {
-    icon: Zap,
-    title: "Get approvals faster",
-    description:
-      "Digital estimates, email approval links, digital vehicle inspections, and invoicing — customers review from their phone.",
     accent: "border-brand-light/30 bg-brand-light/10",
     iconBg: "bg-brand-light text-brand-navy",
   },
   {
-    icon: BarChart3,
-    title: "See the day at a glance",
-    description:
-      "Live Operations Daily Snapshot, appointments, and payment tracking so the counter stays ahead of the bays.",
     accent: "border-brand-light/40 bg-brand-light/15",
     iconBg: "bg-brand-navy text-white",
   },
@@ -148,23 +139,23 @@ export function HomePageContent({ foundingSpotsClaimed = 0 }: { foundingSpotsCla
               {preLaunch
                 ? foundingMessaging.urgency === "critical"
                   ? foundingMessaging.primary
-                  : `${MARKETING_LAUNCH.foundingProgramLabel} — start easy, no pressure`
-                : `${ignitionName} — one plan to run your shop`}
+                  : `${CATEGORY_POSITIONING.shortCategory} · ${MARKETING_LAUNCH.launchQuarter}`
+                : `${CATEGORY_POSITIONING.shortCategory} · ${ignitionName}`}
             </div>
 
             <h1 className="text-4xl font-bold tracking-tight text-brand-navy sm:text-5xl lg:text-6xl">
-              Shop software built for{" "}
+              ShopRally —{" "}
               <span className="bg-gradient-to-r from-brand-navy to-brand-light bg-clip-text text-transparent">
-                the bay
+                all-in-one auto repair software
               </span>
             </h1>
 
             <p className="mx-auto mt-5 max-w-2xl text-lg leading-relaxed text-slate-600">
               {preLaunch
-                ? `${ignitionName} — job board, PartsTech on the estimate, digital vehicle inspections, email estimates & approvals, appointments, and Live Operations Daily Snapshot. One plan. PartsTech included. No tier maze.`
+                ? `${CATEGORY_POSITIONING.productLine}. ${ignitionName} brings the job board, PartsTech on the estimate, digital vehicle inspections, email estimates & approvals, appointments, and Live Operations Daily Snapshot into one plan — launching ${MARKETING_LAUNCH.launchQuarter}. Not live yet.`
                 : PHASE_ONE_LAUNCH
                   ? `${PHASE_ONE_COPY.subhead} ${ignitionName} from $${shoprallyStarterMonthly(true)}/mo — AI Plus optional +${aiPlusPriceLabel()}.`
-                  : `Premium all-in-one for independents — ${ignitionName} from $${shoprallyStarterMonthly(true)}/mo.`}
+                  : `Premium all-in-one auto repair shop management software — ${ignitionName} from $${shoprallyStarterMonthly(true)}/mo.`}
             </p>
 
             <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
@@ -211,28 +202,38 @@ export function HomePageContent({ foundingSpotsClaimed = 0 }: { foundingSpotsCla
       <MarketPositioningSection />
 
       <section id="product" className="mx-auto max-w-7xl scroll-mt-20 px-4 py-16 sm:px-6 sm:py-20">
-        <div className="mx-auto max-w-2xl text-center">
+        <div className="mx-auto max-w-2xl text-center lg:max-w-3xl">
           <p className="text-xs font-semibold uppercase tracking-wider text-brand-red">
-            {ignitionName}
+            {HOW_SHOPRALLY_WORKS.eyebrow}
           </p>
           <h2 className="mt-2 text-3xl font-bold text-brand-navy sm:text-4xl">
-            Everything to run your shop — launching Q4 2026
+            {HOW_SHOPRALLY_WORKS.headline}
           </h2>
+          <p className="mt-4 text-base leading-relaxed text-slate-600">
+            {HOW_SHOPRALLY_WORKS.subhead}
+            {preLaunch ? ` Founding seats open for the ${MARKETING_LAUNCH.launchQuarter} launch.` : ""}
+          </p>
         </div>
 
         <div className="mt-12 grid gap-6 lg:grid-cols-3">
-          {PILLARS.map((pillar) => {
-            const Icon = pillar.icon;
+          {HOW_SHOPRALLY_WORKS.steps.map((step, index) => {
+            const Icon = HOW_IT_WORKS_ICONS[index] ?? Wrench;
+            const style = HOW_IT_WORKS_ACCENTS[index] ?? HOW_IT_WORKS_ACCENTS[0];
             return (
               <div
-                key={pillar.title}
-                className={cn("rounded-2xl border-2 p-6 transition-shadow hover:shadow-lg", pillar.accent)}
+                key={step.title}
+                className={cn("rounded-2xl border-2 p-6 transition-shadow hover:shadow-lg", style.accent)}
               >
-                <div className={cn("flex size-11 items-center justify-center rounded-xl", pillar.iconBg)}>
-                  <Icon className="size-5" />
+                <div className="flex items-center justify-between gap-3">
+                  <div className={cn("flex size-11 items-center justify-center rounded-xl", style.iconBg)}>
+                    <Icon className="size-5" />
+                  </div>
+                  <span className="text-xs font-bold tabular-nums tracking-wider text-brand-navy/40">
+                    {step.step}
+                  </span>
                 </div>
-                <h3 className="mt-4 text-xl font-bold text-brand-navy">{pillar.title}</h3>
-                <p className="mt-2 text-sm leading-relaxed text-slate-600">{pillar.description}</p>
+                <h3 className="mt-4 text-xl font-bold text-brand-navy">{step.title}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-slate-600">{step.description}</p>
               </div>
             );
           })}
@@ -243,13 +244,16 @@ export function HomePageContent({ foundingSpotsClaimed = 0 }: { foundingSpotsCla
         <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6">
           <div className="grid items-start gap-12 lg:grid-cols-2">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-wider text-brand-red">Shop management</p>
+              <p className="text-xs font-semibold uppercase tracking-wider text-brand-red">
+                {CATEGORY_POSITIONING.shortCategory}
+              </p>
               <h2 className="mt-2 text-3xl font-bold text-brand-navy">
-                Built for how repair shops actually work
+                Purpose-built for how repair shops actually work
               </h2>
               <p className="mt-4 leading-relaxed text-slate-600">
-                From the first concern to the final invoice — customers, vehicles, repair orders, and
-                payment tracking stay connected. No re-entry between systems.
+                ShopRally is all-in-one auto repair shop management software — customers, vehicles,
+                repair orders, PartsTech, digital vehicle inspections, and payment tracking stay
+                connected. No re-entry between systems.
               </p>
               <ul className="mt-6 space-y-3">
                 {[

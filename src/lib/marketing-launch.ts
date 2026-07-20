@@ -181,13 +181,57 @@ export const EASY_START_PROGRESS = {
 } as const;
 
 /**
+ * Category + outcome framing (AutoLeap-style “all-in-one shop management” — ShopRally voice).
+ * Used on home/features heroes; keep Ignition honesty (preLaunch / Q4 2026) on CTAs separately.
+ */
+export const CATEGORY_POSITIONING = {
+  /** SEO / hero category line — not a brand substitute. */
+  categoryLine: "All-in-one auto repair shop management software",
+  shortCategory: "All-in-one shop management",
+  /** Cloud CRM framing under the category. */
+  productLine: "Cloud shop CRM that runs the bay and the counter",
+} as const;
+
+/**
+ * “How it works for your shop” — plain shop-owner outcomes (not feature laundry lists).
+ * Website & SEO stays a companion offer — never listed here as Ignition CRM.
+ */
+export const HOW_SHOPRALLY_WORKS = {
+  eyebrow: "How ShopRally works for your shop",
+  headline: "One system from the first concern to the final invoice",
+  subhead:
+    "Ignition is all-in-one auto repair shop management software for independents — not a stack of logins. PartsTech and digital vehicle inspections ship with the plan. Website & SEO stays a separate companion offer.",
+  steps: [
+    {
+      step: "01",
+      title: "Build the estimate once",
+      description:
+        "Concerns, canned jobs, shop labor, and PartsTech catalog & punchout live on the same repair order — no retyping parts into a second screen.",
+    },
+    {
+      step: "02",
+      title: "Show the work, get the yes",
+      description:
+        "Digital vehicle inspections with photo checklists customers can see, plus email estimates and approval links so the counter isn’t stuck on phone tag.",
+    },
+    {
+      step: "03",
+      title: "Run the day from one board",
+      description:
+        "Job board, appointments, payment tracking, and Live Operations Daily Snapshot keep advisors ahead of the bays — one login for the whole loop.",
+    },
+  ],
+} as const;
+
+/**
  * Ignition shop-plan packaging — competitor-style plan card (name / price / bullets / CTA).
  * Full area breakdown lives in CorePlanWhatsIncluded (below the fold).
  */
 export const IGNITION_PLAN_MARKETING = {
   eyebrow: "Shop plan",
   /** Short audience line under the plan name (Garage360 / AutoLeap pattern). */
-  bestFor: "For independent shops that want the bay and the counter in one login.",
+  bestFor:
+    "All-in-one auto repair shop management for independents — bay and counter in one login.",
   /** Feature bullets under the price — short one-capability lines (Shopmonkey/AutoLeap style). */
   features: [
     { label: "PartsTech catalog & punchout" },
@@ -266,20 +310,20 @@ export const AI_PLUS_MARKETING = {
   teaserPreviewLabels: ["Vehicle identified", "2 jobs drafted", "Labor hours suggested"],
 } as const;
 
-/** AutoLeap-style outcome claims for hero / social proof (marketing copy). */
+/** Outcome claims for hero / social proof (marketing copy — shop-owner language). */
 export const OUTCOME_METRICS = [
   { value: "10+", unit: "hrs/wk", label: "Less admin & double-entry" },
-  { value: "1", unit: "plan", label: "Ignition — everything to run the bay" },
+  { value: "1", unit: "system", label: "All-in-one shop management — Ignition" },
   { value: "3×", unit: "", label: "Faster estimates with canned jobs" },
-  { value: "1", unit: "login", label: "Customers, ROs, digital inspections & payments" },
+  { value: "1", unit: "login", label: "Bay, counter, PartsTech & digital inspections" },
 ] as const;
 
 /** Premium positioning — between legacy desktop CRM and budget add-on stacks. */
 export const MARKET_POSITIONING = {
   eyebrow: "Where ShopRally fits",
-  headline: "Cloud shop CRM — not legacy, not a bolt-on stack",
+  headline: "All-in-one shop management — not legacy, not a bolt-on stack",
   subhead: PHASE_ONE_LAUNCH
-    ? "Legacy systems split workflow across desktop installs and agency retainers. Budget cloud CRMs look cheap until extras stack on. ShopRally Ignition is one plan to run your shop — PartsTech included — add AI Plus when you're ready. Pro and Elite come later."
+    ? "Legacy systems split workflow across desktop installs and agency retainers. Budget cloud CRMs look cheap until extras stack on. ShopRally Ignition is all-in-one auto repair shop management software — PartsTech and digital vehicle inspections included — add AI Plus when you're ready. Pro and Elite come later. Website & SEO is a separate companion offer."
     : "Legacy systems split workflow across desktop installs and agency retainers. Budget cloud CRMs look cheap until SMS, booking, reviews, and website work stack on. ShopRally is the modern all-in-one — Ignition through Elite full stack.",
   tiers: [
     {

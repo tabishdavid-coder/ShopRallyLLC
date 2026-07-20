@@ -20,6 +20,8 @@ import { MarketPositioningSection } from "@/components/marketing-site/market-pos
 import { Button } from "@/components/ui/button";
 import {
   AI_PLUS_MARKETING,
+  CATEGORY_POSITIONING,
+  HOW_SHOPRALLY_WORKS,
   MARKETING_LAUNCH,
   marketingPrimaryHref,
   marketingSecondaryCta,
@@ -40,7 +42,7 @@ const MODULES = [
     icon: Wrench,
     title: "Shop CRM & job board",
     description:
-      "Repair orders, kanban job board, PartsTech parts on the estimate, customers, vehicles, and inventory — connected from concern to invoice.",
+      "All-in-one shop management for the floor: repair orders, kanban job board, PartsTech parts on the estimate, customers, vehicles, and inventory — connected from concern to invoice.",
     items: [
       "Unlimited users & repair orders",
       "Kanban job board (Estimates / WIP / Completed)",
@@ -53,7 +55,7 @@ const MODULES = [
     icon: ClipboardCheck,
     title: "Inspections & approvals",
     description:
-      "Digital vehicle inspections and email estimate/approval links so customers can review from their phone.",
+      "Digital vehicle inspections with photo checklists customers can see, plus email estimate and approval links — so the yes happens without phone tag.",
     items: [
       "Digital vehicle inspections (photo checklists customers can see)",
       "Email estimates & approval links",
@@ -65,7 +67,7 @@ const MODULES = [
     icon: BarChart3,
     title: "Day-to-day operations",
     description:
-      "See today’s work, keep appointments on the calendar, and track what’s owed — without a second system.",
+      "See today’s work, keep appointments on the calendar, and track what’s owed — cloud shop CRM without a second system.",
     items: [
       "Live Operations Daily Snapshot",
       "Appointments",
@@ -111,15 +113,18 @@ export function FeaturesPageContent() {
     <>
       <section className="border-b border-brand-navy/10 bg-gradient-to-b from-brand-light/15 to-white">
         <div className="mx-auto max-w-7xl px-4 py-14 text-center sm:px-6 sm:py-16">
-          <p className="text-xs font-semibold uppercase tracking-wider text-brand-red">Product</p>
+          <p className="text-xs font-semibold uppercase tracking-wider text-brand-red">
+            {CATEGORY_POSITIONING.categoryLine}
+          </p>
           <h1 className="mt-2 text-3xl font-bold text-brand-navy sm:text-4xl lg:text-5xl">
-            {ignitionName} — everything to run your shop
+            {ignitionName} — how ShopRally works for your shop
           </h1>
           <p className="mx-auto mt-4 max-w-2xl text-lg text-slate-600">
-            One launch plan: job board, PartsTech catalog &amp; punchout, digital vehicle
-            inspections, email estimates &amp; approvals, appointments, payment tracking, and Live
-            Operations Daily Snapshot. PartsTech is included with Ignition at launch. Pro and Elite
-            stay on the roadmap.
+            {CATEGORY_POSITIONING.productLine}: job board, PartsTech catalog &amp; punchout, digital
+            vehicle inspections, email estimates &amp; approvals, appointments, payment tracking, and
+            Live Operations Daily Snapshot. PartsTech is included with Ignition at launch. Pro and
+            Elite stay on the roadmap.
+            {preLaunch ? ` Launching ${MARKETING_LAUNCH.launchQuarter} — not live yet.` : ""}
           </p>
           {PHASE_ONE_LAUNCH ? (
             <p className="mx-auto mt-3 max-w-xl text-sm font-medium text-brand-navy">
@@ -148,6 +153,36 @@ export function FeaturesPageContent() {
 
       <MarketPositioningSection />
 
+      <section className="border-y border-brand-navy/10 bg-white">
+        <div className="mx-auto max-w-7xl px-4 py-14 sm:px-6 sm:py-16">
+          <div className="mx-auto max-w-2xl text-center lg:max-w-3xl">
+            <p className="text-xs font-semibold uppercase tracking-wider text-brand-red">
+              {HOW_SHOPRALLY_WORKS.eyebrow}
+            </p>
+            <h2 className="mt-2 text-3xl font-bold text-brand-navy sm:text-4xl">
+              {HOW_SHOPRALLY_WORKS.headline}
+            </h2>
+            <p className="mt-4 text-base leading-relaxed text-slate-600">
+              {HOW_SHOPRALLY_WORKS.subhead}
+            </p>
+          </div>
+          <ol className="mt-10 grid gap-6 lg:grid-cols-3">
+            {HOW_SHOPRALLY_WORKS.steps.map((step) => (
+              <li
+                key={step.title}
+                className="rounded-2xl border border-brand-navy/15 bg-brand-light/10 p-6"
+              >
+                <span className="text-xs font-bold tabular-nums tracking-wider text-brand-red">
+                  {step.step}
+                </span>
+                <h3 className="mt-3 text-lg font-bold text-brand-navy">{step.title}</h3>
+                <p className="mt-2 text-sm leading-relaxed text-slate-600">{step.description}</p>
+              </li>
+            ))}
+          </ol>
+        </div>
+      </section>
+
       <section className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20">
         <div className="mx-auto max-w-2xl text-center">
           <p className="text-xs font-semibold uppercase tracking-wider text-brand-red">
@@ -156,6 +191,9 @@ export function FeaturesPageContent() {
           <h2 className="mt-2 text-3xl font-bold text-brand-navy">
             What founding shops get at launch
           </h2>
+          <p className="mt-3 text-slate-600">
+            Modules inside the all-in-one shop management plan — not a bolt-on maze.
+          </p>
         </div>
         <div className="mt-12 grid gap-6 md:grid-cols-2">
           {MODULES.map((mod) => {
@@ -238,9 +276,9 @@ export function FeaturesPageContent() {
       </section>
 
       <section className="mx-auto max-w-4xl px-4 py-16 text-center sm:px-6">
-        <h2 className="text-2xl font-bold text-brand-navy">See how it fits your shop</h2>
+        <h2 className="text-2xl font-bold text-brand-navy">See how ShopRally fits your shop</h2>
         <p className="mt-3 text-slate-600">
-          Review {ignitionName} pricing or book a walkthrough of the bay workflow.
+          Review {ignitionName} pricing or book a walkthrough of the all-in-one bay workflow.
         </p>
         <div className="mt-6 flex flex-col items-center justify-center gap-3 sm:flex-row">
           <Button className="bg-brand-red hover:bg-brand-red/90" asChild>

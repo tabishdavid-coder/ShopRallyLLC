@@ -2,9 +2,9 @@ import { HomePageContent } from "@/components/marketing-site/home-page";
 import { getFoundingWaitlistStats } from "@/server/marketing-launch-stats";
 
 export const metadata = {
-  title: "ShopRally — Ignition shop CRM · launching Q4 2026",
+  title: "ShopRally — All-in-one auto repair shop management software · Q4 2026",
   description:
-    "ShopRally Ignition launches Q4 2026 at $89.99/mo with PartsTech included. Reserve one of 50 founding seats — job board, digital vehicle inspections, estimates, appointments, and Live Operations Daily Snapshot. AI Plus $49.99/mo. Not available yet.",
+    "ShopRally is all-in-one auto repair shop management software — cloud shop CRM that runs the bay and the counter. Ignition launches Q4 2026 at $89.99/mo with PartsTech and digital vehicle inspections included. Reserve one of 50 founding seats. Not available yet.",
 };
 
 export default async function HomePage() {

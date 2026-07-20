@@ -4,9 +4,9 @@ import { PricingPageContent } from "@/components/pricing/pricing-page";
 import { getFoundingWaitlistStats } from "@/server/marketing-launch-stats";
 
 export const metadata = {
-  title: "Pricing — ShopRally Ignition · Website & SEO",
+  title: "Pricing — All-in-one shop management · Ignition & Website & SEO",
   description:
-    "ShopRally Ignition CRM $89.99/mo launches Q4 2026 — includes PartsTech. Website & SEO (ShopSite + Local SEO, Google Business Profile, and local Google Ads when applicable) is a separate offer. Reserve a founding seat or request a site.",
+    "ShopRally Ignition is all-in-one auto repair shop management software at $89.99/mo — launches Q4 2026 with PartsTech and digital vehicle inspections. Website & SEO (ShopSite + Local SEO) is a separate companion offer. Reserve a founding seat or request a site.",
 };
 
 export default async function PricingPage() {

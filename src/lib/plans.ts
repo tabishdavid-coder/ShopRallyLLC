@@ -497,9 +497,9 @@ export function aiPlusPriceLabel(): string {
 }
 
 export const PHASE_ONE_COPY = {
-  headline: "One plan. Everything to run your shop.",
+  headline: "All-in-one shop management. One Ignition plan.",
   subhead:
-    "Ignition is ShopRally's launch plan — unlimited users & ROs, job board, PartsTech parts ordering, digital estimates & approvals, digital vehicle inspections, appointments, payment tracking, and Live Operations Daily Snapshot. No tier maze.",
+    "ShopRally Ignition is all-in-one auto repair shop management software — unlimited users & ROs, job board, PartsTech catalog & punchout, digital estimates & approvals, digital vehicle inspections, appointments, payment tracking, and Live Operations Daily Snapshot. No tier maze. Website & SEO is a separate companion offer.",
   addonHeadline: "Recommended — AI Plus",
   addonSubhead:
     "Most founding shops reserve Ignition + AI Plus for Q4 2026: freeform RO intake, labor-hour assist, and the advisor app — so the counter moves as fast as the conversation at launch.",

@@ -89,7 +89,9 @@ export function PlatformValueSection() {
     <section className="border-y border-brand-navy/10 bg-gradient-to-b from-white to-brand-light/[0.08]">
       <div className="mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20">
         <div className="mx-auto max-w-2xl text-center">
-          <p className="text-xs font-semibold uppercase tracking-wider text-brand-red">What you get</p>
+          <p className="text-xs font-semibold uppercase tracking-wider text-brand-red">
+            What&apos;s in the all-in-one
+          </p>
           <h2 className="mt-3 text-3xl font-bold text-brand-navy sm:text-4xl">
             {PHASE_ONE_LAUNCH
               ? `${ignitionName} — launching Q4 2026`
@@ -97,7 +99,7 @@ export function PlatformValueSection() {
           </h2>
           <p className="mt-4 text-slate-600">
             {PHASE_ONE_LAUNCH
-              ? "Shop CRM for the bay: estimates, PartsTech, digital vehicle inspections, job board, appointments, and live ops — without selling Pro modules as if they're live today."
+              ? "All-in-one auto repair shop management software for the bay and counter: estimates, PartsTech, digital vehicle inspections, job board, appointments, and live ops — without selling Pro modules as if they're live today. Website & SEO stays a separate companion offer."
               : "CRM, marketing, payments, and AI — with live training included from day one."}
           </p>
         </div>
