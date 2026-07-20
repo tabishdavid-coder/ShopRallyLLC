@@ -184,6 +184,20 @@ export const CATEGORY_POSITIONING = {
 } as const;
 
 /**
+ * Home first-viewport copy — brand + one outcome line + one support sentence.
+ * Keep short; no seat counts / “not live” spam (Q4 on support or hint only).
+ */
+export const HOME_HERO = {
+  /** Outcome headline after the ShopRally brand mark. */
+  headline: "Run the bay and the counter as one.",
+  supportPreLaunch:
+    "Estimates, PartsTech, inspections, and the job board — one login. Launching Q4 2026.",
+  supportLive: "Estimates, PartsTech, inspections, and the job board — one login for the whole shop.",
+  /** Below-fold reciprocity after the product stage. */
+  reciprocityLead: "Ready when you are — reserve a founding seat for Q4 2026.",
+} as const;
+
+/**
  * “How it works for your shop” — plain shop-owner outcomes (not feature laundry lists).
  * Website & SEO stays a companion offer — never listed here as Ignition CRM.
  */

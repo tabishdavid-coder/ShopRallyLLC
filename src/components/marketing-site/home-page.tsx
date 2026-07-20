@@ -26,24 +26,20 @@ import { OutcomeMetricsStrip } from "@/components/marketing-site/outcome-metrics
 import { Button } from "@/components/ui/button";
 import {
   CATEGORY_POSITIONING,
+  HOME_HERO,
   HOW_SHOPRALLY_WORKS,
   MARKETING_LAUNCH,
   marketingPrimaryCta,
   marketingPrimaryHint,
   marketingPrimaryHref,
-  marketingSecondaryCta,
-  marketingSecondaryHref,
 } from "@/lib/marketing-launch";
 import { cn } from "@/lib/utils";
 import {
   PLANS,
   DVI_PLAN_COPY,
   DASHBOARD_PLAN_COPY,
-  PHASE_ONE_COPY,
-  PHASE_ONE_LAUNCH,
   aiPlusPriceLabel,
   planMarketingDisplayName,
-  shoprallyStarterMonthly,
 } from "@/lib/plans";
 
 const HOW_IT_WORKS_ICONS = [Wrench, Zap, BarChart3] as const;
@@ -127,69 +123,71 @@ export function HomePageContent() {
 
   return (
     <>
-      <section className="relative overflow-hidden border-b border-brand-navy/10">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_80%_60%_at_50%_-20%,var(--brand-light)/35,transparent)]" />
+      {/* First viewport: brand + outcome + product stage (value before email ask) */}
+      <section className="sr-home-hero relative overflow-hidden border-b border-brand-navy/10">
+        <div className="pointer-events-none absolute inset-0" aria-hidden>
+          <div className="absolute inset-0 bg-[linear-gradient(160deg,#eef7ff_0%,#f7fbff_38%,#ffffff_72%)]" />
+          <div className="sr-hero-atmosphere absolute -left-1/4 top-0 h-[70%] w-[70%] bg-[radial-gradient(ellipse_at_center,rgb(0_169_255/0.22),transparent_65%)]" />
+          <div className="absolute -right-[20%] bottom-0 h-[55%] w-[60%] bg-[radial-gradient(ellipse_at_center,rgb(30_58_86/0.12),transparent_70%)]" />
+          <div
+            className="absolute inset-0 opacity-[0.35]"
+            style={{
+              backgroundImage:
+                "linear-gradient(rgb(30_58_86/0.04) 1px, transparent 1px), linear-gradient(90deg, rgb(30_58_86/0.04) 1px, transparent 1px)",
+              backgroundSize: "48px 48px",
+              maskImage: "radial-gradient(ellipse 80% 70% at 60% 45%, black, transparent)",
+            }}
+          />
+        </div>
 
-        <div className="relative mx-auto max-w-7xl px-4 py-16 sm:px-6 sm:py-20">
-          <div className="mx-auto max-w-3xl text-center">
-            <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-brand-red/25 bg-brand-red/5 px-4 py-1.5 text-xs font-semibold text-brand-red">
-              <Star className="size-3.5 fill-brand-red" />
-              {preLaunch
-                ? `${CATEGORY_POSITIONING.shortCategory} · ${MARKETING_LAUNCH.launchQuarter}`
-                : `${CATEGORY_POSITIONING.shortCategory} · ${ignitionName}`}
-            </div>
-
-            <h1 className="text-4xl font-bold tracking-tight text-brand-navy sm:text-5xl lg:text-6xl">
-              ShopRally —{" "}
-              <span className="bg-gradient-to-r from-brand-navy to-brand-light bg-clip-text text-transparent">
-                all-in-one auto repair software
-              </span>
+        <div className="relative mx-auto grid min-h-[calc(100svh-5.5rem)] max-w-7xl items-center gap-10 px-4 py-12 sm:px-6 lg:grid-cols-[minmax(0,0.92fr)_minmax(0,1.35fr)] lg:gap-8 lg:py-16 xl:gap-12">
+          <div className="sr-hero-copy relative z-10 max-w-xl lg:max-w-none">
+            <p className="sr-marketing-display text-[clamp(2.75rem,6vw,4.25rem)] font-bold leading-[0.92] tracking-tight text-brand-navy">
+              ShopRally
+            </p>
+            <h1 className="sr-marketing-display mt-4 text-[clamp(1.65rem,3.4vw,2.35rem)] font-semibold leading-[1.12] tracking-tight text-brand-navy">
+              {HOME_HERO.headline}
             </h1>
-
-            <p className="mx-auto mt-5 max-w-2xl text-lg leading-relaxed text-slate-600">
-              {preLaunch
-                ? `${CATEGORY_POSITIONING.productLine}. ${ignitionName} brings the job board, PartsTech on the estimate, digital vehicle inspections, email estimates & approvals, appointments, and Live Operations Daily Snapshot into one plan — launching ${MARKETING_LAUNCH.launchQuarter}.`
-                : PHASE_ONE_LAUNCH
-                  ? `${PHASE_ONE_COPY.subhead} ${ignitionName} from $${shoprallyStarterMonthly(true)}/mo — AI Plus optional +${aiPlusPriceLabel()}.`
-                  : `Premium all-in-one auto repair shop management software — ${ignitionName} from $${shoprallyStarterMonthly(true)}/mo.`}
+            <p className="mt-4 max-w-md text-base leading-relaxed text-slate-600 sm:text-lg">
+              {preLaunch ? HOME_HERO.supportPreLaunch : HOME_HERO.supportLive}
             </p>
 
-            <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
-              <Button size="lg" className="min-w-44 gap-2 bg-brand-navy hover:bg-brand-navy/90" asChild>
+            <div className="mt-8 flex flex-col items-start gap-3">
+              <Button
+                size="lg"
+                className="min-w-52 gap-2 bg-brand-navy px-7 text-base hover:bg-brand-navy/90"
+                asChild
+              >
                 <Link href={marketingPrimaryHref(preLaunch)}>
                   {marketingPrimaryCta({ preLaunch })}
                   <ArrowRight className="size-4" />
                 </Link>
               </Button>
-              <Button
-                size="lg"
-                variant="outline"
-                className="min-w-44 border-brand-navy/30 text-brand-navy hover:bg-brand-light/20"
-                asChild
-              >
-                <Link href={marketingSecondaryHref(preLaunch)}>
-                  {marketingSecondaryCta(preLaunch)}
-                </Link>
-              </Button>
+              <p className="text-xs text-slate-500">{marketingPrimaryHint(preLaunch)}</p>
             </div>
-            <p className="mt-3 text-xs text-slate-500">{marketingPrimaryHint(preLaunch)}</p>
           </div>
 
-          {/* Reciprocity: show the product before asking for an email */}
-          <div className="mx-auto mt-14 max-w-5xl">
-            <HeroPlatformPreview className="mt-0" />
-          </div>
-
-          {preLaunch ? (
-            <div className="mx-auto mt-10 max-w-xl text-center">
-              <p className="mb-3 text-sm font-medium text-slate-600">
-                Liked what you saw? Reserve a founding seat for Q4 2026.
-              </p>
-              <FoundingWaitlistForm variant="compact" />
+          <div className="sr-hero-stage relative min-w-0 lg:justify-self-end lg:pl-2">
+            <div className="sr-hero-stage-tilt origin-bottom">
+              <HeroPlatformPreview variant="cinematic" className="mt-0 w-full max-w-3xl lg:max-w-none" />
             </div>
-          ) : null}
+          </div>
         </div>
+
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 bottom-0 h-20 bg-gradient-to-b from-transparent to-white"
+        />
       </section>
+
+      {preLaunch ? (
+        <section className="border-b border-brand-navy/10 bg-white">
+          <div className="mx-auto max-w-xl px-4 py-12 text-center sm:px-6">
+            <p className="mb-4 text-sm font-medium text-slate-600">{HOME_HERO.reciprocityLead}</p>
+            <FoundingWaitlistForm variant="compact" />
+          </div>
+        </section>
+      ) : null}
 
       <OutcomeMetricsStrip />
 

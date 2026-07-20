@@ -37,31 +37,81 @@ const FEATURE_CHIPS = [
   "Unlimited users & ROs",
 ] as const;
 
-export function HeroPlatformPreview({ className }: { className?: string }) {
+type HeroPlatformPreviewProps = {
+  className?: string;
+  /** Cinematic home stage — denser product chrome, no chip laundry list. */
+  variant?: "default" | "cinematic";
+};
+
+export function HeroPlatformPreview({
+  className,
+  variant = "default",
+}: HeroPlatformPreviewProps) {
+  const cinematic = variant === "cinematic";
+
   return (
-    <div className={cn("relative mx-auto max-w-5xl", className ?? "mt-14")}>
-      <div className="overflow-hidden rounded-2xl border-2 border-brand-navy/15 bg-white shadow-2xl shadow-brand-navy/10">
+    <div
+      className={cn(
+        "relative mx-auto",
+        cinematic ? "max-w-none" : "max-w-5xl",
+        className ?? (cinematic ? undefined : "mt-14"),
+      )}
+    >
+      {cinematic ? (
+        <div
+          aria-hidden
+          className="pointer-events-none absolute -inset-x-8 -inset-y-10 -z-10 sm:-inset-x-16"
+        >
+          <div className="absolute inset-0 bg-[radial-gradient(ellipse_70%_55%_at_50%_40%,rgb(0_169_255/0.28),transparent_70%)]" />
+          <div className="absolute inset-x-[10%] bottom-0 h-1/2 rounded-[100%] bg-brand-navy/25 blur-3xl" />
+        </div>
+      ) : null}
+
+      <div
+        className={cn(
+          "overflow-hidden border-2 border-brand-navy/15 bg-white",
+          cinematic
+            ? "rounded-xl shadow-[0_28px_80px_-20px_rgb(30_58_86/0.55),0_12px_28px_-12px_rgb(0_169_255/0.25)] ring-1 ring-white/40"
+            : "rounded-2xl shadow-2xl shadow-brand-navy/10",
+        )}
+      >
         <div className="flex items-center gap-2 border-b border-brand-navy/10 bg-brand-navy px-4 py-3">
           <div className="size-2.5 rounded-full bg-brand-red" />
           <div className="size-2.5 rounded-full bg-brand-light" />
           <div className="size-2.5 rounded-full bg-white/40" />
           <span className="ml-2 text-xs font-medium text-white/90">
-            ShopRally Ignition · job board, PartsTech, inspections &amp; live ops
+            {cinematic
+              ? "ShopRally Ignition"
+              : "ShopRally Ignition · job board, PartsTech, inspections & live ops"}
           </span>
+          {cinematic ? (
+            <span className="ml-auto hidden items-center gap-1.5 text-[10px] font-semibold text-brand-light sm:inline-flex">
+              <span className="size-1.5 animate-pulse rounded-full bg-brand-light" />
+              Live ops
+            </span>
+          ) : null}
         </div>
 
         <div className="border-b border-brand-navy/10 bg-brand-light/10 px-3 py-2">
           <div className="scrollbar-none flex gap-1 overflow-x-auto pb-0.5">
-            {MODULES.map((mod) => {
+            {MODULES.map((mod, index) => {
               const Icon = mod.icon;
+              const active = cinematic ? index === 0 : true;
               return (
                 <div
                   key={mod.id}
-                  className="inline-flex shrink-0 items-center gap-1.5 rounded-md bg-brand-navy px-2.5 py-1 text-[11px] font-semibold text-white shadow-sm"
+                  className={cn(
+                    "inline-flex shrink-0 items-center gap-1.5 rounded-md px-2.5 py-1 text-[11px] font-semibold shadow-sm",
+                    active
+                      ? "bg-brand-navy text-white"
+                      : "bg-white/80 text-brand-navy/70 ring-1 ring-brand-navy/10",
+                  )}
                 >
                   <Icon className="size-3" />
                   {mod.label}
-                  <CheckCircle2 className="size-3 text-brand-light" aria-hidden />
+                  {active ? (
+                    <CheckCircle2 className="size-3 text-brand-light" aria-hidden />
+                  ) : null}
                 </div>
               );
             })}
@@ -70,7 +120,9 @@ export function HeroPlatformPreview({ className }: { className?: string }) {
 
         <div className="grid gap-px bg-brand-navy/5 sm:grid-cols-2 xl:grid-cols-3">
           <div className="bg-white p-4">
-            <p className="text-[10px] font-bold uppercase tracking-wide text-brand-navy/60">Shop CRM</p>
+            <p className="text-[10px] font-bold uppercase tracking-wide text-brand-navy/60">
+              Shop CRM
+            </p>
             <div className="mt-2 rounded-lg border border-brand-light/40 bg-brand-light/5 p-3">
               <div className="flex items-start justify-between gap-2">
                 <span className="rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-900">
@@ -115,7 +167,12 @@ export function HeroPlatformPreview({ className }: { className?: string }) {
                 <span className="text-[10px] font-bold text-brand-light">10/12</span>
               </div>
               <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-brand-navy/10">
-                <div className="h-full w-[83%] rounded-full bg-brand-light" />
+                <div
+                  className={cn(
+                    "h-full w-[83%] rounded-full bg-brand-light",
+                    cinematic && "sr-hero-bar",
+                  )}
+                />
               </div>
               <div className="mt-3 space-y-1.5">
                 <div className="flex items-center gap-2 text-[11px]">
@@ -187,24 +244,28 @@ export function HeroPlatformPreview({ className }: { className?: string }) {
           </div>
         </div>
 
-        <div className="border-t border-brand-navy/10 bg-brand-light/[0.12] px-4 py-3">
-          <div className="flex flex-wrap justify-center gap-1.5">
-            {FEATURE_CHIPS.map((chip) => (
-              <span
-                key={chip}
-                className="rounded-full border border-brand-navy/10 bg-white px-2.5 py-0.5 text-[10px] font-semibold text-brand-navy shadow-sm"
-              >
-                {chip}
-              </span>
-            ))}
+        {!cinematic ? (
+          <div className="border-t border-brand-navy/10 bg-brand-light/[0.12] px-4 py-3">
+            <div className="flex flex-wrap justify-center gap-1.5">
+              {FEATURE_CHIPS.map((chip) => (
+                <span
+                  key={chip}
+                  className="rounded-full border border-brand-navy/10 bg-white px-2.5 py-0.5 text-[10px] font-semibold text-brand-navy shadow-sm"
+                >
+                  {chip}
+                </span>
+              ))}
+            </div>
           </div>
-        </div>
+        ) : null}
 
         <div className="flex flex-wrap items-center justify-between gap-2 border-t border-brand-navy/10 bg-brand-navy px-4 py-2.5 text-[11px] text-white/90">
           <span className="font-medium">
-            CRM · job board · PartsTech · digital inspections · email estimates · appointments · Daily Snapshot
+            {cinematic
+              ? "CRM · PartsTech · inspections · job board · Daily Snapshot"
+              : "CRM · job board · PartsTech · digital inspections · email estimates · appointments · Daily Snapshot"}
           </span>
-          <span className="rounded-full bg-brand-light px-2.5 py-0.5 text-[10px] font-bold text-brand-navy">
+          <span className="rounded bg-brand-light px-2.5 py-0.5 text-[10px] font-bold text-brand-navy">
             Ignition
           </span>
         </div>

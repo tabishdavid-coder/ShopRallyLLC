@@ -1939,6 +1939,124 @@
   }
 }
 
+/* Marketing site type — Barlow Condensed + DM Sans (loaded in (marketing)/layout) */
+.sr-marketing-type {
+  font-family: var(--font-marketing-body), var(--font-geist-sans), ui-sans-serif, sans-serif;
+}
+
+.sr-marketing-display {
+  font-family: var(--font-marketing-display), var(--font-geist-sans), ui-sans-serif, sans-serif;
+}
+
+/* Home landing hero — cinematic product stage */
+@keyframes sr-hero-copy-in {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes sr-hero-stage-in {
+  from {
+    opacity: 0;
+    transform: translateY(36px) rotateX(8deg) rotateY(-10deg) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) rotateX(6deg) rotateY(-8deg) scale(1);
+  }
+}
+
+@keyframes sr-hero-float {
+  0%,
+  100% {
+    transform: translateY(0) rotateX(6deg) rotateY(-8deg);
+  }
+  50% {
+    transform: translateY(-8px) rotateX(5.5deg) rotateY(-7.5deg);
+  }
+}
+
+@keyframes sr-hero-float-flat {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+@keyframes sr-hero-atmosphere {
+  0%,
+  100% {
+    opacity: 0.85;
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: translate3d(2%, -1%, 0) scale(1.04);
+  }
+}
+
+@keyframes sr-hero-bar-fill {
+  from {
+    transform: scaleX(0.35);
+  }
+  to {
+    transform: scaleX(1);
+  }
+}
+
+.sr-home-hero {
+  perspective: 1600px;
+}
+
+.sr-home-hero .sr-hero-copy {
+  animation: sr-hero-copy-in 0.7s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.sr-home-hero .sr-hero-stage-tilt {
+  transform-style: preserve-3d;
+  animation:
+    sr-hero-stage-in 0.95s cubic-bezier(0.22, 1, 0.36, 1) 0.12s both,
+    sr-hero-float 7s ease-in-out 1.1s infinite;
+}
+
+.sr-home-hero .sr-hero-atmosphere {
+  animation: sr-hero-atmosphere 12s ease-in-out infinite;
+}
+
+.sr-home-hero .sr-hero-bar {
+  transform-origin: left center;
+  animation: sr-hero-bar-fill 1.1s cubic-bezier(0.22, 1, 0.36, 1) 0.55s both;
+}
+
+@media (max-width: 1023px) {
+  .sr-home-hero .sr-hero-stage-tilt {
+    animation:
+      sr-hero-copy-in 0.8s cubic-bezier(0.22, 1, 0.36, 1) 0.1s both,
+      sr-hero-float-flat 8s ease-in-out 1s infinite;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sr-home-hero .sr-hero-copy,
+  .sr-home-hero .sr-hero-stage-tilt,
+  .sr-home-hero .sr-hero-atmosphere,
+  .sr-home-hero .sr-hero-bar {
+    animation: none !important;
+  }
+
+  .sr-home-hero .sr-hero-stage-tilt {
+    transform: none;
+  }
+}
+
 /* Stable scrollbar utilities for AP shell (avoids Turbopack arbitrary-value bugs) */
 @utility scrollbar-none {
   scrollbar-width: none;
