@@ -112,7 +112,6 @@ export function EstimateWorkspaceHeroBar({
           serviceWriterId={serviceWriterId}
           serviceWriters={serviceWriters}
           canEdit={canEdit}
-          compact
           className="shrink-0"
         />
         <div className="flex shrink-0 flex-wrap items-center gap-1">{actions}</div>
