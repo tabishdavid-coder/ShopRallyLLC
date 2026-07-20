@@ -18,6 +18,7 @@ export const MARKETING_PUBLIC_PREFIXES = [
   "/login",
   "/sign-in",
   "/sign-up",
+  "/legal",
   "/approve",
   "/invoice",
   "/inspection",
@@ -25,6 +26,9 @@ export const MARKETING_PUBLIC_PREFIXES = [
   "/sites",
   "/api/webhooks",
   "/api/sites",
+  /** Crawl surfaces — must not redirect to /launch or GSC cannot fetch. */
+  "/sitemap.xml",
+  "/robots.txt",
 ] as const;
 
 /** App shells locked on production until Clerk is live. */

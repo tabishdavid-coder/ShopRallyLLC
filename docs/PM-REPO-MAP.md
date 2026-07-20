@@ -89,7 +89,8 @@ Companion to [`PM-HANDOFF.md`](./PM-HANDOFF.md).
 |--------------|---------|
 | **`ShopRallyCRM/`** | Primary CRM agent — `CONTINUE.md`, `BUILD-STATE.md` |
 | **`WebsiteCode/`** | Tenant websites + platform websites pipeline |
-| **`SeoAutopilot/`** | SEO automation module |
+| **`SeoAutopilot/`** | SEO automation module (in-app Growth Engine) |
+| **`SEO/`** | Shared SEO **model** + per-site deploys (`sites/shoprally`, future clients); agent **SEO for ShopRally** |
 | **`ShopRallyTechApp/`** | Mobile tech app |
 | **`MasterCRM/`** | Platform / master CRM coordination |
 

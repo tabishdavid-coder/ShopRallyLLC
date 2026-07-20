@@ -1,12 +1,14 @@
 import { Suspense } from "react";
 
 import { DemoPageContent } from "@/components/marketing-site/demo-page";
+import { marketingPageMetadata } from "@/lib/marketing-seo";
 
-export const metadata = {
-  title: "Book a demo — ShopRally",
+export const metadata = marketingPageMetadata({
+  path: "/demo",
+  title: "Product walkthrough for shop management software",
   description:
-    "Schedule a personalized walkthrough of ShopRally Ignition, or request Website & SEO setup as a separate offer.",
-};
+    "Watch a 3-minute ShopRally walkthrough — job board, PartsTech, digital vehicle inspections, and email approvals for auto repair shops. Optional call if you want a live conversation.",
+});
 
 export default function DemoPage() {
   return (

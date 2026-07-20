@@ -82,7 +82,44 @@ Do not use **`karvio/`** for marketing work unless explicitly syncing.
 ### Do not confuse with
 
 - **SEO Autopilot** — GSC, crawl, SEO tabs (`agents/SeoAutopilot/`)
+- **SEO for ShopRally** — getShopRally.com marketing SEO + event packs (`agents/SEO/`)
 - **ShopRally marketing site** — `src/app/(marketing)/` (getShopRally.com, not tenant sites)
+
+---
+
+## SEO for ShopRally — active
+
+**Purpose:** Shared **SEO model** (background playbook) deployed **separately** to each business/site. ShopRally marketing is site #1; future client sites copy the same model into isolated folders.
+
+| | |
+|---|---|
+| **Parent** | `agents/SEO/` |
+| **Shared model** | `agents/SEO/model/` (+ `DEPLOY.md` for onboarding) |
+| **Sites** | `agents/SEO/sites/{slug}/` — one business each (`shoprally` = getShopRally.com) |
+| **New client** | Copy `sites/_template/` → `sites/{slug}/`, then deploy model |
+| **Agent prompt** | `agents/SEO/SeoForShopRally/CONTINUE.md` |
+| **Build state** | `agents/SEO/SeoForShopRally/BUILD-STATE.md` |
+| **Events** | `agents/SEO/events/{slug}/` (optional; set `site:` in brief) |
+| **Scope** | Marketing / client-site SEO model — not in-app SEO Autopilot |
+
+### How to start SEO for ShopRally in a new chat
+
+1. Open workspace root: `ShopRally/`
+2. Name the chat **SEO for ShopRally**
+3. Paste the full contents of `agents/SEO/SeoForShopRally/CONTINUE.md`
+4. Add your task under **Current task**
+
+### How to onboard a new business (same model, separate deploy)
+
+1. Follow `agents/SEO/model/DEPLOY.md`
+2. Copy `agents/SEO/sites/_template/` → `agents/SEO/sites/{slug}/`
+3. Fill `PROFILE.md` + `DEPLOYMENT.md` (record model version)
+4. Name the chat **SEO — {slug}** and paste that site’s `CONTINUE.md`
+
+### Do not confuse with
+
+- **SEO Autopilot** — shop Growth Engine SEO product (`agents/SeoAutopilot/`)
+- **Website Code** — tenant ShopSite microsites (`agents/WebsiteCode/`)
 
 ---
 

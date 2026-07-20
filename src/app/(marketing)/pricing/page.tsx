@@ -1,12 +1,14 @@
 import { Suspense } from "react";
 
 import { PricingPageContent } from "@/components/pricing/pricing-page";
+import { marketingPageMetadata } from "@/lib/marketing-seo";
 
-export const metadata = {
-  title: "Pricing — All-in-one shop management · Ignition & Website & SEO",
+export const metadata = marketingPageMetadata({
+  path: "/pricing",
+  title: "Pricing for auto repair shop management software",
   description:
-    "ShopRally Ignition is all-in-one auto repair shop management software at $89.99/mo — launches Q4 2026 with PartsTech and digital vehicle inspections. Website & SEO (ShopSite + Local SEO) is a separate companion offer. Reserve a founding seat or request a site.",
-};
+    "ShopRally Ignition pricing for auto repair shops — $89.99 monthly · $84.99 annual. PartsTech and digital vehicle inspections included. Website & Local SEO available as a companion offer. Launching Q4 2026.",
+});
 
 export default function PricingPage() {
   return (

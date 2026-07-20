@@ -9,6 +9,8 @@ const defaultDescription =
 /** Shared Next.js metadata for ShopRally (root + marketing pages). */
 export function shoprallyMetadata(overrides?: Metadata): Metadata {
   const baseUrl = getAppUrl();
+  /** Google Search Console HTML-tag verify — paste token only (not the full meta tag). */
+  const googleSiteVerification = process.env.GOOGLE_SITE_VERIFICATION?.trim();
 
   return {
     metadataBase: new URL(baseUrl),
@@ -25,6 +27,9 @@ export function shoprallyMetadata(overrides?: Metadata): Metadata {
       ],
       apple: BRAND_ASSETS.appleMark,
     },
+    ...(googleSiteVerification
+      ? { verification: { google: googleSiteVerification } }
+      : {}),
     openGraph: {
       type: "website",
       locale: "en_US",
@@ -32,11 +37,13 @@ export function shoprallyMetadata(overrides?: Metadata): Metadata {
       siteName: BRAND.name,
       title: `${BRAND.name} — Auto Repair Shop Management Software`,
       description: BRAND.tagline,
+      images: [{ url: "/brand/app-icon-512.png", width: 512, height: 512, alt: BRAND.name }],
     },
     twitter: {
       card: "summary_large_image",
       title: BRAND.name,
       description: BRAND.tagline,
+      images: ["/brand/app-icon-512.png"],
     },
     ...overrides,
   };
