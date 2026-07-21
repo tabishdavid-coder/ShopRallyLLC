@@ -4,7 +4,7 @@ Last updated: 2026-07-20
 
 ## Status
 
-**First SEO build applied** for getShopRally.com (model v1.0.0). Measurement handoff to owner for GSC/GA4.
+**Content SEO pass applied** (2026-07-20). GSC + GA4 live. Deploy content when ready.
 
 ## Done
 
@@ -13,12 +13,11 @@ Last updated: 2026-07-20
 - [x] Local module skipped
 - [x] Module 01 Technical — sitemap + robots + marketing URL helpers
 - [x] Module 02 On-page — metadata/canonicals/JSON-LD/H1
-- [x] Module 04 Content — keyword map + inventory (structure)
-- [x] Module 05 Measurement — checklist drafted
+- [x] Module 04 Content — keyword map + inventory; content pass on home FAQ, features, pricing
+- [x] Module 05 Measurement — GSC Success + GA4 `G-9S1J111T3K`
 
 ## Backlog
 
-- [ ] Owner: verify GSC + submit sitemap on production host
-- [ ] Owner: confirm GA4 (or agreed analytics) on marketing templates
+- [ ] Deploy content SEO commit to production (when approved)
 - [ ] Optional: richer OG share image (1200×630) beyond app icon
 - [ ] Optional: legal page unique meta beyond layout default

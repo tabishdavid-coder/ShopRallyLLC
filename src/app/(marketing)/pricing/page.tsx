@@ -5,9 +5,9 @@ import { marketingPageMetadata } from "@/lib/marketing-seo";
 
 export const metadata = marketingPageMetadata({
   path: "/pricing",
-  title: "Pricing for auto repair shop management software",
+  title: "Shop management software pricing — Ignition",
   description:
-    "ShopRally Ignition pricing for auto repair shops — $89.99 monthly · $84.99 annual. PartsTech and digital vehicle inspections included. Website & Local SEO available as a companion offer. Launching Q4 2026.",
+    "ShopRally Ignition shop management software pricing — $89.99 monthly · $84.99 annual. PartsTech and digital vehicle inspections included. Website & Local SEO available as a companion offer. Launching Q4 2026.",
 });
 
 export default function PricingPage() {

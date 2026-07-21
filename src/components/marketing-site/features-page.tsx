@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 
 import { AiPlusShowcase } from "@/components/marketing-site/ai-plus-showcase";
-import { HeroPlatformPreview } from "@/components/marketing-site/hero-platform-preview";
+import { ProductUiShowcase } from "@/components/marketing-site/product-ui-showcase";
 import { MarketPositioningSection } from "@/components/marketing-site/market-positioning-section";
 import { Button } from "@/components/ui/button";
 import {
@@ -32,7 +32,7 @@ import {
   PLANS,
   aiPlusPriceLabel,
   planMarketingDisplayName,
-  shoprallyStarterMonthly,
+  shoprallyStarterPricePairLabel,
 } from "@/lib/plans";
 
 const ignitionName = planMarketingDisplayName(PLANS.STARTER);
@@ -107,7 +107,7 @@ const COMING_LATER = [
 
 export function FeaturesPageContent() {
   const preLaunch = MARKETING_LAUNCH.preLaunch;
-  const price = shoprallyStarterMonthly(true);
+  const pricePair = shoprallyStarterPricePairLabel();
 
   return (
     <>
@@ -117,18 +117,18 @@ export function FeaturesPageContent() {
             {CATEGORY_POSITIONING.categoryLine}
           </p>
           <h1 className="mt-2 text-3xl font-bold text-brand-navy sm:text-4xl lg:text-5xl">
-            {ignitionName} — how ShopRally works for your shop
+            Auto repair shop management features — {ignitionName}
           </h1>
           <p className="mx-auto mt-4 max-w-2xl text-lg text-slate-600">
-            {CATEGORY_POSITIONING.productLine}: job board, PartsTech catalog &amp; punchout, digital
-            vehicle inspections, email estimates &amp; approvals, appointments, payment tracking, and
-            Live Operations Daily Snapshot. PartsTech is included with Ignition at launch. Pro and
-            Elite stay on the roadmap.
+            {CATEGORY_POSITIONING.categoryLine} for independents: job board, PartsTech catalog &amp;
+            punchout, digital vehicle inspections, email estimates &amp; approvals, appointments,
+            payment tracking, and Live Operations Daily Snapshot — {CATEGORY_POSITIONING.productLine}.
+            PartsTech is included with Ignition at launch.
             {preLaunch ? ` Launching ${MARKETING_LAUNCH.launchQuarter}.` : ""}
           </p>
           {PHASE_ONE_LAUNCH ? (
             <p className="mx-auto mt-3 max-w-xl text-sm font-medium text-brand-navy">
-              {ignitionName} from ${price}/mo · AI Plus recommended {aiPlusPriceLabel()}
+              {ignitionName} — {pricePair} · AI Plus recommended {aiPlusPriceLabel()}
             </p>
           ) : null}
           <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
@@ -143,8 +143,8 @@ export function FeaturesPageContent() {
               </Link>
             </Button>
           </div>
-          <div className="mx-auto mt-12 max-w-5xl">
-            <HeroPlatformPreview className="mt-0" />
+          <div className="mx-auto mt-12 max-w-5xl text-left">
+            <ProductUiShowcase />
           </div>
         </div>
       </section>
@@ -189,10 +189,15 @@ export function FeaturesPageContent() {
             With {ignitionName}
           </p>
           <h2 className="mt-2 text-3xl font-bold text-brand-navy">
-            What founding shops get at launch
+            Shop CRM modules inside Ignition
           </h2>
           <p className="mt-3 text-slate-600">
-            Modules inside the all-in-one shop management plan — not a bolt-on maze.
+            What founding shops get in the all-in-one auto repair shop management plan — not a
+            bolt-on maze.{" "}
+            <Link href="/pricing" className="font-semibold text-brand-navy underline-offset-2 hover:underline">
+              See Ignition pricing
+            </Link>
+            .
           </p>
         </div>
         <div className="mt-12 grid gap-6 md:grid-cols-2">
@@ -261,24 +266,16 @@ export function FeaturesPageContent() {
               </li>
             ))}
           </ul>
-          <p className="mx-auto mt-6 max-w-md text-sm text-white/70">
-            ShopSite &amp; Local SEO — including Google Business Profile and local Google Ads
-            optimization when you advertise — are a companion offer at launch, not on this CRM
-            roadmap list.{" "}
-            <Link
-              href="/pricing?tab=website"
-              className="font-semibold text-brand-light underline-offset-2 hover:underline"
-            >
-              View Website &amp; SEO pricing
-            </Link>
-          </p>
         </div>
       </section>
 
       <section className="mx-auto max-w-4xl px-4 py-16 text-center sm:px-6">
-        <h2 className="text-2xl font-bold text-brand-navy">See how ShopRally fits your shop</h2>
+        <h2 className="text-2xl font-bold text-brand-navy">
+          Next: pricing, walkthrough, or a founding seat
+        </h2>
         <p className="mt-3 text-slate-600">
-          Review {ignitionName} pricing or book a walkthrough of the all-in-one bay workflow.
+          Review {ignitionName} shop management software pricing, watch how the bay workflow runs,
+          or reserve a founding seat for {MARKETING_LAUNCH.launchQuarter}.
         </p>
         <div className="mt-6 flex flex-col items-center justify-center gap-3 sm:flex-row">
           <Button className="bg-brand-red hover:bg-brand-red/90" asChild>
@@ -287,7 +284,15 @@ export function FeaturesPageContent() {
           <Button variant="outline" className="border-brand-navy text-brand-navy" asChild>
             <Link href={marketingSecondaryHref(preLaunch)}>{marketingSecondaryCta(preLaunch)}</Link>
           </Button>
+          <Button variant="outline" className="border-brand-navy text-brand-navy" asChild>
+            <Link href={marketingPrimaryHref(preLaunch)}>Reserve a founding seat</Link>
+          </Button>
         </div>
+        <p className="mt-6 text-sm text-slate-500">
+          <Link href="/" className="font-medium text-brand-navy underline-offset-2 hover:underline">
+            Back to ShopRally home
+          </Link>
+        </p>
       </section>
     </>
   );

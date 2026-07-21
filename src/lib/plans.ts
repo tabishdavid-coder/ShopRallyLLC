@@ -497,9 +497,9 @@ export function aiPlusPriceLabel(): string {
 }
 
 export const PHASE_ONE_COPY = {
-  headline: "All-in-one shop management. One Ignition plan.",
+  headline: "Shop management software pricing — one Ignition plan",
   subhead:
-    "ShopRally Ignition is all-in-one auto repair shop management software — unlimited users & ROs, job board, PartsTech catalog & punchout, digital estimates & approvals, digital vehicle inspections, appointments, payment tracking, and Live Operations Daily Snapshot. No tier maze. Website & SEO is a separate companion offer.",
+    "ShopRally Ignition is all-in-one auto repair shop management software — unlimited users & ROs, job board, PartsTech catalog & punchout, digital estimates & approvals, digital vehicle inspections, appointments, payment tracking, and Live Operations Daily Snapshot. No tier maze.",
   addonHeadline: "Recommended — AI Plus",
   addonSubhead:
     "Most founding shops reserve Ignition + AI Plus for Q4 2026: freeform RO intake, labor-hour assist, and the advisor app — so the counter moves as fast as the conversation at launch.",
@@ -1193,6 +1193,24 @@ export function shoprallyStarterMonthly(annual = true): number {
   return (annual ? p.annualMonthlyCents : p.monthlyCents) / 100;
 }
 
+/**
+ * Canonical Ignition price pair for marketing — monthly list · effective monthly when billed annually.
+ * Prefer this over showing only the annual rate as if it were the only price.
+ */
+export function shoprallyStarterPricePairLabel(): string {
+  return `$${shoprallyStarterMonthly(false).toFixed(2)} monthly · $${shoprallyStarterMonthly(true).toFixed(2)} annual`;
+}
+
+/** Ignition + AI Plus combined monthly (list or annual-base Ignition + AI Plus list). */
+export function shoprallyIgnitionAiBundleMonthly(annual = false): number {
+  return shoprallyStarterMonthly(annual) + aiPlusMonthlyDollars();
+}
+
+/** Bundle pair label — e.g. "$139.98 monthly · $134.98 annual". */
+export function shoprallyIgnitionAiBundlePricePairLabel(): string {
+  return `$${shoprallyIgnitionAiBundleMonthly(false).toFixed(2)} monthly · $${shoprallyIgnitionAiBundleMonthly(true).toFixed(2)} annual`;
+}
+
 /** ShopRally Professional monthly price for comparison callouts. */
 export function shoprallyAllInMonthly(annual = true): number {
   const p = PLANS.PROFESSIONAL;
@@ -1305,9 +1323,15 @@ export const IGNITION_LAUNCH_HIGHLIGHTS = [
 /** Pricing page FAQ — mirrors Garage360/Torque360 objection handling. */
 export const PRICING_FAQ = [
   {
+    q: "How much does auto repair shop management software cost with ShopRally?",
+    a: PHASE_ONE_LAUNCH
+      ? `Ignition founding pricing is ${shoprallyStarterPricePairLabel()} — one all-in-one shop management plan with PartsTech included. Optional AI Plus is ${aiPlusPriceLabel()}. Website & SEO is a separate companion offer on this page. Reserving a founding seat for Q4 2026 does not bill you today.`
+      : `Ignition is ${shoprallyStarterPricePairLabel()} for all-in-one shop management with PartsTech. Pro and Elite add growth and AI stacks — compare the table on this page.`,
+  },
+  {
     q: "Which plan should I choose?",
     a: PHASE_ONE_LAUNCH
-      ? "Ignition ($89.99/mo) is the plan we're launching in Q4 2026. Reserve a founding seat for: unlimited users & ROs, job board, full RO workspace, PartsTech parts catalog & punchout, canned jobs & shop labor library, digital estimates/approvals/invoices (email), digital vehicle inspections, Live Operations Daily Snapshot, appointments, payment tracking, unlimited NHTSA VIN decode, and inventory basics. Add AI Plus ($49.99/mo) for freeform AI repair-order intake, labor assist, and the advisor mobile app. Pro and Elite come later."
+      ? `Ignition (${shoprallyStarterPricePairLabel()}) is the plan we're launching in Q4 2026. Reserve a founding seat for: unlimited users & ROs, job board, full RO workspace, PartsTech parts catalog & punchout, canned jobs & shop labor library, digital estimates/approvals/invoices (email), digital vehicle inspections, Live Operations Daily Snapshot, appointments, payment tracking, unlimited NHTSA VIN decode, and inventory basics. Add AI Plus (${aiPlusPriceLabel()}) for freeform AI repair-order intake, labor assist, and the advisor mobile app.`
       : "Ignition for shops that want CRM + PartsTech in one bill — unlimited users & ROs, job board, digital vehicle inspections, email estimates & approvals, Live Operations Daily Snapshot, appointments, payment tracking, PartsTech punchout, and shop catalog. Ignition does not include Stripe Connect or licensed MOTOR. Pro when you want licensed MOTOR, unlimited VIN & plate decoding, OEM specs & fluids, SMS, booking, Growth Engine, and Google review management. Elite when you want AI receptionist, ShopSite, Local SEO, and maintenance programs in one bill.",
   },
   {
@@ -1334,7 +1358,7 @@ export const PRICING_FAQ = [
   },
   {
     q: "What's included in the founding-shop pricing?",
-    a: "Founding shops lock in Ignition launch rates on annual billing before we raise public pricing. Spots are limited. Priority demos and feedback access included.",
+    a: `Founding shops lock in Ignition launch rates (${shoprallyStarterPricePairLabel()}) on annual billing when we open — before public list pricing rises. Priority walkthroughs and feedback access included. Reserving a seat does not bill you today.`,
   },
   {
     q: "Are digital vehicle inspections included?",
@@ -1383,7 +1407,7 @@ export const PRICING_FAQ = [
   {
     q: "Can I switch from another shop system?",
     a: PHASE_ONE_LAUNCH
-      ? "Yes. Founding shops get priority onboarding help. Formal white-glove migration packages are planned alongside Pro/Elite — tell us what you're on today when you book a demo."
+      ? "Yes. Founding shops get priority onboarding help. Formal white-glove migration packages are planned alongside later tiers — tell us what you're on today when you watch a walkthrough or when we onboard. We won't invent one-click imports that aren't built yet."
       : "Yes. We offer optional white-glove migration ($399 one-time, included on Elite) and founding shops get priority onboarding help.",
   },
 ] as const;

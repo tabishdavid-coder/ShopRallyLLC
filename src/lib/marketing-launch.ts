@@ -5,10 +5,10 @@
 import {
   PLANS,
   PHASE_ONE_LAUNCH,
-  aiPlusMonthlyDollars,
   aiPlusPriceLabel,
   shoprallyAllInMonthly,
-  shoprallyStarterMonthly,
+  shoprallyIgnitionAiBundlePricePairLabel,
+  shoprallyStarterPricePairLabel,
 } from "@/lib/plans";
 
 export const MARKETING_LAUNCH = {
@@ -41,9 +41,9 @@ export const MARKETING_LAUNCH = {
     primaryHintPreLaunch: "Launching Q4 2026 · no card · we'll invite you at launch",
     /** Under-CTA when self-serve is live. */
     primaryHintPostLaunch: "14-day trial · no card · cancel anytime",
-    /** Secondary — one phrase only. */
-    secondaryPreLaunch: "See a preview — book a demo",
-    secondaryPostLaunch: "See it first — book a demo",
+    /** Secondary — ungated product story; call optional on /demo. */
+    secondaryPreLaunch: "Watch a 3-minute walkthrough",
+    secondaryPostLaunch: "Watch a 3-minute walkthrough",
     /** Post-launch destinations (dormant until preLaunch=false). */
     primaryHrefPostLaunch: "/signup",
     secondaryHrefPostLaunch: "/demo",
@@ -54,7 +54,7 @@ export const MARKETING_LAUNCH = {
   /** @deprecated Use marketingPrimaryCta() */
   primaryCta: "Reserve a founding seat",
   /** @deprecated Use marketingSecondaryCta() */
-  secondaryCta: "See a preview — book a demo",
+  secondaryCta: "Watch a 3-minute walkthrough",
 } as const;
 
 export function marketingPrimaryHref(preLaunch: boolean = MARKETING_LAUNCH.preLaunch): string {
@@ -189,9 +189,9 @@ export const CATEGORY_POSITIONING = {
  */
 export const HOW_SHOPRALLY_WORKS = {
   eyebrow: "How ShopRally works for your shop",
-  headline: "One system from the first concern to the final invoice",
+  headline: "Auto repair shop management from the first concern to the final invoice",
   subhead:
-    "Ignition is all-in-one auto repair shop management software for independents — not a stack of logins. PartsTech and digital vehicle inspections ship with the plan. Website & SEO stays a separate companion offer.",
+    "Ignition is all-in-one auto repair shop management software for independents — not a stack of logins. PartsTech and digital vehicle inspections ship with the plan.",
   steps: [
     {
       step: "01",
@@ -261,8 +261,9 @@ export const AI_PLUS_MARKETING = {
   subhead:
     "Paste a phone note or counter scribble. ShopRally drafts the vehicle, concerns, and labor hours so advisors spend time with the customer — not the keyboard.",
   priceNote: `+${aiPlusPriceLabel()} · stacks on Ignition only`,
-  bundleHint: (ignitionMonthly: number) =>
-    `Ignition + AI Plus from $${(ignitionMonthly + aiPlusMonthlyDollars()).toFixed(2)}/mo`,
+  /** Both cadences — do not pass annual-only Ignition into a single /mo figure. */
+  bundleHint: () =>
+    `Ignition + AI Plus · ${shoprallyIgnitionAiBundlePricePairLabel()}`,
   ctaWithAi: "Reserve Ignition + AI Plus",
   ctaIgnitionOnly: "Reserve Ignition only",
   easeLine: "As easy as texting yourself a note — then Parse with AI.",
@@ -304,12 +305,45 @@ export const AI_PLUS_MARKETING = {
   teaserPreviewLabels: ["Vehicle identified", "2 jobs drafted", "Labor hours suggested"],
 } as const;
 
-/** Outcome claims for hero / social proof (marketing copy — shop-owner language). */
+/** Honest product facts for hero / social proof — no unverifiable time-saved claims. */
 export const OUTCOME_METRICS = [
-  { value: "10+", unit: "hrs/wk", label: "Less admin & double-entry" },
   { value: "1", unit: "system", label: "All-in-one shop management — Ignition" },
-  { value: "3×", unit: "", label: "Faster estimates with canned jobs" },
-  { value: "1", unit: "login", label: "Bay, counter, PartsTech & digital inspections" },
+  { value: "Yes", unit: "", label: "PartsTech catalog & punchout included" },
+  { value: "Yes", unit: "", label: "Digital vehicle inspections included" },
+  { value: "Q4", unit: "2026", label: "Launch window — not billed today" },
+] as const;
+
+/** Founder shop proof — real bay, no invented scale metrics. */
+export const FOUNDER_SHOP_PROOF = {
+  eyebrow: "Built in a working shop",
+  headline: "ShopRally is shaped by a founder who still runs a real repair shop",
+  body:
+    "Our founder still runs a real repair shop. Ignition is built from bay and counter work — estimates, PartsTech, inspections, and the job board — not from a pitch deck. No invented customer counts or revenue claims.",
+  proofTag: "Founder still in the bays",
+} as const;
+
+/** Homepage FAQ — founding reserve, billing start, migration honesty. */
+export const HOME_FAQ = [
+  {
+    q: "What is ShopRally?",
+    a: "ShopRally is all-in-one auto repair shop management software — a cloud shop CRM for independent shops. Ignition covers the job board, repair orders, PartsTech catalog & punchout, digital vehicle inspections, email estimates & approvals, appointments, payment tracking, and Live Operations Daily Snapshot in one login.",
+  },
+  {
+    q: "What does reserving a founding seat mean?",
+    a: `You're on the invite list for the ${MARKETING_LAUNCH.launchQuarter} launch and lock founding Ignition pricing (${shoprallyStarterPricePairLabel()}, annual) when we open. You don't get software access or a charge today.`,
+  },
+  {
+    q: "When does billing start?",
+    a: `Ignition launches ${MARKETING_LAUNCH.launchQuarter}. We don't bill founding seats until we invite you at launch and you choose to start. Reserving is free and no card is required.`,
+  },
+  {
+    q: "Is PartsTech included with shop management software pricing?",
+    a: `Yes — PartsTech catalog & punchout ships with Ignition (${shoprallyStarterPricePairLabel()}). See the pricing page for the full Ignition list and the optional AI Plus add-on.`,
+  },
+  {
+    q: "Can I switch from Tekmetric, AutoLeap, or Mitchell?",
+    a: "Yes — tell us what you use today on a walkthrough or when we onboard. We'll help you plan the cutover. We won't invent one-click imports that aren't built yet; founding shops get priority hands-on help, and formal white-glove migration packages are on the later roadmap.",
+  },
 ] as const;
 
 /** Premium positioning — between legacy desktop CRM and budget add-on stacks. */
@@ -317,7 +351,7 @@ export const MARKET_POSITIONING = {
   eyebrow: "Where ShopRally fits",
   headline: "All-in-one shop management — not legacy, not a bolt-on stack",
   subhead: PHASE_ONE_LAUNCH
-    ? "Legacy systems split workflow across desktop installs and agency retainers. Budget cloud CRMs look cheap until extras stack on. ShopRally Ignition is all-in-one auto repair shop management software — PartsTech and digital vehicle inspections included — add AI Plus when you're ready. Pro and Elite come later. Website & SEO is a separate companion offer."
+    ? "Legacy systems split workflow across desktop installs and agency retainers. Budget cloud CRMs look cheap until extras stack on. ShopRally Ignition is all-in-one auto repair shop management software — PartsTech and digital vehicle inspections included — add AI Plus when you're ready."
     : "Legacy systems split workflow across desktop installs and agency retainers. Budget cloud CRMs look cheap until SMS, booking, reviews, and website work stack on. ShopRally is the modern all-in-one — Ignition through Elite full stack.",
   tiers: [
     {
@@ -353,10 +387,10 @@ export const MARKET_POSITIONING = {
         ? "One plan to run the bay — launching Q4 2026"
         : "Cloud CRM, Growth Engine, training & optional full stack",
       priceLabel: PHASE_ONE_LAUNCH
-        ? `From $${shoprallyStarterMonthly(true)}/mo`
+        ? shoprallyStarterPricePairLabel()
         : `From $${shoprallyAllInMonthly(true)}/mo`,
       subPrice: PHASE_ONE_LAUNCH
-        ? "Ignition shop plan · AI Plus optional +$49.99/mo"
+        ? `Ignition shop plan · AI Plus optional +${aiPlusPriceLabel()}`
         : "Pro flagship · licensed MOTOR + Growth Engine · Elite full stack",
       points: PHASE_ONE_LAUNCH
         ? [
@@ -364,8 +398,7 @@ export const MARKET_POSITIONING = {
             "PartsTech catalog & punchout — parts on the estimate without retyping",
             "Live Operations Daily Snapshot, appointments & payment tracking",
             "Canned jobs & shop labor library · unlimited NHTSA VIN decode",
-            "AI Plus recommended (+$49.99/mo): freeform RO intake, labor assist & advisor app",
-            "Pro & Elite coming later — not sold on pricing today",
+            `AI Plus recommended (+${aiPlusPriceLabel()}): freeform RO intake, labor assist & advisor app`,
           ]
         : [
             "Ignition: unlimited users & ROs, job board, digital vehicle inspections, email estimates & approvals",

@@ -6,7 +6,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import { Check, ChevronDown, Minus, Sparkles } from "lucide-react";
 
 import { AiPlusShowcase } from "@/components/marketing-site/ai-plus-showcase";
-import { HeroPlatformPreview } from "@/components/marketing-site/hero-platform-preview";
+import { PricingUiShowcase } from "@/components/marketing-site/pricing-ui-showcase";
 import { MarketPositioningSection } from "@/components/marketing-site/market-positioning-section";
 import { PlatformValueSection } from "@/components/marketing-site/platform-value-section";
 import { Button } from "@/components/ui/button";
@@ -32,6 +32,7 @@ import {
   planMarketingDisplayName,
   publicPlanAddons,
   shoprallyStarterMonthly,
+  shoprallyStarterPricePairLabel,
 } from "@/lib/plans";
 import { WEB_PRESENCE_MARKETING } from "@/lib/web-presence-marketing";
 import { PricingBillingToggle } from "@/components/pricing/pricing-billing-toggle";
@@ -108,7 +109,9 @@ export function PricingPageContent() {
               <>{WEB_PRESENCE_MARKETING.heroBridge}</>
             ) : (
               <>
-                {ignitionMarketingName} from ${ignitionPrice}/mo — PartsTech included.{" "}
+                Transparent pricing for auto repair shop management software:{" "}
+                {ignitionMarketingName} at {shoprallyStarterPricePairLabel()} with PartsTech
+                included.{" "}
                 {preLaunch ? "Launching Q4 2026." : "No CRM setup fees · month-to-month."}
               </>
             )}
@@ -241,14 +244,14 @@ export function PricingPageContent() {
             <div className="mx-auto max-w-4xl text-center">
               <p className="text-xs font-semibold uppercase tracking-wider text-brand-red">The platform</p>
               <h2 className="mt-2 text-2xl font-bold text-brand-navy sm:text-3xl">
-                Job board to invoice — one screen
+                Daily Snapshot, board, and approvals
               </h2>
               <p className="mt-3 text-sm text-slate-600">
-                Repair orders, inspections, and customer history share the same record from day one.
+                See today&apos;s work, move ROs on the kanban, and get customer yes without phone tag.
               </p>
             </div>
-            <div className="mx-auto mt-10 max-w-5xl">
-              <HeroPlatformPreview className="mt-0" />
+            <div className="mx-auto mt-10 max-w-5xl text-left">
+              <PricingUiShowcase />
             </div>
           </section>
 
