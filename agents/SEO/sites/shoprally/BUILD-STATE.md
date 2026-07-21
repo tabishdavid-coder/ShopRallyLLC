@@ -20,4 +20,5 @@ Last updated: 2026-07-20
 
 - [x] Deploy content SEO commit to production (`8ca3ed3`)
 - [x] Wire OG/Twitter share to `/opengraph-image` (1200×630) instead of app-icon-512
+- [ ] Deploy OG wire-up + allowlist `/opengraph-image` on marketing prod gate
 - [ ] Optional: legal page unique meta beyond layout default

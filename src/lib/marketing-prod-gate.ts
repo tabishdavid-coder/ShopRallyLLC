@@ -26,9 +26,10 @@ export const MARKETING_PUBLIC_PREFIXES = [
   "/sites",
   "/api/webhooks",
   "/api/sites",
-  /** Crawl surfaces — must not redirect to /launch or GSC cannot fetch. */
+  /** Crawl / share surfaces — must not redirect to /launch. */
   "/sitemap.xml",
   "/robots.txt",
+  "/opengraph-image",
 ] as const;
 
 /** App shells locked on production until Clerk is live. */
