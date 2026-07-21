@@ -34,7 +34,14 @@ const UpdateAppointmentInput = z.object({
   technicianId: z.string().optional().nullable(),
   bay: z.string().trim().max(40).optional().nullable(),
   status: z
-    .enum(["SCHEDULED", "CONFIRMED", "IN_PROGRESS", "COMPLETED", "NO_SHOW"])
+    .enum([
+      "SCHEDULED",
+      "CONFIRMED",
+      "IN_PROGRESS",
+      "COMPLETED",
+      "NO_SHOW",
+      "CANCELED",
+    ])
     .optional(),
 });
 
@@ -201,6 +208,14 @@ export async function updateAppointment(
   }
 
   return { ok: true, id: d.id };
+}
+
+export async function updateAppointmentStatus(
+  id: string,
+  status: z.infer<typeof UpdateAppointmentInput>["status"],
+): Promise<ActionResult> {
+  if (!status) return { ok: false, error: "Status is required." };
+  return updateAppointment({ id, status });
 }
 
 export async function cancelAppointment(id: string): Promise<ActionResult> {
