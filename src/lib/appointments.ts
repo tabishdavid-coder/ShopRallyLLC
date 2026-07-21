@@ -2,13 +2,28 @@ import type { AppointmentStatus } from "@/generated/prisma";
 
 export {
   addDays,
+  addMonths,
+  buildLocalStartAt,
+  clampDateInputToToday,
+  clampStartTimeToNow,
   formatWeekRange,
+  getMonthGridDays,
+  getMonthStart,
   getWeekStart,
   isSameDay,
+  isSameMonth,
+  isStartInPast,
+  minTimeInputForDate,
+  monthRangeEnd,
+  parseCalendarDateParam,
+  parseCalendarView,
   parseDateInput,
   parseWeekParam,
+  resolveCalendarRange,
   toDateInputValue,
+  todayDateInputValue,
   weekRangeEnd,
+  type CalendarView,
 } from "@/lib/appointments-date";
 
 export function formatDayHeader(date: Date): { dow: string; md: string } {
@@ -31,6 +46,16 @@ export function formatMinutesLabel(totalMins: number): string {
   const period = h24 >= 12 ? "PM" : "AM";
   const h12 = h24 % 12 || 12;
   return `${h12}:${m.toString().padStart(2, "0")} ${period}`;
+}
+
+/** Format "HH:mm" shop-hours string as 12-hour (e.g. "08:00" → "8:00 AM"). */
+export function formatShopHoursLabel(time: string): string {
+  return formatMinutesLabel(parseTimeToMinutes(time));
+}
+
+/** Format a shop-hours range for toolbar/header display. */
+export function formatShopHoursRange(dayStart: string, dayEnd: string): string {
+  return `${formatShopHoursLabel(dayStart)} – ${formatShopHoursLabel(dayEnd)}`;
 }
 
 /** Format minutes from midnight as "HH:mm" for time inputs. */
@@ -57,8 +82,8 @@ export const APPOINTMENT_STATUS_META: Record<
     className: "bg-brand-navy text-white ring-2 ring-brand-light/60",
   },
   IN_PROGRESS: {
-    label: "In progress",
-    className: "bg-sky-600 text-white",
+    label: "Arrived",
+    className: "bg-emerald-600 text-white",
   },
   COMPLETED: {
     label: "Completed",

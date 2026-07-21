@@ -3,7 +3,8 @@
 import {
   PLANS,
   PHASE_ONE_LAUNCH,
-  shoprallyStarterMonthly,
+  aiPlusPriceLabel,
+  shoprallyStarterPricePairLabel,
 } from "@/lib/plans";
 
 export type MarketingDripEmail = {
@@ -45,9 +46,9 @@ Quick snapshot of why shops are switching to ShopRally:
 
 • Job board + estimates + Operations Daily Snapshot in one CRM
 • Digital vehicle inspections on every plan
-• ${PLANS.STARTER.name} ($${shoprallyStarterMonthly(true)}/mo annual): full shop CRM · digital vehicle inspections · daily snapshot
-• AI Plus (+$49.99/mo): freeform AI intake, labor assist & advisor app
-${PHASE_ONE_LAUNCH ? "• Pro & Elite tiers — licensed MOTOR, Growth Engine, payments — coming in phase two\n• Website & SEO (ShopSite + Local SEO) — separate companion offer at launch" : `• ${PLANS.PROFESSIONAL.name}: licensed MOTOR + Growth Engine + reviews\n• ${PLANS.ENTERPRISE.name}: AI, maintenance programs · ShopSite/Local SEO also à la carte`}
+• ${PLANS.STARTER.marketingName ?? PLANS.STARTER.name} (${shoprallyStarterPricePairLabel()}): full shop CRM · digital vehicle inspections · daily snapshot
+• AI Plus (+${aiPlusPriceLabel()}): freeform AI intake, labor assist & advisor app
+${PHASE_ONE_LAUNCH ? "" : `• ${PLANS.PROFESSIONAL.name}: licensed MOTOR + Growth Engine + reviews\n• ${PLANS.ENTERPRISE.name}: AI, Care Plans · ShopSite/Local SEO also à la carte\n`}
 
 Ignition launches Q4 2026. Compare plans: https://getshoprally.com/pricing
 

@@ -15,6 +15,9 @@ export function hasAnyPermission(
 export const CRM_NAV_HREF_PERMISSIONS: Record<string, readonly string[]> = {
   "/dashboard": [],
   "/dashboard/snapshot": [],
+  "/dashboard/kpis": [],
+  "/dashboard/shop-activity": [],
+  "/dashboard/overview": [],
   "/job-board": ["job_board.view", "job_board.view_all"],
   "/workflow": ["job_board.view", "job_board.view_all"],
   "/tech-board": ["job_board.view", "job_board.view_all"],

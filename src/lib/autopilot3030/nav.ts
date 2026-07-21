@@ -1,4 +1,5 @@
 import {
+  Activity as ActivityIcon,
   BarChart3,
   CalendarCheck,
   CalendarDays,
@@ -188,7 +189,7 @@ export const AP_SIDEBAR_NAV_GROUPS: ApNavGroup[] = [
         description: "Estimates, work in progress & completed ROs",
       },
       {
-        title: "Schedule",
+        title: "Appointments",
         href: "/appointments",
         icon: CalendarDays,
         description: "Calendar & booking",
@@ -425,7 +426,7 @@ export const AP_NAV_SECTIONS: ApNavSection[] = [
   },
   {
     id: "schedule",
-    label: "Schedule",
+    label: "Appointments",
     icon: CalendarDays,
     href: "/appointments",
     items: [
@@ -496,7 +497,13 @@ export function apCatalogNavItemsForPlan(features: PlanFeatureSet): ApNavLink[] 
 /** In-page chip subnav for Dashboard routes (not shown in the operations sidebar). */
 export const AP_DASHBOARD_MODULE_NAV_ITEMS: ApNavLink[] = [
   { title: "Snapshot", href: "/dashboard/snapshot", icon: Camera, description: "Today's shop activity" },
-  { title: "Overview", href: "/dashboard/overview", icon: LayoutDashboard },
+  { title: "KPIs", href: "/dashboard/kpis", icon: BarChart3, description: "Sales & performance" },
+  {
+    title: "Shop Activity",
+    href: "/dashboard/shop-activity",
+    icon: ActivityIcon,
+    description: "Advisor and shop event timeline",
+  },
 ];
 
 export const AP_DASHBOARD_HREF = "/dashboard/snapshot";
@@ -606,7 +613,12 @@ export function apNavItemIsActive(
   }
 
   function matches(href: string): boolean {
-    if (href === "/dashboard/snapshot") {
+    // Sidebar "Dashboard" stays active for Snapshot, KPIs, Shop Activity, and legacy Overview.
+    if (
+      href === "/dashboard/snapshot" ||
+      href === "/dashboard/kpis" ||
+      href === "/dashboard/shop-activity"
+    ) {
       return resolved === "/dashboard" || resolved.startsWith("/dashboard/");
     }
     if (href === "/dashboard/overview") {
@@ -635,7 +647,13 @@ export function apNavItemIsActive(
 
 export function apPageTitle(pathname: string): string {
   if (pathname === "/dashboard" || pathname.startsWith("/dashboard/snapshot")) return "Dashboard";
-  if (pathname.startsWith("/dashboard/overview")) return "Overview";
+  if (
+    pathname.startsWith("/dashboard/kpis") ||
+    pathname.startsWith("/dashboard/overview")
+  ) {
+    return "KPIs";
+  }
+  if (pathname.startsWith("/dashboard/shop-activity")) return "Shop Activity";
   if (pathname === "/workflow") return "Workflow";
   if (pathname.startsWith("/repair-orders/")) return AP_TERMS.repairOrder;
   if (pathname.startsWith("/settings")) return AP_TERMS.shopSettings;
@@ -659,8 +677,16 @@ export function apShowOperationsPanel(pathname: string): boolean {
 export function apModuleSubnavKind(
   pathname: string,
 ): "none" | "dashboard" | "growth" | "settings" | "markups" | "payments" | "seo" | "catalog" | "customers" | "admin" {
-  // Snapshot is the primary Dashboard — no Snapshot/Overview chip strip (matches redesign).
-  if (pathname === "/dashboard" || pathname.startsWith("/dashboard/snapshot")) return "none";
+  // Snapshot + KPIs + Shop Activity share an in-page chip strip under Dashboard.
+  if (
+    pathname === "/dashboard" ||
+    pathname.startsWith("/dashboard/snapshot") ||
+    pathname.startsWith("/dashboard/kpis") ||
+    pathname.startsWith("/dashboard/shop-activity") ||
+    pathname.startsWith("/dashboard/overview")
+  ) {
+    return "dashboard";
+  }
   if (pathname.startsWith("/dashboard/")) return "dashboard";
   if (pathname.startsWith("/settings")) return "settings";
   if (pathname.startsWith("/marketing/seo-automation")) return "seo";

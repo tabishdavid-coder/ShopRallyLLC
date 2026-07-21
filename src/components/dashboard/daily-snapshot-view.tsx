@@ -489,7 +489,7 @@ export function DailySnapshotView({
                     </p>
                   </div>
                   <Button asChild size="sm" variant="outline" className="h-8 shrink-0 text-xs">
-                    <Link href="/dashboard/overview">View all activity</Link>
+                    <Link href="/dashboard/kpis">View KPIs</Link>
                   </Button>
                 </CardHeader>
                 <CardContent className="px-4 pb-4 pt-0">

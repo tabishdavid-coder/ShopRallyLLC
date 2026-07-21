@@ -24,6 +24,8 @@ export type PaymentFinanceData = {
   invoiceNumber: number | null;
   shareUrl: string | null;
   customerFirstName: string;
+  /** Full display name for share recipient header. */
+  customerName?: string;
   shopName: string;
   phones: { label: string; value: string }[];
   email: string | null;
@@ -75,6 +77,7 @@ export function PaymentFinancePanel({ data }: { data: PaymentFinanceData }) {
     invoiceNumber,
     shareUrl,
     customerFirstName,
+    customerName,
     shopName,
     phones,
     email,
@@ -187,6 +190,7 @@ export function PaymentFinancePanel({ data }: { data: PaymentFinanceData }) {
             invoiceId={invoiceId}
             invoiceNumber={invoiceNumber}
             customerFirstName={customerFirstName}
+            customerName={customerName}
             shopName={shopName}
             phones={phones}
             email={email}
@@ -215,6 +219,7 @@ export function PaymentFinancePanel({ data }: { data: PaymentFinanceData }) {
           shareUrl={shareUrl}
           stripeEnabled={canStripeCheckout}
           customerFirstName={customerFirstName}
+          customerName={customerName}
           shopName={shopName}
           phones={phones}
           email={email}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import {
   Activity,
@@ -34,6 +34,19 @@ const TABS: ApSubnavTabItem[] = [
   { id: "attachments", label: "Attachments", icon: Paperclip },
 ];
 
+const TAB_IDS = new Set<string>(TABS.map((t) => t.id));
+
+function tabFromSearchParam(raw: string | null): EstimateLabWorkTabId | null {
+  if (!raw || !TAB_IDS.has(raw)) return null;
+  return raw as EstimateLabWorkTabId;
+}
+
+/** Client-only — avoids Suspense requirement of useSearchParams for ?tab= deeplinks. */
+function readTabFromLocation(): EstimateLabWorkTabId | null {
+  if (typeof window === "undefined") return null;
+  return tabFromSearchParam(new URLSearchParams(window.location.search).get("tab"));
+}
+
 type Props = {
   defaultTab?: EstimateLabWorkTabId;
   panels: Record<EstimateLabWorkTabId, ReactNode>;
@@ -57,6 +70,14 @@ export function EstimateLabWorkTabs({
   const initial =
     defaultTab === "parts" && !partsTechOk ? "services" : defaultTab;
   const [active, setActive] = useState<EstimateLabWorkTabId>(initial);
+
+  useEffect(() => {
+    const fromUrl = readTabFromLocation();
+    if (!fromUrl) return;
+    const next = fromUrl === "parts" && !partsTechOk ? "services" : fromUrl;
+    setActive(next);
+    onTabChange?.(next);
+  }, [partsTechOk]); // eslint-disable-line react-hooks/exhaustive-deps -- mount / capability sync only
 
   function selectTab(id: EstimateLabWorkTabId) {
     if (id === "parts" && !partsTechOk) return;

@@ -9,7 +9,7 @@ const globalForPrisma = globalThis as unknown as {
 };
 
 /** Bump when generated client shape changes (e.g. Shop.apptWeeklyHours). */
-const PRISMA_SCHEMA_REVISION = 11;
+const PRISMA_SCHEMA_REVISION = 12;
 
 function withDevPoolParams(url: string): string {
   if (process.env.NODE_ENV !== "development") return url;
@@ -53,6 +53,7 @@ function isPrismaClientStale(cached: PrismaClient): boolean {
   if (!Object.hasOwn(cached, "maintenanceProgramService")) return true;
   if (!Object.hasOwn(cached, "depositRequest")) return true;
   if (!Object.hasOwn(cached, "motorCatalogNode")) return true;
+  if (!Object.hasOwn(cached, "shopInspectionTemplate")) return true;
   return globalForPrisma.prismaSchemaRevision !== PRISMA_SCHEMA_REVISION;
 }
 

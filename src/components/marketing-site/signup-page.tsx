@@ -18,13 +18,12 @@ import {
 } from "@/lib/marketing-launch";
 import {
   PLANS,
-  PHASE_ONE_LAUNCH,
-  aiPlusMonthlyDollars,
   aiPlusPriceLabel,
   planCardBullets,
   planDisplayPrice,
   planMarketingDisplayName,
-  shoprallyStarterMonthly,
+  shoprallyIgnitionAiBundleMonthly,
+  shoprallyStarterPricePairLabel,
 } from "@/lib/plans";
 import { submitTrialSignup } from "@/server/actions/marketing-leads";
 import { cn } from "@/lib/utils";
@@ -53,8 +52,8 @@ export function SignupPageContent() {
   const ignition = PLANS.STARTER;
   const ignitionName = planMarketingDisplayName(ignition);
   const progress = submitted ? 100 : step === "confirm" ? 75 : START_PROGRESS;
-  const ignitionMo = shoprallyStarterMonthly(true);
-  const bundleMo = ignitionMo + aiPlusMonthlyDollars();
+  const bundleMonthly = shoprallyIgnitionAiBundleMonthly(false);
+  const bundleAnnual = shoprallyIgnitionAiBundleMonthly(true);
 
   function goConfirm(e: React.FormEvent) {
     e.preventDefault();
@@ -105,7 +104,7 @@ export function SignupPageContent() {
             <Link href="/login">Already have access? Sign in</Link>
           </Button>
           <Button variant="outline" className="border-brand-navy text-brand-navy" asChild>
-            <Link href="/demo">See it first — book a demo</Link>
+            <Link href="/demo">Watch a 3-minute walkthrough</Link>
           </Button>
         </div>
       </div>
@@ -153,14 +152,20 @@ export function SignupPageContent() {
           <div className="flex flex-wrap items-end justify-between gap-3">
             <div>
               <p className="text-xs font-semibold uppercase tracking-wider text-brand-red">{ignitionName}</p>
-              <p className="mt-1 text-2xl font-bold tabular-nums text-brand-navy">
-                {planDisplayPrice(ignition, true)}
-                <span className="text-sm font-normal text-slate-500">/mo annual</span>
+              <p className="mt-1 text-lg font-bold tabular-nums text-brand-navy sm:text-xl">
+                {shoprallyStarterPricePairLabel()}
+              </p>
+              <p className="mt-1 text-xs text-slate-500">
+                List {planDisplayPrice(ignition, false)}/mo · annual effective{" "}
+                {planDisplayPrice(ignition, true)}/mo
               </p>
             </div>
             {wantAiPlus ? (
               <p className="text-sm font-semibold tabular-nums text-brand-navy">
-                + AI Plus → ${bundleMo.toFixed(2)}/mo
+                + AI Plus → ${bundleMonthly.toFixed(2)}/mo
+                <span className="block text-xs font-normal text-slate-500">
+                  or ${bundleAnnual.toFixed(2)}/mo annual base
+                </span>
               </p>
             ) : (
               <p className="text-xs text-slate-500">AI Plus off — add anytime for {aiPlusPriceLabel()}</p>
@@ -176,11 +181,6 @@ export function SignupPageContent() {
                 </li>
               ))}
           </ul>
-          {PHASE_ONE_LAUNCH ? (
-            <p className="mt-3 text-xs text-slate-500">
-              Pro & Elite come later — we won&apos;t upsell you through a tier maze today.
-            </p>
-          ) : null}
         </div>
 
         {/* AI Plus — default on */}

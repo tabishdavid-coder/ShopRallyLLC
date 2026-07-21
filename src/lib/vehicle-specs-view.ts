@@ -1,4 +1,5 @@
 import { extractEngineDetails, engineDetailRows } from "@/lib/engine-details";
+import { formatVehicleDisplayLabel } from "@/lib/vehicle-display";
 
 export type VehicleSpecsView = {
   vin: string | null;
@@ -96,5 +97,5 @@ export function vehicleSpecsSourceLabel(kind: VehicleSpecsSourceKind): string {
 }
 
 export function vehicleYmmLabel(view: VehicleSpecsView): string {
-  return [view.year, view.make, view.model, view.trim].filter(Boolean).join(" ");
+  return formatVehicleDisplayLabel(view, { includeEngine: false });
 }

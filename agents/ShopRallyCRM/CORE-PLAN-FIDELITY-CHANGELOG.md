@@ -26,6 +26,7 @@ Track every change on branch `cursor/core-plan-fidelity-5e7c` so we can merge sa
 | 2026-07-19 | Payments | Staff Stripe Collect fail-closed on Core (`startStaffInvoiceCheckout`) | `payments.ts`, `stripe-connect.ts` | ✅ code landed |
 | 2026-07-19 | Billing | Ignition + AI Plus Stripe Checkout (platform prices) + webhook `shop_plan` | `plan-stripe-checkout.ts`, `billing.ts`, `subscription-billing-actions.tsx` | ✅ code landed |
 | 2026-07-19 | Docs | Go-live + server audit + founding-shop ops | `docs/IGNITION-GO-LIVE.md`, `CORE-SERVER-AUDIT.md`, `PLATFORM-FOUNDING-SHOPS.md` | — |
+| 2026-07-21 | Care Plans | Confirm Core `maintenancePrograms: false`; hide Care Plan drawer tab + customer Maintenance tab on Core; marketing/pricing copy = Elite premium only (not Core) | `plans.ts`, `estimate-lab-context-drawer.tsx`, `customer-detail-view.tsx`, `growth-engine-brand.ts`, `GROWTH-POSITIONING.md` | ⬜ Macuto verify |
 
 ### Gatekeeping PRs (merged)
 

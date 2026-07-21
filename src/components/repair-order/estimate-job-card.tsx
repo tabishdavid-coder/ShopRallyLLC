@@ -13,9 +13,7 @@ import {
   Loader2,
   Lock,
   Wand2,
-  CheckCircle2,
   Info,
-  ListTree,
   Wrench,
   MoreVertical,
   Save,
@@ -26,11 +24,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Badge } from "@/components/ui/badge";
 import {
-  ApprovalSignatureBadge,
   type ApprovalSignatureInfo,
 } from "@/components/repair-order/approval-signature-panel";
+import { JobAuthorizationBadge } from "@/components/repair-order/job-authorization-badge";
 import { formatCents } from "@/lib/format";
 import { stripVehicleDetailsFromLineText } from "@/lib/labor-guide-helpers";
 import { jobAuthState } from "@/lib/ro-totals";
@@ -74,6 +71,7 @@ import {
 } from "@/components/estimate-building/estimate-lab-job-card-shell";
 import { EstimateLabServiceItemsGrid } from "@/components/estimate-building/estimate-lab-service-items-grid";
 import type { AdjustTemplate } from "@/components/estimate-building/estimate-lab-adjustment-shared";
+import { CreateJobAiTrigger } from "@/components/estimate-building/create-job-ai-trigger";
 import { useEstimateLabLaborOptional } from "@/components/estimate-building/estimate-lab-labor-provider";
 import type { InlineLineType } from "@/components/estimate-building/estimate-lab-service-items-grid";
 import {
@@ -177,7 +175,7 @@ function isPartFamilyType(type: InlineLineType): type is PartFamilyType {
  * (and remove) align vertically. Parts has Cost; Labor uses an empty spacer of the same width.
  */
 const COL_GRIP = "w-8";
-/** Wide enough for Labor Book / Part triggers (icon + label + chevron) without clipping. */
+/** Wide enough for Job with AI / Part triggers (icon + label + chevron) without clipping. */
 const COL_TYPE = "w-[9rem]";
 /** Hours / Qty — wide enough for decimals like 0.80 without clipping. */
 const COL_QTY = "w-[4.5rem]";
@@ -387,6 +385,8 @@ export function EstimateJobCard({
   gpGoalCents,
   roId,
   customerApproved = false,
+  roAuthorizedAt = null,
+  approvalSentAt = null,
   approvalSignature = null,
   jobFees = [],
   jobDiscounts = [],
@@ -414,7 +414,9 @@ export function EstimateJobCard({
   technicians?: Technician[];
   roId: string;
   customerApproved?: boolean;
-  /** When set, Approved badge opens signature / terms details. */
+  roAuthorizedAt?: Date | string | null;
+  approvalSentAt?: Date | string | null;
+  /** When set, customer-approved jobs can open signature / terms details. */
   approvalSignature?: ApprovalSignatureInfo | null;
   jobFees?: JobAdj[];
   jobDiscounts?: JobAdj[];
@@ -460,23 +462,7 @@ export function EstimateJobCard({
   const labAutoSaveSkip = useRef(true);
 
   const isLab = variant === "lab";
-
-  function renderApprovedBadge(extraClassName?: string) {
-    if (!customerApproved) return null;
-    if (approvalSignature) {
-      return <ApprovalSignatureBadge info={approvalSignature} className={extraClassName} />;
-    }
-    return (
-      <Badge
-        className={cn(
-          "gap-1 bg-emerald-600 text-[10px] text-white hover:bg-emerald-600",
-          extraClassName,
-        )}
-      >
-        <CheckCircle2 className="size-3" /> Approved
-      </Badge>
-    );
-  }
+  const jobApproved = job.authorized;
 
   /** Palette C lines — solid slate-blue card edge, crisper section dividers, soft row rules. */
   const jobEdge = "border-[#B9C8DC]";
@@ -598,6 +584,22 @@ export function EstimateJobCard({
     laborLines: view.labor.map((l) => ({ authorized: l.authorized !== false })),
     partLines: view.parts.map((p) => ({ authorized: p.authorized !== false })),
   });
+
+  function renderJobAuthBadge(className?: string) {
+    return (
+      <JobAuthorizationBadge
+        authorized={job.authorized}
+        approvedAt={job.approvedAt}
+        recommended={job.recommended}
+        authState={authState}
+        roAuthorizedAt={roAuthorizedAt}
+        approvalSentAt={approvalSentAt}
+        approvalSignature={approvalSignature}
+        customerApproved={customerApproved}
+        className={className}
+      />
+    );
+  }
 
   // Job-level fees/discounts (computed against this job's labor/parts) folded
   // into the job total. Labor/parts tax uses per-line taxable flags.
@@ -941,14 +943,12 @@ export function EstimateJobCard({
   const CardWrapper = isLab ? EstimateLabJobCardShell : "div";
   const cardWrapperProps = isLab
     ? {
-        className: customerApproved ? "border-emerald-500 ring-1 ring-emerald-500/30" : undefined,
+        className: jobApproved ? "border-emerald-500 ring-1 ring-emerald-500/30" : undefined,
       }
     : {
         className: cn(
           "overflow-hidden rounded-none border bg-white shadow-sm",
-          customerApproved
-            ? "border-emerald-500 ring-1 ring-emerald-500/30"
-            : jobEdge,
+          jobApproved ? "border-emerald-500 ring-1 ring-emerald-500/30" : jobEdge,
         ),
       };
 
@@ -958,7 +958,7 @@ export function EstimateJobCard({
       <div
         className={cn(
           "flex items-center gap-1.5 border-b px-2 py-1.5",
-          customerApproved ? "border-emerald-200 bg-emerald-50/80" : cn(jobDivider, "bg-[#E7F1FD]"),
+          jobApproved ? "border-emerald-200 bg-emerald-50/80" : cn(jobDivider, "bg-[#E7F1FD]"),
           isLab && "py-1.5",
         )}
       >
@@ -979,20 +979,7 @@ export function EstimateJobCard({
               className={ORANGE_CHECKBOX}
             />
             <span className="min-w-0 flex-1 truncate font-bold text-[#0B1F3B]">{job.name}</span>
-            {variant === "lab" ? (
-              customerApproved ? (
-                renderApprovedBadge()
-              ) : job.authorized ? (
-                <Badge variant="outline" className="border-emerald-500/50 bg-emerald-50 text-[10px] text-emerald-800">
-                  Authorized
-                </Badge>
-              ) : (
-                <Badge variant="outline" className="border-amber-400/60 bg-amber-50 text-[10px] text-amber-900">
-                  Pending approval
-                </Badge>
-              )
-            ) : null}
-            {variant !== "lab" ? renderApprovedBadge() : null}
+            {renderJobAuthBadge()}
             <div className="ml-auto flex shrink-0 items-center gap-1">
               {canEdit ? (
                 <>
@@ -1084,17 +1071,7 @@ export function EstimateJobCard({
               )}
               placeholder="Job name"
             />
-            {customerApproved ? (
-              renderApprovedBadge("hidden sm:inline-flex")
-            ) : job.authorized ? (
-              <Badge variant="outline" className="hidden border-emerald-500/50 bg-emerald-50 text-[10px] text-emerald-800 sm:inline-flex">
-                Authorized
-              </Badge>
-            ) : (
-              <Badge variant="outline" className="hidden border-amber-400/60 bg-amber-50 text-[10px] text-amber-900 sm:inline-flex">
-                Pending
-              </Badge>
-            )}
+            {renderJobAuthBadge("hidden sm:inline-flex")}
             <div className="ml-auto flex shrink-0 items-center gap-1.5">
               <EstimateLabSaveStatus state={labSaveState} />
               <EstimateLabJobMenu
@@ -1236,7 +1213,7 @@ export function EstimateJobCard({
                         showWrenchIcon={!isLab}
                         typeOptions={["labor"]}
                         onChange={() => {
-                          /* Labor rows stay labor; Labor Book / custom live in the menu actions. */
+                          /* Labor rows stay labor; guide lookup / custom live in the menu actions. */
                         }}
                         handlers={{
                           onLaborFromGuide: addLaborLookup,
@@ -1478,15 +1455,15 @@ export function EstimateJobCard({
               >
                 <Plus className="size-4" /> Add Labor
               </Button>
-              <Button
-                variant="outline"
-                size="sm"
+              <CreateJobAiTrigger
+                roId={roId}
+                focusJobId={job.id}
+                mode="amend-job"
+                label="Job with AI"
+                size="compact"
+                presentation="dialog"
                 className={FOOTER_ACTION_BUTTON}
-                onClick={addLaborLookup}
-                title="Labor Book — search flat-rate operations"
-              >
-                <ListTree className="size-4" /> Labor Book
-              </Button>
+              />
             </div>
           ) : null}
 

@@ -14,6 +14,7 @@ import type {
   ShopNotesAiProposal,
   ShopNotesProposalItem,
   ShopNotesProposalKind,
+  CreateJobAiMode,
 } from "@/lib/shop-notes-ai-types";
 import { prisma } from "@/db/client";
 import { formatPhoneInput, phoneMatchKey } from "@/lib/phone";
@@ -113,12 +114,91 @@ function shouldUpdateExistingJob(
   return jobsAreSemanticallyRelated(matchedJob.name, jobName, repairRequest);
 }
 
+function buildAmendJobProposals(
+  focusJob: RoJobContext,
+  draft: FreeformRoDraft,
+): ShopNotesProposalItem[] {
+  const items: ShopNotesProposalItem[] = [];
+
+  draft.jobs.forEach((job, i) => {
+    const cleaned = cleanEstimateLaborLine(
+      job.jobName,
+      job.laborDescription,
+      job.laborOperations,
+      job.notes,
+    );
+    const mergedNotes = cleaned.jobNotes
+      ? appendJobNotes(focusJob.note, cleaned.jobNotes)
+      : null;
+
+    pushItem(items, {
+      id: `job_labor_${focusJob.id}_${i}`,
+      kind: "job",
+      label: "Labor line",
+      detail: `${cleaned.laborDescription} · ${job.laborHours.toFixed(2)} hr`,
+      currentValue: focusJob.name,
+      proposedValue: cleaned.laborDescription,
+      mode: "add",
+      defaultAccepted: true,
+      targetJobId: focusJob.id,
+      job: {
+        targetJobId: focusJob.id,
+        appendLabor: true,
+        jobName: focusJob.name,
+        repairRequest: job.repairRequest,
+        laborHours: job.laborHours,
+        laborDescription: cleaned.laborDescription,
+        jobNotes: mergedNotes,
+      },
+    });
+  });
+
+  draft.partHints.forEach((part, i) => {
+    const desc = part.description.trim();
+    if (!desc) return;
+    const vendorLine = [part.vendor, part.vendorPhone].filter(Boolean).join(" · ");
+
+    pushItem(items, {
+      id: `part_${focusJob.id}_${i}`,
+      kind: "part",
+      label: "Part line",
+      detail: `${focusJob.name}${vendorLine ? ` · ${vendorLine}` : ""}`,
+      currentValue: focusJob.name,
+      proposedValue: desc,
+      mode: "add",
+      defaultAccepted: true,
+      targetJobId: focusJob.id,
+      part: {
+        description: desc,
+        vendor: part.vendor,
+        vendorPhone: part.vendorPhone,
+        partNumber: part.partNumber,
+        relatedJobName: focusJob.name,
+        targetJobId: focusJob.id,
+      },
+    });
+  });
+
+  return items;
+}
+
 function buildProposalsFromDraft(
   ro: RoContext,
   draft: FreeformRoDraft,
   sourceText: string,
-  focusJobId?: string | null,
+  opts?: { focusJobId?: string | null; mode?: CreateJobAiMode },
 ): ShopNotesProposalItem[] {
+  const mode = opts?.mode ?? "create-job";
+  const focusJobId = opts?.focusJobId ?? null;
+
+  if (mode === "amend-job" && focusJobId) {
+    const focusJob = ro.jobs.find((j) => j.id === focusJobId);
+    if (!focusJob) {
+      throw new Error("Job not found on this repair order.");
+    }
+    return buildAmendJobProposals(focusJob, draft);
+  }
+
   const items: ShopNotesProposalItem[] = [];
   const hint = draft.customerHint;
   const amendIntent = detectAmendExistingJobIntent(sourceText);
@@ -358,18 +438,20 @@ export async function buildShopNotesProposals(
   shopId: string,
   roId: string,
   text: string,
-  opts?: { focusJobId?: string | null },
+  opts?: { focusJobId?: string | null; mode?: CreateJobAiMode },
 ): Promise<ShopNotesAiProposal> {
   const ro = await loadRoContext(shopId, roId);
   if (!ro) throw new Error("Repair order not found.");
 
   const draft = await buildFreeformRoDraft(shopId, text);
-  const items = buildProposalsFromDraft(ro, draft, text.trim(), opts?.focusJobId);
+  const items = buildProposalsFromDraft(ro, draft, text.trim(), opts);
 
   if (items.length === 0) {
-    throw new Error(
-      "Nothing new to apply — the note may already match this repair order, or try adding year, make, model, and the work needed.",
-    );
+    const amendEmpty =
+      opts?.mode === "amend-job"
+        ? "Nothing new to add — describe the labor or parts you want on this job (e.g. rear rotors, extra 0.5 hr bleed)."
+        : "Nothing new to apply — the note may already match this repair order, or try adding year, make, model, and the work needed.";
+    throw new Error(amendEmpty);
   }
 
   return {

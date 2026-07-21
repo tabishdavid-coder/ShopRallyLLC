@@ -4,6 +4,10 @@ import { useEffect, useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { CheckCircle2, Loader2 } from "lucide-react";
 
+import {
+  ApprovalTotalsBlock,
+  type ApprovalTotals,
+} from "@/components/approval/approval-totals-block";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -12,6 +16,7 @@ import { formatCents } from "@/lib/format";
 import { SignaturePad, type SignatureCapture } from "@/components/approval/signature-pad";
 import { CustomerAcknowledgment } from "@/components/customer-acknowledgment";
 import { submitCustomerApproval } from "@/server/actions/approval";
+import { cn } from "@/lib/utils";
 
 type ApprovalJob = {
   id: string;
@@ -40,17 +45,24 @@ export function ApproveActions({
   alreadyApproved,
   isPartialApproval,
   jobs,
+  totals,
+  estimateTotals = null,
   approvedTotalCents,
   signature,
   estimateTerms,
+  embedded = false,
 }: {
   token: string;
   alreadyApproved: boolean;
   isPartialApproval: boolean;
   jobs: ApprovalJob[];
+  totals?: ApprovalTotals;
+  estimateTotals?: ApprovalTotals | null;
   approvedTotalCents: number;
   signature: ExistingSignature | null;
   estimateTerms: EstimateTermsBlock;
+  /** When true, renders inside the estimate card (unified job list + totals). */
+  embedded?: boolean;
 }) {
   const router = useRouter();
   const [done, setDone] = useState(alreadyApproved);
@@ -132,7 +144,7 @@ export function ApproveActions({
     const showPartial = isPartialApproval || declinedJobs.length > 0;
 
     return (
-      <div className="space-y-4">
+      <div className={cn("space-y-4", embedded && "px-6 pb-6 pt-2")}>
         <div className="rounded-xl border border-emerald-200 bg-emerald-50 p-5 text-center">
           <CheckCircle2 className="mx-auto mb-2 size-8 text-emerald-600" />
           <p className="font-semibold text-emerald-800">
@@ -198,10 +210,12 @@ export function ApproveActions({
     );
   }
 
-  return (
-    <div className="space-y-5 rounded-2xl border bg-card p-5 shadow-sm">
+  const jobList = (
+    <div className="space-y-3">
       <div>
-        <h2 className="text-base font-semibold">Select jobs to approve</h2>
+        <p className="text-xs font-semibold uppercase tracking-wide text-brand-navy/70">
+          Estimate jobs
+        </p>
         <p className="mt-1 text-sm text-muted-foreground">
           Check each job you authorize, or approve all at once.
         </p>
@@ -211,39 +225,45 @@ export function ApproveActions({
         <p className="text-sm text-muted-foreground">No jobs on this estimate.</p>
       ) : (
         <div className="space-y-2">
-          <label className="flex cursor-pointer items-center gap-3 rounded-lg border border-brand-navy/15 bg-brand-navy/5 px-3 py-2.5">
+          <label className="flex cursor-pointer items-center gap-3 rounded-lg border border-brand-navy/15 bg-brand-navy/[0.06] px-3 py-2.5 transition-colors hover:bg-brand-navy/[0.09]">
             <Checkbox
               checked={allSelected ? true : someSelected ? "indeterminate" : false}
               onCheckedChange={(v) => toggleAll(v === true)}
               aria-label="Approve all jobs"
             />
-            <span className="text-sm font-medium">Approve all jobs</span>
+            <span className="text-sm font-semibold text-brand-navy">Approve all jobs</span>
           </label>
 
-          <div className="divide-y rounded-lg border">
-            {jobs.map((j) => (
-              <label
-                key={j.id}
-                className="flex cursor-pointer items-start gap-3 px-3 py-3 hover:bg-muted/40"
-              >
-                <Checkbox
-                  checked={selected.has(j.id)}
-                  onCheckedChange={() => toggleJob(j.id)}
-                  aria-label={`Approve ${j.name}`}
-                  className="mt-0.5"
-                />
-                <div className="min-w-0 flex-1">
-                  <p className="font-medium leading-snug">{j.name}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {j.laborHours.toFixed(1)} hrs labor
-                    {j.partsCents > 0 ? ` · parts ${formatCents(j.partsCents)}` : ""}
-                  </p>
-                </div>
-                <span className="shrink-0 text-sm font-semibold tabular-nums">
-                  {formatCents(j.totalCents)}
-                </span>
-              </label>
-            ))}
+          <div className="overflow-hidden rounded-xl border border-brand-navy/10 divide-y divide-brand-navy/10">
+            {jobs.map((j) => {
+              const isSelected = selected.has(j.id);
+              return (
+                <label
+                  key={j.id}
+                  className={cn(
+                    "flex cursor-pointer items-start gap-3 px-3 py-3.5 transition-colors",
+                    isSelected ? "bg-brand-light/15 hover:bg-brand-light/20" : "hover:bg-muted/40",
+                  )}
+                >
+                  <Checkbox
+                    checked={isSelected}
+                    onCheckedChange={() => toggleJob(j.id)}
+                    aria-label={`Approve ${j.name}`}
+                    className="mt-0.5"
+                  />
+                  <div className="min-w-0 flex-1">
+                    <p className="font-medium leading-snug text-brand-navy">{j.name}</p>
+                    <p className="mt-0.5 text-xs text-muted-foreground">
+                      {j.laborHours.toFixed(1)} hrs labor
+                      {j.partsCents > 0 ? ` · parts ${formatCents(j.partsCents)}` : ""}
+                    </p>
+                  </div>
+                  <span className="shrink-0 text-sm font-semibold tabular-nums text-brand-navy">
+                    {formatCents(j.totalCents)}
+                  </span>
+                </label>
+              );
+            })}
           </div>
 
           {someSelected ? (
@@ -254,15 +274,20 @@ export function ApproveActions({
           ) : null}
         </div>
       )}
+    </div>
+  );
 
-      <div className="space-y-3 border-t pt-4">
-        <CustomerAcknowledgment
-          html={estimateTerms.html}
-          version={estimateTerms.version}
-          heading="Customer acknowledgment & authorization"
-        />
-        <h2 className="text-base font-semibold">Sign to authorize</h2>
-        <div className="rounded-md border border-brand-navy/15 bg-brand-navy/5 px-3 py-2.5 text-xs leading-relaxed text-muted-foreground">
+  const authorizationSection = (
+    <div className="space-y-4">
+      <CustomerAcknowledgment
+        html={estimateTerms.html}
+        version={estimateTerms.version}
+        heading="Customer acknowledgment & authorization"
+      />
+
+      <div className="space-y-3">
+        <h2 className="text-base font-semibold text-brand-navy">Sign to authorize</h2>
+        <div className="rounded-lg border border-brand-navy/15 bg-brand-navy/[0.04] px-3 py-2.5 text-xs leading-relaxed text-muted-foreground">
           <p className="font-medium text-foreground">Electronic signature disclosure (ESIGN Act)</p>
           <p className="mt-1">
             By signing below, you agree to use an electronic signature to authorize the selected
@@ -286,7 +311,7 @@ export function ApproveActions({
         <SignaturePad onChange={setSignatureCapture} />
       </div>
 
-      <label className="flex cursor-pointer items-start gap-3 rounded-lg border border-brand-red/20 bg-brand-red/5 px-3 py-3">
+      <label className="flex cursor-pointer items-start gap-3 rounded-lg border border-brand-red/20 bg-brand-red/[0.06] px-3 py-3">
         <Checkbox
           checked={consent}
           onCheckedChange={(v) => setConsent(v === true)}
@@ -312,6 +337,34 @@ export function ApproveActions({
         {pending ? <Loader2 className="size-5 animate-spin" /> : <CheckCircle2 className="size-5" />}
         Submit approval
       </Button>
+    </div>
+  );
+
+  if (embedded) {
+    return (
+      <div className="space-y-0">
+        <div className="lg:grid lg:grid-cols-[minmax(0,1fr)_min(280px,34%)] lg:items-start">
+          <div className="px-6 py-4 lg:pr-5">{jobList}</div>
+
+          {totals ? (
+            <div className="border-t border-brand-navy/10 bg-brand-navy/[0.02] px-6 py-4 lg:border-t-0 lg:border-l lg:py-5">
+              <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-brand-navy/70">
+                Estimate total
+              </p>
+              <ApprovalTotalsBlock totals={totals} estimateTotals={estimateTotals} />
+            </div>
+          ) : null}
+        </div>
+
+        <div className="space-y-5 border-t border-brand-navy/10 px-6 py-5">{authorizationSection}</div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-5 rounded-2xl border bg-card p-5 shadow-sm">
+      {jobList}
+      <div className="space-y-4 border-t pt-4">{authorizationSection}</div>
     </div>
   );
 }

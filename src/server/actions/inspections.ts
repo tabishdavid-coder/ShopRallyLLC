@@ -7,7 +7,6 @@ import { revalidatePath } from "next/cache";
 import { prisma } from "@/db/client";
 import { appUrl } from "@/lib/app-url";
 import { deriveInspectionStatus } from "@/lib/inspection";
-import { getInspectionTemplate } from "@/lib/inspection-template";
 import { getShopId } from "@/lib/shop";
 import { SMS_ENABLED } from "@/lib/features";
 import { releasedFeatureDenied } from "@/lib/subscription";
@@ -18,6 +17,7 @@ import { sendShopEmail } from "@/server/services/shop-email";
 import { normalizePhoneE164 } from "@/lib/phone";
 import { emitAutomationEvent } from "@/server/services/automation-events";
 import { gates } from "@/server/permission-gates";
+import { resolveInspectionTemplate } from "@/server/inspection-templates";
 
 export type ActionResult = { ok: true } | { ok: false; error: string };
 export type LinkResult = { ok: true; url: string } | { ok: false; error: string };
@@ -52,16 +52,16 @@ async function getInspectionForShop(inspectionId: string, shopId: string) {
   });
 }
 
-/** Create a new DVI from a shop template on a repair order. */
-export async function createInspection(
+/** Create a new DVI from a built-in or shop template on a repair order. */
+export async function createInspectionFromTemplate(
   repairOrderId: string,
-  templateId = "courtesy",
+  templateId: string,
 ): Promise<{ ok: true; inspectionId: string } | { ok: false; error: string }> {
   const shopId = await getShopId();
   const denied = await gates.inspectionsManage(shopId);
   if (denied) return { ok: false, error: denied.error };
 
-  const template = getInspectionTemplate(templateId);
+  const template = await resolveInspectionTemplate(shopId, templateId);
   if (!template) return { ok: false, error: "Inspection template not found." };
 
   const ro = await prisma.repairOrder.findFirst({
@@ -97,6 +97,14 @@ export async function createInspection(
 
   revalidateInspectionPaths(ro.id);
   return { ok: true, inspectionId: inspection.id };
+}
+
+/** Create a new DVI from a shop template on a repair order. */
+export async function createInspection(
+  repairOrderId: string,
+  templateId = "courtesy",
+): Promise<{ ok: true; inspectionId: string } | { ok: false; error: string }> {
+  return createInspectionFromTemplate(repairOrderId, templateId);
 }
 
 /** Update a single inspection item status or note. */

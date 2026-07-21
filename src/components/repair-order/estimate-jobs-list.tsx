@@ -32,7 +32,8 @@ export function EstimateJobsList({
   feeTemplates = [],
   discountTemplates = [],
   approvedVia,
-  approvedAt = null,
+  roAuthorizedAt = null,
+  approvalSentAt = null,
   approvalSignature = null,
   cannedJobCategories = [],
   embedded = false,
@@ -56,8 +57,10 @@ export function EstimateJobsList({
   feeTemplates?: AdjustTemplate[];
   discountTemplates?: AdjustTemplate[];
   approvedVia?: string | null;
-  /** RO-level approval timestamp (`authorizedAt`) — shows green Approved badge in the JOBS row. */
-  approvedAt?: Date | string | null;
+  /** RO-level authorization timestamp — drives declined vs pending on job cards. */
+  roAuthorizedAt?: Date | string | null;
+  /** When the approval link was sent — jobs show Pending before RO is authorized. */
+  approvalSentAt?: Date | string | null;
   approvalSignature?: ApprovalSignatureInfo | null;
   cannedJobCategories?: string[];
   embedded?: boolean;
@@ -96,7 +99,6 @@ export function EstimateJobsList({
         jobsReorderable={variant === "lab" && canEdit}
         settingsHref="/settings/ro-settings?section=estimate-workspace"
         jobsLayout={jobsLayout}
-        approvedAt={approvedVia ? approvedAt : null}
         showHeaderControls={showHeaderControls}
         headerAction={headerAction}
       />
@@ -116,6 +118,8 @@ export function EstimateJobsList({
           feeTemplates={feeTemplates}
           discountTemplates={discountTemplates}
           approvedVia={approvedVia}
+          roAuthorizedAt={roAuthorizedAt}
+          approvalSentAt={approvalSentAt}
           approvalSignature={approvalSignature}
           onToggleJob={toggleJob}
           onToggleLabor={toggleLabor}
@@ -141,6 +145,8 @@ export function EstimateJobsList({
             gpGoalCents={gpGoalCents}
             technicians={technicians}
             roId={roId}
+            roAuthorizedAt={roAuthorizedAt}
+            approvalSentAt={approvalSentAt}
             customerApproved={approvedVia === "CUSTOMER" && Boolean(job.approvedAt)}
             approvalSignature={approvalSignature}
             jobFees={fees.filter((f) => f.jobId === job.id)}

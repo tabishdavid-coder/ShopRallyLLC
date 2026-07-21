@@ -89,6 +89,11 @@ export function useMarketingCampaignsUiEnabled(): boolean {
   return useShopCapabilities().marketingCampaigns;
 }
 
+/** Care Plans / maintenance programs UI — Elite (premium) only. */
+export function useMaintenanceProgramsUiEnabled(): boolean {
+  return useShopCapabilities().maintenancePrograms;
+}
+
 /** On-demand Vehicle Specs UI — Core + Pro (not Auto.dev). */
 export function useVehicleSpecsUiEnabled(): boolean {
   return useShopCapabilities().vehicleSpecs;

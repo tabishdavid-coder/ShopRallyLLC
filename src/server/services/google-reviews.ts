@@ -2,6 +2,17 @@ import "server-only";
 
 import { publicUrl } from "@/lib/app-url";
 import { MOCK_GOOGLE_REVIEWS } from "@/lib/google-reviews-mock";
+import {
+  fetchAllReviewPages,
+  GOOGLE_REVIEWS_PAGE_SIZE,
+  stripGbpResourceId,
+  type GoogleReviewApiItem,
+  type GoogleReviewRecord,
+  type GoogleReviewsPageResult,
+} from "@/lib/google-reviews-fetch";
+import type { GoogleBusinessAccount, GoogleBusinessLocation } from "@/lib/google-reviews-types";
+
+export type { GoogleBusinessAccount, GoogleBusinessLocation };
 
 /**
  * Google Business Profile reviews — provider interface with mock fallback.
@@ -14,14 +25,7 @@ import { MOCK_GOOGLE_REVIEWS } from "@/lib/google-reviews-mock";
 export const GOOGLE_REVIEWS_SCOPE = "https://www.googleapis.com/auth/business.manage";
 export const GOOGLE_REVIEWS_VENDOR_KEY = "google_reviews";
 
-export type GoogleReviewRecord = {
-  googleReviewId: string;
-  reviewerName: string;
-  starRating: number;
-  comment: string | null;
-  reviewReply: string | null;
-  googleCreatedAt: Date;
-};
+export type { GoogleReviewRecord };
 
 export type GoogleOAuthTokens = {
   accessToken: string;
@@ -33,6 +37,8 @@ export type GoogleReviewsConnectionConfig = {
   googleBusinessAccountId?: string;
   googleLocationId?: string;
   googleLocationName?: string;
+  /** Maps Place ID for public writereview links (not the GBP location resource id). */
+  googlePlaceId?: string;
   refreshToken?: string;
   accessToken?: string;
   tokenExpiresAt?: string;
@@ -46,7 +52,13 @@ export interface GoogleReviewsProvider {
     accountId: string,
     locationId: string,
     accessToken: string,
-  ): Promise<{ reviews: GoogleReviewRecord[]; averageRating?: number; totalCount?: number }>;
+  ): Promise<{
+    reviews: GoogleReviewRecord[];
+    averageRating?: number;
+    totalCount?: number;
+    pagesFetched: number;
+    truncated: boolean;
+  }>;
   updateReply(
     accountId: string,
     locationId: string,
@@ -59,6 +71,8 @@ export interface GoogleReviewsProvider {
 const OAUTH_AUTH_URL = "https://accounts.google.com/o/oauth2/v2/auth";
 const OAUTH_TOKEN_URL = "https://oauth2.googleapis.com/token";
 const REVIEWS_BASE = "https://mybusiness.googleapis.com/v4";
+const ACCOUNT_MGMT_BASE = "https://mybusinessaccountmanagement.googleapis.com/v1";
+const BUSINESS_INFO_BASE = "https://mybusinessbusinessinformation.googleapis.com/v1";
 
 function env(name: string): string | undefined {
   return process.env[name]?.trim() || undefined;
@@ -168,49 +182,139 @@ class LiveGoogleReviewsProvider implements GoogleReviewsProvider {
     };
   }
 
-  async listReviews(accountId: string, locationId: string, accessToken: string) {
-    const parent = `accounts/${accountId}/locations/${locationId}`;
-    const url = `${REVIEWS_BASE}/${parent}/reviews?pageSize=50&orderBy=updateTime desc`;
-    const res = await fetch(url, {
-      headers: { Authorization: `Bearer ${accessToken}` },
-      signal: AbortSignal.timeout(20_000),
-    });
-    const json = (await res.json()) as {
-      reviews?: Array<{
-        reviewId?: string;
-        name?: string;
-        starRating?: string;
-        comment?: string;
-        createTime?: string;
-        updateTime?: string;
-        reviewer?: { displayName?: string };
-        reviewReply?: { comment?: string; updateTime?: string };
-      }>;
-      averageRating?: number;
-      totalReviewCount?: number;
-      error?: { message?: string };
-    };
-    if (!res.ok) {
-      throw new Error(json.error?.message ?? `Google reviews list failed (${res.status}).`);
+  async listAccounts(accessToken: string): Promise<GoogleBusinessAccount[]> {
+    const accounts: GoogleBusinessAccount[] = [];
+    let pageToken: string | undefined;
+    let pages = 0;
+    const maxPages = 10;
+
+    while (pages < maxPages) {
+      const url = new URL(`${ACCOUNT_MGMT_BASE}/accounts`);
+      url.searchParams.set("pageSize", "20");
+      if (pageToken) url.searchParams.set("pageToken", pageToken);
+
+      const res = await fetch(url, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+        signal: AbortSignal.timeout(20_000),
+      });
+      const json = (await res.json()) as {
+        accounts?: Array<{ name?: string; accountName?: string }>;
+        nextPageToken?: string;
+        error?: { message?: string };
+      };
+      if (!res.ok) {
+        throw new Error(json.error?.message ?? `Google accounts list failed (${res.status}).`);
+      }
+
+      for (const a of json.accounts ?? []) {
+        if (!a.name) continue;
+        accounts.push({
+          accountId: stripGbpResourceId(a.name, "accounts"),
+          displayName: a.accountName?.trim() || stripGbpResourceId(a.name, "accounts"),
+        });
+      }
+
+      pages += 1;
+      if (!json.nextPageToken) break;
+      pageToken = json.nextPageToken;
     }
 
-    const reviews: GoogleReviewRecord[] = (json.reviews ?? []).map((r) => {
-      const id = r.reviewId ?? r.name?.split("/").pop() ?? `unknown-${Math.random()}`;
-      return {
-        googleReviewId: id,
-        reviewerName: r.reviewer?.displayName ?? "Google user",
-        starRating: starRatingToInt(r.starRating),
-        comment: r.comment?.trim() || null,
-        reviewReply: r.reviewReply?.comment?.trim() || null,
-        googleCreatedAt: new Date(r.createTime ?? r.updateTime ?? Date.now()),
-      };
-    });
+    return accounts;
+  }
 
-    return {
-      reviews,
-      averageRating: json.averageRating,
-      totalCount: json.totalReviewCount,
+  async listLocations(accountId: string, accessToken: string): Promise<GoogleBusinessLocation[]> {
+    const account = stripGbpResourceId(accountId, "accounts");
+    const locations: GoogleBusinessLocation[] = [];
+    let pageToken: string | undefined;
+    let pages = 0;
+    const maxPages = 20;
+    const readMask = "name,title,storefrontAddress,metadata";
+
+    while (pages < maxPages) {
+      const url = new URL(`${BUSINESS_INFO_BASE}/accounts/${account}/locations`);
+      url.searchParams.set("pageSize", "100");
+      url.searchParams.set("readMask", readMask);
+      if (pageToken) url.searchParams.set("pageToken", pageToken);
+
+      const res = await fetch(url, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+        signal: AbortSignal.timeout(20_000),
+      });
+      const json = (await res.json()) as {
+        locations?: Array<{
+          name?: string;
+          title?: string;
+          storefrontAddress?: {
+            addressLines?: string[];
+            locality?: string;
+            administrativeArea?: string;
+          };
+          metadata?: { placeId?: string };
+        }>;
+        nextPageToken?: string;
+        error?: { message?: string };
+      };
+      if (!res.ok) {
+        throw new Error(json.error?.message ?? `Google locations list failed (${res.status}).`);
+      }
+
+      for (const loc of json.locations ?? []) {
+        if (!loc.name) continue;
+        const addressBits = [
+          ...(loc.storefrontAddress?.addressLines ?? []),
+          loc.storefrontAddress?.locality,
+          loc.storefrontAddress?.administrativeArea,
+        ].filter(Boolean);
+        locations.push({
+          locationId: stripGbpResourceId(loc.name, "locations"),
+          displayName: loc.title?.trim() || stripGbpResourceId(loc.name, "locations"),
+          placeId: loc.metadata?.placeId?.trim() || null,
+          addressLine: addressBits.length ? addressBits.join(", ") : null,
+        });
+      }
+
+      pages += 1;
+      if (!json.nextPageToken) break;
+      pageToken = json.nextPageToken;
+    }
+
+    return locations;
+  }
+
+  async listReviews(accountId: string, locationId: string, accessToken: string) {
+    const account = stripGbpResourceId(accountId, "accounts");
+    const location = stripGbpResourceId(locationId, "locations");
+    const parent = `accounts/${account}/locations/${location}`;
+
+    const fetchPage = async (pageToken: string | undefined): Promise<GoogleReviewsPageResult> => {
+      const url = new URL(`${REVIEWS_BASE}/${parent}/reviews`);
+      url.searchParams.set("pageSize", String(GOOGLE_REVIEWS_PAGE_SIZE));
+      url.searchParams.set("orderBy", "updateTime desc");
+      if (pageToken) url.searchParams.set("pageToken", pageToken);
+
+      const res = await fetch(url, {
+        headers: { Authorization: `Bearer ${accessToken}` },
+        signal: AbortSignal.timeout(20_000),
+      });
+      const json = (await res.json()) as {
+        reviews?: GoogleReviewApiItem[];
+        averageRating?: number;
+        totalReviewCount?: number;
+        nextPageToken?: string;
+        error?: { message?: string };
+      };
+      if (!res.ok) {
+        throw new Error(json.error?.message ?? `Google reviews list failed (${res.status}).`);
+      }
+      return {
+        reviews: json.reviews ?? [],
+        nextPageToken: json.nextPageToken,
+        averageRating: json.averageRating,
+        totalReviewCount: json.totalReviewCount,
+      };
     };
+
+    return fetchAllReviewPages({ fetchPage });
   }
 
   async updateReply(
@@ -220,7 +324,9 @@ class LiveGoogleReviewsProvider implements GoogleReviewsProvider {
     comment: string,
     accessToken: string,
   ) {
-    const name = `accounts/${accountId}/locations/${locationId}/reviews/${reviewId}`;
+    const account = stripGbpResourceId(accountId, "accounts");
+    const location = stripGbpResourceId(locationId, "locations");
+    const name = `accounts/${account}/locations/${location}/reviews/${reviewId}`;
     const url = `${REVIEWS_BASE}/${name}/reply`;
     const res = await fetch(url, {
       method: "PUT",
@@ -257,7 +363,13 @@ class MockGoogleReviewsProvider implements GoogleReviewsProvider {
   }
 
   async listReviews(_accountId?: string, _locationId?: string, _accessToken?: string) {
-    return { reviews: MOCK_GOOGLE_REVIEWS, averageRating: 4.2, totalCount: MOCK_GOOGLE_REVIEWS.length };
+    return {
+      reviews: MOCK_GOOGLE_REVIEWS,
+      averageRating: 4.2,
+      totalCount: MOCK_GOOGLE_REVIEWS.length,
+      pagesFetched: 1,
+      truncated: false,
+    };
   }
 
   async updateReply(
@@ -269,20 +381,6 @@ class MockGoogleReviewsProvider implements GoogleReviewsProvider {
     console.log(`[mock Google Reviews] reply to ${reviewId}: ${comment}`);
     return comment;
   }
-}
-
-function starRatingToInt(raw: string | undefined): number {
-  const map: Record<string, number> = {
-    ONE: 1,
-    TWO: 2,
-    THREE: 3,
-    FOUR: 4,
-    FIVE: 5,
-  };
-  if (!raw) return 5;
-  if (map[raw]) return map[raw];
-  const n = Number.parseInt(raw, 10);
-  return n >= 1 && n <= 5 ? n : 5;
 }
 
 let liveCached: LiveGoogleReviewsProvider | null = null;
@@ -311,6 +409,7 @@ export function parseGoogleReviewsConfig(raw: unknown): GoogleReviewsConnectionC
     googleBusinessAccountId: str("googleBusinessAccountId"),
     googleLocationId: str("googleLocationId"),
     googleLocationName: str("googleLocationName"),
+    googlePlaceId: str("googlePlaceId"),
     refreshToken: str("refreshToken"),
     accessToken: str("accessToken"),
     tokenExpiresAt: str("tokenExpiresAt"),
@@ -325,11 +424,18 @@ export function isGoogleReviewsConnected(config: GoogleReviewsConnectionConfig):
 
 /** Public Google review URL when Business Profile is connected. */
 export function buildGoogleReviewLink(config: GoogleReviewsConnectionConfig): string | null {
+  const placeId = config.googlePlaceId?.trim();
+  if (placeId && placeId.length >= 8) {
+    return `https://search.google.com/local/writereview?placeid=${encodeURIComponent(placeId)}`;
+  }
+  // Legacy: some shops stored Place ID in googleLocationId before the picker existed.
   const raw = config.googleLocationId?.trim();
   if (!raw) return null;
-  const placeId = raw.replace(/^locations\//, "");
-  if (placeId.length < 8) return null;
-  return `https://search.google.com/local/writereview?placeid=${encodeURIComponent(placeId)}`;
+  const legacy = raw.replace(/^locations\//, "");
+  if (legacy.startsWith("ChIJ") || legacy.length > 20) {
+    return `https://search.google.com/local/writereview?placeid=${encodeURIComponent(legacy)}`;
+  }
+  return null;
 }
 
 export async function ensureAccessToken(

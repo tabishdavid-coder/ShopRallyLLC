@@ -1,6 +1,6 @@
 # Dev 3031 — build state (ShopRallyCRM)
 
-Last updated: 2026-07-19 (Ignition go-live gates)
+Last updated: 2026-07-20 (AI multi-job split)
 
 > **Canonical dev:** **`ShopRally/`** folder only — `npm run dev` → :3031. See `docs/SHOPRALLY-DEV.md`.
 > Do **not** develop shop CRM in the sibling `karvio/` folder (legacy platform fork).
@@ -26,7 +26,8 @@ npm run dev
 
 ## Done
 
-- [x] **Ignition go-live product+ops (2026-07-19)** — Core nav/route fidelity (Growth, Payments hub, Labor Book, Messages); staff Stripe Collect fail-closed; Ignition + AI Plus platform Checkout + webhook; `/pricing` Ignition-only (`PHASE_ONE_LAUNCH`); Macuto STARTER verified; P0 checklists in `PHASED-ROLLOUT` / `IGNITION-GO-LIVE`. Operator still sets Vercel Clerk/`APP_URL`/Resend/release kills + Stripe Price IDs.
+- [x] **AI job split — multi-repair intake (2026-07-20)** — Freeform / shop-notes AI now emits **one job per independent repair** when text lists multiple services (prompt + `splitMergedRepairRequests` heuristic). Canonical test: `"water pump and battery replacement"` → 2 suggested jobs (Water pump replacement + Battery replacement), not one 2.8 hr mega-job. Same safety net on Smart RO intake labor lines. Module: `src/lib/split-repair-requests.ts`.
+- [x] **Job edit Labor Book → Job with AI (2026-07-20)** — In estimate job-card edit footer (Tekmetric + lab layouts), replaced **Labor Book** with **Job with AI** (`CreateJobAiTrigger` dialog + horizontal review). Reuses `parseShopNotesWithAi` / `applyShopNotesProposals`. Gated via `freeformRoIntake` + `aiSuite` release — disabled chip + tooltip when AI Plus off (Core) or wrong plan. Labor Book remains on Pro toolbar / `/quick-labor` only.
 - [x] **Vehicle spec UX + AI audit (2026-07-18)** — SnagIt frame analysis (Tekmetric C2451C6F ~13.6s fluids sidebar; AutoLeap E329F843 ~16.7s spec modal) + ShopRally capability matrix. Memory: `agents/ShopRallyCRM/VEHICLE-SPEC-AI-MEMORY.md`. No implementation yet; next = YMM→EPA catalog enrichment without VIN gate.
 - [x] **Job Board redesign (2026-07-18)** — `/job-board` kanban cards/columns restyled for Tekmetric-inspired scan hierarchy (status pill, RO#, created-ago, customer+phone, vehicle, total) with ShopRally navy/light-blue/red chrome (left rail accent, no teal WIP). DnD, menus, search/filters, RO links preserved. Verify: http://localhost:3031/job-board
 - [x] **Shop-owned email go-live path (2026-07-18)** — Product decision: **the shop owns their email** (From name / From address / Reply-to in Settings → Communications → Email). Platform Resend is transport only; Share + other CRM outbound use `sendShopEmail` with that identity. Doc: `docs/SHOP-EMAIL.md` (operator go-live checklist). Ready/Not-ready UX + Enable/test CTAs + Resend helper banner; `getShopEmailSendStatus` for share roles; provision + seed defaults (`emailEnabled` false until enable/test). **Local audit:** `RESEND_API_KEY` absent → mock/mailto; live DB demo shops have From fields null until Settings filled (seed defaults only apply on fresh seed). Deferred: DNS wizard, per-shop Resend keys, HTML templates, EmailSendLog.
@@ -120,7 +121,7 @@ npm run dev
 - [x] PartsTech shop username/API key stored in local `.env.local` only (do not document secrets)
 - [ ] PartsTech Partner ID from PartsTech onboarding (blocks live catalog)
 - [ ] PO receive → inventory
-- [ ] Inspection photo upload (Vercel Blob)
+- [ ] Inspection photo upload (Vercel Blob) — **partial:** `RoAttachment` schema + local `.data/uploads` storage + `/api/ro-media` started; share dialog UX prioritized (Customer Preview / Email|SMS where-going). Still TODO: share-dialog upload UI, approve-page gallery, wire Blob in prod
 - [ ] Time clock MVP (replace placeholder)
 - [ ] Clerk + RBAC — `docs/BATCH-06-CLERK-MERGE.md`
 

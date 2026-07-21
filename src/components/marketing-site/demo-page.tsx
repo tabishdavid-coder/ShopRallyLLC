@@ -454,7 +454,7 @@ export function DemoPageContent() {
           <span className="font-medium text-brand-navy">{email}</span>
           {needWebsite
             ? " about Website & SEO setup (separate from Ignition CRM)."
-            : " to schedule your personalized demo."}
+            : " if you requested a call — or enjoy the walkthrough moments below anytime."}
         </p>
         <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
           <Button className="bg-brand-navy" asChild>
@@ -486,15 +486,17 @@ export function DemoPageContent() {
           <div>
             <div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-semibold text-brand-light">
               {needWebsite ? <Globe className="size-3.5" /> : <Play className="size-3.5" />}
-              {needWebsite ? WEB_PRESENCE_MARKETING.eyebrow : "Personalized walkthrough"}
+              {needWebsite ? WEB_PRESENCE_MARKETING.eyebrow : "Ungated product story"}
             </div>
             <h1 className="mt-4 text-3xl font-bold sm:text-4xl lg:text-5xl">
-              {needWebsite ? WEB_PRESENCE_MARKETING.intakeHeadline : "See ShopRally in action"}
+              {needWebsite
+                ? WEB_PRESENCE_MARKETING.intakeHeadline
+                : "Watch a 3-minute walkthrough"}
             </h1>
             <p className="mt-4 max-w-lg text-white/80 leading-relaxed">
               {needWebsite
                 ? WEB_PRESENCE_MARKETING.intakeSubhead
-                : "Book a demo of Ignition — job board, PartsTech on the estimate, digital vehicle inspections, email approvals, appointments, and Live Operations Daily Snapshot. We'll walk the bay loop, not a Pro/Elite pitch."}
+                : "See Ignition in product moments — job board, PartsTech on the estimate, digital vehicle inspections, and email approvals. No gate. Optional call below if you want a live conversation."}
             </p>
 
             {needWebsite ? (
@@ -529,10 +531,10 @@ export function DemoPageContent() {
             ) : (
               <ul className="mt-6 space-y-2 text-sm text-white/85">
                 {[
-                  "30-minute live walkthrough of Ignition",
+                  "Product moments you can scan in about 3 minutes",
                   "Job board → PartsTech → estimate → email approve → invoice",
-                  "Honest talk about what ships now vs later",
-                  "Founding-shop pricing for early adopters",
+                  "Honest scope — Ignition at launch, not a later-roadmap pitch",
+                  "Optional call if you want questions answered live",
                 ].map((item) => (
                   <li key={item} className="flex items-center gap-2">
                     <CheckCircle2 className="size-4 shrink-0 text-brand-light" />
@@ -551,13 +553,13 @@ export function DemoPageContent() {
             <div className="flex items-center gap-2 text-brand-navy">
               {needWebsite ? <Globe className="size-5" /> : <Calendar className="size-5" />}
               <h2 className="text-lg font-bold">
-                {needWebsite ? WEB_PRESENCE_MARKETING.intakeFormTitle : "Request a demo"}
+                {needWebsite ? WEB_PRESENCE_MARKETING.intakeFormTitle : "Book a call (optional)"}
               </h2>
             </div>
             <p className="mt-1 text-sm text-slate-600">
               {needWebsite
                 ? WEB_PRESENCE_MARKETING.intakeFormHint
-                : "Fill out the form and we'll email you to schedule a time."}
+                : "Prefer a live conversation? Leave your details — walkthrough moments below are open either way."}
             </p>
 
             <form onSubmit={submit} className="mt-6 grid gap-4">
@@ -712,13 +714,17 @@ export function DemoPageContent() {
                 className="w-full gap-2 bg-brand-red hover:bg-brand-red/90"
               >
                 {pending ? <Loader2 className="size-4 animate-spin" /> : null}
-                {needWebsite ? WEB_PRESENCE_MARKETING.intakeSubmit : "Request demo"}
+                {needWebsite ? WEB_PRESENCE_MARKETING.intakeSubmit : "Request a call"}
               </Button>
               {needWebsite ? (
                 <p className="text-center text-xs text-slate-500">
                   {WEB_PRESENCE_MARKETING.ctaHint}
                 </p>
-              ) : null}
+              ) : (
+                <p className="text-center text-xs text-slate-500">
+                  Or skip the form — scroll to the product moments below.
+                </p>
+              )}
             </form>
           </div>
         </div>
@@ -741,10 +747,10 @@ export function DemoPageContent() {
       ) : (
         <ProductMomentsStrip
           moments={DEMO_MOMENTS}
-          eyebrow="What you'll walk through"
-          title="Product moments from the demo"
-          blurb="Same bay loop we show live — not a feature list. Hover a card to peek the UI."
-          meta="~30 min · Ignition only"
+          eyebrow="3-minute product story"
+          title="Ignition moments — no gate"
+          blurb="Same bay loop as the live product — job board, PartsTech, inspections, approvals. Hover a card to peek the UI."
+          meta="~3 min · Ignition · call optional"
         />
       )}
     </>

@@ -14,6 +14,7 @@ export function PaymentInvoiceActions({
   shareUrl,
   stripeEnabled,
   customerFirstName,
+  customerName,
   shopName,
   phones,
   email,
@@ -25,6 +26,7 @@ export function PaymentInvoiceActions({
   shareUrl: string | null;
   stripeEnabled: boolean;
   customerFirstName: string;
+  customerName?: string;
   shopName: string;
   phones: { label: string; value: string }[];
   email: string | null;
@@ -72,6 +74,7 @@ export function PaymentInvoiceActions({
         invoiceNumber={invoiceNumber}
         stripeEnabled={stripeEnabled}
         customerFirstName={customerFirstName}
+        customerName={customerName}
         shopName={shopName}
         phones={phones}
         email={email}

@@ -57,6 +57,33 @@ export function exportDashboardSnapshot(data: DashboardData, shopName: string) {
     },
     {
       section: "kpi",
+      metric: "Appointments booked in period",
+      value: kpis.appointmentsBookedInPeriod,
+      period: rangeLabel,
+    },
+    {
+      section: "kpi",
+      metric: "Estimate conversion (%)",
+      value: kpis.estimateConversionPct ?? "—",
+      approved: kpis.estimatesApprovedInPeriod,
+      pending: kpis.estimatesPendingInPeriod,
+      created: kpis.estimatesCreatedInPeriod,
+      period: rangeLabel,
+    },
+    {
+      section: "kpi",
+      metric: "Labor sales (cents)",
+      value: kpis.laborSalesCents,
+      period: rangeLabel,
+    },
+    {
+      section: "kpi",
+      metric: "Parts sales (cents)",
+      value: kpis.partsSalesCents,
+      period: rangeLabel,
+    },
+    {
+      section: "kpi",
       metric: "Tire orders pending approval",
       value: kpis.tireOrdersPending,
       period: "current",

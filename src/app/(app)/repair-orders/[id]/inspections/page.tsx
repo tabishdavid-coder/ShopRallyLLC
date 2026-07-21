@@ -48,6 +48,7 @@ export default async function RoInspectionsPage({
       roId={ro.id}
       roNumber={ro.number}
       customerFirstName={ro.customer.firstName}
+      customerName={customerDisplayName(ro.customer)}
       shopName={ro.shop.name}
       phones={phones}
       email={ro.customer.email}

@@ -66,7 +66,7 @@ const WORK_ITEMS: NavItem[] = [
 const PEOPLE_ITEMS: NavItem[] = [
   { title: "Customers", href: "/customers", icon: Users },
   { title: "Messages", href: "/messages", icon: MessageSquare },
-  { title: "Maintenance Plans", href: "/maintenance-programs/subscribers", icon: Shield },
+  { title: "Care Plan Members", href: "/maintenance-programs/subscribers", icon: Shield },
 ];
 
 const CATALOG_ITEMS: NavItem[] = [
@@ -117,7 +117,7 @@ const LEGACY_SMS_GROUPS: NavGroup[] = [
     label: "Manage",
     items: [
       { title: "Customers", href: "/customers", icon: Users },
-      { title: "Maintenance Plans", href: "/maintenance-programs/subscribers", icon: Shield },
+      { title: "Care Plan Members", href: "/maintenance-programs/subscribers", icon: Shield },
       { title: "Vendors", href: "/vendors/integrations", icon: Truck },
       { title: "Canned Jobs", href: "/canned-jobs", icon: Star },
       { title: "Labor Book", href: "/labor-guide", icon: Wrench },
@@ -229,7 +229,7 @@ export const PREVIEW_NAV_MODELS: PreviewNavModel[] = [
     tagline: "Flat primary nav — board + customers + schedule up top, rest in More.",
     pros: ["Fast access to pipeline", "Minimal cognitive load", "Great for service advisors"],
     cons: ["Secondary items hidden", "Less discoverable for new hires"],
-    primaryLabels: ["Home", "Job Board", "Customers", "Schedule", "Reports", "More…"],
+    primaryLabels: ["Home", "Job Board", "Customers", "Appointments", "Reports", "More…"],
     groups: [
       {
         items: [
@@ -277,7 +277,7 @@ export const PREVIEW_NAV_MODELS: PreviewNavModel[] = [
         label: "Customers",
         items: [
           { title: "Customers", href: "/customers", icon: Users },
-          { title: "Maintenance Plans", href: "/maintenance-programs/subscribers", icon: Shield },
+          { title: "Care Plan Members", href: "/maintenance-programs/subscribers", icon: Shield },
         ],
       },
       {

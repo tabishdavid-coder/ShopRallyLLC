@@ -4,50 +4,65 @@ import { CalendarDays, Settings } from "lucide-react";
 import { AppointmentsView } from "@/components/appointments/appointments-view";
 import { CrmPageHeader } from "@/components/crm/crm-page-header";
 import { Button } from "@/components/ui/button";
-import { parseWeekParam, toDateInputValue, weekRangeEnd } from "@/lib/appointments-date";
+import {
+  formatShopHoursRange,
+  parseCalendarDateParam,
+  parseCalendarView,
+  resolveCalendarRange,
+  toDateInputValue,
+} from "@/lib/appointments";
 import { getShopId } from "@/lib/shop";
-import { listAppointments, getAppointmentSettings } from "@/server/appointments";
+import {
+  listAppointments,
+  listCalendarBlocks,
+  getAppointmentSettings,
+} from "@/server/appointments";
 import { getShopTechnicians } from "@/server/staff";
 
 export default async function AppointmentsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ week?: string; q?: string }>;
+  searchParams: Promise<{ week?: string; date?: string; view?: string; q?: string }>;
 }) {
   const sp = await searchParams;
   const shopId = await getShopId();
-  const weekStart = parseWeekParam(sp.week);
-  const rangeEnd = weekRangeEnd(weekStart);
+  const view = parseCalendarView(sp.view);
+  const focusDate = parseCalendarDateParam(sp.date, sp.week);
+  const { rangeStart, rangeEnd, label } = resolveCalendarRange(view, focusDate);
 
-  const [settings, appointments, employees] = await Promise.all([
+  const [settings, appointments, blocks, employees] = await Promise.all([
     getAppointmentSettings(shopId),
     listAppointments({
       shopId,
-      rangeStart: weekStart,
+      rangeStart,
       rangeEnd,
       q: sp.q,
+    }),
+    listCalendarBlocks({
+      shopId,
+      rangeStart,
+      rangeEnd,
     }),
     getShopTechnicians(shopId),
   ]);
 
-  const weekLabel = weekStart.toLocaleDateString("en-US", {
-    month: "long",
-    day: "numeric",
-    year: "numeric",
-  });
+  const shopHours = formatShopHoursRange(settings.apptDayStart, settings.apptDayEnd);
+  const viewTitle =
+    view === "day" ? "Day" : view === "month" ? "Month" : "Week";
 
   return (
-    <div className="flex min-h-[calc(100vh-7rem)] flex-col workspace-surface">
+    <div className="flex min-h-0 flex-1 flex-col crm-workspace">
       <CrmPageHeader
+        className="mb-4 shrink-0"
         icon={CalendarDays}
         title="Appointments"
-        description={`Week of ${weekLabel} · Shop hours ${settings.apptDayStart} – ${settings.apptDayEnd}`}
+        description={`${viewTitle} · ${label} · Shop hours ${shopHours}`}
         actions={
           <Button
             asChild
             variant="outline"
             size="sm"
-            className="gap-1.5 border-brand-light/50 text-brand-navy hover:bg-brand-light/10"
+            className="gap-1.5 border-border text-brand-navy"
           >
             <Link href="/settings/appointments">
               <Settings className="size-4" />
@@ -57,10 +72,14 @@ export default async function AppointmentsPage({
         }
       />
       <AppointmentsView
-        weekStartIso={toDateInputValue(weekStart)}
+        view={view}
+        focusDateIso={toDateInputValue(focusDate)}
+        rangeStartIso={toDateInputValue(rangeStart)}
+        rangeLabel={label}
         query={sp.q ?? ""}
         settings={settings}
         appointments={appointments}
+        blocks={blocks}
         employees={employees}
       />
     </div>

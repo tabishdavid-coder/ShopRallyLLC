@@ -83,9 +83,8 @@ import { parseYmmSearch, type ParsedYmm } from "@/lib/parse-ymm-search";
 import { createRepairOrder } from "@/server/actions/repair-orders";
 import { saveLaborRates } from "@/server/actions/ro-settings";
 import { customerDisplayName, formatCents } from "@/lib/format";
-import { looksLikePhone } from "@/lib/phone";
+import { searchQueryToCustomerPrefill } from "@/lib/customer-search";
 import { cn } from "@/lib/utils";
-import { type CustomerPrefill } from "@/components/customers/add-customer-dialog";
 import { APPOINTMENT_OPTIONS } from "@/lib/options";
 import type { RoIntakeConfig, RoIntakeLaborRate } from "@/lib/ro-intake-types";
 import type { QuickLaborVehicle } from "@/lib/quick-labor";
@@ -117,15 +116,6 @@ type DetectedVehicleQuery =
   | { kind: "plate"; value: string }
   | { kind: "ymm"; value: string; ymm: ParsedYmm }
   | { kind: "text"; value: string };
-
-function searchToPrefill(q: string): CustomerPrefill | undefined {
-  const s = q.trim();
-  if (!s) return undefined;
-  if (s.includes("@")) return { email: s };
-  if (looksLikePhone(s)) return { phone: s };
-  const parts = s.split(/\s+/);
-  return { firstName: parts[0], lastName: parts.slice(1).join(" ") };
-}
 
 function vehicleLabel(v: VehiclePick) {
   const base = [v.year, v.make, v.model, v.trim, v.engine].filter(Boolean).join(" ");
@@ -752,7 +742,7 @@ export function RoIntakeForm({
     setAddVehicleFields(null);
   }
 
-  const customerPrefill = searchToPrefill(custQuery);
+  const customerPrefill = searchQueryToCustomerPrefill(custQuery);
 
   function addConcern() {
     const c = concernInput.trim().slice(0, 300);

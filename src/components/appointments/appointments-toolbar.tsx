@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useTransition } from "react";
+import Link from "next/link";
 import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   Search,
@@ -10,6 +11,11 @@ import {
   Loader2,
   CalendarDays,
   Clock,
+  ExternalLink,
+  UserCheck,
+  XCircle,
+  Ban,
+  Printer,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -21,18 +27,38 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { addDays, formatWeekRange, getWeekStart, toDateInputValue } from "@/lib/appointments";
+import type { AppointmentStatus } from "@/generated/prisma";
+import {
+  APPOINTMENT_STATUS_META,
+  addDays,
+  addMonths,
+  getWeekStart,
+  parseDateInput,
+  toDateInputValue,
+  type CalendarView,
+} from "@/lib/appointments";
+import { defaultRoOpenHref } from "@/lib/ro-workspace";
+import { cn } from "@/lib/utils";
 
 export function AppointmentsToolbar({
-  weekStartIso,
+  view,
+  focusDateIso,
+  rangeLabel,
   query,
   shopHours,
   onNewAppointment,
+  onBlockTime,
+  printDateIso,
 }: {
-  weekStartIso: string;
+  view: CalendarView;
+  focusDateIso: string;
+  rangeLabel: string;
   query: string;
   shopHours: string;
   onNewAppointment: () => void;
+  onBlockTime?: () => void;
+  /** Focused calendar date for “Print day” sheet (YYYY-MM-DD). Defaults to today. */
+  printDateIso?: string;
 }) {
   const router = useRouter();
   const pathname = usePathname();
@@ -40,7 +66,7 @@ export function AppointmentsToolbar({
   const [isPending, startTransition] = useTransition();
   const [search, setSearch] = useState(query);
 
-  const weekStart = new Date(weekStartIso);
+  const focus = parseDateInput(focusDateIso);
 
   useEffect(() => {
     if (search === query) return;
@@ -53,25 +79,47 @@ export function AppointmentsToolbar({
     return () => clearTimeout(t);
   }, [search, query, params, pathname, router]);
 
-  function pushWeek(next: Date) {
+  function pushCalendar(nextView: CalendarView, nextFocus: Date) {
     const sp = new URLSearchParams(params.toString());
-    sp.set("week", toDateInputValue(next));
+    sp.set("view", nextView);
+    const dateIso = toDateInputValue(nextFocus);
+    sp.set("date", dateIso);
+    if (nextView === "week") sp.set("week", toDateInputValue(getWeekStart(nextFocus)));
+    else sp.delete("week");
     startTransition(() => router.push(`${pathname}?${sp.toString()}`));
   }
 
+  function shiftFocus(delta: number) {
+    if (view === "day") pushCalendar(view, addDays(focus, delta));
+    else if (view === "month") pushCalendar(view, addMonths(focus, delta));
+    else pushCalendar(view, addDays(getWeekStart(focus), delta * 7));
+  }
+
   function goToday() {
-    pushWeek(getWeekStart(new Date()));
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    // Zoom into today's single-day time grid (not just jump within week/month).
+    pushCalendar("day", today);
   }
 
   return (
     <div className="space-y-3">
       <div className="flex flex-wrap items-center gap-2">
-        <Select value="week" disabled>
+        <Select
+          value={view}
+          onValueChange={(v) => {
+            if (v === "day" || v === "week" || v === "month") {
+              pushCalendar(v, focus);
+            }
+          }}
+        >
           <SelectTrigger className="w-[120px]" size="sm">
             <SelectValue placeholder="Week" />
           </SelectTrigger>
           <SelectContent>
+            <SelectItem value="day">Day</SelectItem>
             <SelectItem value="week">Week</SelectItem>
+            <SelectItem value="month">Month</SelectItem>
           </SelectContent>
         </Select>
 
@@ -79,30 +127,28 @@ export function AppointmentsToolbar({
           <Button
             variant="outline"
             size="icon-sm"
-            onClick={() => pushWeek(addDays(weekStart, -7))}
-            aria-label="Previous week"
+            onClick={() => shiftFocus(-1)}
+            aria-label={`Previous ${view}`}
           >
             <ChevronLeft className="size-4" />
           </Button>
           <Button
             variant="outline"
             size="icon-sm"
-            onClick={() => pushWeek(addDays(weekStart, 7))}
-            aria-label="Next week"
+            onClick={() => shiftFocus(1)}
+            aria-label={`Next ${view}`}
           >
             <ChevronRight className="size-4" />
           </Button>
         </div>
 
-        <div className="min-w-[140px] text-sm font-medium text-foreground">
-          {formatWeekRange(weekStart)}
-        </div>
+        <div className="min-w-[140px] text-sm font-medium text-foreground">{rangeLabel}</div>
 
         <Button variant="outline" size="sm" onClick={goToday}>
           Today
         </Button>
 
-        <div className="hidden items-center gap-1.5 rounded-md border border-brand-light/40 bg-brand-light/10 px-2.5 py-1 text-xs text-muted-foreground sm:flex">
+        <div className="hidden items-center gap-1.5 rounded-md border border-border bg-muted/30 px-2.5 py-1 text-xs text-muted-foreground sm:flex">
           <Clock className="size-3.5 text-brand-navy" />
           <span>Shop hours {shopHours}</span>
         </div>
@@ -120,7 +166,32 @@ export function AppointmentsToolbar({
           />
         </div>
 
-        <div className="ml-auto flex items-center gap-2">
+        <div className="ml-auto flex flex-wrap items-center gap-2">
+          <Button
+            asChild
+            variant="outline"
+            size="sm"
+            className="gap-1.5 border-border text-brand-navy"
+          >
+            <Link
+              href={`/appointments/print?date=${printDateIso ?? toDateInputValue(new Date())}`}
+              target="_blank"
+              rel="noopener noreferrer"
+            >
+              <Printer className="size-4" /> Print day
+            </Link>
+          </Button>
+          {onBlockTime ? (
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="gap-1.5 border-slate-300 text-slate-700"
+              onClick={onBlockTime}
+            >
+              <Ban className="size-4" /> Block time
+            </Button>
+          ) : null}
           <Button
             size="sm"
             className="gap-1.5 bg-brand-navy text-white hover:bg-brand-navy/90"
@@ -134,75 +205,256 @@ export function AppointmentsToolbar({
   );
 }
 
+export type TodayAppointmentItem = {
+  id: string;
+  title: string;
+  startAt: string;
+  endAt: string;
+  status: AppointmentStatus;
+  customerName: string;
+  vehicleLabel: string | null;
+  serviceName: string | null;
+  repairOrderId: string | null;
+  repairOrderNumber: number | null;
+};
+
 export function TodayAppointmentsSidebar({
   appointments,
   onSelect,
   onBookToday,
+  onStatusChange,
 }: {
-  appointments: {
-    id: string;
-    title: string;
-    startAt: string;
-    customerName: string;
-    vehicleLabel: string | null;
-  }[];
+  appointments: TodayAppointmentItem[];
   onSelect: (id: string) => void;
   onBookToday?: () => void;
+  onStatusChange?: (id: string, status: AppointmentStatus) => void;
 }) {
+  const router = useRouter();
+  const [pendingId, setPendingId] = useState<string | null>(null);
+  const now = new Date();
+
+  const sorted = [...appointments].sort(
+    (a, b) => new Date(a.startAt).getTime() - new Date(b.startAt).getTime(),
+  );
+  const upcoming = sorted.filter((a) => new Date(a.endAt) >= now);
+  const earlier = sorted.filter((a) => new Date(a.endAt) < now);
+
+  async function quickStatus(id: string, status: AppointmentStatus) {
+    if (!onStatusChange) return;
+    setPendingId(id);
+    try {
+      await onStatusChange(id, status);
+      router.refresh();
+    } finally {
+      setPendingId(null);
+    }
+  }
+
   return (
-    <aside className="hidden w-72 shrink-0 flex-col rounded-lg border border-brand-light/30 bg-card lg:flex">
-      <div className="flex items-center gap-2 border-b border-brand-light/30 px-4 py-3">
+    <aside className="hidden w-80 shrink-0 flex-col overflow-hidden rounded-lg border border-border bg-white shadow-sm lg:flex">
+      <div className="flex shrink-0 items-center gap-2 border-b border-border px-4 py-3">
         <CalendarDays className="size-4 text-brand-navy" />
-        <h2 className="text-sm font-semibold text-brand-navy">Today</h2>
-        <span className="ml-auto text-xs text-muted-foreground">
+        <div className="min-w-0 flex-1">
+          <h2 className="text-sm font-semibold text-brand-navy">Today</h2>
+          <p className="text-[11px] text-muted-foreground">
+            {now.toLocaleDateString("en-US", { weekday: "long", month: "short", day: "numeric" })}
+          </p>
+        </div>
+        <span className="rounded-full bg-brand-navy/10 px-2 py-0.5 text-xs font-semibold text-brand-navy">
           {appointments.length}
         </span>
       </div>
-      <div className="max-h-[calc(100vh-14rem)] overflow-y-auto p-2">
+
+      <div className="min-h-0 flex-1 overflow-y-auto p-3">
         {appointments.length === 0 ? (
-          <div className="px-2 py-6 text-center">
-            <p className="text-sm text-muted-foreground">No appointments today</p>
+          <div className="rounded-lg border border-dashed border-border px-4 py-8 text-center">
+            <CalendarDays className="mx-auto mb-2 size-8 text-muted-foreground/50" />
+            <p className="text-sm font-medium text-foreground">No appointments today</p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              Click the calendar or book a walk-in.
+            </p>
+            {onBookToday ? (
+              <Button
+                type="button"
+                size="sm"
+                className="mt-4 gap-1.5 bg-brand-navy hover:bg-brand-navy/90"
+                onClick={onBookToday}
+              >
+                <Plus className="size-3.5" /> Book today
+              </Button>
+            ) : null}
+          </div>
+        ) : (
+          <div className="space-y-4">
+            {upcoming.length > 0 ? (
+              <TodaySection title="Up next" count={upcoming.length}>
+                {upcoming.map((a) => (
+                  <TodayAppointmentCard
+                    key={a.id}
+                    appointment={a}
+                    pending={pendingId === a.id}
+                    onSelect={onSelect}
+                    onStatusChange={onStatusChange ? quickStatus : undefined}
+                  />
+                ))}
+              </TodaySection>
+            ) : null}
+
+            {earlier.length > 0 ? (
+              <TodaySection title="Earlier today" count={earlier.length} muted>
+                {earlier.map((a) => (
+                  <TodayAppointmentCard
+                    key={a.id}
+                    appointment={a}
+                    pending={pendingId === a.id}
+                    onSelect={onSelect}
+                    onStatusChange={onStatusChange ? quickStatus : undefined}
+                    muted
+                  />
+                ))}
+              </TodaySection>
+            ) : null}
+
             {onBookToday ? (
               <Button
                 type="button"
                 size="sm"
                 variant="outline"
-                className="mt-3 border-brand-light/50 text-brand-navy hover:bg-brand-light/10"
+                className="w-full gap-1.5 border-border text-brand-navy"
                 onClick={onBookToday}
               >
-                Book today
+                <Plus className="size-3.5" /> Book another today
               </Button>
             ) : null}
           </div>
-        ) : (
-          <ul className="space-y-1">
-            {appointments.map((a) => {
-              const start = new Date(a.startAt);
-              const time = start.toLocaleTimeString("en-US", {
-                hour: "numeric",
-                minute: "2-digit",
-              });
-              return (
-                <li key={a.id}>
-                  <button
-                    type="button"
-                    onClick={() => onSelect(a.id)}
-                    className="w-full rounded-md px-3 py-2.5 text-left transition-colors hover:bg-brand-light/15"
-                  >
-                    <div className="text-xs font-medium text-brand-navy">{time}</div>
-                    <div className="truncate text-sm font-medium">{a.customerName}</div>
-                    {a.vehicleLabel ? (
-                      <div className="truncate text-xs text-muted-foreground">
-                        {a.vehicleLabel}
-                      </div>
-                    ) : null}
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
         )}
       </div>
     </aside>
+  );
+}
+
+function TodaySection({
+  title,
+  count,
+  muted,
+  children,
+}: {
+  title: string;
+  count: number;
+  muted?: boolean;
+  children: React.ReactNode;
+}) {
+  return (
+    <section>
+      <div className="mb-2 flex items-center gap-2 px-0.5">
+        <h3
+          className={cn(
+            "text-[11px] font-bold uppercase tracking-wide",
+            muted ? "text-muted-foreground" : "text-brand-navy",
+          )}
+        >
+          {title}
+        </h3>
+        <span className="text-[10px] text-muted-foreground">{count}</span>
+      </div>
+      <ul className="space-y-2">{children}</ul>
+    </section>
+  );
+}
+
+function TodayAppointmentCard({
+  appointment: a,
+  pending,
+  muted,
+  onSelect,
+  onStatusChange,
+}: {
+  appointment: TodayAppointmentItem;
+  pending?: boolean;
+  muted?: boolean;
+  onSelect: (id: string) => void;
+  onStatusChange?: (id: string, status: AppointmentStatus) => void;
+}) {
+  const start = new Date(a.startAt);
+  const time = start.toLocaleTimeString("en-US", { hour: "numeric", minute: "2-digit" });
+  const statusMeta = APPOINTMENT_STATUS_META[a.status];
+  const canConfirm = a.status === "SCHEDULED";
+  const canArrive = a.status === "SCHEDULED" || a.status === "CONFIRMED";
+  const canNoShow =
+    a.status === "SCHEDULED" || a.status === "CONFIRMED" || a.status === "IN_PROGRESS";
+
+  return (
+    <li
+      className={cn(
+        "overflow-hidden rounded-lg border border-border bg-white transition-shadow hover:shadow-sm",
+        muted && "opacity-80",
+      )}
+    >
+      <button type="button" onClick={() => onSelect(a.id)} className="w-full px-3 py-2.5 text-left">
+        <div className="flex items-center gap-2">
+          <span className="text-xs font-bold tabular-nums text-brand-navy">{time}</span>
+          <span className={cn("rounded-full px-1.5 py-px text-[10px] font-semibold", statusMeta.className)}>
+            {statusMeta.label}
+          </span>
+        </div>
+        <div className="mt-1 truncate text-sm font-semibold text-foreground">{a.customerName}</div>
+        {a.vehicleLabel ? (
+          <div className="truncate text-xs text-muted-foreground">{a.vehicleLabel}</div>
+        ) : null}
+        {a.serviceName ? (
+          <div className="truncate text-xs text-muted-foreground">{a.serviceName}</div>
+        ) : null}
+      </button>
+
+      <div className="flex flex-wrap items-center gap-1 border-t border-border/80 bg-muted/20 px-2 py-1.5">
+        {a.repairOrderId && a.repairOrderNumber ? (
+          <Button asChild variant="ghost" size="sm" className="h-7 px-2 text-xs text-brand-navy">
+            <Link href={defaultRoOpenHref(a.repairOrderId)}>
+              RO #{a.repairOrderNumber}
+              <ExternalLink className="ml-1 size-3" />
+            </Link>
+          </Button>
+        ) : null}
+
+        {onStatusChange && canConfirm ? (
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="h-7 px-2 text-xs"
+            disabled={pending}
+            onClick={() => onStatusChange(a.id, "CONFIRMED")}
+          >
+            {pending ? <Loader2 className="size-3 animate-spin" /> : "Confirm"}
+          </Button>
+        ) : null}
+
+        {onStatusChange && canArrive ? (
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="h-7 gap-1 px-2 text-xs text-emerald-700 hover:text-emerald-800"
+            disabled={pending}
+            onClick={() => onStatusChange(a.id, "IN_PROGRESS")}
+          >
+            <UserCheck className="size-3" /> Arrived
+          </Button>
+        ) : null}
+
+        {onStatusChange && canNoShow ? (
+          <Button
+            type="button"
+            variant="ghost"
+            size="sm"
+            className="h-7 gap-1 px-2 text-xs text-brand-red hover:text-brand-red"
+            disabled={pending}
+            onClick={() => onStatusChange(a.id, "NO_SHOW")}
+          >
+            <XCircle className="size-3" /> No-show
+          </Button>
+        ) : null}
+      </div>
+    </li>
   );
 }

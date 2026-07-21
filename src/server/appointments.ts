@@ -5,8 +5,8 @@ import { customerDisplayName } from "@/lib/format";
 import {
   appointmentCardTitle,
   durationMinsBetween,
-  vehicleShortLabel,
 } from "@/lib/appointments";
+import { formatVehicleDisplayLabel } from "@/lib/vehicle-display";
 import type { AppointmentStatus } from "@/generated/prisma";
 import {
   apptHoursEnvelope,
@@ -32,6 +32,7 @@ export type AppointmentRow = {
   bay: string | null;
   repairOrderId: string | null;
   repairOrderNumber: number | null;
+  serviceName: string | null;
   customer: {
     id: string;
     name: string;
@@ -52,6 +53,7 @@ const appointmentSelect = {
   status: true,
   notes: true,
   bay: true,
+  serviceName: true,
   repairOrderId: true,
   technicianId: true,
   customer: {
@@ -64,7 +66,7 @@ const appointmentSelect = {
     },
   },
   vehicle: {
-    select: { id: true, year: true, make: true, model: true, trim: true },
+    select: { id: true, year: true, make: true, model: true, trim: true, engine: true },
   },
 } as const;
 
@@ -77,6 +79,7 @@ function mapAppointment(
     status: AppointmentStatus;
     notes: string | null;
     bay: string | null;
+    serviceName: string | null;
     repairOrderId: string | null;
     technicianId: string | null;
     customer: {
@@ -92,6 +95,7 @@ function mapAppointment(
       make: string | null;
       model: string | null;
       trim: string | null;
+      engine: string | null;
     } | null;
   },
   technicians: Map<string, string>,
@@ -107,13 +111,17 @@ function mapAppointment(
     status: a.status,
     notes: a.notes,
     bay: a.bay,
+    serviceName: a.serviceName,
     repairOrderId: a.repairOrderId,
     repairOrderNumber: a.repairOrderId ? (roNumbers.get(a.repairOrderId) ?? null) : null,
     customer: a.customer
       ? { id: a.customer.id, name: customerName, phone: a.customer.phone }
       : null,
     vehicle: a.vehicle
-      ? { id: a.vehicle.id, label: vehicleShortLabel(a.vehicle) }
+      ? {
+          id: a.vehicle.id,
+          label: formatVehicleDisplayLabel(a.vehicle, { includeEngine: false }),
+        }
       : null,
     technician: a.technicianId
       ? { id: a.technicianId, name: technicians.get(a.technicianId) ?? "Staff" }
@@ -257,6 +265,46 @@ export async function getAppointmentById(
   const roNumbers = new Map(ros.map((r) => [r.id, r.number]));
 
   return mapAppointment(row, technicians, roNumbers);
+}
+
+export type CalendarBlockRow = {
+  id: string;
+  title: string;
+  startAt: string;
+  endAt: string;
+  durationMins: number;
+  notes: string | null;
+};
+
+export async function listCalendarBlocks(input: {
+  shopId: string;
+  rangeStart: Date;
+  rangeEnd: Date;
+}): Promise<CalendarBlockRow[]> {
+  const rows = await prisma.calendarBlock.findMany({
+    where: {
+      shopId: input.shopId,
+      startAt: { lt: input.rangeEnd },
+      endAt: { gt: input.rangeStart },
+    },
+    orderBy: { startAt: "asc" },
+    select: {
+      id: true,
+      title: true,
+      startAt: true,
+      endAt: true,
+      notes: true,
+    },
+  });
+
+  return rows.map((r) => ({
+    id: r.id,
+    title: r.title,
+    startAt: r.startAt.toISOString(),
+    endAt: r.endAt.toISOString(),
+    durationMins: durationMinsBetween(r.startAt, r.endAt),
+    notes: r.notes,
+  }));
 }
 
 export { appointmentCardTitle };

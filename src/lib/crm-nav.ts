@@ -158,7 +158,7 @@ export const CRM_NAV_SECTIONS: CrmNavSection[] = [
         description: "Search, tags & contact info",
       },
       {
-        title: "Maintenance Plans",
+        title: "Care Plan Members",
         href: "/maintenance-programs/subscribers",
         icon: Shield,
         description: "Subscribers & renewals",
@@ -167,7 +167,7 @@ export const CRM_NAV_SECTIONS: CrmNavSection[] = [
   },
   {
     id: "schedule",
-    label: "Schedule",
+    label: "Appointments",
     icon: CalendarDays,
     href: "/appointments",
     items: [

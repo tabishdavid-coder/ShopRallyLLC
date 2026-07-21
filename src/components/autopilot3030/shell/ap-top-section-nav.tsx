@@ -20,7 +20,7 @@ function sectionHref(section: ApNavSection): string {
   );
 }
 
-/** Top horizontal section tabs — Customers, Schedule, Catalog, Growth, Admin. */
+/** Top horizontal section tabs — Customers, Appointments, Catalog, Growth, Admin. */
 export function ApTopSectionNav({
   allowedSectionIds,
   className,

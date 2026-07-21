@@ -26,6 +26,8 @@ export type PlanFeature =
   | "shopSite"
   | "websiteSeo"
   | "marketingCampaigns"
+  /** Google Business Profile reviews inbox + sync — Core and above. */
+  | "googleReviews"
   | "maintenancePrograms"
   | "aiReviewReplies"
   | "aiCampaignDrafting"
@@ -191,13 +193,13 @@ export const PLAN_TRAINING: Record<
     headline: "Self-serve with product resources",
     sessions: "Demo & onboarding resources",
     description:
-      "Launch licensed MOTOR, PartsTech, Growth Engine, and Google review management with in-product guidance and early demo support.",
+      "Launch licensed MOTOR, PartsTech, and Growth Engine campaigns with in-product guidance and early demo support.",
   },
   ENTERPRISE: {
     headline: "White-glove onboarding included",
     sessions: "Dedicated onboarding specialist",
     description:
-      "Dedicated specialist for AI tools, maintenance programs, ShopSite, Local SEO, and migration — go-live support included.",
+      "Dedicated specialist for AI tools, Care Plans, ShopSite, Local SEO, and migration — go-live support included.",
   },
 };
 
@@ -257,15 +259,16 @@ export const PLATFORM_MODULES = [
   },
   {
     id: "subscriptions",
-    name: "Maintenance subscriptions",
-    description: "Shop-level maintenance programs, member portal, Stripe billing, and counter enrollment.",
+    name: "Care Plans",
+    description:
+      "Shop-level Care Plans (maintenance subscriptions), member portal, Stripe billing, and counter enrollment — Elite premium.",
     icon: "repeat" as const,
-    pricingNote: "Elite only",
+    pricingNote: "Elite only · not on Core",
   },
   {
     id: "growth",
     name: "Growth Engine",
-    description: "Online booking, SMS/email campaigns, automations, Google Reviews, and review management.",
+    description: "Online booking, SMS/email campaigns, automations, and review-request workflows.",
     icon: "sparkles" as const,
     pricingNote: "Pro & Elite",
   },
@@ -581,6 +584,8 @@ const starterFeatures: PlanFeatureSet = {
   shopSite: false,
   websiteSeo: false,
   marketingCampaigns: false,
+  googleReviews: true,
+  /** Care Plans — Elite premium later; never included on Core. */
   maintenancePrograms: false,
   aiReviewReplies: false,
   aiCampaignDrafting: false,
@@ -613,6 +618,8 @@ const professionalFeatures: PlanFeatureSet = {
   shopSite: false,
   websiteSeo: false,
   marketingCampaigns: true,
+  googleReviews: true,
+  /** Care Plans stay Elite-only — not on Pro. */
   maintenancePrograms: false,
   aiReviewReplies: false,
   aiCampaignDrafting: false,
@@ -645,6 +652,8 @@ const EliteFeatures: PlanFeatureSet = {
   shopSite: true,
   websiteSeo: true,
   marketingCampaigns: true,
+  googleReviews: true,
+  /** Care Plans — Elite premium entitlement (also release-gated via growthEngine). */
   maintenancePrograms: true,
   aiReviewReplies: true,
   aiCampaignDrafting: true,
@@ -678,6 +687,7 @@ export const PLANS: Record<ShopPlan, PlanDefinition> = {
         "Job board + full RO workspace (Estimates → WIP → Done)",
         "Digital estimates, email approvals & invoices",
         "Digital vehicle inspections (photo checklists customers can see)",
+        "Google Reviews inbox — sync & reply from the CRM",
         "Live Operations Daily Snapshot every morning",
         "Canned jobs & shop labor library",
         "Appointments + payment tracking",
@@ -710,7 +720,7 @@ export const PLANS: Record<ShopPlan, PlanDefinition> = {
         "Two-way SMS",
         "Online booking",
         "Growth Engine — automations & win-back campaigns",
-        "Google review management",
+        "Review-request campaigns after service",
       ],
     },
     features: professionalFeatures,
@@ -725,12 +735,12 @@ export const PLANS: Record<ShopPlan, PlanDefinition> = {
     valueNote: "Full stack vs legacy CRM + agency retainers · migration & launch setup included",
     savingsNote: "Full stack vs legacy CRM + agency retainers · migration & launch setup included",
     pricingCard: {
-      bestFor: "Shops ready for AI, web, SEO & maintenance programs",
+      bestFor: "Shops ready for AI, web, SEO & Care Plans",
       includesPrevious: "PROFESSIONAL",
       bullets: [
         "AI receptionist + review reply drafting",
         `ShopSite & Local SEO included ($${webPresenceAlaCarteMonthlyDollars()}/mo value)`,
-        "Maintenance subscription programs",
+        "Care Plans — member maintenance subscriptions",
         "AI SEO content & campaign drafting",
         `${PLAN_TRAINING.ENTERPRISE.sessions} · migration included`,
       ],
@@ -818,7 +828,7 @@ export function buildPriceComparisonRows(annual: boolean): PriceComparisonRow[] 
       crmLabel: `$${starter}/mo`,
       marketingLabel: "—",
       stackTotal: starter,
-      note: "Ignition CRM · PartsTech · digital vehicle inspections · Live Operations Daily Snapshot · appointments · payment tracking · NHTSA VIN",
+      note: "Ignition CRM · PartsTech · digital vehicle inspections · Google Reviews inbox · Live Operations Daily Snapshot · appointments · payment tracking · NHTSA VIN",
       shoprally: true,
     },
     {
@@ -827,7 +837,7 @@ export function buildPriceComparisonRows(annual: boolean): PriceComparisonRow[] 
       crmLabel: "Bundled",
       marketingLabel: "Included",
       stackTotal: professional,
-      note: "Everything in Ignition + licensed MOTOR, unlimited VIN/plate, Stripe Connect, Growth Engine & reviews",
+      note: "Everything in Ignition + licensed MOTOR, unlimited VIN/plate, Stripe Connect & Growth Engine campaigns",
       shoprally: true,
     },
     {
@@ -836,7 +846,7 @@ export function buildPriceComparisonRows(annual: boolean): PriceComparisonRow[] 
       crmLabel: "Bundled",
       marketingLabel: "Premium included",
       stackTotal: premier,
-      note: "Everything in Pro + AI, ShopSite, Local SEO, maintenance programs & white-glove onboarding",
+      note: "Everything in Pro + AI, ShopSite, Local SEO, Care Plans & white-glove onboarding",
       shoprally: true,
     },
   ];
@@ -949,7 +959,11 @@ export const COMPARISON_ROWS: {
     values: { STARTER: false, PROFESSIONAL: true, ENTERPRISE: true },
   },
   {
-    label: "Review management (Google sync, requests & inbox)",
+    label: "Google Reviews inbox (sync & reply)",
+    values: { STARTER: true, PROFESSIONAL: true, ENTERPRISE: true },
+  },
+  {
+    label: "Review-request campaigns",
     values: { STARTER: false, PROFESSIONAL: true, ENTERPRISE: true },
   },
   {
@@ -1019,12 +1033,12 @@ export const COMPARISON_ROWS: {
     },
   },
   {
-    label: "Maintenance subscription programs",
+    label: "Care Plans (maintenance subscriptions)",
     category: "Subscriptions",
     values: { STARTER: false, PROFESSIONAL: false, ENTERPRISE: true },
   },
   {
-    label: "Member portal & shop-level billing",
+    label: "Care Plan member portal & shop-level billing",
     values: { STARTER: false, PROFESSIONAL: false, ENTERPRISE: true },
   },
   {
@@ -1167,14 +1181,14 @@ export const IGNITION_COMING_LATER_FEATURES = [
   { name: "Two-way SMS", note: "Pro+" },
   { name: "Growth Engine / marketing campaigns", note: "Pro+" },
   { name: "Online booking widget", note: "Pro+" },
-  { name: "Google review management", note: "Pro+" },
+  { name: "Review-request campaigns", note: "Pro+" },
   { name: "Auto.dev plate→VIN", note: "Pro+" },
   { name: "OEM service specs & fluid capacities", note: "Pro+" },
   { name: "Markup matrices", note: "Pro+" },
   { name: "Advanced reporting & analytics", note: "Pro+" },
   { name: "QuickBooks & third-party integrations", note: "Pro+" },
   { name: "AI receptionist & Elite AI suite", note: "Elite / add-on" },
-  { name: "Maintenance / care programs", note: "Elite" },
+  { name: "Care Plans (member maintenance subscriptions)", note: "Elite premium" },
 ] as const;
 
 /** Rows for the public pricing comparison table (phase-one vs full matrix). */
@@ -1332,13 +1346,13 @@ export const PRICING_FAQ = [
     q: "Which plan should I choose?",
     a: PHASE_ONE_LAUNCH
       ? `Ignition (${shoprallyStarterPricePairLabel()}) is the plan we're launching in Q4 2026. Reserve a founding seat for: unlimited users & ROs, job board, full RO workspace, PartsTech parts catalog & punchout, canned jobs & shop labor library, digital estimates/approvals/invoices (email), digital vehicle inspections, Live Operations Daily Snapshot, appointments, payment tracking, unlimited NHTSA VIN decode, and inventory basics. Add AI Plus (${aiPlusPriceLabel()}) for freeform AI repair-order intake, labor assist, and the advisor mobile app.`
-      : "Ignition for shops that want CRM + PartsTech in one bill — unlimited users & ROs, job board, digital vehicle inspections, email estimates & approvals, Live Operations Daily Snapshot, appointments, payment tracking, PartsTech punchout, and shop catalog. Ignition does not include Stripe Connect or licensed MOTOR. Pro when you want licensed MOTOR, unlimited VIN & plate decoding, OEM specs & fluids, SMS, booking, Growth Engine, and Google review management. Elite when you want AI receptionist, ShopSite, Local SEO, and maintenance programs in one bill.",
+      : "Ignition for shops that want CRM + PartsTech in one bill — unlimited users & ROs, job board, digital vehicle inspections, Google Reviews inbox, email estimates & approvals, Live Operations Daily Snapshot, appointments, payment tracking, PartsTech punchout, and shop catalog. Ignition does not include Stripe Connect, licensed MOTOR, or Care Plans. Pro when you want licensed MOTOR, unlimited VIN & plate decoding, OEM specs & fluids, SMS, booking, Growth Engine campaigns, and review-request automations. Elite when you want AI receptionist, ShopSite, Local SEO, and Care Plans in one bill.",
   },
   {
     q: "What's not on Ignition yet?",
     a: PHASE_ONE_LAUNCH
-      ? "Licensed MOTOR, Stripe Connect card capture, two-way SMS, Growth Engine campaigns, online booking, maintenance programs, and AI receptionist stay on the Pro/Elite roadmap. PartsTech parts ordering is included on Ignition. ShopSite and Local SEO are a separate Website & SEO product line (see the Website & SEO tab) — not buried in Ignition CRM pricing."
-      : "ShopSite ($99/mo) and Local SEO ($129/mo) are separate monthly subscriptions on any CRM tier. Subscribe to both for $199/mo with the bundle. A one-time launch setup applies when each service starts ($349 ShopSite, $299 Local SEO, or $549 bundle). Elite includes monthly fees and launch setup.",
+      ? "Licensed MOTOR, Stripe Connect card capture, two-way SMS, Growth Engine campaigns, and online booking stay on the Pro+ roadmap. Care Plans and AI receptionist are Elite premium (not Core/Ignition). PartsTech parts ordering is included on Ignition. ShopSite and Local SEO are a separate Website & SEO product line (see the Website & SEO tab) — not buried in Ignition CRM pricing."
+      : "ShopSite ($99/mo) and Local SEO ($129/mo) are separate monthly subscriptions on any CRM tier. Subscribe to both for $199/mo with the bundle. A one-time launch setup applies when each service starts ($349 ShopSite, $299 Local SEO, or $549 bundle). Elite includes monthly fees and launch setup. Care Plans are Elite-only — not on Core or Pro.",
   },
   {
     q: "Can I get a website and SEO?",

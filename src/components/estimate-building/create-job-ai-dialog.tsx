@@ -25,6 +25,7 @@ import { Badge } from "@/components/ui/badge";
 import { useEstimateActionToast } from "@/components/repair-order/estimate-action-toast";
 import {
   filterEstimateJobAiItems,
+  type CreateJobAiMode,
   type ShopNotesAiProposal,
   type ShopNotesProposalItem,
 } from "@/lib/shop-notes-ai-types";
@@ -37,6 +38,7 @@ type Props = {
   onOpenChange: (open: boolean) => void;
   proposal: ShopNotesAiProposal | null;
   onBack?: () => void;
+  mode?: CreateJobAiMode;
 };
 
 const REVIEW_GROUPS: {
@@ -48,7 +50,30 @@ const REVIEW_GROUPS: {
   { title: "Jobs & parts", kinds: ["job", "part"], icon: Package },
 ];
 
-function modeBadge(item: ShopNotesProposalItem) {
+const REVIEW_GROUPS_AMEND: {
+  title: string;
+  kinds: ShopNotesProposalItem["kind"][];
+  icon: typeof Wrench;
+}[] = [
+  { title: "Labor lines", kinds: ["job"], icon: Wrench },
+  { title: "Parts", kinds: ["part"], icon: Package },
+];
+
+function modeBadge(item: ShopNotesProposalItem, amendMode: boolean) {
+  if (amendMode && item.kind === "job") {
+    return (
+      <Badge variant="outline" className="border-brand-navy/40 bg-brand-navy/5 text-[10px] text-brand-navy">
+        Add to this job
+      </Badge>
+    );
+  }
+  if (amendMode && item.kind === "part") {
+    return (
+      <Badge variant="outline" className="border-brand-navy/40 bg-brand-navy/5 text-[10px] text-brand-navy">
+        Add to this job
+      </Badge>
+    );
+  }
   if (item.mode === "update" && item.targetJobId) {
     return (
       <Badge variant="outline" className="border-brand-navy/40 bg-brand-navy/5 text-[10px] text-brand-navy">
@@ -78,7 +103,16 @@ function modeBadge(item: ShopNotesProposalItem) {
 }
 
 /** Compact review dialog — opens after inline Smart AI prompt parses jobs for this estimate. */
-export function CreateJobAiReviewDialog({ roId, open, onOpenChange, proposal, onBack }: Props) {
+export function CreateJobAiReviewDialog({
+  roId,
+  open,
+  onOpenChange,
+  proposal,
+  onBack,
+  mode = "create-job",
+}: Props) {
+  const isAmendMode = mode === "amend-job";
+  const reviewGroups = isAmendMode ? REVIEW_GROUPS_AMEND : REVIEW_GROUPS;
   const router = useRouter();
   const { toast } = useEstimateActionToast();
   const [accepted, setAccepted] = useState<Record<string, boolean>>({});
@@ -128,7 +162,7 @@ export function CreateJobAiReviewDialog({ roId, open, onOpenChange, proposal, on
         part: item.part,
       }));
     if (items.length === 0) {
-      setError("Select at least one job or line to add.");
+      setError(isAmendMode ? "Select at least one line to add to this job." : "Select at least one job or line to add.");
       return;
     }
 
@@ -143,7 +177,9 @@ export function CreateJobAiReviewDialog({ roId, open, onOpenChange, proposal, on
         "success",
         res.skipped > 0
           ? `Applied ${res.applied} change${res.applied === 1 ? "" : "s"} (${res.skipped} skipped).`
-          : `Applied ${res.applied} change${res.applied === 1 ? "" : "s"} to this estimate.`,
+          : isAmendMode
+            ? `Added ${res.applied} line${res.applied === 1 ? "" : "s"} to this job.`
+            : `Applied ${res.applied} change${res.applied === 1 ? "" : "s"} to this estimate.`,
       );
       onOpenChange(false);
       router.refresh();
@@ -158,10 +194,12 @@ export function CreateJobAiReviewDialog({ roId, open, onOpenChange, proposal, on
             <span className="flex size-8 items-center justify-center rounded-md bg-brand-navy/10">
               <Sparkles className="size-4 text-brand-red" aria-hidden />
             </span>
-            Review AI suggestions
+            {isAmendMode ? "Review lines for this job" : "Review AI suggestions"}
           </DialogTitle>
           <DialogDescription className="max-w-2xl text-sm">
-            Nothing is added until you confirm. Matching an existing job updates it instead of creating a duplicate.
+            {isAmendMode
+              ? "AI drafted additional labor and parts for this job. Nothing is saved until you confirm."
+              : "Nothing is added until you confirm. Matching an existing job updates it instead of creating a duplicate."}
           </DialogDescription>
         </DialogHeader>
 
@@ -177,7 +215,9 @@ export function CreateJobAiReviewDialog({ roId, open, onOpenChange, proposal, on
                   {proposal.sourceText}
                 </p>
                 <p className="mt-4 hidden text-xs leading-relaxed text-muted-foreground lg:block">
-                  Review each suggestion on the right, then add only what you want on this estimate.
+                  {isAmendMode
+                    ? "Selected lines are added to the current job — no new job card is created."
+                    : "Review each suggestion on the right, then add only what you want on this estimate."}
                 </p>
               </aside>
 
@@ -220,7 +260,7 @@ export function CreateJobAiReviewDialog({ roId, open, onOpenChange, proposal, on
                 </div>
 
                 <div className="grid gap-4 md:grid-cols-2 md:items-start">
-                  {REVIEW_GROUPS.map((group) => {
+                  {reviewGroups.map((group) => {
                     const items = reviewItems.filter((item) => group.kinds.includes(item.kind));
                     if (items.length === 0) return null;
                     const Icon = group.icon;
@@ -247,6 +287,7 @@ export function CreateJobAiReviewDialog({ roId, open, onOpenChange, proposal, on
                               key={item.id}
                               item={item}
                               checked={Boolean(accepted[item.id])}
+                              amendMode={isAmendMode}
                               onCheckedChange={(checked) =>
                                 setAccepted((prev) => ({ ...prev, [item.id]: checked }))
                               }
@@ -293,7 +334,9 @@ export function CreateJobAiReviewDialog({ roId, open, onOpenChange, proposal, on
                 Adding…
               </>
             ) : (
-              <>Apply to estimate ({selectedCount})</>
+              <>
+                {isAmendMode ? "Add to this job" : "Apply to estimate"} ({selectedCount})
+              </>
             )}
           </Button>
         </DialogFooter>
@@ -305,10 +348,12 @@ export function CreateJobAiReviewDialog({ roId, open, onOpenChange, proposal, on
 function ProposalRow({
   item,
   checked,
+  amendMode,
   onCheckedChange,
 }: {
   item: ShopNotesProposalItem;
   checked: boolean;
+  amendMode: boolean;
   onCheckedChange: (checked: boolean) => void;
 }) {
   return (
@@ -328,7 +373,7 @@ function ProposalRow({
       <div className="min-w-0 flex-1 space-y-1">
         <div className="flex flex-wrap items-center gap-1.5">
           <span className="text-sm font-medium leading-snug text-foreground">{item.label}</span>
-          {modeBadge(item)}
+          {modeBadge(item, amendMode)}
         </div>
         {item.currentValue ? (
           <p className="flex flex-wrap items-center gap-1 text-xs text-muted-foreground">

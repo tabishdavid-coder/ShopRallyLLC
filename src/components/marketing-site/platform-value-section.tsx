@@ -99,7 +99,7 @@ export function PlatformValueSection() {
           </h2>
           <p className="mt-4 text-slate-600">
             {PHASE_ONE_LAUNCH
-              ? "All-in-one auto repair shop management software for the bay and counter: estimates, PartsTech, digital vehicle inspections, job board, appointments, and live ops — without selling Pro modules as if they're live today. Website & SEO stays a separate companion offer."
+              ? "All-in-one auto repair shop management software for the bay and counter: estimates, PartsTech, digital vehicle inspections, job board, appointments, and live ops — without selling later-roadmap modules as if they're live today."
               : "CRM, marketing, payments, and AI — with live training included from day one."}
           </p>
         </div>

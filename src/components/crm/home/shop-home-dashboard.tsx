@@ -28,7 +28,7 @@ export function ShopHomeDashboard({ data, shopName }: ShopHomeDashboardProps) {
           Performance · {rangeLabel}
         </p>
         <div className="flex shrink-0 flex-wrap items-center gap-2">
-          <DateRangePicker basePath="/dashboard/overview" />
+          <DateRangePicker basePath="/dashboard/kpis" />
           <Button
             type="button"
             size="sm"

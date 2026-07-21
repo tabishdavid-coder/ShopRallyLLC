@@ -9,7 +9,7 @@ export const GROWTH_ENGINE = {
   name: "Growth Engine",
   tagline: "Acquire customers, keep them coming back, and get found locally.",
   upgradeHint: `Growth Engine is included on ${PLANS.PROFESSIONAL.name} and ${PLANS.ENTERPRISE.name} plans.`,
-  overdriveHint: `ShopSite ($99/mo), Local SEO ($129/mo), and maintenance programs are included on ${PLANS.ENTERPRISE.name}.`,
+  overdriveHint: `ShopSite ($99/mo), Local SEO ($129/mo), and Care Plans are included on ${PLANS.ENTERPRISE.name}.`,
 } as const;
 
 export type GrowthBundleId = "connect" | "retain" | "presence" | "autopilot";
@@ -24,7 +24,7 @@ export const GROWTH_BUNDLES: Record<
   },
   retain: {
     name: "Retain",
-    tagline: "Keep customers coming back — automations, maintenance programs, and reviews.",
+    tagline: "Keep customers coming back — automations, Care Plans, and reviews.",
   },
   presence: {
     name: "Presence",
@@ -83,10 +83,11 @@ export const GROWTH_PRODUCTS: Record<
     bundle: "connect",
   },
   bayCare: {
-    label: "Maintenance Programs",
-    shortDescription: "VIP oil clubs and subscription packages — sell, track, and redeem.",
+    label: "Care Plans",
+    shortDescription: "VIP oil clubs and subscription packages — sell, track, and redeem. Elite premium.",
     href: "/marketing/maintenance-programs",
     bundle: "retain",
+    premium: true,
   },
   reputationPilot: {
     label: "Reviews",
@@ -167,7 +168,9 @@ export const GROWTH_ENGINE_BREADCRUMBS = {
 
 /** Billing / plan comparison feature labels. */
 export const GROWTH_ENGINE_PLAN_LABELS = {
-  core: "Growth Engine (Outreach, automations, maintenance programs, booking)",
+  /** Pro Growth Engine scope — Care Plans stay Elite-only (not Core/Pro). */
+  core: "Growth Engine (Outreach, automations, booking, reviews)",
   shopSite: "ShopSite — shop microsite & custom domain",
   seoAutopilot: "Growth Engine SEO — managed local SEO",
+  carePlans: "Care Plans — member subscriptions (Elite)",
 } as const;

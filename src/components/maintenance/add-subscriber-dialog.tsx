@@ -43,13 +43,12 @@ import {
   VEHICLE_CLASS_LABELS,
   VEHICLE_CLASSES,
 } from "@/lib/maintenance-programs";
-import { looksLikePhone } from "@/lib/phone";
+import { searchQueryToCustomerPrefill } from "@/lib/customer-search";
 import type { CustomerPick, VehiclePick } from "@/lib/picker-types";
 import type { MaintenanceVehicleClass } from "@/generated/prisma";
 import { enrollSubscriberInShop } from "@/server/actions/maintenance-subscriptions";
 import { searchCustomers, getCustomerVehicles } from "@/server/actions/pickers";
 import { cn } from "@/lib/utils";
-import type { CustomerPrefill } from "@/components/customers/add-customer-dialog";
 
 export type EnrollPlanOption = {
   id: string;
@@ -83,15 +82,6 @@ const STEP_LABELS: Record<Step, string> = {
   done: "Done",
 };
 
-function searchToPrefill(q: string): CustomerPrefill | undefined {
-  const s = q.trim();
-  if (!s) return undefined;
-  if (s.includes("@")) return { email: s };
-  if (looksLikePhone(s)) return { phone: s };
-  const parts = s.split(/\s+/);
-  return { firstName: parts[0], lastName: parts.slice(1).join(" ") };
-}
-
 function vehicleLabel(v: VehiclePick) {
   const base = [v.year, v.make, v.model, v.trim].filter(Boolean).join(" ");
   const plate = v.plate ? ` · ${v.plate}${v.plateState ? ` ${v.plateState}` : ""}` : "";
@@ -118,6 +108,7 @@ export function AddSubscriberDialog({
   const [custResults, setCustResults] = useState<CustomerPick[]>([]);
   const [custOpen, setCustOpen] = useState(false);
   const [searching, startSearch] = useTransition();
+  const [addCustomerOpen, setAddCustomerOpen] = useState(false);
 
   const [vehicles, setVehicles] = useState<VehiclePick[]>([]);
   const [vehicleId, setVehicleId] = useState<string | null>(null);
@@ -206,6 +197,10 @@ export function AddSubscriberDialog({
     setVehicleId(null);
     setVehicles([]);
     loadVehicles(c.id);
+  }
+
+  function openAddCustomer() {
+    setAddCustomerOpen(true);
   }
 
   function clearCustomer() {
@@ -337,6 +332,15 @@ export function AddSubscriberDialog({
                         setCustOpen(true);
                       }}
                       onFocus={() => setCustOpen(true)}
+                      onKeyDown={(e) => {
+                        if (e.key !== "Enter") return;
+                        e.preventDefault();
+                        if (custResults[0]) {
+                          selectCustomer(custResults[0]);
+                        } else if (custQuery.trim().length >= 2) {
+                          openAddCustomer();
+                        }
+                      }}
                       placeholder="Name, phone, email, plate, or VIN"
                       className="pl-9"
                       autoComplete="off"
@@ -349,11 +353,14 @@ export function AddSubscriberDialog({
                         searching={searching}
                         query={custQuery}
                         onSelect={selectCustomer}
+                        onAddNew={openAddCustomer}
                       />
                     </div>
                   ) : null}
                   <AddCustomerDialog
-                    prefill={searchToPrefill(custQuery)}
+                    prefill={searchQueryToCustomerPrefill(custQuery)}
+                    open={addCustomerOpen}
+                    onOpenChange={setAddCustomerOpen}
                     onCreated={(id, name) => {
                       selectCustomer({
                         id,

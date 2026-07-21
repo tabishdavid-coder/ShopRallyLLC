@@ -1,7 +1,28 @@
 import type { Prisma } from "@/generated/prisma";
 import { customerDisplayName } from "@/lib/format";
 import { activeCustomerWhere } from "@/lib/data-compliance";
-import { digitsOf, phoneMatchKey } from "@/lib/phone";
+import { digitsOf, looksLikePhone, phoneMatchKey } from "@/lib/phone";
+
+/** Prefill fields for Add Customer from a type-ahead query. */
+export type CustomerSearchPrefill = {
+  firstName?: string;
+  lastName?: string;
+  phone?: string;
+  email?: string;
+};
+
+/**
+ * Map a customer type-ahead query into Add Customer form prefill
+ * (email / phone / first+last name). Shared by RO intake, appointments, etc.
+ */
+export function searchQueryToCustomerPrefill(q: string): CustomerSearchPrefill | undefined {
+  const s = q.trim();
+  if (!s) return undefined;
+  if (s.includes("@")) return { email: s };
+  if (looksLikePhone(s)) return { phone: s };
+  const parts = s.split(/\s+/);
+  return { firstName: parts[0], lastName: parts.slice(1).join(" ") };
+}
 
 /** Shared Prisma filter for customer type-ahead and list search (shop-scoped). */
 export function customerSearchWhere(

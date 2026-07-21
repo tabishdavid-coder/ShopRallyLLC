@@ -142,6 +142,7 @@ export function settingsRouteDenied(
 /** Human label for upgrade redirect messaging. */
 export function settingsUpgradeLabel(feature: PlanFeature): string {
   const labels: Partial<Record<PlanFeature, string>> = {
+    googleReviews: "Google Reviews",
     markupMatrices: "Markup matrices",
     customerSms: "Two-way SMS",
     integrations: "Integrations",

@@ -11,7 +11,7 @@ import {
   Wrench,
 } from "lucide-react";
 
-import { collectionRatePct, type DashboardData } from "@/lib/dashboard";
+import type { DashboardData } from "@/lib/dashboard";
 import { formatCents } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
@@ -57,7 +57,6 @@ function KpiTile({ label, value, hint, icon: Icon, accent = "navy" }: KpiTilePro
 
 export function HomeKpiStrip({ data }: { data: DashboardData }) {
   const { kpis, rangeLabel } = data;
-  const collectionRate = collectionRatePct(kpis.invoicedCents, kpis.collectedCents);
 
   return (
     <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 xl:grid-cols-4">
@@ -104,19 +103,21 @@ export function HomeKpiStrip({ data }: { data: DashboardData }) {
         accent="rose"
       />
       <KpiTile
-        label="Appointments"
-        value={String(kpis.appointmentsToday)}
-        hint={`${kpis.appointmentsThisWeek} this wk`}
+        label="Appts booked"
+        value={String(kpis.appointmentsBookedInPeriod)}
+        hint={`${kpis.appointmentsToday} today`}
         icon={Calendar}
         accent="navy"
       />
       <KpiTile
-        label="Collection"
-        value={collectionRate !== null ? `${collectionRate}%` : "—"}
+        label="Conversion"
+        value={
+          kpis.estimateConversionPct !== null ? `${kpis.estimateConversionPct}%` : "—"
+        }
         hint={
-          kpis.invoicedCents > 0
-            ? `${formatCents(kpis.collectedCents)} collected`
-            : "No invoices"
+          kpis.estimatesCreatedInPeriod > 0
+            ? `${kpis.estimatesApprovedInPeriod}/${kpis.estimatesCreatedInPeriod} approved`
+            : "No ROs opened"
         }
         icon={TrendingUp}
         accent="emerald"

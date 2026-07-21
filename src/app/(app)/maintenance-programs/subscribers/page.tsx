@@ -67,7 +67,7 @@ export default async function MaintenanceSubscribersPage({
 
       {!canAccess ? (
         <div className="rounded-lg border border-brand-light/40 bg-brand-light/10 p-4 text-sm text-on-brand-wash">
-          Maintenance programs require {PLANS.ENTERPRISE.name}.{" "}
+          Care Plans are an Elite premium benefit — not included on Core.{" "}
           <Link href="/settings/subscription" className="font-medium text-brand-navy underline">
             Upgrade
           </Link>

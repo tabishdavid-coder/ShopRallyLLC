@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   ChevronRight,
   Car,
@@ -43,6 +43,7 @@ import {
 } from "@/components/customers/customer-maintenance-panel";
 import { EmailCustomerDialog } from "@/components/customers/email-customer-dialog";
 import { CustomerDataMenu } from "@/components/customers/customer-data-menu";
+import { useMaintenanceProgramsUiEnabled } from "@/lib/shop-capabilities";
 
 type Tab = "overview" | "vehicles" | "repair-orders" | "payments" | "maintenance" | "notes";
 
@@ -75,6 +76,11 @@ export function CustomerDetailView({
   const [emailOpen, setEmailOpen] = useState(false);
   const router = useRouter();
   const { openIntake, config } = useRoIntakeOptional();
+  const carePlansEnabled = useMaintenanceProgramsUiEnabled();
+
+  useEffect(() => {
+    if (!carePlansEnabled && tab === "maintenance") setTab("overview");
+  }, [carePlansEnabled, tab]);
 
   const displayName = customerDisplayName(customer);
   const isRemoved = Boolean(customer.deletedAt || customer.anonymizedAt);
@@ -194,7 +200,9 @@ export function CustomerDetailView({
                 ["vehicles", `Vehicles (${customer.vehicles.length})`],
                 ["repair-orders", `Repair Orders (${customer.repairOrders.length})`],
                 ["payments", `Payments (${paymentHistory.payments.length})`],
-                ["maintenance", `Maintenance (${maintenanceEntries.length})`],
+                ...(carePlansEnabled
+                  ? ([["maintenance", `Care Plans (${maintenanceEntries.length})`]] as [Tab, string][])
+                  : []),
                 ["notes", "Notes"],
               ] as [Tab, string][]
             ).map(([k, label]) => (

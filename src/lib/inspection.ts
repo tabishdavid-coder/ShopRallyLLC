@@ -21,6 +21,56 @@ export const INSPECTION_STATUS_LABELS: Record<InspectionStatus, string> = {
   COMPLETED: "Completed",
 };
 
+/** Row action label on RO inspection lists (Start / Continue / View). */
+export function inspectionRowActionLabel(
+  status: InspectionStatus,
+  options?: { ratedCount?: number },
+): string {
+  if (status === INSPECTION_STATUS.COMPLETED) return "View";
+  const rated = options?.ratedCount ?? 0;
+  if (status === INSPECTION_STATUS.IN_PROGRESS || rated > 0) return "Continue";
+  return "Start";
+}
+
+export function inspectionRowActionIsPrimary(
+  status: InspectionStatus,
+  options?: { ratedCount?: number },
+): boolean {
+  return inspectionRowActionLabel(status, options) === "Start";
+}
+
+/** RO inspection list rows hide the badge when only Start is shown. */
+export function inspectionRowShowWorkflowBadge(
+  status: InspectionStatus,
+  options?: { ratedCount?: number },
+): boolean {
+  if (status === INSPECTION_STATUS.NOT_STARTED) {
+    return (options?.ratedCount ?? 0) > 0;
+  }
+  return true;
+}
+
+/** Workflow badge for RO inspection list rows (status + optional percent label). */
+export function inspectionRowWorkflowBadge(
+  status: InspectionStatus,
+  options?: { ratedCount?: number; itemCount?: number },
+): { status: InspectionStatus; label: string } | null {
+  if (!inspectionRowShowWorkflowBadge(status, options)) return null;
+
+  if (status === INSPECTION_STATUS.COMPLETED) {
+    return { status, label: INSPECTION_STATUS_LABELS.COMPLETED };
+  }
+
+  const rated = options?.ratedCount ?? 0;
+  const total = options?.itemCount ?? 0;
+  const partial = total > 0 && rated > 0 && rated < total;
+  const label = partial
+    ? `${Math.round((rated / total) * 100)}%`
+    : INSPECTION_STATUS_LABELS.IN_PROGRESS;
+
+  return { status: INSPECTION_STATUS.IN_PROGRESS, label };
+}
+
 export const INSPECTION_ITEM_STATUS_LABELS: Record<InspectionItemStatus, string> = {
   GREEN: "Pass",
   YELLOW: "Monitor",

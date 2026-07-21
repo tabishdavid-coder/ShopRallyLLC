@@ -34,7 +34,7 @@ async function requireFeature(shopId: string): Promise<ServiceActionResult | nul
   if (denied) return denied;
   const allowed = await canUseReleasedFeature(shopId, "maintenance_programs");
   if (!allowed) {
-    return { ok: false, error: `Maintenance programs require ${PLANS.ENTERPRISE.name}.` };
+    return { ok: false, error: `Care Plans require ${PLANS.ENTERPRISE.name} (Elite premium — not on Core).` };
   }
   return null;
 }

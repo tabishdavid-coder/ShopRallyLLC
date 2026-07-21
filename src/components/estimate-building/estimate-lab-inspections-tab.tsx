@@ -7,6 +7,11 @@ import { ClipboardList, ExternalLink, Plus } from "lucide-react";
 import { AddInspectionDialog } from "@/components/inspections/add-inspection-dialog";
 import { InspectionWorkflowBadge } from "@/components/inspections/inspection-badges";
 import { Button } from "@/components/ui/button";
+import {
+  inspectionRowActionIsPrimary,
+  inspectionRowActionLabel,
+  inspectionRowWorkflowBadge,
+} from "@/lib/inspection";
 import type { InspectionStatus } from "@/generated/prisma";
 
 type InspectionRow = {
@@ -74,6 +79,10 @@ export function EstimateLabInspectionsTab({
               insp.itemCount > 0
                 ? Math.round((insp.ratedCount / insp.itemCount) * 100)
                 : 0;
+            const workflowBadge = inspectionRowWorkflowBadge(insp.status, {
+              ratedCount: insp.ratedCount,
+              itemCount: insp.itemCount,
+            });
             return (
               <li
                 key={insp.id}
@@ -86,9 +95,29 @@ export function EstimateLabInspectionsTab({
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
-                  <InspectionWorkflowBadge status={insp.status} />
-                  <Button size="sm" variant="ghost" className="h-8 text-xs" asChild>
-                    <Link href={`/repair-orders/${roId}/inspections`}>Edit</Link>
+                  {workflowBadge ? (
+                    <InspectionWorkflowBadge
+                      status={workflowBadge.status}
+                      label={workflowBadge.label}
+                    />
+                  ) : null}
+                  <Button
+                    size="sm"
+                    variant={
+                      inspectionRowActionIsPrimary(insp.status, {
+                        ratedCount: insp.ratedCount,
+                      })
+                        ? "default"
+                        : "ghost"
+                    }
+                    className="h-8 text-xs"
+                    asChild
+                  >
+                    <Link href={`/repair-orders/${roId}/inspections`}>
+                      {inspectionRowActionLabel(insp.status, {
+                        ratedCount: insp.ratedCount,
+                      })}
+                    </Link>
                   </Button>
                 </div>
               </li>

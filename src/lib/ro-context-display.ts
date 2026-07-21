@@ -1,26 +1,12 @@
-/** Title-case a single vehicle token (make/model/trim); years pass through unchanged. */
-function titleCaseToken(token: string): string {
-  if (/^\d+$/.test(token)) return token;
-  const lower = token.toLowerCase();
-  return lower.charAt(0).toUpperCase() + lower.slice(1);
-}
+import { formatVehicleDisplayLabel, type VehicleDisplayInput } from "@/lib/vehicle-display";
 
 export function formatVehicleContextLabel(
-  vehicle: {
-    year?: number | string | null;
-    make?: string | null;
-    model?: string | null;
-    trim?: string | null;
-  } | null,
+  vehicle: VehicleDisplayInput | null,
   maxLen = 32,
 ): { display: string; full: string } {
   if (!vehicle) return { display: "—", full: "—" };
-  const parts = [vehicle.year, vehicle.make, vehicle.model, vehicle.trim].filter(
-    (p) => p != null && String(p).trim() !== "",
-  ) as (string | number)[];
-  const full = parts.map(String).join(" ");
-  const titled = parts.map((p, i) => (i === 0 ? String(p) : titleCaseToken(String(p)))).join(" ");
-  const display = titled.length > maxLen ? `${titled.slice(0, maxLen - 1)}…` : titled;
+  const full = formatVehicleDisplayLabel(vehicle);
+  const display = full.length > maxLen ? `${full.slice(0, maxLen - 1)}…` : full;
   return { display, full };
 }
 

@@ -5,6 +5,7 @@ import { zodOutputFormat } from "@anthropic-ai/sdk/helpers/zod";
 import { z } from "zod";
 
 import { parseYmmSearch } from "@/lib/parse-ymm-search";
+import { splitMergedRepairRequests } from "@/lib/split-repair-requests";
 import type {
   FreeformCustomerHint,
   FreeformJobDraft,
@@ -75,7 +76,12 @@ Extract structured data from the user's natural-language request. Examples:
 - "Oil change for Sarah's 2020 Toyota Camry, 45k miles" → customer hint Sarah + vehicle + oil change
 
 Rules:
-- Split distinct repair operations into separate repairRequests (e.g. brakes AND oil change = 2 items).
+- REPAIR SPLITTING (critical): each independent repair = its own repairRequests object with a focused description.
+- Split when text lists multiple unrelated services joined by "and", commas, "+", ";", or newlines.
+- Example: "water pump and battery replacement" → TWO items: "water pump replacement" AND "battery replacement" (never one combined title).
+- Example: "oil change and tire rotation" → TWO items. "AC not cold, needs recharge" → ONE item (single system).
+- Do NOT split parts of ONE job: "brake pads and rotors", "shocks and struts", "inspect and advise", "remove and replace …".
+- Do NOT split "front and rear brake pads" into two jobs unless the customer clearly wants separate front/rear jobs.
 - Use standard make names (Honda, Chevrolet, BMW).
 - If year/make/model appear together, put them in vehicle fields.
 - concerns = customer-stated symptoms or requests in their words (can mirror repairRequests).
@@ -240,6 +246,11 @@ export async function buildFreeformRoDraft(
   } catch {
     parsed = fallbackParse(text);
   }
+
+  parsed = {
+    ...parsed,
+    repairRequests: splitMergedRepairRequests(parsed.repairRequests),
+  };
 
   const vehicle = normalizeVehicle(parsed.vehicle);
   const customerHint = normalizeCustomerHint(parsed.customerHint);

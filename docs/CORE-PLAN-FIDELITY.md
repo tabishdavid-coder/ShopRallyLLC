@@ -56,7 +56,8 @@ const starterFeatures: PlanFeatureSet = {
 | Catalog (canned jobs, inspections, labor guide) | ✅ | Permission-based | ⬜ verify |
 | **Shop Growth** top section | ❌ | `growthPlanOk` hides section | 🟡 gated 2026-07-13 |
 | `/marketing/**` routes | ❌ | `checkCrmRouteAccess` + release | 🟡 gated 2026-07-13 |
-| `/maintenance-programs/**` | ❌ | Same | ⬜ verify |
+| `/maintenance-programs/**` (Care Plans) | ❌ | Elite premium only — Core never entitled | ✅ plan `maintenancePrograms: false` |
+| Customer drawer **Care Plan** tab | ❌ | Hidden when `!maintenancePrograms` | ✅ 2026-07-21 |
 | Messages / SMS inbox prominence | ❌ | `capabilities.sms` in shell | ⬜ verify |
 | Payments nav / Stripe Connect | ❌ | Manual Record path; Stripe Collect hidden | 🟡 gated 2026-07-13 |
 | Customer drawer Finances / Credit Memo | ❌ | Drawer tab + stub removed (PR #29 merged) | ✅ |

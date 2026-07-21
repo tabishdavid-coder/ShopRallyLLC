@@ -20,11 +20,15 @@ import { updateVehicle } from "@/server/actions/vehicles";
 import { addJob, addLaborLine, addPartLine, updateJob, updateLaborLine } from "@/server/actions/estimate";
 import { getShopMatrices, shopLaborRate } from "@/server/pricing-matrix";
 
+const CreateJobAiModeSchema = z.enum(["create-job", "amend-job"]);
+
 const ParseInput = z.object({
   roId: z.string().min(1),
   text: z.string().trim().min(8).max(4000),
   /** When triggered from a job card, bias matching toward this job. */
   focusJobId: z.string().min(1).optional(),
+  /** amend-job requires focusJobId — appends labor/parts to that job only. */
+  mode: CreateJobAiModeSchema.optional(),
 });
 
 export type ParseShopNotesAiResult =
@@ -56,10 +60,16 @@ export async function parseShopNotesWithAi(
     return { ok: false, error: "This repair order is read-only." };
   }
 
+  const mode = parsed.data.mode ?? "create-job";
+  if (mode === "amend-job" && !parsed.data.focusJobId) {
+    return { ok: false, error: "Select a job before adding lines with AI." };
+  }
+
   try {
     await assertShopAiRateLimit(shopId);
     const proposal = await buildShopNotesProposals(shopId, parsed.data.roId, parsed.data.text, {
       focusJobId: parsed.data.focusJobId,
+      mode,
     });
     return { ok: true, proposal };
   } catch (e) {
@@ -97,6 +107,7 @@ const ApplyInput = z.object({
           jobNotes: z.string().nullable().optional(),
           targetJobId: z.string().nullable().optional(),
           laborLineId: z.string().nullable().optional(),
+          appendLabor: z.boolean().optional(),
         })
         .optional(),
       part: z
@@ -385,6 +396,34 @@ export async function applyShopNotesProposals(
             item.job.jobNotes ?? "",
           );
           const laborDescription = cleaned.laborDescription || item.job.jobName;
+
+          if (item.job.appendLabor && item.job.targetJobId) {
+            const existingJob = ro.jobs.find((j) => j.id === item.job!.targetJobId);
+            if (!existingJob) {
+              skipped++;
+              break;
+            }
+
+            if (item.job.jobNotes && item.job.jobNotes !== (existingJob.note ?? "")) {
+              const noteRes = await updateJob(item.job.targetJobId, {
+                name: existingJob.name,
+                description: item.job.jobNotes,
+              });
+              if (noteRes.ok) existingJob.note = item.job.jobNotes;
+            }
+
+            const rateCents = shopLaborRate(baseRate, item.job.laborHours, laborTiers);
+            const laborRes = await addLaborLine(item.job.targetJobId, {
+              description: laborDescription,
+              hours: item.job.laborHours,
+              rateCents,
+            });
+            if (laborRes.ok) {
+              createdJobs.set(existingJob.name.toLowerCase(), item.job.targetJobId);
+              applied++;
+            } else skipped++;
+            break;
+          }
 
           if (item.job.targetJobId) {
             const existingJob = ro.jobs.find((j) => j.id === item.job!.targetJobId);

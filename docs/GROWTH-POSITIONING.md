@@ -20,9 +20,9 @@ Annual rates shown on `/pricing` (list / monthly billing in parentheses):
 
 | Plan | Annual /mo | Monthly /mo | Headline offer |
 |------|------------|-------------|----------------|
-| **Core** | **$84.99** | $89.99 | Unlimited users & ROs, job board + RO workspace, **PartsTech catalog & punchout**, canned jobs & shop labor library, digital estimates/approvals/invoices (email), digital vehicle inspections, **Live Operations Daily Snapshot**, appointments, payment tracking, **unlimited NHTSA VIN decode**, inventory basics; **no SMS**, **no Stripe Connect**, **no licensed MOTOR** |
-| **Pro** | **$239** | $279 | Everything in Core, plus licensed MOTOR, **unlimited VIN & plate decode** (Auto.dev), OEM specs & fluid capacities, PartsTech, **two-way SMS**, **Stripe Connect**, online booking, Growth Engine (automations & win-back), Google review management |
-| **Elite** | **$409** | $479 | Everything in Pro, plus AI receptionist + review replies, ShopSite & Local SEO included ($228/mo value), maintenance programs, AI SEO/campaign drafting, dedicated onboarding · migration included |
+| **Core** | **$84.99** | $89.99 | Unlimited users & ROs, job board + RO workspace, **PartsTech catalog & punchout**, canned jobs & shop labor library, digital estimates/approvals/invoices (email), digital vehicle inspections, **Live Operations Daily Snapshot**, appointments, payment tracking, **unlimited NHTSA VIN decode**, inventory basics; **no SMS**, **no Stripe Connect**, **no licensed MOTOR**, **no Care Plans** |
+| **Pro** | **$239** | $279 | Everything in Core, plus licensed MOTOR, **unlimited VIN & plate decode** (Auto.dev), OEM specs & fluid capacities, PartsTech, **two-way SMS**, **Stripe Connect**, online booking, Growth Engine (automations & win-back), Google review management; **no Care Plans** |
+| **Elite** | **$409** | $479 | Everything in Pro, plus AI receptionist + review replies, ShopSite & Local SEO included ($228/mo value), **Care Plans** (member maintenance subscriptions — premium), AI SEO/campaign drafting, dedicated onboarding · migration included |
 
 **Ignition (public):** Core marketed as **Ignition** at **$89.99/mo** ($84.99/mo annual) with **PartsTech included**. Optional **AI Plus $49.99/mo** (Core-only).
 
@@ -102,18 +102,18 @@ Annual rates shown on `/pricing` (list / monthly billing in parentheses):
 
 ---
 
-## Pillar E — Membership & retention native
+## Pillar E — Membership & retention native (Elite premium)
 
-**Target:** Shops selling oil plans, prepaid maintenance, fleet programs.
+**Target:** Elite shops selling oil plans, prepaid maintenance, fleet programs. **Not included on Core or Pro.**
 
 | Claim | Proof |
 |-------|-------|
-| Maintenance plan builder | `/maintenance-programs` |
+| Care Plan builder | `/maintenance-programs` (Elite + release) |
 | Subscriber management | Schema + admin UI |
 | Member self-service portal | `/member/[token]` |
 | Express visit redeem | `/maintenance-programs/visit` |
 
-**Hero copy:** *"Sell and manage membership plans in the same CRM as your repair orders."*
+**Hero copy:** *"Sell and manage Care Plans in the same CRM as your repair orders — Elite premium."*
 
 ---
 
@@ -126,7 +126,7 @@ Annual rates shown on `/pricing` (list / monthly billing in parentheses):
 | Licensed MOTOR labor | Partnership add-on | Varies | Varies | **Included on Pro** |
 | Shop website | ❌ | ❌ | ❌ | **Elite / $99 add-on** |
 | MSO platform console | ❌ | ❌ | ❌ | **Included** |
-| Maintenance programs | ❌ | ❌ | ❌ | **Elite** |
+| Care Plans (maintenance subscriptions) | ❌ | ❌ | ❌ | **Elite premium** (not Core) |
 | Work request → RO | ❌ | ⚠️ | ✅ | **Sprint 2** |
 | Annual contract | No | **Yes** | No | **No** |
 | Unlimited users | ✅ | ⚠️ 5 on Pro | ⚠️ tiered | **✅** |

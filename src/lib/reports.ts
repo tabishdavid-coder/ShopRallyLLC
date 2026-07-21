@@ -7,13 +7,10 @@ import {
   type DashboardDateRange,
 } from "@/lib/dashboard";
 
-export const REPORT_RANGES = [...DASHBOARD_RANGES, "custom"] as const;
-export type ReportDateRange = (typeof REPORT_RANGES)[number];
+export const REPORT_RANGES = DASHBOARD_RANGES;
+export type ReportDateRange = DashboardDateRange;
 
-export const REPORT_RANGE_LABELS: Record<ReportDateRange, string> = {
-  ...DASHBOARD_RANGE_LABELS,
-  custom: "Custom",
-};
+export const REPORT_RANGE_LABELS: Record<ReportDateRange, string> = DASHBOARD_RANGE_LABELS;
 
 export type ReportCustomerType = "all" | "person" | "business";
 
@@ -187,8 +184,7 @@ export function reportsInCategory(category: ReportCategoryId): ReportDefinition[
 }
 
 export function parseReportRange(value: string | undefined): ReportDateRange {
-  if (value === "custom") return "custom";
-  return parseDashboardRange(value);
+  return parseDashboardRange(value, "30d");
 }
 
 export function parseReportFilters(

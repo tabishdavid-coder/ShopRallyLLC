@@ -52,7 +52,7 @@ import type { EstimateLabVehicleSpecsBundle } from "@/lib/estimate-lab-vehicle-s
 import type { PaymentFinanceData } from "@/components/repair-order/payment-finance-panel";
 
 import { customerDisplayName, customerInitials, formatCents } from "@/lib/format";
-import { useCorePlanShop } from "@/lib/shop-capabilities";
+import { useCorePlanShop, useShopCapabilities } from "@/lib/shop-capabilities";
 import { cn } from "@/lib/utils";
 
 
@@ -223,10 +223,15 @@ export function EstimateLabContextDrawer({
 
   const router = useRouter();
   const corePlan = useCorePlanShop();
-  const drawerTabs = useMemo(
-    () => (corePlan ? DRAWER_TABS.filter((t) => t.id !== "finances") : DRAWER_TABS),
-    [corePlan],
-  );
+  const { maintenancePrograms } = useShopCapabilities();
+  const drawerTabs = useMemo(() => {
+    return DRAWER_TABS.filter((t) => {
+      if (t.id === "finances" && corePlan) return false;
+      // Care Plans are Elite (premium) — hide tab on Core/Pro, not an upgrade teaser.
+      if (t.id === "carePlan" && !maintenancePrograms) return false;
+      return true;
+    });
+  }, [corePlan, maintenancePrograms]);
 
   const [data, setData] = useState<EstimateContextDrawerData | null>(initialData);
 
@@ -328,6 +333,10 @@ export function EstimateLabContextDrawer({
   useEffect(() => {
     if (corePlan && tab === "finances") onTabChange("payment");
   }, [corePlan, tab, onTabChange]);
+
+  useEffect(() => {
+    if (!maintenancePrograms && tab === "carePlan") onTabChange("profile");
+  }, [maintenancePrograms, tab, onTabChange]);
 
   const subtitle = hasRoContext && roNumber != null
 

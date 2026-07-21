@@ -48,6 +48,7 @@ export function PaymentMethodsPanel({
   invoiceId,
   invoiceNumber,
   customerFirstName,
+  customerName,
   shopName,
   phones,
   email,
@@ -60,6 +61,7 @@ export function PaymentMethodsPanel({
   invoiceId: string | null;
   invoiceNumber: number | null;
   customerFirstName: string;
+  customerName?: string;
   shopName: string;
   phones: { label: string; value: string }[];
   email: string | null;
@@ -352,6 +354,7 @@ export function PaymentMethodsPanel({
         invoiceNumber={invoiceNumber}
         stripeEnabled={canStripeCheckout}
         customerFirstName={customerFirstName}
+        customerName={customerName}
         shopName={shopName}
         phones={phones}
         email={email}

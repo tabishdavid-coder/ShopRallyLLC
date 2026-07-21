@@ -115,7 +115,7 @@ Cursor rule: `.cursor/rules/phased-rollout.mdc`.
 
 ### Shop UX (hide vs lock)
 
-- **Hide** whole modules from daily chrome when plan or release is off (Growth, Care Plans, Messages/SMS, ShopSite hub).
+- **Hide** whole modules from daily chrome when plan or release is off (Growth, Care Plans / Elite premium, Messages/SMS, ShopSite hub). Care Plans use plan feature `maintenancePrograms` (Core/Pro = OFF; Elite = ON) plus release module `growthEngine`.
 - **Soft-land** deep links with `PlanUpgradePanel` (upgrade CTA) — not silent `/dashboard?access=denied`.
 - **Lock** owner discoverability surfaces (Subscription, Stripe Connect wall, optional SMS row under Communications).
 - Release OFF → “not available yet” (do not upsell unreleased modules). See gating canvas + `src/server/crm-access.ts`.

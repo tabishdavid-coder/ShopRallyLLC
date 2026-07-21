@@ -4,6 +4,7 @@ import { SchemaType, type ResponseSchema } from "@google/generative-ai";
 import { z } from "zod";
 
 import { parseYmmSearch } from "@/lib/parse-ymm-search";
+import { splitCompoundRepairDescription } from "@/lib/split-repair-requests";
 import { formatPhoneInput } from "@/lib/phone";
 import type {
   SmartRoIntakePayload,
@@ -12,6 +13,11 @@ import type {
 } from "@/lib/smart-ro-intake-types";
 import { createAiJsonMessage, isAiConfigured } from "@/server/services/ai/client";
 import { recordDecodeUsage } from "@/server/services/decode-usage";
+import {
+  resolveLaborSuggestionWithFallback,
+  type ResolvedLaborLookup,
+} from "@/server/services/labor-guide-resolver";
+import type { Vehicle } from "@/server/services/labor-guide";
 import { decodeVinForShop, isValidVin, type DecodedVin } from "@/server/services/vin";
 
 /**
@@ -31,7 +37,10 @@ ROLE RULES:
 
 LABOR LINE SPLITTING:
 - If the text mentions multiple unrelated issues (e.g. "oil change and check engine light"), create SEPARATE objects in labor_lines — one per independent job.
+- Example: "water pump and battery replacement" → TWO labor_lines: "Remove and Replace Water Pump" AND "Remove and Replace Battery" (never one combined title/hours blob).
+- Split when joined by "and", commas, "+", ";", or newlines for distinct systems — each line gets its own estimated_hours.
 - Do not merge unrelated work into a single labor line.
+- Do NOT split parts of ONE job: "brake pads and rotors", "shocks and struts", "inspect and advise", "remove and replace …".
 
 TASK TITLES (replacement work):
 - For remove-and-replace / R&R / replacement jobs, prefer task_title shaped as "Remove and Replace <Work>" (Title Case work phrase).
@@ -280,6 +289,56 @@ function normalizePayload(data: z.infer<typeof SmartRoGeminiSchema>): SmartRoInt
   };
 }
 
+function laborVehicleFromSmartRo(vehicle: SmartRoVehicle): Vehicle {
+  return {
+    vin: vehicle.vin ?? null,
+    year: vehicle.year,
+    make: vehicle.make,
+    model: vehicle.model,
+    trim: vehicle.trim,
+    engine: vehicle.engine,
+  };
+}
+
+function totalLaborHours(lookup: ResolvedLaborLookup): number {
+  const s = lookup.suggestion;
+  if (s.unitLabel.toLowerCase() === "vehicle") return s.laborHoursPerUnit;
+  return s.laborHoursPerUnit * s.unitsOnVehicle;
+}
+
+/** Safety net when Gemini merges independent repairs into one labor line. */
+async function expandMergedLaborLines(
+  lines: SmartRoIntakePayload["labor_lines"],
+  vehicle: SmartRoVehicle,
+): Promise<SmartRoIntakePayload["labor_lines"]> {
+  const vehicleForLabor = laborVehicleFromSmartRo(vehicle);
+  const expanded: SmartRoIntakePayload["labor_lines"] = [];
+
+  for (const line of lines) {
+    const source = line.description.trim() || line.task_title.trim();
+    const parts = splitCompoundRepairDescription(source);
+    if (parts.length <= 1) {
+      expanded.push(line);
+      continue;
+    }
+
+    for (const part of parts) {
+      const lookup = await resolveLaborSuggestionWithFallback(vehicleForLabor, part);
+      const hours = Math.round(totalLaborHours(lookup) * 100) / 100;
+      expanded.push({
+        task_title: normalizeReplacementTaskTitle(lookup.suggestion.jobName || part),
+        description: part,
+        estimated_hours: hours > 0 ? hours : line.estimated_hours / parts.length,
+        confidence_score: clampScore(
+          Math.min(line.confidence_score, lookup.suggestion.confidenceScore ?? 65),
+        ),
+      });
+    }
+  }
+
+  return expanded.length > 0 ? expanded : lines;
+}
+
 /** Parse free-form intake text via Gemini (or Anthropic fallback) into staging payload. */
 export async function parseSmartRoIntakeText(
   shopId: string,
@@ -327,11 +386,13 @@ export async function parseSmartRoIntakeText(
         ? { ...payload.vehicle, vin, vinDecoded: false }
         : payload.vehicle;
 
+  const laborLines = await expandMergedLaborLines(payload.labor_lines, vehicle);
+
   return {
     rawText: text,
     customer: payload.customer,
     vehicle,
-    laborLines: payload.labor_lines,
+    laborLines,
     suggestedCustomerIds: [],
   };
 }

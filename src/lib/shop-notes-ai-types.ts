@@ -14,6 +14,9 @@ export type ShopNotesProposalKind =
 
 export type ShopNotesProposalMode = "fill" | "update" | "add";
 
+/** create-job — new job card on RO; amend-job — append lines to focusJobId. */
+export type CreateJobAiMode = "create-job" | "amend-job";
+
 export type ShopNotesJobPayload = {
   jobName: string;
   repairRequest: string;
@@ -25,6 +28,8 @@ export type ShopNotesJobPayload = {
   targetJobId?: string | null;
   /** Primary labor line to update when amending an existing job. */
   laborLineId?: string | null;
+  /** When true with targetJobId, add a new labor line instead of updating the job card. */
+  appendLabor?: boolean;
 };
 
 export type ShopNotesPartPayload = {

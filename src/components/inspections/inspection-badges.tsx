@@ -7,9 +7,12 @@ import type { InspectionStatus } from "@/generated/prisma";
 
 export function InspectionWorkflowBadge({
   status,
+  label,
   className,
 }: {
   status: InspectionStatus;
+  /** Override default status label (e.g. progress percent on list rows). */
+  label?: string;
   className?: string;
 }) {
   const styles: Record<InspectionStatus, string> = {
@@ -26,7 +29,7 @@ export function InspectionWorkflowBadge({
         className,
       )}
     >
-      {INSPECTION_STATUS_LABELS[status]}
+      {label ?? INSPECTION_STATUS_LABELS[status]}
     </span>
   );
 }

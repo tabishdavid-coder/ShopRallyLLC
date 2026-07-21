@@ -17,6 +17,7 @@ import { EstimateViewToast } from "@/components/repair-order/estimate-view-toast
 import { getRoMembershipPanelContext } from "@/server/ro-membership-panel";
 import { getEffectivePermissions } from "@/server/permissions";
 import { customerDisplayName } from "@/lib/format";
+import { formatVehicleDisplayLabel } from "@/lib/vehicle-display";
 import { isEstimateEditable } from "@/lib/estimate-editable";
 import { EstimateWorkspaceHeroBar } from "@/components/estimate-building/estimate-workspace-hero-bar";
 import { EstimateWorkspaceScope } from "@/components/estimate-building/estimate-workspace-scope";
@@ -69,9 +70,7 @@ export default async function RepairOrderLayout({
     membership: undefined,
   };
 
-  const vehicleLabel = ro.vehicle
-    ? [ro.vehicle.year, ro.vehicle.make, ro.vehicle.model, ro.vehicle.trim].filter(Boolean).join(" ")
-    : null;
+  const vehicleLabel = ro.vehicle ? formatVehicleDisplayLabel(ro.vehicle) : null;
 
   const heroActions = (
     <>

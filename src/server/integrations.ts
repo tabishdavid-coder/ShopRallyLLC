@@ -239,6 +239,7 @@ function resolveGoogleReviews(row: ShopIntegrationRow | null): VendorIntegration
       googleBusinessAccountId: str(c.googleBusinessAccountId) ?? "",
       googleLocationId: str(c.googleLocationId) ?? "",
       googleLocationName: str(c.googleLocationName) ?? "",
+      googlePlaceId: str(c.googlePlaceId) ?? "",
       hasRefreshToken: Boolean(c.refreshToken),
     },
   };

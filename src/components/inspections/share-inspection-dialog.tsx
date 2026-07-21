@@ -1,15 +1,20 @@
 "use client";
 
 import { useEffect, useState, useTransition } from "react";
-import { Link2, Loader2, Check, HelpCircle } from "lucide-react";
 
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
+  CustomerShareDialogShell,
+  SHARE_MESSAGE_MAX,
+  ShareAttachmentsPanel,
+  ShareChannelSwitch,
+  ShareCopyLinkQuiet,
+  ShareCustomerPreviewButton,
+  ShareFieldLabel,
+  ShareRecipientHeader,
+  ShareWhereGoingPanel,
+  shareInputClassName,
+  shareTextareaClassName,
+} from "@/components/share/customer-share-dialog-shell";
 import { useSmsUiEnabled } from "@/lib/shop-capabilities";
 import { formatPhoneInput } from "@/lib/phone";
 import {
@@ -17,14 +22,13 @@ import {
   shareInspection,
 } from "@/server/actions/inspections";
 
-const MAX = 2048;
-
 export function ShareInspectionDialog({
   open,
   onOpenChange,
   inspectionId,
   roNumber,
   customerFirstName,
+  customerName,
   shopName,
   phones,
   email,
@@ -34,6 +38,8 @@ export function ShareInspectionDialog({
   inspectionId: string;
   roNumber: number;
   customerFirstName: string;
+  /** Full display name for recipient header; falls back to first name. */
+  customerName?: string;
   shopName: string;
   phones: { label: string; value: string }[];
   email: string | null;
@@ -44,6 +50,7 @@ export function ShareInspectionDialog({
   const [otherPhone, setOtherPhone] = useState("");
   const [emailChoice, setEmailChoice] = useState<string>(email ? "primary" : "other");
   const [otherEmail, setOtherEmail] = useState("");
+  const [subject, setSubject] = useState(`Your vehicle inspection — RO #${roNumber}`);
   const [message, setMessage] = useState("");
   const [link, setLink] = useState<string | null>(null);
   const [linkLoading, setLinkLoading] = useState(false);
@@ -53,12 +60,16 @@ export function ShareInspectionDialog({
   const [done, setDone] = useState<"live" | "mock" | "fallback" | null>(null);
   const [pending, start] = useTransition();
 
+  const recipientDisplay =
+    customerName?.trim() || customerFirstName?.trim() || "Customer";
+
   useEffect(() => {
     if (!open) return;
     setDone(null);
     setError(null);
     setLink(null);
     setLinkError(null);
+    setSubject(`Your vehicle inspection — RO #${roNumber}`);
     setLinkLoading(true);
     getInspectionShareLink(inspectionId)
       .then((res) => {
@@ -73,7 +84,7 @@ export function ShareInspectionDialog({
         setLinkError(e instanceof Error ? e.message : "Could not generate link.");
       })
       .finally(() => setLinkLoading(false));
-  }, [open, inspectionId]);
+  }, [open, inspectionId, roNumber]);
 
   useEffect(() => {
     if (link) {
@@ -83,13 +94,13 @@ export function ShareInspectionDialog({
     }
   }, [link, customerFirstName, shopName, roNumber]);
 
+  const recipientEmail =
+    emailChoice === "other" ? otherEmail.trim() : (email ?? "").trim();
+  const recipientPhone =
+    phoneChoice === "other" ? otherPhone.trim() : (phoneChoice || "").trim();
+
   function resolveTo(): string {
-    if (method === "SMS") {
-      if (phoneChoice === "other") return otherPhone.trim();
-      return phoneChoice;
-    }
-    if (emailChoice === "other") return otherEmail.trim();
-    return email ?? "";
+    return method === "SMS" ? recipientPhone : recipientEmail;
   }
 
   function send() {
@@ -118,137 +129,153 @@ export function ShareInspectionDialog({
     });
   }
 
+  const success =
+    done == null
+      ? null
+      : done === "live"
+        ? "Sent successfully."
+        : "Opened fallback composer.";
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-lg">
-        <DialogHeader>
-          <DialogTitle>Share inspection — RO #{roNumber}</DialogTitle>
-        </DialogHeader>
+    <CustomerShareDialogShell
+      open={open}
+      onOpenChange={onOpenChange}
+      title="Share inspection"
+      description={`RO #${roNumber} · Customer view of inspection results`}
+      left={
+        <>
+          <ShareRecipientHeader name={recipientDisplay} />
 
-        <div className="space-y-4 text-sm">
-          <div className="flex items-center gap-2 rounded-md border bg-muted/40 p-2">
-            <Link2 className="size-4 shrink-0 text-muted-foreground" />
-            {linkLoading ? (
-              <span className="text-muted-foreground">Generating link…</span>
-            ) : link ? (
-              <div className="flex min-w-0 flex-1 items-center gap-2">
-                <span className="truncate text-xs">{link}</span>
-                <Button type="button" size="sm" variant="outline" onClick={copyLink}>
-                  {copied ? <Check className="size-3" /> : "Copy"}
-                </Button>
-              </div>
-            ) : (
-              <span className="text-destructive">{linkError ?? "No link"}</span>
-            )}
-          </div>
-
-          <div className="flex gap-2">
-            <Button
-              type="button"
-              size="sm"
-              variant={method === "EMAIL" ? "default" : "outline"}
-              onClick={() => setMethod("EMAIL")}
-            >
-              Email
-            </Button>
-            <Button
-              type="button"
-              size="sm"
-              variant={method === "SMS" ? "default" : "outline"}
-              onClick={() => setMethod("SMS")}
-              disabled={!smsEnabled}
-            >
-              Text
-            </Button>
-          </div>
-
-          {method === "SMS" ? (
-            <div className="space-y-2">
-              {phones.map((p) => (
-                <label key={p.value} className="flex items-center gap-2">
-                  <input
-                    type="radio"
-                    checked={phoneChoice === p.value}
-                    onChange={() => setPhoneChoice(p.value)}
-                  />
-                  {p.label}
-                </label>
-              ))}
-              <label className="flex items-center gap-2">
-                <input
-                  type="radio"
-                  checked={phoneChoice === "other"}
-                  onChange={() => setPhoneChoice("other")}
-                />
-                Other
-              </label>
-              {phoneChoice === "other" ? (
-                <input
-                  className="w-full rounded-md border px-3 py-2"
-                  value={otherPhone}
-                  onChange={(e) => setOtherPhone(formatPhoneInput(e.target.value))}
-                  placeholder="Phone number"
-                />
-              ) : null}
+          {method === "EMAIL" ? (
+            <div>
+              <ShareFieldLabel htmlFor="share-inspection-subject">Subject</ShareFieldLabel>
+              <input
+                id="share-inspection-subject"
+                type="text"
+                value={subject}
+                onChange={(e) => setSubject(e.target.value)}
+                className={shareInputClassName()}
+              />
             </div>
-          ) : (
-            <div className="space-y-2">
-              {email ? (
-                <label className="flex items-center gap-2">
-                  <input
-                    type="radio"
-                    checked={emailChoice === "primary"}
-                    onChange={() => setEmailChoice("primary")}
-                  />
-                  {email}
-                </label>
-              ) : null}
-              <label className="flex items-center gap-2">
-                <input
-                  type="radio"
-                  checked={emailChoice === "other"}
-                  onChange={() => setEmailChoice("other")}
-                />
-                Other email
-              </label>
-              {emailChoice === "other" ? (
-                <input
-                  className="w-full rounded-md border px-3 py-2"
-                  value={otherEmail}
-                  onChange={(e) => setOtherEmail(e.target.value)}
-                  placeholder="Email address"
-                />
-              ) : null}
-            </div>
-          )}
-
-          <textarea
-            className="min-h-[120px] w-full rounded-md border px-3 py-2 text-sm"
-            value={message}
-            maxLength={MAX}
-            onChange={(e) => setMessage(e.target.value)}
-          />
-          <p className="text-xs text-muted-foreground">{message.length}/{MAX}</p>
-
-          {error ? <p className="text-sm text-destructive">{error}</p> : null}
-          {done ? (
-            <p className="text-sm text-emerald-700">
-              {done === "live" ? "Sent successfully." : "Opened fallback composer."}
-            </p>
           ) : null}
 
-          <div className="flex justify-end gap-2">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>
-              Close
-            </Button>
-            <Button type="button" onClick={send} disabled={pending || !message.trim()}>
-              {pending ? <Loader2 className="size-4 animate-spin" /> : null}
-              Send
-              <HelpCircle className="size-3.5 opacity-60" />
-            </Button>
+          <div className="flex min-h-0 flex-1 flex-col">
+            <ShareFieldLabel htmlFor="share-inspection-message" required>
+              Message
+            </ShareFieldLabel>
+            <textarea
+              id="share-inspection-message"
+              className={shareTextareaClassName()}
+              value={message}
+              maxLength={SHARE_MESSAGE_MAX}
+              onChange={(e) => setMessage(e.target.value)}
+              placeholder={linkError ?? "Write a short message for the customer…"}
+            />
+            <p className="mt-1 text-xs text-muted-foreground">
+              {message.length}/{SHARE_MESSAGE_MAX}
+            </p>
           </div>
-        </div>
-      </DialogContent>
-    </Dialog>
+        </>
+      }
+      right={
+        <>
+          <ShareChannelSwitch
+            method={method}
+            onChange={setMethod}
+            smsEnabled={smsEnabled}
+            name="share-inspection-method"
+          />
+          <ShareWhereGoingPanel
+            method={method}
+            email={recipientEmail || null}
+            phone={recipientPhone || null}
+          >
+            {method === "SMS" ? (
+              <div className="space-y-1.5">
+                {phones.map((p) => (
+                  <label key={p.value} className="flex cursor-pointer items-center gap-2 text-sm">
+                    <input
+                      type="radio"
+                      checked={phoneChoice === p.value}
+                      onChange={() => setPhoneChoice(p.value)}
+                      className="size-4 accent-primary"
+                    />
+                    {p.label}
+                  </label>
+                ))}
+                <label className="flex cursor-pointer items-center gap-2 text-sm">
+                  <input
+                    type="radio"
+                    checked={phoneChoice === "other"}
+                    onChange={() => setPhoneChoice("other")}
+                    className="size-4 accent-primary"
+                  />
+                  Other
+                </label>
+                {phoneChoice === "other" ? (
+                  <input
+                    className={`mt-1 ${shareInputClassName()}`}
+                    value={otherPhone}
+                    onChange={(e) => setOtherPhone(formatPhoneInput(e.target.value))}
+                    placeholder="Phone number"
+                  />
+                ) : null}
+              </div>
+            ) : (
+              <div className="space-y-1.5">
+                {email ? (
+                  <label className="flex cursor-pointer items-center gap-2 text-sm">
+                    <input
+                      type="radio"
+                      checked={emailChoice === "primary"}
+                      onChange={() => setEmailChoice("primary")}
+                      className="size-4 accent-primary"
+                    />
+                    Use customer email
+                  </label>
+                ) : null}
+                <label className="flex cursor-pointer items-center gap-2 text-sm">
+                  <input
+                    type="radio"
+                    checked={emailChoice === "other"}
+                    onChange={() => setEmailChoice("other")}
+                    className="size-4 accent-primary"
+                  />
+                  Other email
+                </label>
+                {emailChoice === "other" ? (
+                  <input
+                    className={`mt-1 ${shareInputClassName()}`}
+                    value={otherEmail}
+                    onChange={(e) => setOtherEmail(e.target.value)}
+                    placeholder="Email address"
+                  />
+                ) : null}
+              </div>
+            )}
+          </ShareWhereGoingPanel>
+          <ShareAttachmentsPanel includedLabel="Customer inspection results page" />
+        </>
+      }
+      footerLeft={
+        <>
+          <ShareCustomerPreviewButton link={link} linkLoading={linkLoading} />
+          <ShareCopyLinkQuiet
+            link={link}
+            linkLoading={linkLoading}
+            linkError={linkError}
+            copied={copied}
+            onCopy={copyLink}
+            copyLabel="Copy link"
+          />
+        </>
+      }
+      onSend={send}
+      sendDisabled={!message.trim() || !resolveTo().trim()}
+      pending={pending}
+      error={error}
+      success={success}
+      cancelLabel="Close"
+    />
   );
 }

@@ -3,7 +3,7 @@ import { MarketingHeader } from "@/components/marketing-site/marketing-header";
 
 export function MarketingShell({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex min-h-screen flex-col bg-gradient-to-b from-brand-light/10 via-background to-background">
+    <div className="flex min-h-screen flex-col bg-background">
       <MarketingHeader />
       <main className="flex-1">{children}</main>
       <MarketingFooter />

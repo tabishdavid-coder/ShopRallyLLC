@@ -1,7 +1,9 @@
 "use client";
 
-import { useMemo } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 
+import { AppointmentEventChip } from "@/components/appointments/appointment-event-chip";
+import { CalendarBlockChip } from "@/components/appointments/calendar-block-chip";
 import { cn } from "@/lib/utils";
 import {
   addDays,
@@ -9,117 +11,263 @@ import {
   formatMinutesLabel,
   isSameDay,
   minutesToTimeInput,
+  parseDateInput,
   parseTimeToMinutes,
   toDateInputValue,
 } from "@/lib/appointments";
 import { dateToBookingDayKey, type ApptWeeklyHours } from "@/lib/appt-hours";
-import type { AppointmentRow } from "@/server/appointments";
+import {
+  calendarChipInsetStyle,
+  layoutCalendarDayEvents,
+} from "@/lib/calendar-overlap-layout";
+import type { AppointmentRow, CalendarBlockRow } from "@/server/appointments";
 
-const HOUR_HEIGHT = 56;
+/** Floor so short viewports still get readable lanes (then scroll). */
+const MIN_HOUR_HEIGHT = 56;
 const SLOT_MINUTES = 15;
+/** Visual padding above open / below close (clamped to midnight). */
+const HOUR_BUFFER_MINS = 60;
+const DAY_MINS = 24 * 60;
+
+function useFillHourHeight(hourCount: number) {
+  const containerRef = useRef<HTMLDivElement>(null);
+  const headerRef = useRef<HTMLDivElement>(null);
+  const [hourHeight, setHourHeight] = useState(MIN_HOUR_HEIGHT);
+
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container || hourCount <= 0) return;
+
+    const update = () => {
+      const headerH = headerRef.current?.offsetHeight ?? 0;
+      const available = container.clientHeight - headerH;
+      if (available <= 0) return;
+      const next = Math.max(MIN_HOUR_HEIGHT, available / hourCount);
+      setHourHeight((prev) => (Math.abs(prev - next) < 0.5 ? prev : next));
+    };
+
+    update();
+    const ro = new ResizeObserver(update);
+    ro.observe(container);
+    if (headerRef.current) ro.observe(headerRef.current);
+    return () => ro.disconnect();
+  }, [hourCount]);
+
+  return { containerRef, headerRef, hourHeight };
+}
+
+/** Extend shop hours by ±buffer for display; never cross midnight. */
+function gridRangeFromShopHours(shopStartMins: number, shopEndMins: number) {
+  const open = Math.min(shopStartMins, shopEndMins);
+  const close = Math.max(shopStartMins, shopEndMins);
+  const gridStartMins = Math.max(0, open - HOUR_BUFFER_MINS);
+  const gridEndMins = Math.min(DAY_MINS, close + HOUR_BUFFER_MINS);
+  const totalMins = Math.max(gridEndMins - gridStartMins, 60);
+  return { gridStartMins, gridEndMins, totalMins, shopStartMins: open, shopEndMins: close };
+}
 
 export function AppointmentsWeekCalendar({
   weekStartIso,
+  dayCount = 7,
   dayStart,
   dayEnd,
   weeklyHours,
+  defaultDurationMins,
   appointments,
+  blocks,
   selectedId,
+  selectedBlockId,
   onSelect,
+  onSelectBlock,
   onBookSlot,
+  onBlockSlot,
 }: {
+  /** First visible day (YYYY-MM-DD). For week view this is Sunday (local). */
   weekStartIso: string;
+  /** 1 = day view, 7 = week view. */
+  dayCount?: number;
   dayStart: string;
   dayEnd: string;
   weeklyHours?: ApptWeeklyHours;
+  defaultDurationMins: number;
   appointments: AppointmentRow[];
+  blocks: CalendarBlockRow[];
   selectedId: string | null;
+  selectedBlockId?: string | null;
   onSelect: (id: string) => void;
+  onSelectBlock?: (id: string) => void;
   onBookSlot?: (date: string, startTime: string) => void;
+  /** Alt/Option+click empty slot → block time instead of book. */
+  onBlockSlot?: (date: string, startTime: string) => void;
 }) {
-  const weekStart = new Date(weekStartIso);
-  const startMins = parseTimeToMinutes(dayStart);
-  const endMins = parseTimeToMinutes(dayEnd);
-  const totalMins = Math.max(endMins - startMins, 60);
-  const gridHeight = (totalMins / 60) * HOUR_HEIGHT;
+  const cols = Math.max(1, Math.min(dayCount, 7));
+  /** Local midnight — never `new Date(iso)` (UTC parse shifts the weekday). */
+  const rangeStart = useMemo(() => parseDateInput(weekStartIso), [weekStartIso]);
+  const shopStartRaw = parseTimeToMinutes(dayStart);
+  const shopEndRaw = parseTimeToMinutes(dayEnd);
+  const { gridStartMins, gridEndMins, totalMins, shopStartMins, shopEndMins } = useMemo(
+    () => gridRangeFromShopHours(shopStartRaw, shopEndRaw),
+    [shopStartRaw, shopEndRaw],
+  );
+  const hourCount = totalMins / 60;
+  const { containerRef, headerRef, hourHeight } = useFillHourHeight(hourCount);
+  const gridHeight = hourCount * hourHeight;
+  const gridCols =
+    cols === 1
+      ? "grid-cols-[4rem_minmax(0,1fr)]"
+      : "grid-cols-[4rem_repeat(7,minmax(0,1fr))]";
 
   const days = useMemo(
-    () => Array.from({ length: 7 }, (_, i) => addDays(weekStart, i)),
-    [weekStartIso],
+    () => Array.from({ length: cols }, (_, i) => addDays(rangeStart, i)),
+    [rangeStart, cols],
   );
 
-  const hours = useMemo(() => {
+  /** Hour-start ticks across the buffered grid (not only shop hours). */
+  const hourStarts = useMemo(() => {
     const list: number[] = [];
-    for (let m = startMins; m < endMins; m += 60) list.push(m);
+    for (let m = gridStartMins; m < gridEndMins; m += 60) list.push(m);
     return list;
-  }, [startMins, endMins]);
+  }, [gridStartMins, gridEndMins]);
+
+  /** Labels include grid end so close-of-range (e.g. 7:00 PM) shows at the bottom. */
+  const hourLabels = useMemo(() => {
+    if (gridEndMins <= gridStartMins) return hourStarts;
+    if (hourStarts.length > 0 && hourStarts[hourStarts.length - 1] === gridEndMins) {
+      return hourStarts;
+    }
+    return [...hourStarts, gridEndMins];
+  }, [hourStarts, gridStartMins, gridEndMins]);
 
   const today = new Date();
 
   const byDay = useMemo(() => {
     const map = new Map<number, AppointmentRow[]>();
-    for (let i = 0; i < 7; i++) map.set(i, []);
+    for (let i = 0; i < cols; i++) map.set(i, []);
     for (const a of appointments) {
       const start = new Date(a.startAt);
-      for (let i = 0; i < 7; i++) {
-        const day = days[i];
-        if (isSameDay(start, day)) {
+      for (let i = 0; i < cols; i++) {
+        if (isSameDay(start, days[i]!)) {
           map.get(i)!.push(a);
           break;
         }
       }
     }
     return map;
-  }, [appointments, days]);
+  }, [appointments, days, cols]);
+
+  const blocksByDay = useMemo(() => {
+    const map = new Map<number, CalendarBlockRow[]>();
+    for (let i = 0; i < cols; i++) map.set(i, []);
+    for (const b of blocks) {
+      const start = new Date(b.startAt);
+      for (let i = 0; i < cols; i++) {
+        if (isSameDay(start, days[i]!)) {
+          map.get(i)!.push(b);
+          break;
+        }
+      }
+    }
+    return map;
+  }, [blocks, days, cols]);
 
   function dayOpen(day: Date): boolean {
     if (!weeklyHours) return true;
     return weeklyHours[dateToBookingDayKey(day)]?.enabled ?? true;
   }
 
-  function blockStyle(a: AppointmentRow) {
-    const start = new Date(a.startAt);
-    const end = new Date(a.endAt);
-    const startOffset = start.getHours() * 60 + start.getMinutes() - startMins;
-    const endOffset = end.getHours() * 60 + end.getMinutes() - startMins;
-    const top = Math.max(0, (startOffset / 60) * HOUR_HEIGHT);
-    const height = Math.max(28, ((endOffset - startOffset) / 60) * HOUR_HEIGHT);
-    return { top, height };
+  const layoutByDay = useMemo(() => {
+    const map = new Map<number, ReturnType<typeof layoutCalendarDayEvents>>();
+    for (let dayIdx = 0; dayIdx < cols; dayIdx++) {
+      const dayAppointments = byDay.get(dayIdx) ?? [];
+      const dayBlocks = blocksByDay.get(dayIdx) ?? [];
+      const combined = [
+        ...dayAppointments.map((a) => ({
+          id: `appt:${a.id}`,
+          startAt: a.startAt,
+          endAt: a.endAt,
+        })),
+        ...dayBlocks.map((b) => ({
+          id: `block:${b.id}`,
+          startAt: b.startAt,
+          endAt: b.endAt,
+        })),
+      ];
+      map.set(dayIdx, layoutCalendarDayEvents(combined, gridStartMins, hourHeight));
+    }
+    return map;
+  }, [byDay, blocksByDay, gridStartMins, cols, hourHeight]);
+
+  function chipLayout(dayIdx: number, key: string) {
+    const layout = layoutByDay.get(dayIdx)?.find((slot) => slot.id === key);
+    if (!layout) return undefined;
+    const inset = calendarChipInsetStyle(layout.column, layout.colSpan, layout.totalColumns);
+    return {
+      top: layout.top,
+      height: layout.height,
+      left: inset.left,
+      right: inset.right,
+      totalColumns: layout.totalColumns,
+    };
+  }
+
+  function minsFromY(y: number) {
+    const ratio = Math.min(Math.max(y / gridHeight, 0), 1);
+    return gridStartMins + ratio * totalMins;
   }
 
   function handleDayClick(event: React.MouseEvent<HTMLDivElement>, day: Date) {
-    if (!onBookSlot || !dayOpen(day)) return;
+    if (!dayOpen(day)) return;
+    const wantBlock = event.altKey && onBlockSlot;
+    if (!wantBlock && !onBookSlot) return;
     const rect = event.currentTarget.getBoundingClientRect();
     const y = event.clientY - rect.top;
-    const ratio = Math.min(Math.max(y / gridHeight, 0), 1);
-    const clickedMins = startMins + ratio * totalMins;
+    const clickedMins = minsFromY(y);
+    /** Buffer lanes are display-only — booking stays inside shop hours. */
+    if (clickedMins < shopStartMins || clickedMins >= shopEndMins) return;
     const snapped = Math.round(clickedMins / SLOT_MINUTES) * SLOT_MINUTES;
-    const clamped = Math.min(Math.max(snapped, startMins), endMins - SLOT_MINUTES);
-    onBookSlot(toDateInputValue(day), minutesToTimeInput(clamped));
+    const clamped = Math.min(Math.max(snapped, shopStartMins), shopEndMins - SLOT_MINUTES);
+    if (clamped < shopStartMins || clamped >= shopEndMins) return;
+    const date = toDateInputValue(day);
+    const startTime = minutesToTimeInput(clamped);
+    if (wantBlock) onBlockSlot!(date, startTime);
+    else onBookSlot!(date, startTime);
   }
 
+  const preOpenHeight =
+    shopStartMins > gridStartMins
+      ? ((shopStartMins - gridStartMins) / 60) * hourHeight
+      : 0;
+  const postCloseTop =
+    shopEndMins < gridEndMins ? ((shopEndMins - gridStartMins) / 60) * hourHeight : null;
+
   return (
-    <div className="min-h-0 flex-1 overflow-auto rounded-lg border border-brand-light/30 bg-card">
-      <div className="sticky top-0 z-20 grid grid-cols-[4rem_repeat(7,minmax(0,1fr))] border-b border-brand-light/30 bg-card">
-        <div className="border-r border-brand-light/20 bg-muted/30" />
+    <div
+      ref={containerRef}
+      className="flex min-h-0 flex-1 flex-col overflow-auto rounded-lg border border-border bg-white shadow-sm"
+    >
+      <div
+        ref={headerRef}
+        className={cn("sticky top-0 z-20 grid shrink-0 border-b border-border bg-white", gridCols)}
+      >
+        <div className="border-r border-border bg-muted/30" />
         {days.map((day) => {
           const { dow, md } = formatDayHeader(day);
           const isToday = isSameDay(day, today);
           const open = dayOpen(day);
           return (
             <div
-              key={day.toISOString()}
+              key={toDateInputValue(day)}
               className={cn(
-                "border-r border-brand-light/20 px-2 py-2 text-center last:border-r-0",
-                isToday && "bg-brand-light/15",
-                !open && "bg-muted/40",
+                "border-r border-border px-2 py-2 text-center last:border-r-0",
+                isToday && open && "bg-brand-navy/[0.04]",
+                !open && "bg-muted/50",
               )}
             >
               <div className="text-xs text-muted-foreground">{dow}</div>
               <div
                 className={cn(
                   "text-sm font-semibold",
-                  isToday && "text-brand-navy",
+                  isToday && open && "text-brand-navy",
                   !open && "text-muted-foreground",
                 )}
               >
@@ -131,17 +279,28 @@ export function AppointmentsWeekCalendar({
         })}
       </div>
 
-      <div className="grid grid-cols-[4rem_repeat(7,minmax(0,1fr))]">
-        <div className="relative border-r border-brand-light/20 bg-muted/20" style={{ height: gridHeight }}>
-          {hours.map((m) => (
-            <div
-              key={m}
-              className="absolute right-2 -translate-y-1/2 text-[10px] text-muted-foreground"
-              style={{ top: ((m - startMins) / 60) * HOUR_HEIGHT }}
-            >
-              {formatMinutesLabel(m)}
-            </div>
-          ))}
+      <div className={cn("grid shrink-0", gridCols)}>
+        <div className="relative border-r border-border bg-muted/20" style={{ height: gridHeight }}>
+          {hourLabels.map((m) => {
+            const isFirst = m === gridStartMins;
+            const isLast = m === gridEndMins;
+            const outsideShop = m < shopStartMins || m > shopEndMins;
+            return (
+              <div
+                key={m}
+                className={cn(
+                  "absolute right-2 text-[10px]",
+                  outsideShop ? "text-muted-foreground/70" : "text-muted-foreground",
+                  isFirst && "translate-y-0",
+                  isLast && "-translate-y-full",
+                  !isFirst && !isLast && "-translate-y-1/2",
+                )}
+                style={{ top: ((m - gridStartMins) / 60) * hourHeight }}
+              >
+                {formatMinutesLabel(m)}
+              </div>
+            );
+          })}
         </div>
 
         {days.map((day, dayIdx) => {
@@ -149,12 +308,12 @@ export function AppointmentsWeekCalendar({
           const open = dayOpen(day);
           return (
             <div
-              key={day.toISOString()}
+              key={toDateInputValue(day)}
               className={cn(
-                "relative border-r border-brand-light/20 last:border-r-0",
-                isToday && open && "bg-brand-light/10",
-                !open && "bg-muted/30",
-                onBookSlot && open && "cursor-pointer",
+                "group/day relative border-r border-border bg-white last:border-r-0",
+                isToday && open && "bg-brand-navy/[0.02]",
+                !open && "bg-muted/40",
+                onBookSlot && open && "cursor-pointer hover:bg-muted/20",
               )}
               style={{ height: gridHeight }}
               onClick={(e) => handleDayClick(e, day)}
@@ -167,47 +326,92 @@ export function AppointmentsWeekCalendar({
                     : undefined
               }
             >
-              {hours.map((m) => (
+              {open && preOpenHeight > 0 ? (
+                <div
+                  className="pointer-events-none absolute inset-x-0 top-0 bg-muted/35"
+                  style={{ height: preOpenHeight }}
+                  aria-hidden
+                />
+              ) : null}
+              {open && postCloseTop != null ? (
+                <div
+                  className="pointer-events-none absolute inset-x-0 bottom-0 bg-muted/35"
+                  style={{ top: postCloseTop }}
+                  aria-hidden
+                />
+              ) : null}
+
+              {hourStarts.map((m) => (
                 <div
                   key={m}
-                  className="pointer-events-none absolute inset-x-0 border-t border-border/60"
-                  style={{ top: ((m - startMins) / 60) * HOUR_HEIGHT }}
+                  className={cn(
+                    "pointer-events-none absolute inset-x-0 border-t",
+                    m === shopStartMins || m === shopEndMins
+                      ? "border-border"
+                      : "border-border/70",
+                  )}
+                  style={{ top: ((m - gridStartMins) / 60) * hourHeight }}
                 />
               ))}
 
-              {byDay.get(dayIdx)?.map((a) => {
-                const { top, height } = blockStyle(a);
-                const start = new Date(a.startAt);
-                const end = new Date(a.endAt);
-                const timeRange = `${start.toLocaleTimeString("en-US", {
-                  hour: "numeric",
-                  minute: "2-digit",
-                })} – ${end.toLocaleTimeString("en-US", {
-                  hour: "numeric",
-                  minute: "2-digit",
-                })}`;
+              {open && onBookSlot ? (
+                <div
+                  className="pointer-events-none absolute inset-x-0 flex items-center justify-center opacity-0 transition-opacity group-hover/day:opacity-100"
+                  style={{
+                    top: preOpenHeight,
+                    height: ((shopEndMins - shopStartMins) / 60) * hourHeight,
+                  }}
+                  aria-hidden
+                >
+                  <span className="rounded-md bg-brand-navy/90 px-2 py-1 text-[10px] font-medium text-white shadow-sm">
+                    + Book {defaultDurationMins} min
+                  </span>
+                </div>
+              ) : null}
 
+              {blocksByDay.get(dayIdx)?.map((b) => {
+                const layout = chipLayout(dayIdx, `block:${b.id}`);
                 return (
-                  <button
+                  <CalendarBlockChip
+                    key={b.id}
+                    block={b}
+                    selected={selectedBlockId === b.id}
+                    onClick={() => onSelectBlock?.(b.id)}
+                    style={
+                      layout
+                        ? {
+                            top: layout.top,
+                            height: layout.height,
+                            left: layout.left,
+                            right: layout.right,
+                          }
+                        : undefined
+                    }
+                    compact={(layout?.totalColumns ?? 1) > 1}
+                  />
+                );
+              })}
+
+              {byDay.get(dayIdx)?.map((a) => {
+                const layout = chipLayout(dayIdx, `appt:${a.id}`);
+                return (
+                  <AppointmentEventChip
                     key={a.id}
-                    type="button"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      onSelect(a.id);
-                    }}
-                    className={cn(
-                      "absolute inset-x-1 z-10 overflow-hidden rounded px-2 py-1 text-left text-white shadow-sm transition",
-                      "bg-brand-navy hover:bg-brand-navy/90",
-                      selectedId === a.id && "ring-2 ring-brand-light ring-offset-1",
-                    )}
-                    style={{ top, height }}
-                  >
-                    <div className="truncate text-[11px] font-semibold leading-tight">
-                      {a.customer?.name ?? a.title}
-                      {a.vehicle ? `'s ${a.vehicle.label}` : ""}
-                    </div>
-                    <div className="truncate text-[10px] opacity-90">{timeRange}</div>
-                  </button>
+                    appointment={a}
+                    selected={selectedId === a.id}
+                    onClick={() => onSelect(a.id)}
+                    style={
+                      layout
+                        ? {
+                            top: layout.top,
+                            height: layout.height,
+                            left: layout.left,
+                            right: layout.right,
+                          }
+                        : undefined
+                    }
+                    compact={(layout?.totalColumns ?? 1) > 1}
+                  />
                 );
               })}
             </div>

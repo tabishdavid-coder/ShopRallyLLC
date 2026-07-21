@@ -2,28 +2,23 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2, Star } from "lucide-react";
+import { Loader2, Plus, Star } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { CannedJobPickerSheet } from "@/components/repair-order/canned-job-picker-sheet";
 import { CreateJobAiTrigger } from "@/components/estimate-building/create-job-ai-trigger";
+import {
+  estimateJobActionCannedButton,
+  estimateJobActionGroupClass,
+  estimateJobActionJobButton,
+} from "@/components/estimate-building/estimate-job-action-styles";
 import { addJob } from "@/server/actions/estimate";
 import { useEstimateActionToast } from "@/components/repair-order/estimate-action-toast";
 import type { CannedJobSummary } from "@/lib/canned-job-types";
 import type { LaborTier, PartTier } from "@/lib/matrix";
 import { cn } from "@/lib/utils";
 
-const NAVY_JOB_BTN = cn(
-  "h-9 rounded-none bg-[#0B1F3B] px-3.5 text-sm font-medium shadow-none hover:bg-[#0B1F3B]/90",
-);
-
-const OUTLINE_BTN = cn(
-  "h-9 gap-1.5 rounded-none border border-[#DDE5EF] bg-white px-3 text-sm font-medium text-[#0B1F3B] shadow-none",
-  "hover:border-[#0B1F3B]/40 hover:bg-[#0B1F3B]/[0.04] hover:text-[#0B1F3B]",
-  "[&>svg:first-child]:text-[#0B1F3B]",
-);
-
-/** Jobs header / toolbar action row: Canned jobs | + Job | Job with AI (left → right). */
+/** Jobs header / toolbar action row: Canned jobs | Job | Job with AI (left → right). */
 export function EstimateJobActionsCluster({
   roId,
   cannedJobs,
@@ -32,9 +27,8 @@ export function EstimateJobActionsCluster({
   partTiers,
   laborTiers,
   className,
-  jobButtonVariant = "primary",
   cannedLabel = "Canned jobs",
-  jobLabel = "+ Job",
+  jobLabel = "Job",
   aiLabel = "Job with AI",
 }: {
   roId: string;
@@ -44,8 +38,6 @@ export function EstimateJobActionsCluster({
   partTiers: PartTier[];
   laborTiers: LaborTier[];
   className?: string;
-  /** Navy primary for + Job (header/empty) vs outline (toolbar). */
-  jobButtonVariant?: "primary" | "outline";
   cannedLabel?: string;
   jobLabel?: string;
   aiLabel?: string;
@@ -69,34 +61,43 @@ export function EstimateJobActionsCluster({
 
   return (
     <>
-      <div className={cn("flex flex-wrap items-center gap-2", className)}>
+      <div
+        className={cn(estimateJobActionGroupClass, className)}
+        role="group"
+        aria-label="Add job"
+      >
         <Button
           type="button"
           variant="outline"
-          size="sm"
-          className={OUTLINE_BTN}
+          size="lg"
+          className={estimateJobActionCannedButton}
           onClick={() => setCannedOpen(true)}
         >
-          <Star className="size-4 text-brand-navy" aria-hidden />
+          <Star className="size-4 shrink-0" aria-hidden />
           {cannedLabel}
         </Button>
 
         <Button
           type="button"
-          size="sm"
-          className={cn(
-            jobButtonVariant === "primary"
-              ? cn(NAVY_JOB_BTN, "text-white")
-              : OUTLINE_BTN,
-          )}
+          variant="outline"
+          size="lg"
+          className={estimateJobActionJobButton}
           onClick={addBlankJob}
           disabled={pending}
         >
-          {pending ? <Loader2 className="size-4 animate-spin" aria-hidden /> : null}
+          {pending ? (
+            <Loader2 className="size-4 shrink-0 animate-spin" aria-hidden />
+          ) : (
+            <Plus className="size-4 shrink-0" aria-hidden />
+          )}
           {jobLabel}
         </Button>
 
-        <CreateJobAiTrigger roId={roId} label={aiLabel} />
+        <CreateJobAiTrigger
+          roId={roId}
+          label={aiLabel}
+          appearance="cluster"
+        />
       </div>
 
       <CannedJobPickerSheet

@@ -67,6 +67,7 @@ import type {
 } from "@/lib/estimate-context-drawer-types";
 import type { EstimateLabVehicleSpecsBundle } from "@/lib/estimate-lab-vehicle-specs";
 import { formatCents, customerDisplayName } from "@/lib/format";
+import { formatVehicleDisplayLabel } from "@/lib/vehicle-display";
 import { AP_TERMS } from "@/lib/autopilot3030/terminology";
 import { cn } from "@/lib/utils";
 import { fmtDate } from "@/lib/datetime";
@@ -178,7 +179,7 @@ function fmtRoWhen(d: Date | string) {
 }
 
 function vehicleTitle(v: EstimateContextDrawerVehicle) {
-  return [v.year, v.make, v.model, v.trim].filter(Boolean).join(" ") || "Vehicle";
+  return formatVehicleDisplayLabel(v);
 }
 
 function customerPayload(
@@ -1360,7 +1361,7 @@ export function DrawerCarePlanTab({
     return (
       <DrawerContentCard title={AP_TERMS.maintenancePrograms}>
         <p className="text-sm text-[#5B7295]">
-          Upgrade to Enterprise to enroll customers in care plans from the drawer.
+          Care Plans are an Elite premium benefit — upgrade to enroll customers from the drawer.
         </p>
         <Button asChild variant="outline" size="sm" className={cn(DRAWER_BTN_AZURE, "mt-3")}>
           <Link href="/settings/subscription">View plans</Link>

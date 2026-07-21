@@ -90,6 +90,7 @@ export function SendPlansToCustomer({ plansUrl, shopName }: Props) {
             ? {
                 id: selected.id,
                 firstName: selected.firstName,
+                lastName: selected.lastName,
                 phone: selected.phone,
                 email: selected.email,
               }

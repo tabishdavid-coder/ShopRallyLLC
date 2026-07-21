@@ -2,6 +2,7 @@ import "server-only";
 
 import { prisma } from "@/db/client";
 import { getShopId } from "@/lib/shop";
+import { chunkArray } from "@/lib/google-reviews-fetch";
 import {
   getGoogleReviewsProvider,
   getMockGoogleReviewsProvider,
@@ -99,31 +100,36 @@ export async function getGoogleReviewsInbox(
   };
 }
 
-/** Upsert review rows from provider sync. */
+/** Upsert review rows from provider sync (batched transactions for scale). */
 export async function upsertGoogleReviews(shopId: string, records: GoogleReviewRecord[]) {
-  for (const r of records) {
-    await prisma.googleReview.upsert({
-      where: {
-        shopId_googleReviewId: { shopId, googleReviewId: r.googleReviewId },
-      },
-      create: {
-        shopId,
-        googleReviewId: r.googleReviewId,
-        reviewerName: r.reviewerName,
-        starRating: r.starRating,
-        comment: r.comment,
-        reviewReply: r.reviewReply,
-        googleCreatedAt: r.googleCreatedAt,
-      },
-      update: {
-        reviewerName: r.reviewerName,
-        starRating: r.starRating,
-        comment: r.comment,
-        reviewReply: r.reviewReply,
-        googleCreatedAt: r.googleCreatedAt,
-        syncedAt: new Date(),
-      },
-    });
+  const chunks = chunkArray(records, 25);
+  for (const chunk of chunks) {
+    await prisma.$transaction(
+      chunk.map((r) =>
+        prisma.googleReview.upsert({
+          where: {
+            shopId_googleReviewId: { shopId, googleReviewId: r.googleReviewId },
+          },
+          create: {
+            shopId,
+            googleReviewId: r.googleReviewId,
+            reviewerName: r.reviewerName,
+            starRating: r.starRating,
+            comment: r.comment,
+            reviewReply: r.reviewReply,
+            googleCreatedAt: r.googleCreatedAt,
+          },
+          update: {
+            reviewerName: r.reviewerName,
+            starRating: r.starRating,
+            comment: r.comment,
+            reviewReply: r.reviewReply,
+            googleCreatedAt: r.googleCreatedAt,
+            syncedAt: new Date(),
+          },
+        }),
+      ),
+    );
   }
 }
 

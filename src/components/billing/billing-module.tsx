@@ -252,7 +252,7 @@ function YourPlanTab({ overview }: { overview: BillingOverview }) {
         </div>
         {plan === "ENTERPRISE" ? (
           <p className="mt-3 text-xs text-muted-foreground">
-            Your {PLANS.ENTERPRISE.name} plan includes ShopSite, Local SEO, maintenance programs,
+            Your {PLANS.ENTERPRISE.name} plan includes ShopSite, Local SEO, Care Plans,
             and premium migration.
           </p>
         ) : null}

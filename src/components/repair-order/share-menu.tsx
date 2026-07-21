@@ -20,6 +20,7 @@ export function ShareMenu({
   roId,
   roNumber,
   customerFirstName,
+  customerName,
   shopName,
   phones,
   email,
@@ -33,6 +34,8 @@ export function ShareMenu({
   roId: string;
   roNumber: number;
   customerFirstName: string;
+  /** Full display name for share recipient header. */
+  customerName?: string;
   shopName: string;
   phones: { label: string; value: string }[];
   email: string | null;
@@ -93,6 +96,7 @@ export function ShareMenu({
         roId={roId}
         roNumber={roNumber}
         customerFirstName={customerFirstName}
+        customerName={customerName}
         shopName={shopName}
         phones={phones}
         email={email}
@@ -105,6 +109,7 @@ export function ShareMenu({
         invoiceId={invoiceId}
         invoiceNumber={invoiceNumber}
         customerFirstName={customerFirstName}
+        customerName={customerName}
         shopName={shopName}
         phones={phones}
         email={email}
@@ -117,6 +122,7 @@ export function ShareMenu({
           inspectionId={inspectionId}
           roNumber={roNumber}
           customerFirstName={customerFirstName}
+          customerName={customerName}
           shopName={shopName}
           phones={phones}
           email={email}

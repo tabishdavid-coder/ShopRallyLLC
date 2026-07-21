@@ -279,6 +279,7 @@ enum ShopAuditEventType {
   DSAR_EXPORT
   RO_ACTIVITY_ADDED
   RO_CREATED
+  APPOINTMENT_UPDATED
 }
 
 // Subscription tier assigned by platform admin (per shop / location).
@@ -685,7 +686,8 @@ model Shop {
   vehicleOwnershipTransfers VehicleOwnershipTransfer[]
   repairOrders RepairOrder[]
   roActivities RoActivity[]
-  appointments Appointment[]
+  appointments  Appointment[]
+  calendarBlocks CalendarBlock[]
   invoices     Invoice[]
   messages     Message[]
   aiSmsAgentSessions  AiSmsAgentSession[]
@@ -699,6 +701,7 @@ model Shop {
   leadSources       LeadSource[]
   customerTags      CustomerTag[]
   cannedJobs        CannedJob[]
+  inspectionTemplates ShopInspectionTemplate[]
   loginEvents       LoginEvent[]
   purchaseOrders       PurchaseOrder[]
   inventoryParts       InventoryPart[]
@@ -728,6 +731,7 @@ model Shop {
   depositRequests            DepositRequest[]
   consentRecords             ConsentRecord[]
   dataPolicy                 ShopDataPolicy?
+  roAttachments              RoAttachment[]
 
   @@index([platformId])
 }
@@ -1329,6 +1333,7 @@ model RepairOrder {
   messages        Message[]
   purchaseOrders  PurchaseOrder[]
   planRedemptions PlanRedemption[]
+  attachments     RoAttachment[]
 
   @@unique([shopId, number])
   @@index([shopId])
@@ -1336,6 +1341,35 @@ model RepairOrder {
   @@index([shopId, archivedAt])
   @@index([customerId])
   @@index([vehicleId])
+}
+
+/// Photos / files on a repair order. Customer-visible ones appear on public share links.
+model RoAttachment {
+  id              String   @id @default(cuid())
+  shopId          String
+  repairOrderId   String
+  inspectionId    String?
+  /// PHOTO | DOCUMENT — string for expand-only flexibility
+  kind            String   @default("PHOTO")
+  fileName        String
+  contentType     String
+  sizeBytes       Int
+  /// Tenant-scoped object key, e.g. shops/{shopId}/ros/{roId}/{id}.jpg
+  storageKey      String
+  /// App-relative or absolute URL used by UI (/api/ro-media/… or Blob CDN)
+  url             String
+  /// When true, shown on public /approve and /inspection pages
+  customerVisible Boolean  @default(true)
+  createdById     String?
+  createdAt       DateTime @default(now())
+
+  shop        Shop         @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  repairOrder RepairOrder  @relation(fields: [repairOrderId], references: [id], onDelete: Cascade)
+  inspection  Inspection?  @relation(fields: [inspectionId], references: [id], onDelete: SetNull)
+
+  @@index([shopId, repairOrderId])
+  @@index([repairOrderId, customerVisible])
+  @@index([storageKey])
 }
 
 model Job {
@@ -1573,6 +1607,7 @@ model Inspection {
 
   repairOrder RepairOrder      @relation(fields: [repairOrderId], references: [id], onDelete: Cascade)
   items       InspectionItem[]
+  attachments RoAttachment[]
 
   @@index([repairOrderId])
 }
@@ -1591,6 +1626,38 @@ model InspectionItem {
   inspection Inspection @relation(fields: [inspectionId], references: [id], onDelete: Cascade)
 
   @@index([inspectionId])
+}
+
+/// Shop-scoped reusable DVI / MPI checklist templates (Settings or RO Add Inspection).
+model ShopInspectionTemplate {
+  id          String   @id @default(cuid())
+  shopId      String
+  name        String
+  description String?
+  isActive    Boolean  @default(true)
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  shop  Shop                           @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  items ShopInspectionTemplateItem[]
+
+  @@unique([shopId, name])
+  @@index([shopId])
+  @@index([shopId, isActive])
+}
+
+model ShopInspectionTemplateItem {
+  id         String  @id @default(cuid())
+  shopId     String
+  templateId String
+  name       String
+  category   String?
+  sortOrder  Int     @default(0)
+
+  template ShopInspectionTemplate @relation(fields: [templateId], references: [id], onDelete: Cascade)
+
+  @@index([templateId])
 }
 
 // ─────────────────────────── Scheduling ───────────────────────────
@@ -1617,6 +1684,24 @@ model Appointment {
   customer   Customer?   @relation(fields: [customerId], references: [id], onDelete: SetNull)
   vehicle    Vehicle?    @relation(fields: [vehicleId], references: [id], onDelete: SetNull)
   tireOrders TireOrder[]
+
+  @@index([shopId])
+  @@index([shopId, startAt])
+}
+
+/// Advisor-created unavailable time (lunch, training, closed bay, personal).
+/// Separate from Appointment so blocks never look like customer bookings.
+model CalendarBlock {
+  id        String   @id @default(cuid())
+  shopId    String
+  title     String
+  startAt   DateTime
+  endAt     DateTime
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  shop Shop @relation(fields: [shopId], references: [id], onDelete: Cascade)
 
   @@index([shopId])
   @@index([shopId, startAt])

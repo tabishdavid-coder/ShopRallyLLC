@@ -46,7 +46,7 @@
 | Two-way SMS | `customerSms: false` | `sms` | Shell hides SMS count; audit share + messages |
 | Growth Engine | `marketingCampaigns: false` | `growthEngine` | Growth section + settings hidden (2026-07-13) |
 | ShopSite / SEO | `shopSite` / `websiteSeo: false` | `shopSite`, `websiteSeo` | |
-| Maintenance programs | `maintenancePrograms: false` | `growthEngine` | |
+| Care Plans | `maintenancePrograms: false` | `growthEngine` | Hidden from Core nav + drawer (2026-07-21) |
 | AI suite (receptionist, review AI, etc.) | all `ai*: false` | `aiSuite` | Smart Intake = Core + AI Plus only |
 | Markup matrices (Pro) | `markupMatrices: false` | — | Audit Settings → Markups |
 | Multi-location | `multiLocation: false` | — | |

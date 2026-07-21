@@ -98,7 +98,7 @@ export const PREVIEW_TOP_NAV: TopNavEntry[] = [
       { title: "Inspections", href: "/inspections", icon: ClipboardCheck },
       { title: "Vendors", href: "/vendors/integrations", icon: Truck },
       { title: "Orders", href: "/orders", icon: Receipt, stub: true },
-      { title: "Maintenance Plans", href: "/maintenance-programs/subscribers", icon: Shield },
+      { title: "Care Plan Members", href: "/maintenance-programs/subscribers", icon: Shield },
     ],
   },
   {

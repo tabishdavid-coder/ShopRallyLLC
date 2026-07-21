@@ -76,7 +76,10 @@ export function AutopilotShell({
   children,
 }: AutopilotShellProps) {
   const fullBleed = pathname === "/workflow";
-  const jobBoardViewport = pathname === "/job-board" || pathname === "/tech-board";
+  const jobBoardViewport =
+    pathname === "/job-board" ||
+    pathname === "/tech-board" ||
+    pathname === "/appointments";
   const fitViewport = pathname === "/dashboard" || pathname.startsWith("/dashboard/");
   const persistentSidebar = isAutopilot3030Shell();
   const roDetailFocus = /^\/repair-orders\/(?!new(?:\/|$))[^/]+/.test(pathname);

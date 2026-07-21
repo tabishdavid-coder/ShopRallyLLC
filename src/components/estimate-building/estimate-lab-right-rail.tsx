@@ -256,6 +256,7 @@ function MoneyCard({
   roId,
   roNumber,
   customerFirstName,
+  customerName,
   shopName,
   sharePhones,
   email,
@@ -274,6 +275,7 @@ function MoneyCard({
   roId: string;
   roNumber: number;
   customerFirstName: string;
+  customerName: string;
   shopName: string;
   sharePhones: { label: string; value: string }[];
   email: string | null;
@@ -400,6 +402,7 @@ function MoneyCard({
             roId={roId}
             roNumber={roNumber}
             customerFirstName={customerFirstName}
+            customerName={customerName}
             shopName={shopName}
             phones={sharePhones}
             email={email}
@@ -996,6 +999,7 @@ function EstimateLabRightRailBody(props: EstimateLabRightRailProps) {
           roId={roId}
           roNumber={roNumber}
           customerFirstName={customerFirstName}
+          customerName={customerName}
           shopName={shopName}
           sharePhones={sharePhones}
           email={email}

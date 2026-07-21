@@ -148,7 +148,7 @@ export function MaintenanceProgramsHub({
     <div className="space-y-6">
       {!canEdit ? (
         <div className="rounded-xl border-2 border-amber-300 bg-amber-50 p-4 text-sm text-amber-950">
-          Maintenance programs are available on {PLANS.ENTERPRISE.name} plans.{" "}
+          Care Plans are an Elite premium benefit — not included on Core or Pro.{" "}
           <Link href="/settings/subscription" className="font-semibold text-brand-navy underline">
             Upgrade your subscription
           </Link>

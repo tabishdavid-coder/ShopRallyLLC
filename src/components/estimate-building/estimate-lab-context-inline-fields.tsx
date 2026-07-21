@@ -95,15 +95,7 @@ function onCardKeyDown(e: React.KeyboardEvent, open: () => void) {
 }
 
 function vehicleTitleWithDrivetrain(vehicle: EditableVehicle | null): { display: string; full: string } {
-  if (!vehicle) return { display: "—", full: "—" };
-  const base = formatVehicleContextLabel(vehicle, 64);
-  const drive = vehicle.drivetrain?.trim();
-  if (!drive) return base;
-  const full = `${base.full} ${drive}`;
-  return {
-    full,
-    display: full.length > 48 ? `${full.slice(0, 47)}…` : full,
-  };
+  return formatVehicleContextLabel(vehicle, 48);
 }
 
 /** Customer + vehicle context strip — separate clickable blocks open drawer tabs. */

@@ -26,6 +26,9 @@
 *.pem
 .tmp-video-frames/
 
+# local object storage (RO photo attachments — LocalDev provider)
+.data/
+
 # debug
 npm-debug.log*
 yarn-debug.log*

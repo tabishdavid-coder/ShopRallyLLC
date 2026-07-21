@@ -4,12 +4,23 @@ import { z } from "zod";
 import { revalidatePath } from "next/cache";
 
 import { prisma } from "@/db/client";
+import { ShopAuditEventType } from "@/generated/prisma";
 import { getShopId } from "@/lib/shop";
 import { gates } from "@/server/permission-gates";
 import { customerDisplayName } from "@/lib/format";
 import { getAppointmentSettings } from "@/server/appointments";
 import { createRepairOrder } from "@/server/actions/repair-orders";
 import { emitAutomationEvent } from "@/server/services/automation-events";
+import { recordShopAuditEventSafe } from "@/server/shop-audit";
+
+const APPT_STATUS_LABEL: Record<string, string> = {
+  SCHEDULED: "scheduled",
+  CONFIRMED: "confirmed",
+  IN_PROGRESS: "in progress",
+  COMPLETED: "completed",
+  NO_SHOW: "no-show",
+  CANCELED: "canceled",
+};
 
 const CreateAppointmentInput = z.object({
   customerId: z.string().min(1),
@@ -49,12 +60,37 @@ export type ActionResult =
   | { ok: true; id?: string; roId?: string; roNumber?: number }
   | { ok: false; error: string };
 
+const PAST_START_ERROR =
+  "Choose a start time that is today or in the future.";
+
 function buildStartEnd(date: string, startTime: string, durationMins: number) {
   const [y, m, d] = date.split("-").map(Number);
   const [hh, mm] = startTime.split(":").map(Number);
   const startAt = new Date(y, (m ?? 1) - 1, d ?? 1, hh ?? 0, mm ?? 0, 0, 0);
   const endAt = new Date(startAt.getTime() + durationMins * 60_000);
   return { startAt, endAt };
+}
+
+function sameMinute(a: Date, b: Date) {
+  return (
+    a.getFullYear() === b.getFullYear() &&
+    a.getMonth() === b.getMonth() &&
+    a.getDate() === b.getDate() &&
+    a.getHours() === b.getHours() &&
+    a.getMinutes() === b.getMinutes()
+  );
+}
+
+/** Reject booking/reschedule into the past. Unchanged past schedules on update are allowed. */
+function rejectPastStart(
+  startAt: Date,
+  existingStartAt?: Date,
+): ActionResult | null {
+  if (existingStartAt && sameMinute(startAt, existingStartAt)) return null;
+  if (startAt.getTime() < Date.now()) {
+    return { ok: false, error: PAST_START_ERROR };
+  }
+  return null;
 }
 
 async function validateCustomerVehicle(
@@ -109,6 +145,8 @@ export async function createAppointment(
   }
 
   const { startAt, endAt } = buildStartEnd(d.date, d.startTime, d.durationMins);
+  const past = rejectPastStart(startAt);
+  if (past) return past;
   const title =
     d.title?.trim() ||
     `${customerDisplayName(check.customer)} appointment`;
@@ -158,7 +196,14 @@ export async function updateAppointment(
   if (denied) return { ok: false, error: denied.error };
   const existing = await prisma.appointment.findFirst({
     where: { id: d.id, shopId },
-    select: { id: true, startAt: true, endAt: true },
+    select: {
+      id: true,
+      startAt: true,
+      endAt: true,
+      status: true,
+      title: true,
+      repairOrderId: true,
+    },
   });
   if (!existing) return { ok: false, error: "Appointment not found." };
 
@@ -171,6 +216,8 @@ export async function updateAppointment(
 
   if (d.date && d.startTime && d.durationMins) {
     const { startAt, endAt } = buildStartEnd(d.date, d.startTime, d.durationMins);
+    const past = rejectPastStart(startAt, existing.startAt);
+    if (past) return past;
     data.startAt = startAt;
     data.endAt = endAt;
   } else if (d.date && d.startTime) {
@@ -178,6 +225,8 @@ export async function updateAppointment(
       (existing.endAt.getTime() - existing.startAt.getTime()) / 60_000,
     );
     const { startAt, endAt } = buildStartEnd(d.date, d.startTime, durationMins);
+    const past = rejectPastStart(startAt, existing.startAt);
+    if (past) return past;
     data.startAt = startAt;
     data.endAt = endAt;
   }
@@ -190,20 +239,49 @@ export async function updateAppointment(
     if (!member) return { ok: false, error: "Selected employee is not on this shop." };
   }
 
+  if (Object.keys(data).length === 0) return { ok: true, id: d.id };
+
   await prisma.appointment.update({ where: { id: d.id }, data });
 
-  revalidatePath("/appointments");
-
-  const apptCustomer = await prisma.appointment.findFirst({
+  const updated = await prisma.appointment.findFirst({
     where: { id: d.id, shopId },
-    select: { customerId: true },
+    select: {
+      customerId: true,
+      title: true,
+      status: true,
+      repairOrderId: true,
+    },
   });
-  if (apptCustomer?.customerId) {
+
+  const title = updated?.title?.trim() || existing.title?.trim() || "Appointment";
+  const statusChanged =
+    d.status !== undefined && d.status !== existing.status;
+  const summary = statusChanged
+    ? `Appointment ${APPT_STATUS_LABEL[d.status!] ?? d.status!.toLowerCase()}: ${title}`
+    : `Appointment updated: ${title}`;
+
+  await recordShopAuditEventSafe({
+    shopId,
+    repairOrderId: updated?.repairOrderId ?? existing.repairOrderId ?? null,
+    eventType: ShopAuditEventType.APPOINTMENT_UPDATED,
+    summary,
+    metadata: {
+      appointmentId: d.id,
+      status: updated?.status ?? existing.status,
+      previousStatus: existing.status,
+      changed: Object.keys(data),
+    },
+  });
+
+  revalidatePath("/appointments");
+  revalidatePath("/dashboard/shop-activity");
+
+  if (updated?.customerId) {
     await emitAutomationEvent({
       type: "APPOINTMENT_UPDATED",
       shopId,
       appointmentId: d.id,
-      customerId: apptCustomer.customerId,
+      customerId: updated.customerId,
     });
   }
 
@@ -224,7 +302,7 @@ export async function cancelAppointment(id: string): Promise<ActionResult> {
   if (denied) return { ok: false, error: denied.error };
   const existing = await prisma.appointment.findFirst({
     where: { id, shopId },
-    select: { id: true },
+    select: { id: true, title: true, status: true, repairOrderId: true },
   });
   if (!existing) return { ok: false, error: "Appointment not found." };
 
@@ -233,7 +311,22 @@ export async function cancelAppointment(id: string): Promise<ActionResult> {
     data: { status: "CANCELED" },
   });
 
+  const title = existing.title?.trim() || "Appointment";
+  await recordShopAuditEventSafe({
+    shopId,
+    repairOrderId: existing.repairOrderId ?? null,
+    eventType: ShopAuditEventType.APPOINTMENT_UPDATED,
+    summary: `Appointment canceled: ${title}`,
+    metadata: {
+      appointmentId: id,
+      status: "CANCELED",
+      previousStatus: existing.status,
+      via: "cancel",
+    },
+  });
+
   revalidatePath("/appointments");
+  revalidatePath("/dashboard/shop-activity");
   return { ok: true, id };
 }
 

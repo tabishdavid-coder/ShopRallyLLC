@@ -120,7 +120,7 @@ const COMING_LATER = [
   "Two-way SMS & Growth Engine",
   "Online booking & review automation",
   "Stripe Connect card capture",
-  "AI receptionist & maintenance programs",
+  "AI receptionist & Care Plans (Elite premium)",
 ] as const;
 
 export function HomePageContent() {

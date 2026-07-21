@@ -61,6 +61,10 @@ import {
   ESTIMATE_JOBS_SCROLL,
 } from "@/lib/estimate-workspace-layout";
 import { cn } from "@/lib/utils";
+import {
+  formatVehicleDisplayLabel,
+  formatVehicleSpecSubtitle,
+} from "@/lib/vehicle-display";
 import type { RepairOrderDetail } from "@/server/repair-order";
 
 export type EstimateWorkspaceVariant = "lab" | "production";
@@ -285,9 +289,7 @@ export async function EstimateBuildingLabPanel({
   const technicianConcerns = ro.vehicleConcerns.filter((c) => c.kind === "TECHNICIAN");
 
   const v = ro.vehicle;
-  const vehicleLabel = v
-    ? [v.year, v.make, v.model, v.trim].filter(Boolean).join(" ")
-    : "Vehicle";
+  const vehicleLabel = formatVehicleDisplayLabel(v);
   const customerName =
     ro.customer.company?.trim() ||
     `${ro.customer.firstName ?? ""} ${ro.customer.lastName ?? ""}`.trim();
@@ -321,9 +323,7 @@ export async function EstimateBuildingLabPanel({
         .join(" · ")
     : "";
 
-  const vehicleSpec = v
-    ? [v.engine, v.drivetrain].filter(Boolean).join(" · ") || null
-    : null;
+  const vehicleSpec = formatVehicleSpecSubtitle(v);
 
   const paidToDateCents = sumPaidCents({
     payments: ro.invoice?.payments,
@@ -510,7 +510,8 @@ export async function EstimateBuildingLabPanel({
                       feeTemplates={allFeeTemplates.map(({ autoApply: _, ...t }) => t)}
                       discountTemplates={discountTemplates}
                       approvedVia={ro.approvedVia}
-                      approvedAt={ro.authorizedAt}
+                      roAuthorizedAt={ro.authorizedAt}
+                      approvalSentAt={ro.approvalSentAt}
                       approvalSignature={approvalSignature}
                       cannedJobCategories={cannedJobCategories}
                       cannedJobs={cannedJobs}
@@ -638,6 +639,7 @@ export async function EstimateBuildingLabPanel({
     invoiceNumber: ro.invoice?.number ?? null,
     shareUrl: invoiceShareUrl,
     customerFirstName: rightRailCommon.customerFirstName,
+    customerName,
     shopName: ro.shop.name,
     phones: sharePhones,
     email: ro.customer.email,

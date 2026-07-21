@@ -42,6 +42,7 @@ const LABELS: Record<ShopAuditEventType, string> = {
   [ShopAuditEventType.DSAR_EXPORT]: "Data export request",
   [ShopAuditEventType.RO_ACTIVITY_ADDED]: "Activity logged",
   [ShopAuditEventType.RO_CREATED]: "Repair order created",
+  [ShopAuditEventType.APPOINTMENT_UPDATED]: "Appointment updated",
 };
 
 export function shopAuditEventLabel(type: ShopAuditEventType): string {

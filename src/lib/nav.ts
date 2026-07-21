@@ -74,7 +74,7 @@ export const NAV_GROUPS: NavGroup[] = [
     label: "Manage",
     items: [
       { title: "Customers", href: "/customers", icon: Users },
-      { title: "Maintenance Plans", href: "/maintenance-programs/subscribers", icon: Shield },
+      { title: "Care Plan Members", href: "/maintenance-programs/subscribers", icon: Shield },
       { title: "Vendors", href: "/vendors/integrations", icon: Truck },
       { title: "Canned Jobs", href: "/canned-jobs", icon: Star },
       { title: "Labor Book", href: "/labor-guide", icon: Wrench },

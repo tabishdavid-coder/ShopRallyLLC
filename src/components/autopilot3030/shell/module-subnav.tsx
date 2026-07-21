@@ -41,13 +41,30 @@ export function ApModuleSubnav() {
           items={AP_DASHBOARD_MODULE_NAV_ITEMS}
           ariaLabel="Dashboard"
           pathname={pathname}
-          getActive={(path, item) =>
-            item.href === "/dashboard/snapshot"
-              ? path === "/dashboard/snapshot" ||
+          getActive={(path, item) => {
+            if (item.href === "/dashboard/snapshot") {
+              return (
+                path === "/dashboard/snapshot" ||
                 path.startsWith("/dashboard/snapshot/") ||
                 path === "/dashboard"
-              : path === "/dashboard/overview" || path.startsWith("/dashboard/overview/")
-          }
+              );
+            }
+            if (item.href === "/dashboard/kpis") {
+              return (
+                path === "/dashboard/kpis" ||
+                path.startsWith("/dashboard/kpis/") ||
+                path === "/dashboard/overview" ||
+                path.startsWith("/dashboard/overview/")
+              );
+            }
+            if (item.href === "/dashboard/shop-activity") {
+              return (
+                path === "/dashboard/shop-activity" ||
+                path.startsWith("/dashboard/shop-activity/")
+              );
+            }
+            return path === item.href || path.startsWith(`${item.href}/`);
+          }}
         />
       );
     case "growth":

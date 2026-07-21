@@ -1,11 +1,20 @@
 import "server-only";
 
 import { prisma } from "@/db/client";
-import { AppointmentStatus, ROStatus, TireOrderStatus } from "@/generated/prisma";
 import {
-  DASHBOARD_RANGE_LABELS,
+  AppointmentStatus,
+  ROStatus,
+  TireOrderStatus,
+  type Prisma,
+} from "@/generated/prisma";
+import {
+  DASHBOARD_DEFAULT_RANGE,
+  dashboardPeriodLabel,
+  estimateConversionPct,
+  parseLocalDateInput,
   type DashboardData,
   type DashboardDateRange,
+  type DashboardPeriod,
   type PaymentMixSlice,
   type StatusSlice,
   type TrendPoint,
@@ -41,7 +50,29 @@ type PeriodBounds = {
   priorEnd: Date;
 };
 
-function resolvePeriod(range: DashboardDateRange, now = new Date()): PeriodBounds {
+function normalizePeriod(
+  input: DashboardDateRange | DashboardPeriod,
+): DashboardPeriod {
+  return typeof input === "string" ? { range: input } : input;
+}
+
+function resolvePeriod(period: DashboardPeriod, now = new Date()): PeriodBounds {
+  if (period.range === "custom" && period.from && period.to) {
+    const fromDate = parseLocalDateInput(period.from);
+    const toDate = parseLocalDateInput(period.to);
+    if (fromDate && toDate) {
+      const start = startOfDay(fromDate);
+      const end = endOfDay(toDate);
+      const dayCount =
+        Math.round((startOfDay(toDate).getTime() - start.getTime()) / 86_400_000) + 1;
+      const priorEnd = endOfDay(addDays(start, -1));
+      const priorStart = startOfDay(addDays(priorEnd, -(dayCount - 1)));
+      return { start, end, priorStart, priorEnd };
+    }
+  }
+
+  const range =
+    period.range === "custom" ? DASHBOARD_DEFAULT_RANGE : period.range;
   const end = now;
   const todayStart = startOfDay(now);
 
@@ -75,6 +106,9 @@ function resolvePeriod(range: DashboardDateRange, now = new Date()): PeriodBound
       );
       return { start, end, priorStart, priorEnd };
     }
+    case "custom":
+      // Unreachable after fallback above; satisfy exhaustiveness.
+      return resolvePeriod({ range: DASHBOARD_DEFAULT_RANGE }, now);
   }
 }
 
@@ -128,15 +162,39 @@ const PAYMENT_METHOD_LABELS: Record<string, string> = {
 /** Full shop dashboard payload for the selected date range. */
 export async function getDashboardData(
   shopId: string,
-  range: DashboardDateRange,
+  rangeOrPeriod: DashboardDateRange | DashboardPeriod,
 ): Promise<DashboardData> {
   const now = new Date();
-  const { start, end, priorStart, priorEnd } = resolvePeriod(range, now);
+  const period = normalizePeriod(rangeOrPeriod);
+  const { start, end, priorStart, priorEnd } = resolvePeriod(period, now);
+  const range = period.range === "custom" && period.from && period.to
+    ? "custom"
+    : period.range === "custom"
+      ? DASHBOARD_DEFAULT_RANGE
+      : period.range;
 
   const weekStart = startOfDay(now);
   const weekEnd = endOfDay(addDays(now, 6));
   const todayStart = startOfDay(now);
   const todayEnd = endOfDay(now);
+
+  const completedInPeriodWhere: Prisma.RepairOrderWhereInput = {
+    shopId,
+    status: { in: [ROStatus.COMPLETED, ROStatus.INVOICED] },
+    OR: [
+      { completedAt: { gte: start, lte: end } },
+      { completedAt: null, updatedAt: { gte: start, lte: end } },
+    ],
+  };
+
+  const completedPriorWhere: Prisma.RepairOrderWhereInput = {
+    shopId,
+    status: { in: [ROStatus.COMPLETED, ROStatus.INVOICED] },
+    OR: [
+      { completedAt: { gte: priorStart, lte: priorEnd } },
+      { completedAt: null, updatedAt: { gte: priorStart, lte: priorEnd } },
+    ],
+  };
 
   const [
     carsInShop,
@@ -149,6 +207,7 @@ export async function getDashboardData(
     appointmentsToday,
     appointmentsThisWeek,
     appointmentsWeekRaw,
+    appointmentsBookedInPeriod,
     tireOrdersPending,
     paymentsInPeriod,
     paymentsForTrend,
@@ -156,6 +215,10 @@ export async function getDashboardData(
     invoicedAgg,
     grossVolumeAgg,
     grossVolumePriorAgg,
+    estimatesCreatedInPeriod,
+    estimatesPendingInPeriod,
+    estimatesApprovedInPeriod,
+    partsLaborAgg,
   ] = await Promise.all([
     prisma.repairOrder.count({
       where: {
@@ -173,47 +236,15 @@ export async function getDashboardData(
       where: { shopId, balanceCents: { gt: 0 } },
       _sum: { balanceCents: true },
     }),
-    prisma.repairOrder.count({
-      where: {
-        shopId,
-        status: { in: [ROStatus.COMPLETED, ROStatus.INVOICED] },
-        OR: [
-          { completedAt: { gte: start, lte: end } },
-          { completedAt: null, updatedAt: { gte: start, lte: end } },
-        ],
-      },
-    }),
-    prisma.repairOrder.count({
-      where: {
-        shopId,
-        status: { in: [ROStatus.COMPLETED, ROStatus.INVOICED] },
-        OR: [
-          { completedAt: { gte: priorStart, lte: priorEnd } },
-          { completedAt: null, updatedAt: { gte: priorStart, lte: priorEnd } },
-        ],
-      },
-    }),
+    prisma.repairOrder.count({ where: completedInPeriodWhere }),
+    prisma.repairOrder.count({ where: completedPriorWhere }),
     prisma.repairOrder.aggregate({
-      where: {
-        shopId,
-        status: { in: [ROStatus.COMPLETED, ROStatus.INVOICED] },
-        OR: [
-          { completedAt: { gte: start, lte: end } },
-          { completedAt: null, updatedAt: { gte: start, lte: end } },
-        ],
-      },
+      where: completedInPeriodWhere,
       _avg: { totalCents: true },
       _count: { _all: true },
     }),
     prisma.repairOrder.aggregate({
-      where: {
-        shopId,
-        status: { in: [ROStatus.COMPLETED, ROStatus.INVOICED] },
-        OR: [
-          { completedAt: { gte: priorStart, lte: priorEnd } },
-          { completedAt: null, updatedAt: { gte: priorStart, lte: priorEnd } },
-        ],
-      },
+      where: completedPriorWhere,
       _avg: { totalCents: true },
     }),
     prisma.appointment.count({
@@ -237,6 +268,13 @@ export async function getDashboardData(
         startAt: { gte: weekStart, lte: weekEnd },
       },
       select: { startAt: true },
+    }),
+    prisma.appointment.count({
+      where: {
+        shopId,
+        status: { notIn: [AppointmentStatus.CANCELED, AppointmentStatus.NO_SHOW] },
+        createdAt: { gte: start, lte: end },
+      },
     }),
     prisma.tireOrder.count({
       where: { shopId, status: TireOrderStatus.PENDING_SUPPLIER_APPROVAL },
@@ -270,6 +308,32 @@ export async function getDashboardData(
     prisma.payment.aggregate({
       where: { shopId, paidAt: { gte: priorStart, lte: priorEnd } },
       _sum: { amountCents: true },
+    }),
+    prisma.repairOrder.count({
+      where: {
+        shopId,
+        archivedAt: null,
+        createdAt: { gte: start, lte: end },
+      },
+    }),
+    prisma.repairOrder.count({
+      where: {
+        shopId,
+        archivedAt: null,
+        status: ROStatus.ESTIMATE,
+        createdAt: { gte: start, lte: end },
+      },
+    }),
+    prisma.repairOrder.count({
+      where: {
+        shopId,
+        archivedAt: null,
+        authorizedAt: { gte: start, lte: end },
+      },
+    }),
+    prisma.repairOrder.aggregate({
+      where: completedInPeriodWhere,
+      _sum: { laborSubtotalCents: true, partsSubtotalCents: true },
     }),
   ]);
 
@@ -326,12 +390,18 @@ export async function getDashboardData(
   const grossVolumePriorCents = grossVolumePriorAgg._sum.amountCents ?? 0;
   const collectedCents = paymentsInPeriod.reduce((s, p) => s + p.amountCents, 0);
   const invoicedCents = invoicedAgg._sum.totalCents ?? 0;
-  const aroCents = Math.round(aroAgg._avg.totalCents ?? 0);
-  const aroPriorCents = Math.round(aroPriorAgg._avg.totalCents ?? 0);
+  const aroCents = Math.round(aroAgg._avg?.totalCents ?? 0);
+  const aroPriorCents = Math.round(aroPriorAgg._avg?.totalCents ?? 0);
+  const laborSalesCents = partsLaborAgg._sum?.laborSubtotalCents ?? 0;
+  const partsSalesCents = partsLaborAgg._sum?.partsSubtotalCents ?? 0;
 
   return {
     range,
-    rangeLabel: DASHBOARD_RANGE_LABELS[range],
+    rangeLabel: dashboardPeriodLabel(
+      range === "custom" && period.from && period.to
+        ? { range: "custom", from: period.from, to: period.to }
+        : { range },
+    ),
     periodStart: start.toISOString(),
     periodEnd: end.toISOString(),
     priorStart: priorStart.toISOString(),
@@ -350,9 +420,19 @@ export async function getDashboardData(
       outstandingArCents: outstandingArAgg._sum.balanceCents ?? 0,
       appointmentsToday,
       appointmentsThisWeek,
+      appointmentsBookedInPeriod,
       tireOrdersPending,
       invoicedCents,
       collectedCents,
+      estimatesPendingInPeriod,
+      estimatesApprovedInPeriod,
+      estimatesCreatedInPeriod,
+      estimateConversionPct: estimateConversionPct(
+        estimatesApprovedInPeriod,
+        estimatesCreatedInPeriod,
+      ),
+      laborSalesCents,
+      partsSalesCents,
     },
     revenueTrend,
     roStatusBreakdown,

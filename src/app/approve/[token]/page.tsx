@@ -2,8 +2,8 @@ import { notFound } from "next/navigation";
 
 import { PoweredByShopRally } from "@/components/brand/powered-by-shoprally";
 import { ShopRallyLogo } from "@/components/brand/shoprally-logo";
-import { getApprovalView, type ApprovalJobView, type ApprovalTotalsView } from "@/server/approval";
-import { CustomerFeeRows } from "@/components/customer/customer-fee-rows";
+import { ApprovalTotalsBlock } from "@/components/approval/approval-totals-block";
+import { getApprovalView, type ApprovalJobView } from "@/server/approval";
 import { formatCents } from "@/lib/format";
 import { ServiceAdvisorCard } from "@/components/service-advisor-card";
 import { ApproveActions } from "./approve-actions";
@@ -27,7 +27,7 @@ export default async function ApprovePage({
   return (
     <div className="min-h-screen bg-brand-navy/[0.04] px-4 py-8">
       <ApproveViewTracker token={token} />
-      <div className="mx-auto max-w-xl space-y-5">
+      <div className="mx-auto max-w-xl space-y-5 lg:max-w-4xl">
         <ShopRallyLogo href="https://getshoprally.com" size="sm" />
 
         <div className="overflow-hidden rounded-2xl border border-brand-navy/15 bg-card shadow-sm">
@@ -47,43 +47,59 @@ export default async function ApprovePage({
             <ServiceAdvisorCard advisor={view.serviceAdvisor} compact className="mt-2" />
           </div>
 
-          <JobSection
-            title={view.alreadyApproved ? "Authorized work" : "Estimate jobs"}
-            jobs={displayJobs}
-            emptyMessage={
-              view.alreadyApproved
-                ? "No jobs were authorized on this estimate."
-                : "No jobs on this estimate."
-            }
-          />
+          {view.alreadyApproved ? (
+            <>
+              <JobSection
+                title="Authorized work"
+                jobs={displayJobs}
+                emptyMessage="No jobs were authorized on this estimate."
+              />
 
-          {view.alreadyApproved && declinedJobs.length > 0 ? (
-            <JobSection
-              title="Declined — not authorized"
-              jobs={declinedJobs}
-              emptyMessage="No declined jobs."
-              declined
-              className="border-t border-dashed border-muted-foreground/25 bg-muted/20"
+              {declinedJobs.length > 0 ? (
+                <JobSection
+                  title="Declined — not authorized"
+                  jobs={declinedJobs}
+                  emptyMessage="No declined jobs."
+                  declined
+                  className="border-t border-dashed border-muted-foreground/25 bg-muted/20"
+                />
+              ) : null}
+
+              <ApprovalTotalsBlock
+                totals={view.totals}
+                estimateTotals={view.estimateTotals}
+                alreadyApproved
+                isPartialApproval={view.isPartialApproval}
+                className="border-t border-brand-navy/10 px-6 py-4"
+              />
+            </>
+          ) : (
+            <ApproveActions
+              embedded
+              token={token}
+              alreadyApproved={false}
+              isPartialApproval={view.isPartialApproval}
+              jobs={view.jobs}
+              totals={view.totals}
+              estimateTotals={view.estimateTotals}
+              approvedTotalCents={view.totals.totalCents}
+              signature={view.signature}
+              estimateTerms={view.estimateTerms}
             />
-          ) : null}
-
-          <TotalsBlock
-            totals={view.totals}
-            estimateTotals={view.estimateTotals}
-            alreadyApproved={view.alreadyApproved}
-            isPartialApproval={view.isPartialApproval}
-          />
+          )}
         </div>
 
-        <ApproveActions
-          token={token}
-          alreadyApproved={view.alreadyApproved}
-          isPartialApproval={view.isPartialApproval}
-          jobs={view.jobs}
-          approvedTotalCents={view.totals.totalCents}
-          signature={view.signature}
-          estimateTerms={view.estimateTerms}
-        />
+        {view.alreadyApproved ? (
+          <ApproveActions
+            token={token}
+            alreadyApproved
+            isPartialApproval={view.isPartialApproval}
+            jobs={view.jobs}
+            approvedTotalCents={view.totals.totalCents}
+            signature={view.signature}
+            estimateTerms={view.estimateTerms}
+          />
+        ) : null}
 
         <PoweredByShopRally className="text-center" />
       </div>
@@ -145,52 +161,6 @@ function JobRow({ job, declined }: { job: ApprovalJobView; declined?: boolean })
       >
         {formatCents(job.totalCents)}
       </div>
-    </div>
-  );
-}
-
-function TotalsBlock({
-  totals,
-  estimateTotals,
-  alreadyApproved,
-  isPartialApproval,
-}: {
-  totals: ApprovalTotalsView;
-  estimateTotals: ApprovalTotalsView | null;
-  alreadyApproved: boolean;
-  isPartialApproval: boolean;
-}) {
-  return (
-    <div className="space-y-1.5 border-t border-brand-navy/10 px-6 py-4 text-sm">
-      <Row label="Labor" value={formatCents(totals.laborSubtotalCents)} />
-      <Row label="Parts" value={formatCents(totals.partsSubtotalCents)} />
-      {totals.shopSuppliesCents > 0 ? (
-        <Row label="Shop supplies" value={formatCents(totals.shopSuppliesCents)} />
-      ) : null}
-      <CustomerFeeRows fees={totals.feeLines} Row={Row} />
-      {totals.discountCents > 0 ? (
-        <Row label="Discounts" value={formatCents(-totals.discountCents)} />
-      ) : null}
-      <Row label="Tax" value={formatCents(totals.taxCents)} />
-      <div className="flex justify-between border-t border-brand-navy/10 pt-2 text-base font-bold text-brand-navy">
-        <span>{alreadyApproved ? "Authorized total" : "Total"}</span>
-        <span className="tabular-nums">{formatCents(totals.totalCents)}</span>
-      </div>
-      {isPartialApproval && estimateTotals ? (
-        <p className="pt-1 text-xs text-muted-foreground">
-          Full estimate was {formatCents(estimateTotals.totalCents)} — declined jobs are excluded
-          from your authorized total.
-        </p>
-      ) : null}
-    </div>
-  );
-}
-
-function Row({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex justify-between text-muted-foreground">
-      <span>{label}</span>
-      <span className="tabular-nums text-foreground">{value}</span>
     </div>
   );
 }

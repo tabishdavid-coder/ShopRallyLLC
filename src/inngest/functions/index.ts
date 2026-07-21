@@ -5,6 +5,7 @@ import { seoWeeklyAudit } from "@/inngest/functions/seo-weekly-audit";
 import { campaignsLaunch, campaignsDispatchScheduled } from "@/inngest/functions/campaigns-launch";
 import { automationsTrigger, automationsRunner } from "@/inngest/functions/automations-runner";
 import { dataRetentionNightly } from "@/inngest/functions/data-retention-nightly";
+import { googleReviewsSyncScheduled } from "@/inngest/functions/google-reviews-sync";
 
 export const inngestFunctions = [
   seoWeeklyAudit,
@@ -16,4 +17,5 @@ export const inngestFunctions = [
   automationsTrigger,
   automationsRunner,
   dataRetentionNightly,
+  googleReviewsSyncScheduled,
 ];

@@ -83,6 +83,7 @@ export const BILLING_PLAN_FEATURES: Record<
       "Canned jobs & shop labor library",
       "Digital estimates, approvals & invoices (email)",
       "Digital vehicle inspections",
+      "Google Reviews inbox (sync & reply)",
       "Live Operations Daily Snapshot",
       "Appointments",
       "Payment tracking",
@@ -103,7 +104,7 @@ export const BILLING_PLAN_FEATURES: Record<
       "Two-way SMS",
       "Online booking",
       "Growth Engine — automations & win-back campaigns",
-      "Google review management",
+      "Review-request campaigns",
     ],
   },
   ENTERPRISE: {
@@ -111,7 +112,7 @@ export const BILLING_PLAN_FEATURES: Record<
     items: [
       "AI receptionist + review reply drafting",
       "ShopSite & Local SEO included ($228/mo value)",
-      "Maintenance subscription programs",
+      "Care Plans — member maintenance subscriptions",
       "AI SEO content & campaign drafting",
       "Dedicated onboarding specialist · migration included",
     ],

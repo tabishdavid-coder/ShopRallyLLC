@@ -69,6 +69,8 @@ export function EstimateLabJobsDndList({
   feeTemplates = [],
   discountTemplates = [],
   approvedVia,
+  roAuthorizedAt = null,
+  approvalSentAt = null,
   approvalSignature = null,
   onToggleJob,
   onToggleLabor,
@@ -84,6 +86,8 @@ export function EstimateLabJobsDndList({
   feeTemplates?: AdjustTemplate[];
   discountTemplates?: AdjustTemplate[];
   approvedVia?: string | null;
+  roAuthorizedAt?: Date | string | null;
+  approvalSentAt?: Date | string | null;
   approvalSignature?: ApprovalSignatureInfo | null;
   onToggleJob: (jobId: string, auth: boolean) => void;
   onToggleLabor: (jobId: string, lineId: string, auth: boolean) => void;
@@ -153,6 +157,8 @@ export function EstimateLabJobsDndList({
       roId,
       canEdit,
       customerApproved: approvedVia === "CUSTOMER" && Boolean(job.approvedAt),
+      roAuthorizedAt,
+      approvalSentAt,
       approvalSignature,
       jobFees: fees.filter((f) => f.jobId === job.id),
       jobDiscounts: discounts.filter((d) => d.jobId === job.id),

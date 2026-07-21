@@ -116,7 +116,11 @@ export default async function AppLayout({
     !pathname.startsWith("/dashboard") &&
     pathname !== "/workflow";
 
-  if (isPlatformRoute) {
+  // Print targets (day sheet, etc.) — no sidebar/top bar chrome.
+  const isPrintChromeFree =
+    isPlatformRoute || pathname.startsWith("/appointments/print");
+
+  if (isPrintChromeFree) {
     return (
       <>
         <LegalComplianceGate />

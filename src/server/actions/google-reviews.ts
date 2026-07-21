@@ -7,7 +7,7 @@ import type { Prisma } from "@/generated/prisma";
 import { prisma } from "@/db/client";
 import { getShopId } from "@/lib/shop";
 import { canUseReleasedFeature } from "@/lib/subscription";
-import { PLANS } from "@/lib/plans";
+import { PLANS, shopHasFeature } from "@/lib/plans";
 import {
   ensureAccessToken,
   getGoogleReviewsProvider,
@@ -16,11 +16,12 @@ import {
   isGoogleReviewsConnected,
   parseGoogleReviewsConfig,
 } from "@/server/services/google-reviews";
+import type { GoogleBusinessAccount, GoogleBusinessLocation } from "@/lib/google-reviews-types";
 import {
   ensureMockGoogleReviews,
   getGoogleReviewsIntegration,
-  upsertGoogleReviews,
 } from "@/server/google-reviews";
+import { syncGoogleReviewsForShop } from "@/server/google-reviews-sync";
 import { encodeGoogleOAuthState } from "@/lib/google-reviews-oauth";
 import { parseReviewReplyTone, type ReviewReplyTone, type ReviewReplyVariant } from "@/lib/review-reply-tone";
 import { suggestGoogleReviewReply } from "@/server/services/ai/review-reply";
@@ -30,6 +31,20 @@ import { gates } from "@/server/permission-gates";
 export type GoogleReviewsActionResult =
   | { ok: true; message?: string; url?: string; draft?: string }
   | { ok: false; error: string };
+
+async function assertGoogleReviewsPlan(shopId: string): Promise<GoogleReviewsActionResult | null> {
+  const shop = await prisma.shop.findUnique({
+    where: { id: shopId },
+    select: { plan: true, planFeatures: true },
+  });
+  if (!shop || !shopHasFeature(shop, "googleReviews")) {
+    return {
+      ok: false,
+      error: "Google Reviews inbox is included on Core and above. Contact support if this looks wrong.",
+    };
+  }
+  return null;
+}
 
 function revalidateReviews() {
   revalidatePath("/marketing/reviews");
@@ -43,6 +58,8 @@ export async function connectGoogleReviews(): Promise<GoogleReviewsActionResult>
   const shopId = await getShopId();
   const denied = await gates.employeesManage(shopId);
   if (denied) return denied;
+  const planDenied = await assertGoogleReviewsPlan(shopId);
+  if (planDenied) return planDenied;
   const provider = getGoogleReviewsProvider();
   const state = encodeGoogleOAuthState(shopId);
   const res = provider.getOAuthUrl(state);
@@ -57,9 +74,10 @@ const LocationInput = z.object({
   googleBusinessAccountId: z.string().trim().min(1, "Account ID is required."),
   googleLocationId: z.string().trim().min(1, "Location ID is required."),
   googleLocationName: z.string().trim().optional(),
+  googlePlaceId: z.string().trim().optional(),
 });
 
-/** Manually set GBP account/location IDs (for testing before full OAuth location picker). */
+/** Save GBP account/location (from picker or advanced manual entry). */
 export async function saveGoogleReviewsLocation(raw: unknown): Promise<GoogleReviewsActionResult> {
   const parsed = LocationInput.safeParse(raw);
   if (!parsed.success) {
@@ -69,6 +87,8 @@ export async function saveGoogleReviewsLocation(raw: unknown): Promise<GoogleRev
   const shopId = await getShopId();
   const denied = await gates.employeesManage(shopId);
   if (denied) return denied;
+  const planDenied = await assertGoogleReviewsPlan(shopId);
+  if (planDenied) return planDenied;
   const existing = await prisma.shopIntegration.findUnique({
     where: { shopId_vendorKey: { shopId, vendorKey: GOOGLE_REVIEWS_VENDOR_KEY } },
   });
@@ -79,6 +99,7 @@ export async function saveGoogleReviewsLocation(raw: unknown): Promise<GoogleRev
     googleBusinessAccountId: parsed.data.googleBusinessAccountId,
     googleLocationId: parsed.data.googleLocationId,
     googleLocationName: parsed.data.googleLocationName ?? prev.googleLocationName,
+    googlePlaceId: parsed.data.googlePlaceId ?? prev.googlePlaceId,
   };
 
   const ready = isGoogleReviewsConnected(config);
@@ -103,8 +124,73 @@ export async function saveGoogleReviewsLocation(raw: unknown): Promise<GoogleRev
     ok: true,
     message: ready
       ? "Location saved. Use Sync now to pull reviews from Google."
-      : "Location IDs saved — connect Google OAuth to enable live sync.",
+      : "Location saved — connect Google OAuth to enable live sync.",
   };
+}
+
+/** List GBP accounts for the signed-in Google user (location picker). */
+export async function listGoogleBusinessAccounts(): Promise<
+  { ok: true; accounts: GoogleBusinessAccount[] } | { ok: false; error: string }
+> {
+  const shopId = await getShopId();
+  const denied = await gates.employeesManage(shopId);
+  if (denied?.ok === false) return { ok: false, error: denied.error };
+  const planDenied = await assertGoogleReviewsPlan(shopId);
+  if (planDenied?.ok === false) return { ok: false, error: planDenied.error };
+
+  const integration = await getGoogleReviewsIntegration(shopId);
+  if (!integration.config.refreshToken) {
+    return { ok: false, error: "Sign in with Google first." };
+  }
+
+  try {
+    const tokens = await ensureAccessToken(integration.config);
+    const accounts = await getLiveGoogleReviewsProvider().listAccounts(tokens.accessToken);
+    await prisma.shopIntegration.update({
+      where: { shopId_vendorKey: { shopId, vendorKey: GOOGLE_REVIEWS_VENDOR_KEY } },
+      data: {
+        config: {
+          ...integration.config,
+          accessToken: tokens.accessToken,
+          refreshToken: tokens.refreshToken,
+          tokenExpiresAt: tokens.expiresAt.toISOString(),
+        } as Prisma.InputJsonValue,
+      },
+    });
+    return { ok: true, accounts };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : "Could not list accounts." };
+  }
+}
+
+/** List locations under a GBP account (location picker). */
+export async function listGoogleBusinessLocations(
+  accountId: string,
+): Promise<{ ok: true; locations: GoogleBusinessLocation[] } | { ok: false; error: string }> {
+  const trimmed = accountId.trim();
+  if (!trimmed) return { ok: false, error: "Account ID is required." };
+
+  const shopId = await getShopId();
+  const denied = await gates.employeesManage(shopId);
+  if (denied?.ok === false) return { ok: false, error: denied.error };
+  const planDenied = await assertGoogleReviewsPlan(shopId);
+  if (planDenied?.ok === false) return { ok: false, error: planDenied.error };
+
+  const integration = await getGoogleReviewsIntegration(shopId);
+  if (!integration.config.refreshToken) {
+    return { ok: false, error: "Sign in with Google first." };
+  }
+
+  try {
+    const tokens = await ensureAccessToken(integration.config);
+    const locations = await getLiveGoogleReviewsProvider().listLocations(
+      trimmed,
+      tokens.accessToken,
+    );
+    return { ok: true, locations };
+  } catch (err) {
+    return { ok: false, error: err instanceof Error ? err.message : "Could not list locations." };
+  }
 }
 
 /** Pull reviews from Google (live) or ensure mock seed (dev). */
@@ -112,54 +198,13 @@ export async function syncGoogleReviews(): Promise<GoogleReviewsActionResult> {
   const shopId = await getShopId();
   const denied = await gates.employeesManage(shopId);
   if (denied) return denied;
-  const integration = await getGoogleReviewsIntegration(shopId);
+  const planDenied = await assertGoogleReviewsPlan(shopId);
+  if (planDenied) return planDenied;
 
-  if (!integration.connected) {
-    await ensureMockGoogleReviews(shopId);
-    revalidateReviews();
-    return {
-      ok: true,
-      message: "Mock mode — demo reviews loaded. Connect Google Business to sync live reviews.",
-    };
-  }
-
-  const provider = getLiveGoogleReviewsProvider();
-  if (provider.mode !== "live") {
-    return { ok: false, error: "Google OAuth env vars not configured on this platform." };
-  }
-
-  try {
-    const tokens = await ensureAccessToken(integration.config);
-    const { reviews, averageRating, totalCount } = await provider.listReviews(
-      integration.config.googleBusinessAccountId!,
-      integration.config.googleLocationId!,
-      tokens.accessToken,
-    );
-
-    await upsertGoogleReviews(shopId, reviews);
-
-    const config = {
-      ...integration.config,
-      accessToken: tokens.accessToken,
-      refreshToken: tokens.refreshToken,
-      tokenExpiresAt: tokens.expiresAt.toISOString(),
-    };
-    await prisma.shopIntegration.update({
-      where: { shopId_vendorKey: { shopId, vendorKey: GOOGLE_REVIEWS_VENDOR_KEY } },
-      data: {
-        config: config as Prisma.InputJsonValue,
-        connectedAt: new Date(),
-      },
-    });
-
-    revalidateReviews();
-    const avg = averageRating != null ? ` · avg ${averageRating.toFixed(1)}★` : "";
-    const total = totalCount != null ? ` (${totalCount} on Google)` : "";
-    return { ok: true, message: `Synced ${reviews.length} reviews${avg}${total}.` };
-  } catch (err) {
-    const message = err instanceof Error ? err.message : "Sync failed.";
-    return { ok: false, error: message };
-  }
+  const result = await syncGoogleReviewsForShop(shopId);
+  revalidateReviews();
+  if (!result.ok) return { ok: false, error: result.error };
+  return { ok: true, message: result.message };
 }
 
 const ReplyInput = z.object({
@@ -388,6 +433,6 @@ export async function completeGoogleReviewsOAuth(
     ok: true,
     message: isGoogleReviewsConnected(config)
       ? "Google account connected."
-      : "Google authorized — add your Business Profile location IDs, then sync.",
+      : "Google authorized — pick your Business Profile location, then sync.",
   };
 }
