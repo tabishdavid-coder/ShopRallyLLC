@@ -278,7 +278,7 @@ export function FeaturesPageContent() {
           or reserve a founding seat for {MARKETING_LAUNCH.launchQuarter}. Switching from another
           platform? See{" "}
           <Link href="/compare" className="font-semibold text-brand-navy underline-offset-2 hover:underline">
-            ShopRally vs Tekmetric, AutoLeap, and Shopmonkey
+            ShopRally vs Tekmetric, Garage360, Torque360, and more
           </Link>
           .
         </p>

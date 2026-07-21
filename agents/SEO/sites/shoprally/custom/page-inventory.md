@@ -11,6 +11,10 @@ Model: on-page (02) · Last audit: 2026-07-21
 | `/compare/tekmetric-alternative` | Competitor | Tekmetric alternative… | ✅ | Present | ✅ |
 | `/compare/autoleap-alternative` | Competitor | AutoLeap alternative… | ✅ | Present | ✅ |
 | `/compare/shopmonkey-alternative` | Competitor | Shopmonkey alternative… | ✅ | Present | ✅ |
+| `/compare/garage360-alternative` | Competitor | Garage360 alternative… | ✅ | Present | ✅ |
+| `/compare/torque360-alternative` | Competitor | Torque360 alternative… | ✅ | Present | ✅ |
+| `/compare/shop-ware-alternative` | Competitor | Shop-Ware alternative… | ✅ | Present | ✅ |
+| `/compare/repairshopr-alternative` | Competitor | RepairShopr alternative… | ✅ | Present | ✅ |
 | `/demo` | Conversion / education | Product walkthrough… | ✅ | Present | ✅ |
 | `/launch` | Founding waitlist | Reserve a founding seat… | ✅ | Present | ✅ |
 | `/signup` | Waitlist alt | Reserve Ignition + AI Plus | ✅ | Present | ✅ |

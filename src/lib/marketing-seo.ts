@@ -43,6 +43,26 @@ export const MARKETING_SITEMAP_ROUTES = [
     changeFrequency: "monthly" as const,
     priority: 0.8,
   },
+  {
+    path: "/compare/garage360-alternative",
+    changeFrequency: "monthly" as const,
+    priority: 0.8,
+  },
+  {
+    path: "/compare/torque360-alternative",
+    changeFrequency: "monthly" as const,
+    priority: 0.8,
+  },
+  {
+    path: "/compare/shop-ware-alternative",
+    changeFrequency: "monthly" as const,
+    priority: 0.8,
+  },
+  {
+    path: "/compare/repairshopr-alternative",
+    changeFrequency: "monthly" as const,
+    priority: 0.8,
+  },
   { path: "/demo", changeFrequency: "monthly" as const, priority: 0.85 },
   { path: "/launch", changeFrequency: "weekly" as const, priority: 0.85 },
   { path: "/signup", changeFrequency: "monthly" as const, priority: 0.7 },

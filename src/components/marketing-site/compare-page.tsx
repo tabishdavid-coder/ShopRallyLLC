@@ -26,7 +26,8 @@ export function CompareHubContent() {
             ShopRally vs other shop management software
           </h1>
           <p className="mt-4 text-base leading-relaxed text-slate-600">
-            Honest category comparisons for shops evaluating a switch. {ignitionName} launches{" "}
+            Honest category comparisons vs Tekmetric, AutoLeap, Shopmonkey, Garage360, Torque360,
+            Shop-Ware, RepairShopr, and more. {ignitionName} launches{" "}
             {MARKETING_LAUNCH.launchQuarter} at {shoprallyStarterPricePairLabel()} with PartsTech and
             digital vehicle inspections included — Growth Engine and licensed MOTOR stay on the Pro
             roadmap, clearly labeled.

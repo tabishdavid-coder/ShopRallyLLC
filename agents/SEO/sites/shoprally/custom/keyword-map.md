@@ -7,9 +7,13 @@
 | auto repair shop management features | `/features` | H1 + module sections |
 | shop job board / PartsTech / DVI | `/features` | Feature cluster (not pricing) |
 | ShopRally vs competitors (hub) | `/compare` | Internal link hub |
-| Tekmetric alternative | `/compare/tekmetric-alternative` | Comparison — honest Ignition vs Pro roadmap |
-| AutoLeap alternative | `/compare/autoleap-alternative` | Comparison |
-| Shopmonkey alternative | `/compare/shopmonkey-alternative` | Comparison |
+| Tekmetric alternative | `/compare/tekmetric-alternative` | Premium peer |
+| AutoLeap alternative | `/compare/autoleap-alternative` | Premium peer |
+| Shopmonkey alternative | `/compare/shopmonkey-alternative` | Premium peer |
+| Garage360 alternative | `/compare/garage360-alternative` | Growing budget cloud |
+| Torque360 alternative | `/compare/torque360-alternative` | Growing budget cloud |
+| Shop-Ware alternative | `/compare/shop-ware-alternative` | Growing cloud / DVI focus |
+| RepairShopr alternative | `/compare/repairshopr-alternative` | Multi-trade → auto-native |
 | ShopRally demo / walkthrough | `/demo` | Soft conversion |
 | founding seat / Q4 2026 launch | `/launch` | Campaign URL |
 | ShopRally signup / reserve | `/signup` | Secondary conversion |

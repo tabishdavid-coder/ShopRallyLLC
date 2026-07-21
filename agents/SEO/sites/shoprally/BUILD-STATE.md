@@ -20,6 +20,7 @@ Last updated: 2026-07-21
 
 ## Next
 
-- [ ] Ship Compare nav + features/pricing cross-links (this pass)
-- [ ] **You:** GSC → Sitemaps → re-submit `https://getshoprally.com/sitemap.xml` (see `custom/GSC-SETUP.md`)
-- [ ] Passive: Pages Discovered → Indexed (incl. `/compare/*`)
+- [x] Ship Compare nav + features/pricing cross-links (`c2e1227`)
+- [x] GSC sitemap re-submitted (user confirmed 2026-07-21)
+- [ ] Deploy + GSC: Garage360, Torque360, Shop-Ware, RepairShopr compare pages
+- [ ] Passive / URL Inspection: Pages Discovered → Indexed (incl. new `/compare/*`)

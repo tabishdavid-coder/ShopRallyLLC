@@ -434,7 +434,7 @@ export function PricingPageContent() {
                 href="/compare"
                 className="font-semibold text-brand-navy underline-offset-2 hover:underline"
               >
-                ShopRally vs Tekmetric, AutoLeap, and Shopmonkey
+                ShopRally vs Tekmetric, Garage360, Torque360, and more
               </Link>
               .
             </p>
