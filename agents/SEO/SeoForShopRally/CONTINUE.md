@@ -69,8 +69,10 @@ docs/GROWTH-POSITIONING.md
 src/app/sitemap.ts
 src/app/robots.ts
 src/lib/marketing-seo.ts
+src/lib/marketing-analytics.ts
 src/lib/metadata.ts
 src/lib/brand.ts
+src/components/marketing-site/marketing-ga.tsx
 ```
 
 Other client codebases: only paths the user names; still keep SEO state under `sites/{slug}/`.

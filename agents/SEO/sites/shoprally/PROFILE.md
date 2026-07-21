@@ -10,8 +10,8 @@
 | **Primary market** | US auto repair shops (national) |
 | **CMS / codebase** | This repo — Next.js marketing App Router |
 | **Code path (if in this repo)** | `src/app/(marketing)/`, `src/components/marketing-site/`, `src/components/pricing/` |
-| **GSC property** | Not verified yet — setup: `custom/GSC-SETUP.md` |
-| **Analytics** | TBD — see `custom/measurement.md` |
+| **GSC property** | Domain `getshoprally.com` — verified; sitemap Success (8 pages) |
+| **Analytics** | GA4 `G-9S1J111T3K` (marketing + legal) |
 | **Contacts** | Platform owner |
 
 ## Positioning

@@ -15,7 +15,7 @@
 | 02 On-page | `done` | Per-page metadata + canonicals on money pages; home JSON-LD (Organization, SoftwareApplication, FAQ); H1 keyword align |
 | 03 Local | `skipped` | National SaaS; PROFILE `local_seo: false` |
 | 04 Content | `done` | Seed keyword map + page inventory; aligns with GROWTH-POSITIONING (no new thin pages this pass) |
-| 05 Measurement | `in_progress` | Checklist in `custom/measurement.md` — GSC/GA4 need owner verify in prod |
+| 05 Measurement | `done` | GSC verified + sitemap Success (8 URLs). GA4 `G-9S1J111T3K` on marketing/legal |
 
 ## Model roll-forward log
 
