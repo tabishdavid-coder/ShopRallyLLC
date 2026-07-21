@@ -70,9 +70,17 @@ If GSC shows **Couldn't fetch** for `sitemap.xml`, production middleware was red
 
 Update `measurement.md` and `DEPLOYMENT.md` module 05 when:
 
-- [ ] Property verified
-- [ ] Sitemap submitted
-- [ ] Property name recorded in `PROFILE.md` (e.g. `Domain: getshoprally.com`)
+- [x] Property verified
+- [x] Sitemap submitted (initial — 8 URLs)
+- [x] Property name recorded in `PROFILE.md` (e.g. `Domain: getshoprally.com`)
+
+### Re-submit after content expands (2026-07-21)
+
+Sitemap now includes `/compare` + three alternative pages (12 URLs total).
+
+1. GSC → **Sitemaps** → open `https://getshoprally.com/sitemap.xml` (or remove + re-add the same URL)
+2. Confirm Discovery count rises toward **12**
+3. Optional: **URL inspection** → request indexing for `/compare/tekmetric-alternative` (highest commercial intent)
 
 ---
 

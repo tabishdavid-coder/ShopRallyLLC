@@ -17,12 +17,14 @@ import { cn } from "@/lib/utils";
 const NAV = [
   { href: "/features", label: "Product" },
   { href: "/pricing", label: "Pricing" },
+  { href: "/compare", label: "Compare" },
   { href: "/demo", label: "Demo" },
 ] as const;
 
 function isNavActive(pathname: string, href: string) {
   if (href === "/features") return pathname === "/features" || pathname.startsWith("/features/");
   if (href === "/pricing") return pathname === "/pricing";
+  if (href === "/compare") return pathname === "/compare" || pathname.startsWith("/compare/");
   if (href === "/demo") return pathname === "/demo";
   return pathname === href;
 }

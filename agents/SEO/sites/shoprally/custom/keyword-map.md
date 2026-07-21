@@ -21,7 +21,8 @@ Avoid cannibalization: keep “pricing” language on `/pricing`; feature laundr
 ## Internal links (2026-07-21)
 
 - Home → `/features`, `/pricing`, `/demo`, `/compare`, Tekmetric alternative
-- Features → `/pricing`, `/demo` or walkthrough, founding seat, `/`
-- Pricing → Website & SEO tab cross-link (existing)
+- Header nav → Compare (`/compare`)
+- Features → `/pricing`, walkthrough, founding seat, `/compare`
+- Pricing FAQ footer → `/compare`
 - Footer Product → Compare alternatives
 - Compare pages → features, pricing, demo, hub

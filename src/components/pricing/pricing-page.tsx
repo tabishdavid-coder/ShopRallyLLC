@@ -428,6 +428,16 @@ export function PricingPageContent() {
                 </li>
               ))}
             </ul>
+            <p className="mt-8 text-center text-sm text-slate-500">
+              Comparing platforms?{" "}
+              <Link
+                href="/compare"
+                className="font-semibold text-brand-navy underline-offset-2 hover:underline"
+              >
+                ShopRally vs Tekmetric, AutoLeap, and Shopmonkey
+              </Link>
+              .
+            </p>
           </section>
 
           {/* CTA */}

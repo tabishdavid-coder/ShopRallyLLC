@@ -275,7 +275,12 @@ export function FeaturesPageContent() {
         </h2>
         <p className="mt-3 text-slate-600">
           Review {ignitionName} shop management software pricing, watch how the bay workflow runs,
-          or reserve a founding seat for {MARKETING_LAUNCH.launchQuarter}.
+          or reserve a founding seat for {MARKETING_LAUNCH.launchQuarter}. Switching from another
+          platform? See{" "}
+          <Link href="/compare" className="font-semibold text-brand-navy underline-offset-2 hover:underline">
+            ShopRally vs Tekmetric, AutoLeap, and Shopmonkey
+          </Link>
+          .
         </p>
         <div className="mt-6 flex flex-col items-center justify-center gap-3 sm:flex-row">
           <Button className="bg-brand-red hover:bg-brand-red/90" asChild>
@@ -291,6 +296,10 @@ export function FeaturesPageContent() {
         <p className="mt-6 text-sm text-slate-500">
           <Link href="/" className="font-medium text-brand-navy underline-offset-2 hover:underline">
             Back to ShopRally home
+          </Link>
+          {" · "}
+          <Link href="/compare" className="font-medium text-brand-navy underline-offset-2 hover:underline">
+            Compare alternatives
           </Link>
         </p>
       </section>
