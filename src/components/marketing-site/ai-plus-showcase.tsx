@@ -7,7 +7,7 @@ import {
   MARKETING_LAUNCH,
   marketingPrimaryHref,
 } from "@/lib/marketing-launch";
-import { aiPlusPriceLabel, shoprallyStarterMonthly } from "@/lib/plans";
+import { aiPlusPriceLabel } from "@/lib/plans";
 import { cn } from "@/lib/utils";
 
 type AiPlusShowcaseProps = {
@@ -22,7 +22,6 @@ type AiPlusShowcaseProps = {
  */
 export function AiPlusShowcase({ className, compact }: AiPlusShowcaseProps) {
   const preLaunch = MARKETING_LAUNCH.preLaunch;
-  const ignitionMo = shoprallyStarterMonthly(true);
 
   return (
     <section
@@ -44,7 +43,7 @@ export function AiPlusShowcase({ className, compact }: AiPlusShowcaseProps) {
           <p className="mt-4 text-lg leading-relaxed text-slate-600">{AI_PLUS_MARKETING.subhead}</p>
           <p className="mt-2 text-sm font-semibold text-brand-navy">{AI_PLUS_MARKETING.priceNote}</p>
           <p className="mt-1 text-xs text-slate-500">
-            {AI_PLUS_MARKETING.bundleHint(ignitionMo)} · {AI_PLUS_MARKETING.easeLine}
+            {AI_PLUS_MARKETING.bundleHint()} · {AI_PLUS_MARKETING.easeLine}
           </p>
         </div>
 
