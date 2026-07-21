@@ -1,10 +1,17 @@
 import type { Metadata } from "next";
 
-import { BRAND, BRAND_ASSETS } from "@/lib/brand";
+import { BRAND, BRAND_ASSETS, BRAND_OG_IMAGE_SIZE } from "@/lib/brand";
 import { getAppUrl } from "@/lib/app-url";
 
 const defaultDescription =
   "Cloud shop management for independent repair shops — CRM, job board, estimates, payments, and Growth Engine marketing.";
+
+const ogShareImage = {
+  url: BRAND_ASSETS.ogImage,
+  width: BRAND_OG_IMAGE_SIZE.width,
+  height: BRAND_OG_IMAGE_SIZE.height,
+  alt: `${BRAND.name} — Auto repair shop management software`,
+} as const;
 
 /** Shared Next.js metadata for ShopRally (root + marketing pages). */
 export function shoprallyMetadata(overrides?: Metadata): Metadata {
@@ -37,13 +44,13 @@ export function shoprallyMetadata(overrides?: Metadata): Metadata {
       siteName: BRAND.name,
       title: `${BRAND.name} — Auto Repair Shop Management Software`,
       description: BRAND.tagline,
-      images: [{ url: "/brand/app-icon-512.png", width: 512, height: 512, alt: BRAND.name }],
+      images: [ogShareImage],
     },
     twitter: {
       card: "summary_large_image",
       title: BRAND.name,
       description: BRAND.tagline,
-      images: ["/brand/app-icon-512.png"],
+      images: [ogShareImage.url],
     },
     ...overrides,
   };

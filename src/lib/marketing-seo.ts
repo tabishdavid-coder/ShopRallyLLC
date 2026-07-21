@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 
-import { BRAND, BRAND_ASSETS } from "@/lib/brand";
+import { BRAND, BRAND_ASSETS, BRAND_OG_IMAGE_SIZE } from "@/lib/brand";
 import { getAppUrl } from "@/lib/app-url";
 import { HOME_FAQ } from "@/lib/marketing-launch";
 
@@ -34,7 +34,12 @@ export const MARKETING_SITEMAP_ROUTES = [
   { path: "/legal/terms", changeFrequency: "yearly" as const, priority: 0.3 },
 ] as const;
 
-const DEFAULT_OG_IMAGE = "/brand/app-icon-512.png";
+const DEFAULT_OG_IMAGE = {
+  url: BRAND_ASSETS.ogImage,
+  width: BRAND_OG_IMAGE_SIZE.width,
+  height: BRAND_OG_IMAGE_SIZE.height,
+  alt: `${BRAND.name} — Auto repair shop management software`,
+} as const;
 
 export type MarketingPageSeoInput = {
   path: string;
@@ -68,13 +73,13 @@ export function marketingPageMetadata(input: MarketingPageSeoInput): Metadata {
       siteName: BRAND.name,
       title: input.absoluteTitle ? input.title : `${input.title} — ${BRAND.name}`,
       description: input.description,
-      images: [{ url: DEFAULT_OG_IMAGE, width: 512, height: 512, alt: BRAND.name }],
+      images: [DEFAULT_OG_IMAGE],
     },
     twitter: {
       card: "summary_large_image",
       title: input.absoluteTitle ? input.title : `${input.title} — ${BRAND.name}`,
       description: input.description,
-      images: [DEFAULT_OG_IMAGE],
+      images: [DEFAULT_OG_IMAGE.url],
     },
   };
 }

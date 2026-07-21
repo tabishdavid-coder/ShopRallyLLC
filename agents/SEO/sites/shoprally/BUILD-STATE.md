@@ -18,6 +18,6 @@ Last updated: 2026-07-20
 
 ## Backlog
 
-- [ ] Deploy content SEO commit to production (when approved)
-- [ ] Optional: richer OG share image (1200×630) beyond app icon
+- [x] Deploy content SEO commit to production (`8ca3ed3`)
+- [x] Wire OG/Twitter share to `/opengraph-image` (1200×630) instead of app-icon-512
 - [ ] Optional: legal page unique meta beyond layout default
