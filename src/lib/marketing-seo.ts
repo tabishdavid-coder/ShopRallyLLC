@@ -27,6 +27,22 @@ export const MARKETING_SITEMAP_ROUTES = [
   { path: "/", changeFrequency: "weekly" as const, priority: 1 },
   { path: "/pricing", changeFrequency: "weekly" as const, priority: 0.95 },
   { path: "/features", changeFrequency: "weekly" as const, priority: 0.9 },
+  { path: "/compare", changeFrequency: "monthly" as const, priority: 0.85 },
+  {
+    path: "/compare/tekmetric-alternative",
+    changeFrequency: "monthly" as const,
+    priority: 0.8,
+  },
+  {
+    path: "/compare/autoleap-alternative",
+    changeFrequency: "monthly" as const,
+    priority: 0.8,
+  },
+  {
+    path: "/compare/shopmonkey-alternative",
+    changeFrequency: "monthly" as const,
+    priority: 0.8,
+  },
   { path: "/demo", changeFrequency: "monthly" as const, priority: 0.85 },
   { path: "/launch", changeFrequency: "weekly" as const, priority: 0.85 },
   { path: "/signup", changeFrequency: "monthly" as const, priority: 0.7 },

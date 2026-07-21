@@ -16,6 +16,7 @@ const FOOTER_LINKS = {
   Product: [
     { href: "/features", label: "What's included" },
     { href: "/pricing", label: "Ignition pricing" },
+    { href: "/compare", label: "Compare alternatives" },
     { href: marketingPrimaryHref(preLaunch), label: marketingPrimaryCta({ preLaunch }) },
     { href: marketingSecondaryHref(preLaunch), label: marketingSecondaryCta(preLaunch) },
   ],
@@ -39,8 +40,8 @@ export function MarketingFooter() {
             <ShopRallyLogo href="/" variant="onDark" />
             <p className="mt-4 max-w-xs text-sm leading-relaxed text-white/70">
               {preLaunch
-                ? "Cloud shop CRM for independent repair shops. Ignition launches Q4 2026 with PartsTech included — founding seats open now. Pro and Elite come later."
-                : "Cloud shop CRM for independent repair shops — Ignition runs the bay with PartsTech included. Pro and Elite come later."}
+                ? "Cloud shop CRM for independent repair shops. Ignition launches Q4 2026 with PartsTech included — founding seats open now."
+                : "Cloud shop CRM for independent repair shops — Ignition runs the bay with PartsTech included."}
             </p>
           </div>
 

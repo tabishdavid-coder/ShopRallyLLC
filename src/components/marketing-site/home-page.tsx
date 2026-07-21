@@ -26,6 +26,8 @@ import { OutcomeMetricsStrip } from "@/components/marketing-site/outcome-metrics
 import { Button } from "@/components/ui/button";
 import {
   CATEGORY_POSITIONING,
+  HOME_FAQ,
+  HOME_FAQ_RELATED_LINKS,
   HOW_SHOPRALLY_WORKS,
   MARKETING_LAUNCH,
   marketingPrimaryCta,
@@ -249,7 +251,19 @@ export function HomePageContent() {
               <p className="mt-4 leading-relaxed text-slate-600">
                 ShopRally is all-in-one auto repair shop management software — customers, vehicles,
                 repair orders, PartsTech, digital vehicle inspections, and payment tracking stay
-                connected. No re-entry between systems.
+                connected. No re-entry between systems. Explore{" "}
+                <Link href="/features" className="font-semibold text-brand-navy underline-offset-2 hover:underline">
+                  features
+                </Link>
+                ,{" "}
+                <Link href="/pricing" className="font-semibold text-brand-navy underline-offset-2 hover:underline">
+                  pricing
+                </Link>
+                , or a{" "}
+                <Link href="/demo" className="font-semibold text-brand-navy underline-offset-2 hover:underline">
+                  3-minute walkthrough
+                </Link>
+                .
               </p>
               <ul className="mt-6 space-y-3">
                 {[
@@ -375,6 +389,40 @@ export function HomePageContent() {
               );
             })}
           </div>
+        </div>
+      </section>
+
+      <section id="faq" className="scroll-mt-20 border-t border-brand-navy/10 bg-white">
+        <div className="mx-auto max-w-3xl px-4 py-16 sm:px-6 sm:py-20">
+          <h2 className="text-center text-2xl font-bold text-brand-navy sm:text-3xl">
+            Auto repair shop management software — FAQ
+          </h2>
+          <dl className="mt-10 space-y-6">
+            {HOME_FAQ.map((item) => (
+              <div
+                key={item.q}
+                className="rounded-xl border border-brand-navy/10 bg-brand-light/5 px-5 py-4"
+              >
+                <dt className="text-sm font-bold text-brand-navy">{item.q}</dt>
+                <dd className="mt-2 text-sm leading-relaxed text-slate-600">{item.a}</dd>
+              </div>
+            ))}
+          </dl>
+          <p className="mt-8 text-center text-sm text-slate-500">
+            Explore{" "}
+            {HOME_FAQ_RELATED_LINKS.map((link, i) => (
+              <span key={link.href}>
+                {i > 0 ? (i === HOME_FAQ_RELATED_LINKS.length - 1 ? ", or " : ", ") : null}
+                <Link
+                  href={link.href}
+                  className="font-semibold text-brand-navy underline-offset-2 hover:underline"
+                >
+                  {link.label}
+                </Link>
+              </span>
+            ))}
+            .
+          </p>
         </div>
       </section>
 

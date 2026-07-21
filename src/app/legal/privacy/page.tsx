@@ -3,9 +3,15 @@ import Link from "next/link";
 
 import { LegalDocumentView } from "@/components/legal/legal-document-view";
 import { AgreementType } from "@/generated/prisma";
+import { marketingPageMetadata } from "@/lib/marketing-seo";
 import { getCurrentAgreementDocument } from "@/server/legal";
 
-export const metadata = { title: "Privacy Policy — ShopRally" };
+export const metadata = marketingPageMetadata({
+  path: "/legal/privacy",
+  title: "Privacy Policy",
+  description:
+    "ShopRally Privacy Policy — how we collect, use, and protect personal information for shop owners, staff, and customers using our auto repair shop management software.",
+});
 
 export default async function LegalPrivacyPage() {
   const doc = await getCurrentAgreementDocument(AgreementType.PRIVACY_POLICY);

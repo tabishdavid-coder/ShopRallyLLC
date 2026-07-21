@@ -338,12 +338,21 @@ export const HOME_FAQ = [
   },
   {
     q: "Is PartsTech included with shop management software pricing?",
-    a: `Yes — PartsTech catalog & punchout ships with Ignition (${shoprallyStarterPricePairLabel()}). See the pricing page for the full Ignition list and the optional AI Plus add-on.`,
+    a: `Yes — PartsTech catalog & punchout ships with Ignition (${shoprallyStarterPricePairLabel()}). See Ignition pricing for the full list and the optional AI Plus add-on.`,
   },
   {
     q: "Can I switch from Tekmetric, AutoLeap, or Mitchell?",
-    a: "Yes — tell us what you use today on a walkthrough or when we onboard. We'll help you plan the cutover. We won't invent one-click imports that aren't built yet; founding shops get priority hands-on help, and formal white-glove migration packages are on the later roadmap.",
+    a: "Yes — tell us what you use today on a walkthrough or when we onboard. We'll help you plan the cutover. We won't invent one-click imports that aren't built yet; founding shops get priority hands-on help, and formal white-glove migration packages are on the later roadmap. Compare Tekmetric, AutoLeap, and Shopmonkey alternatives on our compare pages.",
   },
+] as const;
+
+/** Extra in-page links under the home FAQ (JSON-LD still uses HOME_FAQ text only). */
+export const HOME_FAQ_RELATED_LINKS = [
+  { href: "/features", label: "Ignition features" },
+  { href: "/pricing", label: "Shop management software pricing" },
+  { href: "/demo", label: "Product walkthrough" },
+  { href: "/compare", label: "Compare alternatives" },
+  { href: "/compare/tekmetric-alternative", label: "Tekmetric alternative" },
 ] as const;
 
 /** Premium positioning — between legacy desktop CRM and budget add-on stacks. */
