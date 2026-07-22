@@ -10,6 +10,17 @@
 | **Build state** | `agents/ShopRallyCRM/BUILD-STATE.md` |
 | **Cursor skill** | `.cursor/skills/shoprally-crm/SKILL.md` |
 
+## Local CRM vs Vercel marketing
+
+| Surface | What you get |
+|---------|----------------|
+| **Local** `npm run dev` (:3031) | **Full CRM** + marketing routes |
+| **Vercel Production** (getShopRally.com) | **Marketing only** — CRM blocked |
+
+Production uses `MARKETING_ONLY` / Vercel fail-safe. Details: [`docs/MARKETING-ONLY-DEPLOY.md`](./MARKETING-ONLY-DEPLOY.md).
+
+Do not expect `/job-board` or `/customers` to load the app shell on getShopRally.com until CRM is intentionally unlocked (`MARKETING_ONLY=false`).
+
 ## Key routes (3031)
 
 - **Dashboard (default):** `/dashboard/snapshot`
