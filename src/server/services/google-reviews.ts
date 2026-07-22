@@ -104,7 +104,9 @@ class LiveGoogleReviewsProvider implements GoogleReviewsProvider {
       response_type: "code",
       scope: GOOGLE_REVIEWS_SCOPE,
       access_type: "offline",
-      prompt: "consent",
+      // Force account picker + consent so Testing-mode shops aren't auto-denied
+      // on a non–test-user Google session already in the browser.
+      prompt: "select_account consent",
       state,
     });
     return { ok: true as const, url: `${OAUTH_AUTH_URL}?${params.toString()}` };

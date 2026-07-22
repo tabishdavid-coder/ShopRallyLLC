@@ -117,14 +117,13 @@ export const GROWTH_PRODUCTS: Record<
   },
 };
 
-/** Sub-nav tabs (excludes overview — layout handles the hub). */
+/** Sub-nav tabs (excludes overview — layout handles the hub). Reviews is Shop menu, not Growth. */
 export const GROWTH_ENGINE_TABS = (
   [
     "outreach",
     "automations",
     "booking",
     "bayCare",
-    "reputationPilot",
     "shopSite",
     "seoAutopilot",
     "leadSources",
@@ -135,14 +134,13 @@ export const GROWTH_ENGINE_TABS = (
   href: GROWTH_PRODUCTS[id].href,
 }));
 
-/** Overview hub cards (includes premium styling for Autopilot). */
+/** Overview hub cards (includes premium styling for Autopilot). Reviews is Shop menu, not Growth. */
 export const GROWTH_ENGINE_HUB_CARDS = (
   [
     "outreach",
     "automations",
     "booking",
     "bayCare",
-    "reputationPilot",
     "shopSite",
     "seoAutopilot",
     "leadSources",
@@ -168,8 +166,8 @@ export const GROWTH_ENGINE_BREADCRUMBS = {
 
 /** Billing / plan comparison feature labels. */
 export const GROWTH_ENGINE_PLAN_LABELS = {
-  /** Pro Growth Engine scope — Care Plans stay Elite-only (not Core/Pro). */
-  core: "Growth Engine (Outreach, automations, booking, reviews)",
+  /** Pro Growth Engine scope — Care Plans Elite-only; Google Reviews is Core Shop menu. */
+  core: "Growth Engine (Outreach, automations, booking)",
   shopSite: "ShopSite — shop microsite & custom domain",
   seoAutopilot: "Growth Engine SEO — managed local SEO",
   carePlans: "Care Plans — member subscriptions (Elite)",

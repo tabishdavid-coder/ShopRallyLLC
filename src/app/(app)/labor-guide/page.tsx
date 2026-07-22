@@ -3,8 +3,9 @@ import { LaborCatalog } from "@/components/labor-guide/labor-catalog";
 
 export const metadata = { title: "Labor Book — ShopRally" };
 
-// The catalog reflects live DB state and has no per-request inputs (the table is
-// global, not shop-scoped), so opt out of static rendering — mirrors /print.
+// Labor Library admin surface — platform-shared reference corpus with per-shop
+// overlay (favorites/custom rows), not a full per-tenant dump of the global corpus.
+// See `getLaborCatalog` in `src/server/labor-catalog.ts`.
 export const dynamic = "force-dynamic";
 
 export default async function LaborGuidePage() {

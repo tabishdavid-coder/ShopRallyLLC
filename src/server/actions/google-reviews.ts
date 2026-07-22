@@ -46,6 +46,15 @@ async function assertGoogleReviewsPlan(shopId: string): Promise<GoogleReviewsAct
   return null;
 }
 
+/** Connect/setup: shop admin OR vendor manager (not Growth-only). */
+async function assertGoogleReviewsManage(shopId: string): Promise<GoogleReviewsActionResult | null> {
+  const denied = await gates.vendorsManage(shopId);
+  if (!denied) return null;
+  const adminDenied = await gates.employeesManage(shopId);
+  if (!adminDenied) return null;
+  return adminDenied;
+}
+
 function revalidateReviews() {
   revalidatePath("/marketing/reviews");
   revalidatePath("/marketing/reviews/settings");
@@ -56,7 +65,7 @@ function revalidateReviews() {
 /** Start Google OAuth — redirects shop owner to consent screen. */
 export async function connectGoogleReviews(): Promise<GoogleReviewsActionResult> {
   const shopId = await getShopId();
-  const denied = await gates.employeesManage(shopId);
+  const denied = await assertGoogleReviewsManage(shopId);
   if (denied) return denied;
   const planDenied = await assertGoogleReviewsPlan(shopId);
   if (planDenied) return planDenied;
@@ -85,7 +94,7 @@ export async function saveGoogleReviewsLocation(raw: unknown): Promise<GoogleRev
   }
 
   const shopId = await getShopId();
-  const denied = await gates.employeesManage(shopId);
+  const denied = await assertGoogleReviewsManage(shopId);
   if (denied) return denied;
   const planDenied = await assertGoogleReviewsPlan(shopId);
   if (planDenied) return planDenied;
@@ -133,7 +142,7 @@ export async function listGoogleBusinessAccounts(): Promise<
   { ok: true; accounts: GoogleBusinessAccount[] } | { ok: false; error: string }
 > {
   const shopId = await getShopId();
-  const denied = await gates.employeesManage(shopId);
+  const denied = await assertGoogleReviewsManage(shopId);
   if (denied?.ok === false) return { ok: false, error: denied.error };
   const planDenied = await assertGoogleReviewsPlan(shopId);
   if (planDenied?.ok === false) return { ok: false, error: planDenied.error };
@@ -171,7 +180,7 @@ export async function listGoogleBusinessLocations(
   if (!trimmed) return { ok: false, error: "Account ID is required." };
 
   const shopId = await getShopId();
-  const denied = await gates.employeesManage(shopId);
+  const denied = await assertGoogleReviewsManage(shopId);
   if (denied?.ok === false) return { ok: false, error: denied.error };
   const planDenied = await assertGoogleReviewsPlan(shopId);
   if (planDenied?.ok === false) return { ok: false, error: planDenied.error };
@@ -196,7 +205,7 @@ export async function listGoogleBusinessLocations(
 /** Pull reviews from Google (live) or ensure mock seed (dev). */
 export async function syncGoogleReviews(): Promise<GoogleReviewsActionResult> {
   const shopId = await getShopId();
-  const denied = await gates.employeesManage(shopId);
+  const denied = await assertGoogleReviewsManage(shopId);
   if (denied) return denied;
   const planDenied = await assertGoogleReviewsPlan(shopId);
   if (planDenied) return planDenied;
@@ -384,7 +393,7 @@ export async function draftGoogleReviewReply(raw: unknown): Promise<GoogleReview
 /** Disconnect Google Reviews for the current shop. */
 export async function disconnectGoogleReviews(): Promise<GoogleReviewsActionResult> {
   const shopId = await getShopId();
-  const denied = await gates.employeesManage(shopId);
+  const denied = await assertGoogleReviewsManage(shopId);
   if (denied) return denied;
   await prisma.shopIntegration.deleteMany({
     where: { shopId, vendorKey: GOOGLE_REVIEWS_VENDOR_KEY },

@@ -98,6 +98,14 @@ async function filterNavHrefsByPlan(shopId: string, hrefs: string[]): Promise<st
 }
 
 async function planAllowsPath(shopId: string, pathname: string): Promise<boolean> {
+  // Google Reviews vendor setup is Core+ — do not inherit /vendors → PartsTech gate.
+  if (
+    pathname === "/vendors/integrations/google-reviews" ||
+    pathname.startsWith("/vendors/integrations/google-reviews/")
+  ) {
+    return canUseFeature(shopId, "google_reviews");
+  }
+
   const sorted = [...PLAN_ROUTE_GATES].sort((a, b) => b.prefix.length - a.prefix.length);
   const rule = sorted.find(
     (r) => pathname === r.prefix || pathname.startsWith(`${r.prefix}/`),

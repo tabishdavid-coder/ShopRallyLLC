@@ -25,6 +25,7 @@
     "db:seed-snapshot-demo": "tsx scripts/seed-daily-snapshot-demo.ts",
     "db:seed-dashboard-demo": "tsx scripts/seed-dashboard-demo.ts",
     "db:seed-macuto-appointments": "tsx scripts/seed-macuto-appointments.ts",
+    "db:seed-inventory": "tsx scripts/seed-inventory-demo.ts",
     "db:seed-qa-legal": "node --env-file=.env scripts/seed-qa-legal-acceptances.mjs",
     "db:build-labor": "tsx --tsconfig ./tsconfig.scripts.json scripts/build-labor-dataset.ts",
     "db:build-labor-ny": "tsx --tsconfig ./tsconfig.scripts.json scripts/build-ny-labor-library.ts",

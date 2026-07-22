@@ -1,7 +1,9 @@
 import { getInspections } from "@/server/inspections";
 import { getShopId } from "@/lib/shop";
 import { InspectionsTable } from "@/components/inspections/inspections-table";
+import { InspectionTemplatesAdmin } from "@/components/inspections/inspection-templates-admin";
 import { InspectionStatus } from "@/generated/prisma";
+import { listInspectionTemplatesForPicker } from "@/server/inspection-templates";
 
 export default async function InspectionsPage({
   searchParams,
@@ -22,26 +24,32 @@ export default async function InspectionsPage({
   const status =
     statusRaw === "ALL" || !statusRaw
       ? "ALL"
-      : (Object.values(InspectionStatus).includes(statusRaw as InspectionStatus)
-          ? (statusRaw as InspectionStatus)
-          : "ALL");
+      : Object.values(InspectionStatus).includes(statusRaw as InspectionStatus)
+        ? (statusRaw as InspectionStatus)
+        : "ALL";
 
-  const { rows, total } = await getInspections({
-    shopId,
-    q,
-    page,
-    perPage,
-    status,
-  });
+  const [{ rows, total }, templates] = await Promise.all([
+    getInspections({
+      shopId,
+      q,
+      page,
+      perPage,
+      status,
+    }),
+    listInspectionTemplatesForPicker(shopId),
+  ]);
 
   return (
     <div className="space-y-4 workspace-surface">
       <div>
         <h1 className="text-lg font-semibold">Inspections</h1>
         <p className="text-sm text-muted-foreground">
-          Digital vehicle inspections across all repair orders — filter by status, RO, or customer.
+          Manage inspection templates and review digital vehicle inspections across repair orders.
         </p>
       </div>
+
+      <InspectionTemplatesAdmin templates={templates} />
+
       <InspectionsTable
         rows={rows}
         total={total}

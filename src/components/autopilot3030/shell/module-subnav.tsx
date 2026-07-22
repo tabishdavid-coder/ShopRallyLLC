@@ -3,13 +3,13 @@
 import { usePathname } from "next/navigation";
 
 import {
-  AP_ADMIN_MODULE_NAV_ITEMS,
   AP_CUSTOMERS_MODULE_NAV_ITEMS,
   AP_DASHBOARD_MODULE_NAV_ITEMS,
   AP_GROWTH_NAV_ITEMS,
   AP_MARKUPS_NAV_ITEMS,
   AP_PAYMENTS_NAV_ITEMS,
   AP_SEO_AUTOPILOT_NAV_ITEMS,
+  apAdminNavItemsForPlan,
   apCatalogNavItemsForPlan,
   apModuleSubnavKind,
 } from "@/lib/autopilot3030/nav";
@@ -96,7 +96,13 @@ export function ApModuleSubnav() {
         <ApSubnavPills items={AP_CUSTOMERS_MODULE_NAV_ITEMS} ariaLabel="Customers" pathname={pathname} />
       );
     case "admin":
-      return <ApSubnavPills items={AP_ADMIN_MODULE_NAV_ITEMS} ariaLabel="Admin" pathname={pathname} />;
+      return (
+        <ApSubnavPills
+          items={apAdminNavItemsForPlan(planFeatures)}
+          ariaLabel="Admin"
+          pathname={pathname}
+        />
+      );
     case "settings":
       /* Settings sub-tabs live in settings/layout.tsx (Tekmetric horizontal strip). */
       return null;

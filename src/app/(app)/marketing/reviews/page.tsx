@@ -1,4 +1,3 @@
-import { GROWTH_PRODUCTS, growthEnginePageTitle } from "@/lib/growth-engine-brand";
 import { GoogleReviewsPageClient } from "@/components/marketing/google-reviews/google-reviews-page-client";
 import {
   ensureMockGoogleReviews,
@@ -12,7 +11,7 @@ import { canUseReleasedFeature } from "@/lib/subscription";
 import { getReviewReplyAiSettings } from "@/server/actions/google-reviews";
 
 export const metadata = {
-  title: growthEnginePageTitle(GROWTH_PRODUCTS.reputationPilot.label),
+  title: "Google Reviews — ShopRally",
 };
 export const dynamic = "force-dynamic";
 

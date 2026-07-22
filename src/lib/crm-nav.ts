@@ -47,12 +47,13 @@ export type CrmNavSection = {
   items: CrmNavLink[];
 };
 
-const GROWTH_NAV_ICONS: Record<Exclude<GrowthProductId, "overview">, LucideIcon> = {
+type GrowthNavProductId = Exclude<GrowthProductId, "overview" | "reputationPilot">;
+
+const GROWTH_NAV_ICONS: Record<GrowthNavProductId, LucideIcon> = {
   outreach: Megaphone,
   automations: Zap,
   booking: CalendarCheck,
   bayCare: Shield,
-  reputationPilot: Star,
   shopSite: Globe,
   seoAutopilot: Radar,
   leadSources: Target,
@@ -63,11 +64,10 @@ const GROWTH_NAV_PRODUCT_IDS = [
   "automations",
   "booking",
   "bayCare",
-  "reputationPilot",
   "shopSite",
   "seoAutopilot",
   "leadSources",
-] as const satisfies readonly Exclude<GrowthProductId, "overview">[];
+] as const satisfies readonly GrowthNavProductId[];
 
 /** Secondary nav items for Growth Engine (/marketing/*). */
 export const CRM_GROWTH_NAV_ITEMS: CrmNavLink[] = [
@@ -122,6 +122,12 @@ export const CRM_DASHBOARD_NAV_ITEMS: CrmNavLink[] = [
     href: "/messages",
     icon: MessageSquare,
     description: "Customer SMS inbox",
+  },
+  {
+    title: "Google Reviews",
+    href: "/marketing/reviews",
+    icon: Star,
+    description: "Sync and reply to Google Business Profile reviews",
   },
   {
     title: "Reports",
@@ -197,14 +203,8 @@ export const CRM_NAV_SECTIONS: CrmNavSection[] = [
     id: "catalog",
     label: "Catalog",
     icon: Package,
-    items: [
-      { title: "Inventory", href: "/inventory", icon: Package },
-      { title: "Canned Jobs", href: "/canned-jobs", icon: Star },
-      { title: "Labor Book", href: "/labor-guide", icon: Wrench },
-      { title: "Inspections", href: "/inspections", icon: ClipboardCheck },
-      { title: "Vendors", href: "/vendors/integrations", icon: Truck },
-      { title: "Orders", href: "/orders", icon: Receipt, stub: true },
-    ],
+    href: "/inventory",
+    items: [{ title: "Inventory", href: "/inventory", icon: Package }],
   },
   {
     id: "growth",
@@ -219,6 +219,10 @@ export const CRM_NAV_SECTIONS: CrmNavSection[] = [
     icon: Settings,
     items: [
       { title: "Employees", href: "/employees", icon: IdCard },
+      { title: "Vendor Connect", href: "/vendors/integrations", icon: Truck },
+      { title: "Service Templates", href: "/canned-jobs", icon: Star },
+      { title: "Labor Library", href: "/labor-guide", icon: Wrench },
+      { title: "Inspection Templates", href: "/inspections", icon: ClipboardCheck },
       { title: "Shop Settings", href: "/settings", icon: Settings },
       { title: "Billing", href: "/settings/subscription", icon: FileText },
       { title: "Help & Support", href: "/support", icon: LifeBuoy },

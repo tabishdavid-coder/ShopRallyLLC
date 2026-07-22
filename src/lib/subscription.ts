@@ -42,6 +42,8 @@ export type SubscriptionFeature =
   | "shop_site"
   | "website_seo"
   | "marketing_campaigns"
+  /** Google Reviews inbox + sync — Core+ (not Growth Engine). */
+  | "google_reviews"
   | "maintenance_programs"
   | "ai_review_replies"
   | "ai_campaign_drafting"
@@ -73,6 +75,7 @@ const FEATURE_MAP: Record<SubscriptionFeature, PlanFeature | null> = {
   shop_site: "shopSite",
   website_seo: "websiteSeo",
   marketing_campaigns: "marketingCampaigns",
+  google_reviews: "googleReviews",
   maintenance_programs: "maintenancePrograms",
   ai_review_replies: "aiReviewReplies",
   ai_campaign_drafting: "aiCampaignDrafting",

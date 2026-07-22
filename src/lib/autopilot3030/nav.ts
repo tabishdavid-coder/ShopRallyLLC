@@ -36,7 +36,11 @@ import { AP_TERMS } from "@/lib/autopilot3030/terminology";
 import { GROWTH_PRODUCTS, type GrowthProductId } from "@/lib/growth-engine-brand";
 import { SEO_AUTOPILOT_TABS } from "@/lib/seo-autopilot-nav";
 import type { PlanFeatureSet } from "@/lib/plans";
-import { isApSettingsLinkVisible, isCatalogNavHrefVisible } from "@/lib/settings-plan-gates";
+import {
+  isAdminNavHrefVisible,
+  isApSettingsLinkVisible,
+  isCatalogNavHrefVisible,
+} from "@/lib/settings-plan-gates";
 
 export type ApNavLink = {
   title: string;
@@ -62,29 +66,30 @@ export type ApNavSection = {
   items: ApNavLink[];
 };
 
-const GROWTH_NAV_ICONS: Record<Exclude<GrowthProductId, "overview">, LucideIcon> = {
+type GrowthNavProductId = Exclude<GrowthProductId, "overview" | "reputationPilot">;
+
+const GROWTH_NAV_ICONS: Record<GrowthNavProductId, LucideIcon> = {
   outreach: Megaphone,
   automations: Zap,
   booking: CalendarCheck,
   bayCare: Shield,
-  reputationPilot: Star,
   shopSite: Globe,
   seoAutopilot: Radar,
   leadSources: Target,
 };
 
+/** Growth Engine products in chrome — Reviews is a Core Shop menu item, not Growth. */
 const GROWTH_NAV_IDS = [
   "outreach",
   "automations",
   "booking",
   "bayCare",
-  "reputationPilot",
   "shopSite",
   "seoAutopilot",
   "leadSources",
-] as const satisfies readonly Exclude<GrowthProductId, "overview">[];
+] as const satisfies readonly GrowthNavProductId[];
 
-/** Growth Engine — renamed products, same routes */
+/** Growth Engine — renamed products, same routes (excludes Google Reviews). */
 export const AP_GROWTH_NAV_ITEMS: ApNavLink[] = [
   {
     title: "Growth Hub",
@@ -96,13 +101,11 @@ export const AP_GROWTH_NAV_ITEMS: ApNavLink[] = [
     title:
       id === "bayCare"
         ? AP_TERMS.maintenancePrograms
-        : id === "reputationPilot"
-          ? "Reputation"
-          : id === "leadSources"
-            ? "Lead Tracking"
-            : id === "booking"
-              ? "Online Scheduling"
-              : GROWTH_PRODUCTS[id].label,
+        : id === "leadSources"
+          ? "Lead Tracking"
+          : id === "booking"
+            ? "Online Scheduling"
+            : GROWTH_PRODUCTS[id].label,
     href: GROWTH_PRODUCTS[id].href,
     icon: GROWTH_NAV_ICONS[id],
     description: GROWTH_PRODUCTS[id].shortDescription,
@@ -228,13 +231,19 @@ export const AP_SIDEBAR_NAV_GROUPS: ApNavGroup[] = [
         title: "Catalog",
         href: "/inventory",
         icon: Package,
-        description: "Inventory, templates & labor library",
+        description: "Parts inventory & stock levels",
       },
       {
         title: "Messages",
         href: "/messages",
         icon: MessageSquare,
         description: "Customer SMS threads",
+      },
+      {
+        title: "Google Reviews",
+        href: "/marketing/reviews",
+        icon: Star,
+        description: "Sync and reply to Google Business Profile reviews",
       },
     ],
   },
@@ -270,7 +279,26 @@ export const AP_SIDEBAR_NAV_GROUPS: ApNavGroup[] = [
         title: "Admin",
         href: "/settings",
         icon: Settings,
-        description: AP_TERMS.shopSettings,
+        description: "Team, vendors, shop libraries & settings",
+      },
+      {
+        title: AP_TERMS.cannedJobs,
+        href: "/canned-jobs",
+        icon: Star,
+        description: "Reusable service templates for estimates",
+      },
+      {
+        title: "Labor Library",
+        href: "/labor-guide",
+        icon: Wrench,
+        // Platform-shared reference + shop overlay — not a full per-tenant corpus dump.
+        description: "Shared labor times with shop overlay",
+      },
+      {
+        title: "Inspection Templates",
+        href: "/inspections",
+        icon: ClipboardCheck,
+        description: "Inspection templates & shop-wide inspections",
       },
     ],
   },
@@ -442,14 +470,9 @@ export const AP_NAV_SECTIONS: ApNavSection[] = [
     id: "catalog",
     label: "Catalog",
     icon: Package,
-    items: [
-      { title: "Inventory", href: "/inventory", icon: Package },
-      { title: AP_TERMS.cannedJobs, href: "/canned-jobs", icon: Star },
-      { title: "Labor Library", href: "/labor-guide", icon: Wrench },
-      { title: "Inspection Templates", href: "/inspections", icon: ClipboardCheck },
-      { title: "Vendor Connect", href: "/vendors/integrations", icon: Truck },
-      { title: "Purchase Orders", href: "/orders", icon: Receipt, stub: true },
-    ],
+    href: "/inventory",
+    description: "Parts inventory & stock levels",
+    items: [{ title: "Inventory", href: "/inventory", icon: Package }],
   },
   {
     id: "growth",
@@ -467,6 +490,16 @@ export const AP_NAV_SECTIONS: ApNavSection[] = [
     description: AP_TERMS.shopSettings,
     items: [
       { title: "Team", href: "/employees", icon: IdCard },
+      { title: "Vendor Connect", href: "/vendors/integrations", icon: Truck },
+      { title: AP_TERMS.cannedJobs, href: "/canned-jobs", icon: Star },
+      {
+        title: "Labor Library",
+        href: "/labor-guide",
+        icon: Wrench,
+        description:
+          "Platform-shared labor reference + shop overlay — not a full per-tenant corpus dump",
+      },
+      { title: "Inspection Templates", href: "/inspections", icon: ClipboardCheck },
       ...AP_SETTINGS_NAV_FLAT.slice(0, 3),
       { title: AP_TERMS.shopSettings, href: "/settings", icon: Settings },
       { title: "Help & Support", href: "/support", icon: LifeBuoy },
@@ -479,15 +512,11 @@ export const AP_TOP_NAV_SECTIONS: ApNavSection[] = AP_NAV_SECTIONS.filter(
   (section) => section.id !== "operations",
 );
 
-/** In-page chip subnav for Catalog (replaces removed left-sidebar context). */
-export const AP_CATALOG_MODULE_NAV_ITEMS: ApNavLink[] = [
-  ...(AP_NAV_SECTIONS.find((s) => s.id === "catalog")?.items ?? []),
-  ...AP_MARKUPS_NAV_ITEMS,
-];
+/** In-page chip subnav for Catalog — inventory only (single page, chips usually hidden). */
+export const AP_CATALOG_MODULE_NAV_ITEMS: ApNavLink[] =
+  AP_NAV_SECTIONS.find((s) => s.id === "catalog")?.items ?? [];
 
-/**
- * Catalog chips filtered by plan — Vendor Connect (PartsTech) follows `partsTech` entitlement (Ignition+).
- */
+/** Catalog chips filtered by plan (Core hides plan-gated catalog entries). */
 export function apCatalogNavItemsForPlan(features: PlanFeatureSet): ApNavLink[] {
   return AP_CATALOG_MODULE_NAV_ITEMS.filter((item) =>
     isCatalogNavHrefVisible(item.href, features),
@@ -512,20 +541,45 @@ export const AP_DASHBOARD_HREF = "/dashboard/snapshot";
 export const AP_CUSTOMERS_MODULE_NAV_ITEMS: ApNavLink[] =
   AP_NAV_SECTIONS.find((s) => s.id === "customers")?.items ?? [];
 
-/** In-page chip subnav for Admin routes outside `/settings` (Team, Help). */
+/** In-page chip subnav for Admin — team, vendors, shop libraries, settings, help. */
 export const AP_ADMIN_MODULE_NAV_ITEMS: ApNavLink[] = [
   { title: "Team", href: "/employees", icon: IdCard },
+  { title: "Vendor Connect", href: "/vendors/integrations", icon: Truck },
+  { title: AP_TERMS.cannedJobs, href: "/canned-jobs", icon: Star },
+  {
+    title: "Labor Library",
+    href: "/labor-guide",
+    icon: Wrench,
+    description:
+      "Platform-shared labor reference + shop overlay — not a full per-tenant corpus dump",
+  },
+  { title: "Inspection Templates", href: "/inspections", icon: ClipboardCheck },
   { title: AP_TERMS.shopSettings, href: "/settings", icon: Settings },
   { title: "Help & Support", href: "/support", icon: LifeBuoy },
 ];
 
-const CATALOG_PATH_PREFIXES = [
-  "/inventory",
+/** Admin module chips filtered by plan — Vendor Connect follows `partsTech` (Ignition+). */
+export function apAdminNavItemsForPlan(features: PlanFeatureSet): ApNavLink[] {
+  return AP_ADMIN_MODULE_NAV_ITEMS.filter((item) =>
+    isAdminNavHrefVisible(item.href, features),
+  );
+}
+
+const CATALOG_PATH_PREFIXES = ["/inventory"] as const;
+
+/** Shop libraries live under Admin IA (not Catalog). */
+const ADMIN_SHOP_LIBRARY_PATH_PREFIXES = [
   "/canned-jobs",
   "/labor-guide",
   "/inspections",
+] as const;
+
+const ADMIN_PATH_PREFIXES = [
+  "/settings",
+  "/employees",
+  "/support",
   "/vendors",
-  "/orders",
+  ...ADMIN_SHOP_LIBRARY_PATH_PREFIXES,
 ] as const;
 
 export const AP_HOME_HREF = AP_DASHBOARD_HREF;
@@ -541,6 +595,7 @@ const OPERATIONS_PATH_PREFIXES = [
   "/tires",
   "/quick-labor",
   "/messages",
+  "/marketing/reviews",
   "/reports",
   "/repair-orders",
   "/payments",
@@ -548,22 +603,31 @@ const OPERATIONS_PATH_PREFIXES = [
 
 const EXACT_MATCH_HREFS = new Set(["/dashboard", "/workflow", "/marketing"]);
 
-/** Flat list used for sidebar active matching (includes Catalog → inventory + catalog prefixes). */
+/** Admin hub sidebar item — settings/team/vendors/support (libraries have their own System links). */
+const ADMIN_HUB_PATH_PREFIXES = [
+  "/settings",
+  "/employees",
+  "/support",
+  "/vendors",
+] as const;
+
+/** Flat list used for sidebar active matching. */
 export function apSidebarNavItemIsActive(pathname: string, item: ApNavLink): boolean {
   if (item.href === "/settings") {
-    return (
-      pathname.startsWith("/settings") ||
-      pathname === "/employees" ||
-      pathname.startsWith("/employees/") ||
-      pathname.startsWith("/support")
+    return ADMIN_HUB_PATH_PREFIXES.some(
+      (p) => pathname === p || pathname.startsWith(`${p}/`),
     );
   }
   return apNavItemIsActive(pathname, item, AP_SIDEBAR_NAV_ITEMS_FLAT);
 }
 
 export function apSectionForPath(pathname: string): ApNavSection {
-  if (pathname.startsWith("/settings") || pathname === "/employees" || pathname.startsWith("/support")) {
+  if (ADMIN_PATH_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`))) {
     return AP_NAV_SECTIONS.find((s) => s.id === "admin")!;
+  }
+  // Google Reviews is a Core Shop menu item — not Growth Engine chrome.
+  if (pathname === "/marketing/reviews" || pathname.startsWith("/marketing/reviews/")) {
+    return AP_NAV_SECTIONS.find((s) => s.id === "operations")!;
   }
   if (pathname.startsWith("/marketing")) {
     return AP_NAV_SECTIONS.find((s) => s.id === "growth")!;
@@ -627,11 +691,9 @@ export function apNavItemIsActive(
     if (href === "/dashboard") {
       return resolved === "/dashboard" || resolved.startsWith("/dashboard/");
     }
-    // Sidebar "Catalog" lands on inventory but covers the full catalog module.
+    // Sidebar "Catalog" — inventory only.
     if (href === "/inventory") {
-      return CATALOG_PATH_PREFIXES.some(
-        (p) => resolved === p || resolved.startsWith(`${p}/`),
-      );
+      return resolved === "/inventory" || resolved.startsWith("/inventory/");
     }
     if (EXACT_MATCH_HREFS.has(href)) return resolved === href;
     if (href === "/settings") return resolved === "/settings";
@@ -657,6 +719,9 @@ export function apPageTitle(pathname: string): string {
   if (pathname === "/workflow") return "Workflow";
   if (pathname.startsWith("/repair-orders/")) return AP_TERMS.repairOrder;
   if (pathname.startsWith("/settings")) return AP_TERMS.shopSettings;
+  if (pathname === "/marketing/reviews" || pathname.startsWith("/marketing/reviews/")) {
+    return "Google Reviews";
+  }
   if (pathname.startsWith("/marketing")) return AP_TERMS.growthEngine;
   const matches = AP_NAV_ITEMS_FLAT.filter(
     (i) => pathname === i.href || pathname.startsWith(`${i.href}/`),
@@ -690,20 +755,21 @@ export function apModuleSubnavKind(
   if (pathname.startsWith("/dashboard/")) return "dashboard";
   if (pathname.startsWith("/settings")) return "settings";
   if (pathname.startsWith("/marketing/seo-automation")) return "seo";
+  // Reviews is Shop chrome — no Growth Engine pill strip.
+  if (pathname === "/marketing/reviews" || pathname.startsWith("/marketing/reviews/")) {
+    return "none";
+  }
   if (pathname.startsWith("/marketing")) return "growth";
   if (pathname.startsWith("/payments")) return "payments";
-  if (
-    pathname === "/employees" ||
-    pathname.startsWith("/employees/") ||
-    pathname.startsWith("/support")
-  ) {
+  if (ADMIN_PATH_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`))) {
     return "admin";
   }
   if (pathname.startsWith("/customers") || pathname.startsWith("/maintenance-programs")) {
     return "customers";
   }
   if (CATALOG_PATH_PREFIXES.some((p) => pathname === p || pathname.startsWith(`${p}/`))) {
-    return "catalog";
+    // Single inventory page — skip redundant chip strip.
+    return AP_CATALOG_MODULE_NAV_ITEMS.length > 1 ? "catalog" : "none";
   }
   return "none";
 }

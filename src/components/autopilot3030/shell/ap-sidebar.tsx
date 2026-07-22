@@ -51,12 +51,22 @@ function navHrefAllowed(href: string, allowed: Set<string>): boolean {
   if (href === "/marketing" && [...allowed].some((h) => h.startsWith("/marketing"))) {
     return true;
   }
-  // Catalog lands on inventory; allow if any catalog path is permitted.
+  // Catalog — inventory only.
+  if (href === "/inventory" && allowed.has("/inventory")) {
+    return true;
+  }
+  // Admin hub covers settings when any admin surface is permitted.
   if (
-    href === "/inventory" &&
-    ["/inventory", "/canned-jobs", "/labor-guide", "/inspections", "/vendors/integrations", "/orders"].some(
-      (h) => allowed.has(h),
-    )
+    href === "/settings" &&
+    [
+      "/settings",
+      "/employees",
+      "/support",
+      "/vendors/integrations",
+      "/canned-jobs",
+      "/labor-guide",
+      "/inspections",
+    ].some((h) => allowed.has(h) || [...allowed].some((a) => a.startsWith(`${h}/`)))
   ) {
     return true;
   }

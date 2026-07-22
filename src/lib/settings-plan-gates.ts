@@ -86,13 +86,31 @@ export function isApSettingsLinkVisible(
   return planFeatureEnabled(features, req);
 }
 
-/** Catalog top chips / Vendor Connect — plan-gated. */
+/** Catalog module chips — inventory only (no plan-gated entries today). */
+export const CATALOG_NAV_HREF_REQUIREMENTS: Partial<Record<string, PlanFeature>> = {};
+
+/** Admin module chips — Vendor Connect (PartsTech) is Ignition+. Shop libraries ungated. */
+export const ADMIN_NAV_HREF_REQUIREMENTS: Partial<Record<string, PlanFeature>> = {
+  "/vendors/integrations": "partsTech",
+};
+
+/** Catalog top chips — plan-gated entries (currently none). */
 export function isCatalogNavHrefVisible(
   href: string,
   features: PlanFeatureSet,
 ): boolean {
   const base = href.split("?")[0]!;
   const req = CATALOG_NAV_HREF_REQUIREMENTS[href] ?? CATALOG_NAV_HREF_REQUIREMENTS[base];
+  return planFeatureEnabled(features, req);
+}
+
+/** Admin top chips — Vendor Connect follows `partsTech` entitlement. */
+export function isAdminNavHrefVisible(
+  href: string,
+  features: PlanFeatureSet,
+): boolean {
+  const base = href.split("?")[0]!;
+  const req = ADMIN_NAV_HREF_REQUIREMENTS[href] ?? ADMIN_NAV_HREF_REQUIREMENTS[base];
   return planFeatureEnabled(features, req);
 }
 
@@ -121,11 +139,6 @@ export const SETTINGS_UPGRADE_ROUTES: { prefix: string; feature: PlanFeature }[]
   { prefix: "/settings/integrations/stripe", feature: "integrations" },
   { prefix: "/vendors/integrations/partstech", feature: "partsTech" },
 ];
-
-/** Catalog module chips — hide vendor PartsTech / connect on Core. */
-export const CATALOG_NAV_HREF_REQUIREMENTS: Partial<Record<string, PlanFeature>> = {
-  "/vendors/integrations": "partsTech",
-};
 
 export function settingsRouteDenied(
   pathname: string,

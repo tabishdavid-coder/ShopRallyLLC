@@ -24,6 +24,7 @@ export const CRM_NAV_HREF_PERMISSIONS: Record<string, readonly string[]> = {
   "/tires": ["job_board.view", "job_board.view_all"],
   "/quick-labor": ["job_board.view", "job_board.view_all", "estimate.view"],
   "/messages": ["customers.message", "customers.view"],
+  "/marketing/reviews": [],
   "/reports": ["reports.view"],
   "/payments": ["finance.payments_nav", "payments.view"],
   "/customers": ["customers.view"],
@@ -64,16 +65,14 @@ export const CRM_SECTION_PERMISSIONS: Record<string, readonly string[]> = {
   customers: ["customers.view"],
   schedule: ["job_board.view", "job_board.view_all"],
   reports: ["reports.view"],
-  catalog: [
-    "inventory.view",
-    "inventory.edit",
+  catalog: ["inventory.view", "inventory.edit"],
+  growth: [],
+  settings: [
+    "employees.manage",
+    "vendors.manage",
     "canned_jobs.manage",
     "inspections.manage",
-    "vendors.manage",
-    "orders.manage",
   ],
-  growth: [],
-  settings: ["employees.manage"],
 };
 
 export function navHrefAllowed(effective: EffectivePermissions, href: string): boolean {
@@ -150,9 +149,16 @@ export function buildAllowedShellSectionIds(
   return [...new Set([...crmIds, ...apIds])];
 }
 
-/** Stripe Connect settings under /marketing — keep reachable on Core (own upgrade wall). */
+/** Paths under /marketing that stay reachable on Core (not Growth Engine–gated). */
 export function isGrowthNavExemptHref(href: string): boolean {
-  return href === "/marketing/payment-account" || href.startsWith("/marketing/payment-account/");
+  if (href === "/marketing/payment-account" || href.startsWith("/marketing/payment-account/")) {
+    return true;
+  }
+  // Google Reviews inbox — Core+ plan feature (not Pro Growth campaigns).
+  if (href === "/marketing/reviews" || href.startsWith("/marketing/reviews/")) {
+    return true;
+  }
+  return false;
 }
 
 /**
@@ -220,6 +226,8 @@ export const CRM_ROUTE_RULES: CrmRouteRule[] = [
   { prefix: "/canned-jobs", anyOf: ["canned_jobs.manage"] },
   { prefix: "/labor-guide", anyOf: ["canned_jobs.manage", "estimate.view"] },
   { prefix: "/inspections", anyOf: ["inspections.manage"] },
+  // Longer than `/vendors` — Core Google Reviews must not require PartsTech-only access.
+  { prefix: "/vendors/integrations/google-reviews", anyOf: ["vendors.manage", "employees.manage"] },
   { prefix: "/vendors", anyOf: ["vendors.manage"] },
   { prefix: "/orders", anyOf: ["orders.manage"] },
   { prefix: "/appointments", anyOf: ["job_board.view", "job_board.view_all"] },
