@@ -47,7 +47,7 @@ export const INTEGRATION_CARD_REQUIREMENTS: Partial<
   Record<string, PlanFeature | "coreOnly">
 > = {
   "Auto.dev": "coreOnly",
-  Carfax: "integrations",
+  Carfax: "carfax",
   PartsTech: "partsTech",
   "Twilio SMS": "customerSms",
   Stripe: "integrations",
@@ -158,6 +158,7 @@ export function settingsUpgradeLabel(feature: PlanFeature): string {
     googleReviews: "Google Reviews",
     markupMatrices: "Markup matrices",
     customerSms: "Two-way SMS",
+    carfax: "Carfax",
     integrations: "Integrations",
     advancedReports: "Commissions & advanced reporting",
     partsTech: "PartsTech",
