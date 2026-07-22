@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import { ArrowRight, CheckCircle2, Loader2 } from "lucide-react";
 
@@ -124,11 +124,21 @@ export function FoundingWaitlistForm({
             className="border-slate-300"
           />
         </div>
-        <Button type="submit" disabled={pending} className="shrink-0 gap-2 bg-brand-navy hover:bg-brand-navy/90">
-          {pending ? <Loader2 className="size-4 animate-spin" /> : null}
-          {marketingFormSubmitCta()}
-          <ArrowRight className="size-4" />
-        </Button>
+        <div className="flex w-full flex-col gap-2 sm:w-auto sm:shrink-0">
+          {error ? (
+            <p
+              role="alert"
+              className="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700 sm:max-w-xs"
+            >
+              {error}
+            </p>
+          ) : null}
+          <Button type="submit" disabled={pending} className="gap-2 bg-brand-navy hover:bg-brand-navy/90">
+            {pending ? <Loader2 className="size-4 animate-spin" /> : null}
+            {marketingFormSubmitCta()}
+            <ArrowRight className="size-4" />
+          </Button>
+        </div>
       </form>
     );
   }
