@@ -40,14 +40,37 @@ export const SaveJobAsCannedJobInput = z.object({
 
 export type SaveJobAsCannedJobInput = z.infer<typeof SaveJobAsCannedJobInput>;
 
+/** Preset category options for create/edit select (None = empty string). */
+export const CANNED_JOB_CATEGORY_SELECT_OPTIONS = [
+  "Brakes",
+  "Electrical",
+  "Engine",
+  "Fluids",
+  "Inspection",
+  "Maintenance",
+  "Other",
+  "Suspension",
+] as const;
+
 /** Default categories shown in the picker when the shop has none yet. */
 export const CANNED_JOB_CATEGORIES = [
-  "Maintenance",
-  "Brakes",
-  "Engine",
-  "Electrical",
-  "Suspension",
-  "Inspection",
-  "Fluids",
-  "Other",
+  ...CANNED_JOB_CATEGORY_SELECT_OPTIONS,
 ] as const;
+
+const CANNED_JOB_PRESET_SET = new Set<string>(CANNED_JOB_CATEGORY_SELECT_OPTIONS);
+
+/** Map stored category → select value + optional custom label (edit mode). */
+export function deriveCategoryUi(category: string): { select: string; custom: string } {
+  if (!category) return { select: "", custom: "" };
+  if (CANNED_JOB_PRESET_SET.has(category) && category !== "Other") {
+    return { select: category, custom: "" };
+  }
+  return { select: "Other", custom: category === "Other" ? "" : category };
+}
+
+/** Map UI select + custom input → persisted category string. */
+export function resolveCategoryFromUi(select: string, custom: string): string {
+  if (!select) return "";
+  if (select === "Other") return custom.trim();
+  return select;
+}

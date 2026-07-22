@@ -129,6 +129,11 @@ enum TireOrderSource {
   CRM
 }
 
+enum TireCondition {
+  NEW
+  USED
+}
+
 enum PartSource {
   MANUAL
   PARTSTECH
@@ -706,6 +711,8 @@ model Shop {
   purchaseOrders       PurchaseOrder[]
   inventoryParts       InventoryPart[]
   inventoryAdjustments InventoryAdjustment[]
+  tireStock            TireStock[]
+  tireStockAdjustments TireStockAdjustment[]
   tireOrders           TireOrder[]
   integrations      ShopIntegration[]
   googleReviews     GoogleReview[]
@@ -1572,6 +1579,54 @@ model InventoryAdjustment {
 
   @@index([shopId])
   @@index([partId])
+}
+
+// Shop tire stock (new & used tires on hand — size, brand, bin, DOT/tread optional).
+model TireStock {
+  id              String        @id @default(cuid())
+  shopId          String
+  stockNumber     String
+  brand           String
+  model           String
+  size            String
+  loadSpeed       String?
+  condition       TireCondition @default(NEW)
+  quantityOnHand  Int           @default(0)
+  reorderPoint    Int           @default(0)
+  reorderQty      Int           @default(0)
+  costCents       Int           @default(0)
+  retailCents     Int           @default(0)
+  binLocation     String?
+  dotCode         String?
+  treadDepth32nds Int?
+  notes           String?
+  active          Boolean       @default(true)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  shop        Shop                  @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  adjustments TireStockAdjustment[]
+
+  @@unique([shopId, stockNumber])
+  @@index([shopId])
+  @@index([shopId, active])
+  @@index([shopId, condition])
+}
+
+model TireStockAdjustment {
+  id         String   @id @default(cuid())
+  shopId     String
+  tireId     String
+  delta      Int
+  reason     String
+  adjustedBy String?
+  createdAt  DateTime @default(now())
+
+  shop Shop      @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  tire TireStock @relation(fields: [tireId], references: [id], onDelete: Cascade)
+
+  @@index([shopId])
+  @@index([tireId])
 }
 
 // ─────────────────────────── RO activity feed ───────────────────────────

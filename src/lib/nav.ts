@@ -64,7 +64,7 @@ export const NAV_GROUPS: NavGroup[] = [
       { title: "Appointments", href: "/appointments", icon: CalendarDays },
       { title: "Quick Labor", href: "/quick-labor", icon: Timer },
       { title: "Tires", href: "/tires", icon: Disc3 },
-      { title: "Inventory", href: "/inventory", icon: Package },
+      { title: "Parts", href: "/inventory", icon: Package },
       { title: "Orders", href: "/orders", icon: Receipt, stub: true },
       { title: "Reports", href: "/reports", icon: BarChart3 },
       { title: GROWTH_ENGINE.name, href: "/marketing", icon: TrendingUp },

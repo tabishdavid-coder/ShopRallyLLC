@@ -32,6 +32,16 @@ html[data-ap-shell="3030"] {
   --ap-rail-width: 4.25rem;
   --ap-context-width: 14.5rem;
   --ap-nav-width: calc(var(--ap-rail-width) + var(--ap-context-width));
+  --ap-sidebar-width-expanded: 15.5rem;
+  --ap-sidebar-width-collapsed: 4.75rem;
+  --ap-sidebar-pad-x: 0.75rem;
+  --ap-sidebar-icon-size: 1.5rem;
+  --ap-sidebar-row-height: 2.75rem;
+  --ap-sidebar-icon-gap: 0.875rem;
+  --ap-sidebar-reveal-max: 11rem;
+  --ap-motion-sidebar: 250ms cubic-bezier(0.4, 0, 0.2, 1);
+  --ap-motion-reveal-in: 200ms cubic-bezier(0.4, 0, 0.2, 1) 60ms;
+  --ap-motion-reveal-out: 120ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
   --ap-topbar-height: 3.5rem;
   --ap-preview-banner-height: 1.625rem;
 
@@ -116,20 +126,239 @@ html[data-ap-shell="3030"] .ap-shell {
   color: var(--ap-text);
 }
 
+/* CRM shell — uniform pointer cursor (sidebar + main + portaled overlays).
+ * Scoped to body:has(.ap-shell) so public marketing routes stay untouched. */
+html[data-ap-shell="3030"] body:has(.ap-shell) :is(
+    .ap-shell,
+    [data-slot="dropdown-menu-content"],
+    [data-slot="dropdown-menu-sub-content"],
+    [data-slot="select-content"],
+    [data-slot="popover-content"],
+    [data-slot="dialog-content"],
+    [data-slot="sheet-content"],
+    [data-slot="tooltip-content"]
+  ),
+html[data-ap-shell="3030"] body:has(.ap-shell) :is(
+    .ap-shell,
+    [data-slot="dropdown-menu-content"],
+    [data-slot="dropdown-menu-sub-content"],
+    [data-slot="select-content"],
+    [data-slot="popover-content"],
+    [data-slot="dialog-content"],
+    [data-slot="sheet-content"],
+    [data-slot="tooltip-content"]
+  )
+  * {
+  cursor: pointer;
+}
+
+/* Text entry */
+html[data-ap-shell="3030"] body:has(.ap-shell) :is(.ap-shell, [data-slot="dialog-content"], [data-slot="sheet-content"])
+  :is(
+    input:not([type="button"]):not([type="submit"]):not([type="reset"]):not([type="checkbox"]):not([type="radio"]):not([type="file"]):not([type="range"]):not([type="color"]):not([type="hidden"]),
+    textarea,
+    select,
+    [contenteditable="true"],
+    [role="textbox"]
+  ) {
+  cursor: text;
+}
+
+html[data-ap-shell="3030"] body:has(.ap-shell) :is(
+    [data-slot="select-content"],
+    [data-slot="popover-content"],
+    [data-slot="dropdown-menu-content"],
+    [data-slot="dropdown-menu-sub-content"]
+  )
+  :is(input, textarea, select, [contenteditable="true"], [role="textbox"]) {
+  cursor: text;
+}
+
+/* Disabled / non-interactive */
+html[data-ap-shell="3030"] body:has(.ap-shell) :is(.ap-shell, [data-slot="dialog-content"], [data-slot="sheet-content"])
+  :is(:disabled, [aria-disabled="true"], [data-disabled="true"]) {
+  cursor: not-allowed;
+}
+
+/* Drag affordances (job board, estimate reorder handles) */
+html[data-ap-shell="3030"] body:has(.ap-shell) .ap-shell .cursor-grab {
+  cursor: grab;
+}
+
+html[data-ap-shell="3030"] body:has(.ap-shell) .ap-shell .cursor-grabbing {
+  cursor: grabbing;
+}
+
+/* Explicit not-allowed utilities + disabled subnav pills */
+html[data-ap-shell="3030"] body:has(.ap-shell) :is(.ap-shell, [data-slot="dropdown-menu-content"])
+  :is(.cursor-not-allowed, .ap-subnav-pill--disabled) {
+  cursor: not-allowed;
+}
+
 html[data-ap-shell="3030"] .ap-sidebar {
   display: none;
   flex-direction: column;
   flex-shrink: 0;
-  width: 15.5rem;
+  width: var(--ap-sidebar-width-expanded);
   height: 100%;
+  overflow: hidden;
   background: var(--ap-chrome);
   color: var(--ap-chrome-foreground);
   border-right: 1px solid var(--ap-chrome-border);
-  transition: width var(--ap-motion-base);
+  transition: width var(--ap-motion-sidebar);
+  z-index: 30;
 }
 
 html[data-ap-shell="3030"] .ap-sidebar.ap-sidebar--collapsed {
-  width: 4.25rem;
+  width: var(--ap-sidebar-width-collapsed);
+}
+
+html[data-ap-shell="3030"] .ap-sidebar-body-pad {
+  padding-inline: var(--ap-sidebar-pad-x);
+}
+
+html[data-ap-shell="3030"] .ap-sidebar.ap-sidebar--hovered:not(.ap-sidebar--pinned) {
+  z-index: 40;
+  box-shadow: 4px 0 24px oklch(0.15 0.02 245 / 0.28);
+}
+
+/* Instagram-style reveal — labels clip/fade; icons stay fixed in left column */
+html[data-ap-shell="3030"] .ap-sidebar-reveal {
+  overflow: hidden;
+  white-space: nowrap;
+  opacity: 1;
+  flex: 1 1 auto;
+  min-width: 0;
+  max-width: var(--ap-sidebar-reveal-max);
+  transition:
+    opacity var(--ap-motion-reveal-in),
+    max-width var(--ap-motion-sidebar);
+}
+
+html[data-ap-shell="3030"] .ap-sidebar--collapsed .ap-sidebar-reveal {
+  flex: 0 0 0;
+  max-width: 0;
+  opacity: 0;
+  transition:
+    opacity var(--ap-motion-reveal-out),
+    max-width var(--ap-motion-sidebar);
+  pointer-events: none;
+}
+
+/* Section headers keep expanded row height when collapsed — text fades/clips only */
+html[data-ap-shell="3030"] .ap-sidebar--collapsed .ap-sidebar-section-label.ap-sidebar-reveal {
+  flex: none;
+  max-width: none;
+  width: 100%;
+  opacity: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+html[data-ap-shell="3030"] .ap-sidebar-icon-wrap {
+  position: relative;
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: var(--ap-sidebar-icon-size);
+  height: var(--ap-sidebar-icon-size);
+}
+
+html[data-ap-shell="3030"] .ap-sidebar-icon-wrap > svg,
+html[data-ap-shell="3030"] .ap-sidebar-icon-wrap > .ap-sidebar-icon,
+html[data-ap-shell="3030"] .ap-sidebar-icon-wrap > img {
+  width: var(--ap-sidebar-icon-size);
+  height: var(--ap-sidebar-icon-size);
+  flex-shrink: 0;
+}
+
+html[data-ap-shell="3030"] .ap-sidebar-badge {
+  position: absolute;
+  top: -3px;
+  right: -5px;
+  height: 1rem;
+  min-width: 1rem;
+  padding-inline: 0.25rem;
+  font-size: 9px;
+  line-height: 1;
+}
+
+html[data-ap-shell="3030"] .ap-sidebar-logo-link {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  min-height: var(--ap-sidebar-row-height);
+  gap: var(--ap-sidebar-icon-gap);
+  border-radius: 0.5rem;
+  transition: background-color 150ms;
+  cursor: pointer;
+}
+
+html[data-ap-shell="3030"] .ap-sidebar-logo-link:hover {
+  background: var(--ap-chrome-accent);
+  cursor: pointer;
+}
+
+html[data-ap-shell="3030"] .ap-sidebar-logo-wordmark {
+  font-size: 1.0625rem;
+  font-weight: 700;
+  letter-spacing: var(--ap-logo-wordmark-tracking);
+  color: white;
+}
+
+html[data-ap-shell="3030"] .ap-sidebar-create-btn {
+  display: flex;
+  width: 100%;
+  min-height: var(--ap-sidebar-row-height);
+  align-items: center;
+  justify-content: flex-start;
+  gap: var(--ap-sidebar-icon-gap);
+  padding-inline: var(--ap-sidebar-pad-x);
+  border-radius: 0.5rem;
+  cursor: pointer;
+}
+
+html[data-ap-shell="3030"] .ap-sidebar-footer-shop,
+html[data-ap-shell="3030"] .ap-sidebar-footer-pin {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: flex-start;
+  gap: var(--ap-sidebar-icon-gap);
+  padding-inline: var(--ap-sidebar-pad-x);
+  min-height: var(--ap-sidebar-row-height);
+  cursor: pointer;
+}
+
+html[data-ap-shell="3030"] .ap-sidebar-footer-shop {
+  border-radius: 0.5rem;
+}
+
+html[data-ap-shell="3030"] .ap-sidebar--collapsed .ap-sidebar-footer-shop {
+  border-color: transparent;
+  background: transparent;
+}
+
+html[data-ap-shell="3030"] .ap-sidebar-shop-avatar {
+  display: flex;
+  width: var(--ap-sidebar-icon-size);
+  height: var(--ap-sidebar-icon-size);
+  align-items: center;
+  justify-content: center;
+  border-radius: 9999px;
+  background: #00a9ff;
+  font-size: 9px;
+  font-weight: 700;
+  color: white;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-ap-shell="3030"] .ap-sidebar,
+  html[data-ap-shell="3030"] .ap-sidebar-reveal {
+    transition-duration: 0.01ms;
+    transition-delay: 0ms;
+  }
 }
 
 @media (min-width: 768px) {
@@ -154,18 +383,22 @@ html[data-ap-shell="3030"] .ap-sidebar-footer-caption {
 html[data-ap-shell="3030"] .ap-sidebar-link {
   display: flex;
   align-items: center;
-  gap: 0.625rem;
-  min-height: 2.25rem;
+  width: 100%;
+  gap: var(--ap-sidebar-icon-gap);
+  min-height: var(--ap-sidebar-row-height);
   border-radius: 0.5rem;
-  padding: 0.5rem 0.625rem;
+  padding-block: 0.375rem;
+  padding-inline: var(--ap-sidebar-pad-x);
   font-size: 13px;
   color: color-mix(in oklab, var(--ap-chrome-foreground) 80%, transparent);
   transition: background-color 150ms, color 150ms;
+  cursor: pointer;
 }
 
 html[data-ap-shell="3030"] .ap-sidebar-link:hover {
   background: var(--ap-chrome-accent);
   color: white;
+  cursor: pointer;
 }
 
 html[data-ap-shell="3030"] .ap-sidebar-link--active {
@@ -173,6 +406,7 @@ html[data-ap-shell="3030"] .ap-sidebar-link--active {
   color: white;
   font-weight: 600;
   box-shadow: inset 0 0 0 1px color-mix(in oklab, var(--ap-accent) 45%, transparent);
+  cursor: pointer;
 }
 
 html[data-ap-shell="3030"] .ap-sidebar-section-label {

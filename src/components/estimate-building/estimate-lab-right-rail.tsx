@@ -17,6 +17,7 @@ import {
   Wallet,
 } from "lucide-react";
 
+import { EstimateLabRightRailFees } from "@/components/estimate-building/estimate-lab-right-rail-fees";
 import { EstimateLabMessagesHost } from "@/components/estimate-building/estimate-lab-messages-host";
 import {
   EstimateLabVehicleSpecsLazy,
@@ -29,7 +30,6 @@ import {
 } from "@/lib/shop-capabilities";
 
 import { EstimateDepositRequestDialog } from "@/components/estimate-building/estimate-deposit-request-dialog";
-import { CustomerFeeRows } from "@/components/customer/customer-fee-rows";
 import {
   type EstimateLabQuickReferenceData,
 } from "@/components/estimate-building/estimate-lab-quick-reference";
@@ -58,8 +58,10 @@ import { formatCents } from "@/lib/format";
 import type { NamedFeeLine } from "@/lib/ro-totals";
 import { paymentDisplayStatus } from "@/lib/payment-status";
 import { cn } from "@/lib/utils";
+import type { RepairOrderDetail } from "@/server/repair-order";
 
 type StaffPick = { id: string; name: string };
+type RoFeeLine = RepairOrderDetail["fees"][number];
 
 type DepositInfo = {
   id: string;
@@ -111,6 +113,15 @@ export type EstimateLabFinancialSummary = {
   remainingCents: number;
 };
 
+type FeeTemplate = {
+  name: string;
+  method: "PERCENT" | "FIXED";
+  base: "LABOR" | "PARTS" | "LABOR_PARTS";
+  amount: number;
+  capCents?: number | null;
+  taxable?: boolean;
+};
+
 export type EstimateLabRightRailProps = {
   roId: string;
   roNumber: number;
@@ -145,6 +156,10 @@ export type EstimateLabRightRailProps = {
   invoiceId: string | null;
   invoiceNumber: number | null;
   inspectionId?: string | null;
+  /** RO-level fees for the compact right-rail editor (estimate workspace only). */
+  roFees?: RoFeeLine[];
+  feeTemplates?: FeeTemplate[];
+  jobCount?: number;
 };
 
 const RAIL_CARD =
@@ -927,10 +942,9 @@ function TotalsCard({
         {financial.shopSuppliesCents > 0 ? (
           <StatusMetaRow label="Shop supplies" value={formatCents(financial.shopSuppliesCents)} />
         ) : null}
-        <CustomerFeeRows
-          fees={financial.feeLines}
-          Row={({ label, value }) => <StatusMetaRow label={label} value={value} />}
-        />
+        {financial.roFeesCents > 0 ? (
+          <StatusMetaRow label="Fees" value={formatCents(financial.roFeesCents)} />
+        ) : null}
         {discountsCents > 0 ? (
           <StatusMetaRow label="Discounts" value={`−${formatCents(discountsCents)}`} muted />
         ) : null}
@@ -979,6 +993,9 @@ function EstimateLabRightRailBody(props: EstimateLabRightRailProps) {
     invoiceId,
     invoiceNumber,
     inspectionId = null,
+    roFees,
+    feeTemplates = [],
+    jobCount,
   } = props;
 
   const [depositOpen, setDepositOpen] = useState(false);
@@ -1027,6 +1044,16 @@ function EstimateLabRightRailBody(props: EstimateLabRightRailProps) {
         />
 
         {profitability ? <ProfitabilityCard profitability={profitability} /> : null}
+
+        {roFees ? (
+          <EstimateLabRightRailFees
+            roId={roId}
+            fees={roFees}
+            feeTemplates={feeTemplates}
+            jobCount={jobCount}
+            canEdit={canEdit}
+          />
+        ) : null}
 
         {/* Always shown — sole home of the Labor/Parts/Fees/Discounts/Tax rollup
             since the sticky bottom totals bar was removed from the workspace. */}

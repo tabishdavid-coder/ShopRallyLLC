@@ -544,8 +544,8 @@ function SortableCard({
         router.push(openHref);
       }}
       className={cn(
-        "touch-none cursor-grab active:cursor-grabbing",
-        isDragging && "opacity-40",
+        "touch-none cursor-pointer",
+        isDragging && "cursor-grabbing opacity-40",
       )}
     >
       <JobCard

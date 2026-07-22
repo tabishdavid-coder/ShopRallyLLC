@@ -8,7 +8,7 @@ export const NOTIFICATION_TYPES = [
   { key: "RO_STATUS_CHANGED", label: "Repair order status changed" },
   { key: "RO_COMPLETED", label: "Repair order completed" },
   { key: "SMS_RECEIVED", label: "New text message" },
-  { key: "TIRE_APPROVAL_PENDING", label: "Tire order pending approval" },
+  { key: "TIRE_LOW_STOCK", label: "Tire stock below reorder point" },
   { key: "PAYMENT_RECEIVED", label: "Payment received" },
 ] as const;
 
@@ -27,7 +27,7 @@ export const DEFAULT_NOTIFICATION_PREFERENCES: NotificationPreferences = {
   RO_STATUS_CHANGED: "ALL",
   RO_COMPLETED: "ALL",
   SMS_RECEIVED: "ALL",
-  TIRE_APPROVAL_PENDING: "ALL",
+  TIRE_LOW_STOCK: "ALL",
   PAYMENT_RECEIVED: "ALL",
 };
 

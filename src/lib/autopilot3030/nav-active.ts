@@ -16,7 +16,7 @@ export function apSidebarSectionClass() {
 
 export function apSidebarLinkClass(active: boolean) {
 
-  return cn("ap-sidebar-link", active && "ap-sidebar-link--active");
+  return cn("ap-sidebar-link cursor-pointer", active && "ap-sidebar-link--active");
 
 }
 

@@ -84,8 +84,8 @@ export function exportDashboardSnapshot(data: DashboardData, shopName: string) {
     },
     {
       section: "kpi",
-      metric: "Tire orders pending approval",
-      value: kpis.tireOrdersPending,
+      metric: "Tires low stock (SKUs)",
+      value: kpis.tiresLowStock,
       period: "current",
     },
     {

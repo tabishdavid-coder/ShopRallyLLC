@@ -1,7 +1,7 @@
 "use client";
 
-import { useMemo, useState, type ComponentProps } from "react";
-import { ChevronDown, ClipboardList, Droplets, Package, ShieldCheck, Wrench, X } from "lucide-react";
+import { useEffect, useMemo, useRef, useState, type ComponentProps, type ReactNode } from "react";
+import { ChevronDown, Droplets, Package, ShieldCheck, Wrench, X } from "lucide-react";
 
 import {
   Collapsible,
@@ -13,7 +13,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { CANNED_JOB_CATEGORIES, type SaveCannedJobInput } from "@/lib/canned-job-schemas";
+import {
+  CANNED_JOB_CATEGORY_SELECT_OPTIONS,
+  deriveCategoryUi,
+  resolveCategoryFromUi,
+  type SaveCannedJobInput,
+} from "@/lib/canned-job-schemas";
 import { formatCents } from "@/lib/format";
 import type { CannedJobDetail } from "@/lib/canned-job-types";
 import { cn } from "@/lib/utils";
@@ -169,9 +174,243 @@ function LaborDollarsInput({
   );
 }
 
+const fieldClass = cn(
+  "h-9 border-border bg-white shadow-none transition-[border-color,box-shadow]",
+  "focus-visible:border-brand-navy/40 focus-visible:ring-2 focus-visible:ring-brand-navy/15",
+);
+
 const compactNumericInput =
   "h-9 min-h-9 w-full min-w-[4rem] text-right text-xs tabular-nums";
-const fullNumericInput = "h-9 min-h-9 w-full min-w-[4.5rem] text-right tabular-nums";
+
+function StripLabel({ children, className }: { children: ReactNode; className?: string }) {
+  return (
+    <p
+      className={cn(
+        "mb-2 text-[10px] font-bold uppercase tracking-[0.12em] text-muted-foreground",
+        className,
+      )}
+    >
+      {children}
+    </p>
+  );
+}
+
+function Field({
+  label,
+  required,
+  htmlFor,
+  className,
+  children,
+}: {
+  label: string;
+  required?: boolean;
+  htmlFor?: string;
+  className?: string;
+  children: ReactNode;
+}) {
+  return (
+    <div className={cn("min-w-0 space-y-1", className)}>
+      <label
+        htmlFor={htmlFor}
+        className="text-[10px] font-semibold uppercase tracking-[0.06em] text-muted-foreground"
+      >
+        {label}
+        {required ? <span className="text-brand-red"> *</span> : null}
+      </label>
+      {children}
+    </div>
+  );
+}
+
+function CategorySelectField({
+  category,
+  onCategoryChange,
+  idPrefix,
+  variant = "dense",
+}: {
+  category: string;
+  onCategoryChange: (category: string) => void;
+  idPrefix: string;
+  variant?: "dense" | "compact" | "chips";
+}) {
+  const initialUi = deriveCategoryUi(category);
+  const [selectPreset, setSelectPreset] = useState(initialUi.select);
+  const [customText, setCustomText] = useState(initialUi.custom);
+  const skipParentSyncRef = useRef(false);
+  const isOther = selectPreset === "Other";
+  const selectId = `${idPrefix}-category`;
+  const customInputRef = useRef<HTMLInputElement>(null);
+  const prevSelectRef = useRef<string | null>(null);
+
+  useEffect(() => {
+    if (skipParentSyncRef.current) {
+      skipParentSyncRef.current = false;
+      return;
+    }
+    const nextUi = deriveCategoryUi(category);
+    setSelectPreset(nextUi.select);
+    setCustomText(nextUi.custom);
+  }, [category]);
+
+  useEffect(() => {
+    if (isOther && prevSelectRef.current !== null && prevSelectRef.current !== "Other") {
+      customInputRef.current?.focus();
+    }
+    prevSelectRef.current = selectPreset;
+  }, [isOther, selectPreset]);
+
+  const emitCategoryChange = (nextCategory: string) => {
+    skipParentSyncRef.current = true;
+    onCategoryChange(nextCategory);
+  };
+
+  const handleSelectChange = (nextSelect: string) => {
+    setSelectPreset(nextSelect);
+    if (!nextSelect) {
+      setCustomText("");
+      emitCategoryChange("");
+      return;
+    }
+    if (nextSelect === "Other") {
+      emitCategoryChange(resolveCategoryFromUi("Other", customText));
+      return;
+    }
+    setCustomText("");
+    emitCategoryChange(nextSelect);
+  };
+
+  const handleCustomChange = (nextCustom: string) => {
+    setSelectPreset("Other");
+    setCustomText(nextCustom);
+    emitCategoryChange(resolveCategoryFromUi("Other", nextCustom));
+  };
+
+  const selectClass = cn(
+    fieldClass,
+    "w-full rounded-md border px-2 text-sm",
+    variant === "compact" && "h-8",
+  );
+
+  const customInput = (
+    <Input
+      ref={customInputRef}
+      id={`${idPrefix}-category-custom`}
+      value={customText}
+      onChange={(e) => handleCustomChange(e.target.value)}
+      placeholder="Custom category"
+      className={cn(fieldClass, variant === "compact" && "h-8 text-sm")}
+      aria-label="Custom category name"
+    />
+  );
+
+  if (variant === "chips") {
+    const chipClass = (active: boolean) =>
+      cn(
+        "rounded px-2 py-1 text-[11px] font-semibold transition-colors",
+        active
+          ? "bg-brand-navy text-white"
+          : "border border-border bg-white text-muted-foreground hover:border-brand-light hover:bg-brand-light/20 hover:text-brand-navy",
+      );
+
+    return (
+      <div className="space-y-2">
+        <div className="flex flex-wrap gap-1.5">
+          <button
+            type="button"
+            onClick={() => handleSelectChange("")}
+            className={chipClass(!selectPreset)}
+          >
+            None
+          </button>
+          {CANNED_JOB_CATEGORY_SELECT_OPTIONS.map((c) => (
+            <button
+              key={c}
+              type="button"
+              onClick={() => handleSelectChange(c)}
+              className={chipClass(c === "Other" ? isOther : selectPreset === c)}
+            >
+              {c}
+            </button>
+          ))}
+        </div>
+        <div
+          className={cn(
+            "grid transition-[grid-template-rows,opacity] duration-200 ease-out",
+            isOther ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0",
+          )}
+          aria-hidden={!isOther}
+        >
+          <div className="overflow-hidden pt-0.5">{customInput}</div>
+        </div>
+      </div>
+    );
+  }
+
+  const selectEl = (
+    <select
+      id={selectId}
+      value={selectPreset}
+      onChange={(e) => handleSelectChange(e.target.value)}
+      className={selectClass}
+      aria-label="Category"
+    >
+      <option value="">None</option>
+      {CANNED_JOB_CATEGORY_SELECT_OPTIONS.map((c) => (
+        <option key={c} value={c}>
+          {c}
+        </option>
+      ))}
+    </select>
+  );
+
+  if (variant === "dense" || variant === "compact") {
+    return (
+      <div className="space-y-2">
+        <div className={cn("min-w-0", variant === "dense" && !isOther && "w-full max-w-[12rem]")}>
+          {selectEl}
+        </div>
+        <div
+          className={cn(
+            "grid transition-[grid-template-rows,opacity] duration-200 ease-out",
+            isOther ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0",
+          )}
+          aria-hidden={!isOther}
+        >
+          <div className="min-w-0 overflow-hidden">
+            {variant === "dense" ? (
+              <div className="space-y-1 pt-0.5">
+                <label
+                  htmlFor={`${idPrefix}-category-custom`}
+                  className="text-[10px] font-semibold uppercase tracking-[0.06em] text-muted-foreground"
+                >
+                  Custom category
+                </label>
+                {customInput}
+              </div>
+            ) : (
+              customInput
+            )}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="min-w-0 space-y-2">
+      {selectEl}
+      <div
+        className={cn(
+          "grid transition-[grid-template-rows,opacity] duration-200 ease-out",
+          isOther ? "grid-rows-[1fr] opacity-100" : "grid-rows-[0fr] opacity-0",
+        )}
+        aria-hidden={!isOther}
+      >
+        <div className="min-w-0 overflow-hidden pt-0.5">{customInput}</div>
+      </div>
+    </div>
+  );
+}
 
 function laborLineAmountCents(l: LaborRow, laborRateCents: number): number {
   if (l.flatAmountCents != null && l.flatAmountCents > 0) return l.flatAmountCents;
@@ -269,11 +508,12 @@ export function cannedJobFormToPayload(
   form: CannedJobFormState,
   jobId?: string,
 ): SaveCannedJobInput {
+  const category = form.category.trim() || null;
   return {
     id: jobId,
     name: form.name,
     description: form.description || null,
-    category: form.category || null,
+    category,
     isActive: true,
     laborLines: form.labor
       .filter((l) => l.description.trim())
@@ -317,30 +557,6 @@ export function useCannedJobFormSummary(
       partsCostCents,
     };
   }, [form, laborRateCents]);
-}
-
-function SectionHeader({
-  icon: Icon,
-  title,
-  description,
-  className,
-}: {
-  icon: typeof Wrench;
-  title: string;
-  description?: string;
-  className?: string;
-}) {
-  return (
-    <div className={cn("flex items-start gap-2.5", className)}>
-      <div className="mt-0.5 flex size-8 shrink-0 items-center justify-center rounded-lg bg-brand-navy/10">
-        <Icon className="size-4 text-brand-navy" />
-      </div>
-      <div>
-        <h3 className="text-sm font-semibold text-slate-900">{title}</h3>
-        {description ? <p className="mt-0.5 text-xs text-slate-500">{description}</p> : null}
-      </div>
-    </div>
-  );
 }
 
 export function CannedJobFormSummary({
@@ -422,108 +638,63 @@ export function CannedJobFormSummary({
   }
 
   return (
-    <aside
-      className={cn(
-        "flex flex-col rounded-xl border-2 border-brand-navy/15 bg-gradient-to-b from-slate-50 to-white text-sm",
-        className,
+    <aside className={cn("rounded-lg border border-border bg-white p-4 text-sm", className)}>
+      <StripLabel>Live preview</StripLabel>
+      <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
+        <p className="font-semibold text-foreground">{form.name.trim() || "Untitled job"}</p>
+        {form.category ? (
+          <span className="rounded bg-brand-navy/10 px-1.5 py-px text-[10px] font-medium text-brand-navy">
+            {form.category}
+          </span>
+        ) : null}
+      </div>
+      {form.description.trim() ? (
+        <p className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">{form.description}</p>
+      ) : null}
+
+      {(laborLines.length > 0 || partLines.length > 0) && (
+        <div className="mt-2 overflow-hidden rounded-md border border-border">
+          <table className="w-full text-xs">
+            <tbody>
+              {laborLines.map((l, i) => (
+                <tr key={i} className="border-b border-border/60 last:border-0">
+                  <td className="px-2 py-1 text-muted-foreground">
+                    <Wrench className="mr-1 inline size-3" aria-hidden />
+                    Labor
+                  </td>
+                  <td className="px-2 py-1" title={l.description}>
+                    <span className="line-clamp-2 break-words">{l.description}</span>
+                  </td>
+                  <td className="shrink-0 px-2 py-1 text-right tabular-nums text-muted-foreground">
+                    {formatHours(l.hours) || "0"}h
+                  </td>
+                </tr>
+              ))}
+              {partLines.map((p, i) => (
+                <tr key={i} className="border-b border-border/60 last:border-0">
+                  <td className="px-2 py-1 text-muted-foreground">
+                    <Package className="mr-1 inline size-3" aria-hidden />
+                    Part
+                  </td>
+                  <td className="px-2 py-1" title={p.description}>
+                    <span className="line-clamp-2 break-words">{p.description}</span>
+                  </td>
+                  <td className="shrink-0 px-2 py-1 text-right tabular-nums text-muted-foreground">
+                    ×{p.quantity}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       )}
-    >
-      <div className="border-b border-brand-navy/10 bg-brand-navy/5 px-4 py-3">
-        <p className="text-xs font-semibold uppercase tracking-wide text-brand-navy">Live preview</p>
-      </div>
 
-      <div className="flex flex-1 flex-col gap-4 p-4">
-        <div>
-          <p className="text-lg font-semibold leading-tight text-slate-900">
-            {form.name.trim() || "Untitled job"}
-          </p>
-          {form.category ? (
-            <span className="mt-2 inline-flex rounded-full bg-brand-navy/10 px-2.5 py-0.5 text-xs font-medium text-brand-navy">
-              {form.category}
-            </span>
-          ) : (
-            <span className="mt-2 inline-flex rounded-full border border-dashed border-slate-300 px-2.5 py-0.5 text-xs text-slate-400">
-              No category
-            </span>
-          )}
-          {form.description.trim() ? (
-            <p className="mt-2 text-xs leading-relaxed text-slate-600">{form.description}</p>
-          ) : null}
-        </div>
-
-        <div className="grid gap-2">
-          <div className="rounded-lg border border-amber-200/80 bg-amber-50/60 px-3 py-2.5">
-            <div className="flex items-center justify-between gap-2">
-              <div className="flex items-center gap-1.5 text-amber-900">
-                <Wrench className="size-3.5" />
-                <span className="text-xs font-semibold">Labor</span>
-              </div>
-              <div className="text-right">
-                <span className="text-sm font-bold tabular-nums text-amber-950">
-                  {formatCents(summary.laborCostCents)}
-                </span>
-                <span className="ml-1.5 text-xs tabular-nums text-amber-800/90">
-                  ({summary.laborHours.toFixed(1)}h)
-                </span>
-              </div>
-            </div>
-            <p className="mt-0.5 text-[11px] text-amber-800/80">
-              {summary.laborLineCount} line{summary.laborLineCount === 1 ? "" : "s"}
-            </p>
-            {laborLines.length > 0 ? (
-              <ul className="mt-2 space-y-0.5 border-t border-amber-200/60 pt-2 text-[11px] text-amber-950/90">
-                {laborLines.slice(0, 4).map((l, i) => (
-                  <li key={i} className="flex justify-between gap-2">
-                    <span className="min-w-0 break-words" title={l.description}>
-                      {l.description}
-                    </span>
-                    <span className="shrink-0 tabular-nums">
-                      {formatCents(laborLineAmountCents(l, laborRateCents))}
-                      <span className="text-amber-800/70"> · {formatHours(l.hours) || "0"}h</span>
-                    </span>
-                  </li>
-                ))}
-                {laborLines.length > 4 ? (
-                  <li className="text-amber-800/70">+{laborLines.length - 4} more</li>
-                ) : null}
-              </ul>
-            ) : null}
-          </div>
-
-          <div className="rounded-lg border border-emerald-200/80 bg-emerald-50/60 px-3 py-2.5">
-            <div className="flex items-center justify-between gap-2">
-              <div className="flex items-center gap-1.5 text-emerald-900">
-                <Package className="size-3.5" />
-                <span className="text-xs font-semibold">Parts</span>
-              </div>
-              <span className="text-sm font-bold tabular-nums text-emerald-950">
-                {formatCents(summary.partsCostCents)}
-              </span>
-            </div>
-            <p className="mt-0.5 text-[11px] text-emerald-800/80">
-              {summary.partLineCount} line{summary.partLineCount === 1 ? "" : "s"} at cost
-            </p>
-            {partLines.length > 0 ? (
-              <ul className="mt-2 space-y-0.5 border-t border-emerald-200/60 pt-2 text-[11px] text-emerald-950/90">
-                {partLines.slice(0, 4).map((p, i) => (
-                  <li key={i} className="break-words" title={p.description}>
-                    {p.description}
-                    {p.quantity > 1 ? ` ×${p.quantity}` : ""}
-                  </li>
-                ))}
-                {partLines.length > 4 ? (
-                  <li className="text-emerald-800/70">+{partLines.length - 4} more</li>
-                ) : null}
-              </ul>
-            ) : null}
-          </div>
-        </div>
-
-        <p className="mt-auto rounded-lg border border-slate-200 bg-slate-50 px-3 py-2.5 text-[11px] leading-relaxed text-slate-500">
-          When added to an estimate, labor rate and part retail are calculated from your shop
-          settings and markup matrices.
-        </p>
-      </div>
+      <p className="mt-2 text-xs tabular-nums text-muted-foreground">
+        Labor {formatCents(summary.laborCostCents)} · Parts {formatCents(summary.partsCostCents)} ·{" "}
+        <span className="font-semibold text-brand-navy">
+          Total {formatCents(summary.laborCostCents + summary.partsCostCents)}
+        </span>
+      </p>
     </aside>
   );
 }
@@ -549,7 +720,7 @@ function AddLineButton({
   );
 }
 
-function QuickTemplateCards({
+function QuickTemplateChips({
   onApply,
   disabled,
 }: {
@@ -557,11 +728,9 @@ function QuickTemplateCards({
   disabled?: boolean;
 }) {
   return (
-    <div className="space-y-3">
-      <p className="text-xs font-semibold uppercase tracking-wide text-brand-navy">
-        Quick start
-      </p>
-      <div className="grid gap-3 sm:grid-cols-3">
+    <div className="space-y-2">
+      <StripLabel>Quick start</StripLabel>
+      <div className="flex flex-wrap gap-1.5">
         {CANNED_JOB_QUICK_TEMPLATES.map((t) => {
           const Icon = t.icon;
           return (
@@ -570,18 +739,136 @@ function QuickTemplateCards({
               type="button"
               disabled={disabled}
               onClick={() => onApply(t)}
-              className="group rounded-xl border-2 border-slate-200 bg-white p-4 text-left transition-all hover:border-brand-navy hover:shadow-md disabled:opacity-50"
+              title={t.form.name}
+              className="inline-flex items-center gap-1.5 rounded border border-border bg-white px-2.5 py-1.5 text-[11px] font-semibold text-muted-foreground transition-[background-color,border-color,color] hover:border-brand-navy/35 hover:bg-brand-light/15 hover:text-brand-navy disabled:opacity-50"
             >
-              <div className="flex size-9 items-center justify-center rounded-lg bg-brand-navy/10 text-brand-navy transition-colors group-hover:bg-brand-navy group-hover:text-white">
-                <Icon className="size-4" />
-              </div>
-              <p className="mt-3 text-sm font-semibold text-slate-900">{t.label}</p>
-              <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-slate-500">
-                {t.form.name}
-              </p>
+              <Icon className="size-3 shrink-0 text-brand-navy/80" aria-hidden />
+              {t.label}
             </button>
           );
         })}
+      </div>
+    </div>
+  );
+}
+
+function CannedJobReviewPanel({
+  form,
+  laborRateCents = DEFAULT_CANNED_JOB_LABOR_RATE_CENTS,
+  className,
+}: {
+  form: CannedJobFormState;
+  laborRateCents?: number;
+  className?: string;
+}) {
+  const summary = useCannedJobFormSummary(form, laborRateCents);
+  const laborLines = form.labor.filter((l) => l.description.trim());
+  const partLines = form.parts.filter((p) => p.description.trim());
+  const totalCents = summary.laborCostCents + summary.partsCostCents;
+
+  return (
+    <div className={cn("grid gap-4 lg:grid-cols-2", className)}>
+      <div className="space-y-3 rounded-lg border border-border p-4">
+        <StripLabel>Job details</StripLabel>
+        <div>
+          <p className="text-base font-semibold text-foreground">
+            {form.name.trim() || "Untitled job"}
+          </p>
+          {form.category ? (
+            <span className="mt-1.5 inline-flex rounded bg-brand-navy/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-brand-navy">
+              {form.category}
+            </span>
+          ) : (
+            <span className="mt-1.5 inline-flex text-[11px] text-muted-foreground">
+              No category
+            </span>
+          )}
+        </div>
+        {form.description.trim() ? (
+          <p className="text-xs leading-relaxed text-muted-foreground">{form.description}</p>
+        ) : (
+          <p className="text-xs italic text-muted-foreground/70">No description</p>
+        )}
+        <p className="border-t border-border pt-3 text-[11px] leading-relaxed text-muted-foreground">
+          When added to an estimate, labor rate and part retail are calculated from shop settings
+          and markup matrices.
+        </p>
+      </div>
+
+      <div className="space-y-3">
+        <div className="overflow-hidden rounded-lg border border-border">
+          <div className="flex items-center justify-between border-b border-border bg-muted/40 px-3 py-2">
+            <StripLabel className="mb-0">Labor</StripLabel>
+            <span className="text-[11px] tabular-nums text-muted-foreground">
+              {summary.laborLineCount} line{summary.laborLineCount === 1 ? "" : "s"} ·{" "}
+              {summary.laborHours.toFixed(1)}h · {formatCents(summary.laborCostCents)}
+            </span>
+          </div>
+          {laborLines.length === 0 ? (
+            <p className="px-3 py-4 text-center text-xs text-muted-foreground">No labor lines</p>
+          ) : (
+            <table className="w-full text-xs">
+              <tbody>
+                {laborLines.map((l, i) => (
+                  <tr key={i} className="border-b border-border/60 last:border-0">
+                    <td className="px-3 py-2">{l.description}</td>
+                    <td className="px-3 py-2 text-right tabular-nums text-muted-foreground">
+                      {formatHours(l.hours) || "0"}h
+                    </td>
+                    <td className="px-3 py-2 text-right tabular-nums font-medium">
+                      {formatCents(laborLineAmountCents(l, laborRateCents))}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+
+        <div className="overflow-hidden rounded-lg border border-border">
+          <div className="flex items-center justify-between border-b border-border bg-muted/40 px-3 py-2">
+            <StripLabel className="mb-0">Parts</StripLabel>
+            <span className="text-[11px] tabular-nums text-muted-foreground">
+              {summary.partLineCount} line{summary.partLineCount === 1 ? "" : "s"} ·{" "}
+              {formatCents(summary.partsCostCents)} at cost
+            </span>
+          </div>
+          {partLines.length === 0 ? (
+            <p className="px-3 py-4 text-center text-xs text-muted-foreground">
+              No parts — labor-only is fine
+            </p>
+          ) : (
+            <table className="w-full text-xs">
+              <tbody>
+                {partLines.map((p, i) => (
+                  <tr key={i} className="border-b border-border/60 last:border-0">
+                    <td className="px-3 py-2">
+                      <span className="block">{p.description}</span>
+                      {p.partNumber ? (
+                        <span className="text-[10px] text-muted-foreground">#{p.partNumber}</span>
+                      ) : null}
+                    </td>
+                    <td className="px-3 py-2 text-right tabular-nums text-muted-foreground">
+                      ×{p.quantity}
+                    </td>
+                    <td className="px-3 py-2 text-right tabular-nums font-medium">
+                      {formatCents(p.costCents * p.quantity)}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+
+        <div className="flex items-center justify-between rounded-md border border-brand-navy/15 bg-brand-navy/5 px-3 py-2.5">
+          <span className="text-[10px] font-bold uppercase tracking-[0.1em] text-brand-navy">
+            Template total (cost basis)
+          </span>
+          <span className="text-sm font-bold tabular-nums text-brand-navy">
+            {formatCents(totalCents)}
+          </span>
+        </div>
       </div>
     </div>
   );
@@ -599,6 +886,7 @@ export function CannedJobIntakeForm({
   step = "all",
   hideInlineSummary = false,
   compact = false,
+  dense = false,
 }: {
   form: CannedJobFormState;
   setForm: React.Dispatch<React.SetStateAction<CannedJobFormState>>;
@@ -611,11 +899,14 @@ export function CannedJobIntakeForm({
   hideInlineSummary?: boolean;
   /** Denser layout for split-panel picker — smaller inputs, collapsed parts by default. */
   compact?: boolean;
+  /** Wizard dialog density — horizontal rows, compact chips, table sections. */
+  dense?: boolean;
 }) {
   const [partsOpen, setPartsOpen] = useState(false);
-  const categoryOptions = [
-    ...new Set([...categories, ...CANNED_JOB_CATEGORIES, form.category].filter(Boolean)),
-  ].sort();
+  const categoryUi = deriveCategoryUi(form.category);
+  const isOtherCategory = categoryUi.select === "Other";
+
+  const setCategory = (category: string) => setForm((f) => ({ ...f, category }));
 
   const addLabor = () =>
     setForm((f) => ({
@@ -646,12 +937,74 @@ export function CannedJobIntakeForm({
   const isStepped = step !== "all";
 
   if (showReview) {
-    return <CannedJobFormSummary form={form} laborRateCents={laborRateCents} className="shadow-sm" />;
+    return (
+      <CannedJobReviewPanel form={form} laborRateCents={laborRateCents} className="min-w-0" />
+    );
   }
 
-  const basicsSection = compact ? (
+  const useDenseLayout = dense || compact;
+
+  const basicsSection = dense ? (
+    <section className="grid gap-4 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)] lg:items-start">
+      <div className="min-w-0 space-y-3">
+        {showQuickTemplates && showBasics ? (
+          <QuickTemplateChips onApply={applyTemplate} />
+        ) : null}
+
+        <StripLabel>Job details</StripLabel>
+
+        <div className="space-y-3">
+          <Field label="Job name" required htmlFor={`${idPrefix}-name`}>
+            <Input
+              id={`${idPrefix}-name`}
+              value={form.name}
+              onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+              placeholder="Synthetic oil & filter change"
+              className={fieldClass}
+            />
+          </Field>
+          <Field label="Category" htmlFor={`${idPrefix}-category`}>
+            <CategorySelectField
+              category={form.category}
+              onCategoryChange={setCategory}
+              idPrefix={idPrefix}
+              variant="dense"
+            />
+          </Field>
+        </div>
+      </div>
+
+      <div className="min-w-0 space-y-3">
+        <Field label="Description (optional)" htmlFor={`${idPrefix}-desc`}>
+          <Textarea
+            id={`${idPrefix}-desc`}
+            value={form.description}
+            onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
+            placeholder="Notes visible when applied to an estimate"
+            rows={4}
+            className={cn(fieldClass, "min-h-[7.5rem] resize-y py-2 lg:min-h-[9rem]")}
+          />
+        </Field>
+
+        <div className="rounded-lg border border-border bg-slate-50/80 p-3">
+          <StripLabel className="mb-1.5">Live preview</StripLabel>
+          <CannedJobFormSummary
+            form={form}
+            compact
+            laborRateCents={laborRateCents}
+            className="text-sm"
+          />
+        </div>
+      </div>
+    </section>
+  ) : compact ? (
     <section className="space-y-2 rounded-lg border border-border bg-card p-3">
-      <div className="grid gap-2 sm:grid-cols-[1fr_auto] sm:items-end">
+      <div
+        className={cn(
+          "grid gap-2 sm:items-end",
+          isOtherCategory ? "sm:grid-cols-1" : "sm:grid-cols-[1fr_auto]",
+        )}
+      >
         <div className="space-y-1">
           <Label htmlFor={`${idPrefix}-name`} className="text-xs">
             Job name <span className="text-brand-red">*</span>
@@ -664,21 +1017,16 @@ export function CannedJobIntakeForm({
             className="h-8 text-sm"
           />
         </div>
-        <div className="space-y-1 sm:min-w-[140px]">
-          <Label className="text-xs">Category</Label>
-          <select
-            value={form.category}
-            onChange={(e) => setForm((f) => ({ ...f, category: e.target.value }))}
-            className="h-8 w-full rounded-md border border-input bg-background px-2 text-sm"
-            aria-label="Category"
-          >
-            <option value="">None</option>
-            {categoryOptions.map((c) => (
-              <option key={c} value={c}>
-                {c}
-              </option>
-            ))}
-          </select>
+        <div className="space-y-1 sm:min-w-0">
+          <Label className="text-xs" htmlFor={`${idPrefix}-category`}>
+            Category
+          </Label>
+          <CategorySelectField
+            category={form.category}
+            onCategoryChange={setCategory}
+            idPrefix={idPrefix}
+            variant="compact"
+          />
         </div>
       </div>
       <div className="space-y-1">
@@ -696,91 +1044,53 @@ export function CannedJobIntakeForm({
       </div>
     </section>
   ) : (
-    <section className="rounded-xl border-2 border-brand-navy/15 bg-white p-5 shadow-sm">
-      <SectionHeader
-        icon={ClipboardList}
-        title="Job details"
-        description="Name and category shown in your canned jobs library."
-        className="mb-4"
-      />
-
+    <section className="space-y-3">
       {showQuickTemplates && showBasics ? (
-        <div className="mb-5 border-b border-slate-100 pb-5">
-          <QuickTemplateCards onApply={applyTemplate} />
-        </div>
+        <QuickTemplateChips onApply={applyTemplate} />
       ) : null}
 
-      <div className="grid gap-4">
-        <div className="space-y-1.5">
-          <Label htmlFor={`${idPrefix}-name`} className="text-slate-900">
-            Job name <span className="text-brand-red">*</span>
-          </Label>
+      <StripLabel>Job details</StripLabel>
+
+      <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
+        <Field label="Job name" required htmlFor={`${idPrefix}-name`}>
           <Input
             id={`${idPrefix}-name`}
             value={form.name}
             onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
             placeholder="Synthetic oil & filter change"
-            className="h-11 border-2 border-slate-300 bg-white text-base"
+            className={fieldClass}
           />
-        </div>
-
-        <div className="space-y-2">
-          <Label className="text-slate-900">Category</Label>
-          <div className="flex flex-wrap gap-2">
-            <button
-              type="button"
-              onClick={() => setForm((f) => ({ ...f, category: "" }))}
-              className={cn(
-                "rounded-full border px-3 py-1 text-xs font-medium transition-colors",
-                !form.category
-                  ? "border-brand-navy bg-brand-navy text-white"
-                  : "border-slate-300 bg-slate-50 text-slate-700 hover:border-brand-navy/40",
-              )}
-            >
-              None
-            </button>
-            {categoryOptions.map((c) => (
-              <button
-                key={c}
-                type="button"
-                onClick={() => setForm((f) => ({ ...f, category: c }))}
-                className={cn(
-                  "rounded-full border px-3 py-1 text-xs font-medium transition-colors",
-                  form.category === c
-                    ? "border-brand-navy bg-brand-navy text-white"
-                    : "border-slate-300 bg-slate-50 text-slate-700 hover:border-brand-navy/40",
-                )}
-              >
-                {c}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div className="space-y-1.5">
-          <Label htmlFor={`${idPrefix}-desc`} className="text-slate-900">
-            Description (optional)
-          </Label>
-          <Textarea
-            id={`${idPrefix}-desc`}
-            value={form.description}
-            onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
-            placeholder="Notes visible when applied to an estimate"
-            rows={3}
-            className="min-h-[88px] resize-y border-2 border-slate-300 bg-white"
+        </Field>
+        <Field label="Category" htmlFor={`${idPrefix}-category`}>
+          <CategorySelectField
+            category={form.category}
+            onCategoryChange={setCategory}
+            idPrefix={idPrefix}
+            variant="chips"
           />
-        </div>
+        </Field>
       </div>
+
+      <Field label="Description (optional)" htmlFor={`${idPrefix}-desc`}>
+        <Textarea
+          id={`${idPrefix}-desc`}
+          value={form.description}
+          onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
+          placeholder="Notes visible when applied to an estimate"
+          rows={2}
+          className={cn(fieldClass, "min-h-[4.5rem] resize-y py-2")}
+        />
+      </Field>
     </section>
   );
 
-  const laborSection = compact ? (
-    <section className="rounded-lg border border-border bg-card p-3">
-      <div className="mb-2 flex items-center justify-between gap-2">
-        <p className="text-xs font-semibold text-foreground">Labor</p>
+  const laborSection = (
+    <section className={cn(useDenseLayout ? "space-y-2" : "space-y-3")}>
+      <div className="flex items-center justify-between gap-2">
+        <StripLabel className="mb-0">Labor</StripLabel>
         <AddLineButton label="Add labor" onClick={addLabor} />
       </div>
-      <div className="rounded-md border border-border">
+      <div className="overflow-hidden rounded-md border border-border">
         <table className="w-full table-fixed text-xs">
           <colgroup>
             <col />
@@ -875,122 +1185,16 @@ export function CannedJobIntakeForm({
           </tbody>
         </table>
       </div>
+      {!compact ? (
+        <p className="text-[11px] text-muted-foreground">
+          Enter hours or flat labor $ — flat overrides rate-based pricing at $
+          {(laborRateCents / 100).toFixed(0)}/hr on the estimate.
+        </p>
+      ) : null}
     </section>
-  ) : (
-    <section className="rounded-xl border-2 border-amber-200/80 bg-amber-50/20 p-5">
-          <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-            <SectionHeader
-              icon={Wrench}
-              title="Labor"
-              description="Operations and billable hours for this template."
-            />
-            <AddLineButton label="Add labor" onClick={addLabor} />
-          </div>
-
-          <div className="rounded-lg border-2 border-amber-200 bg-white">
-            <table className="w-full table-fixed text-sm">
-              <colgroup>
-                <col />
-                <col className="w-[5.5rem]" />
-                <col className="w-[6.5rem]" />
-                <col className="w-12" />
-              </colgroup>
-              <thead>
-                <tr className="border-b border-amber-100 bg-amber-100/60 text-[11px] font-semibold uppercase tracking-wide text-amber-900/80">
-                  <th className="px-4 py-2.5 text-left font-medium">Description</th>
-                  <th className="px-4 py-2.5 text-right font-medium">Hours</th>
-                  <th className="px-4 py-2.5 text-right font-medium">Labor ($)</th>
-                  <th className="px-2 py-2.5" />
-                </tr>
-              </thead>
-              <tbody>
-                {form.labor.length === 0 ? (
-                  <tr>
-                    <td colSpan={4} className="px-4 py-8 text-center text-sm text-amber-900/60">
-                      No labor lines yet — click &ldquo;Add labor&rdquo; to start.
-                    </td>
-                  </tr>
-                ) : (
-                  form.labor.map((l, i) => (
-                    <tr key={l.id ?? `labor-${i}`} className="border-b border-border/70 last:border-0">
-                      <td className="px-3 py-2">
-                        <Input
-                          value={l.description}
-                          onChange={(e) =>
-                            setForm((f) => ({
-                              ...f,
-                              labor: f.labor.map((r, j) =>
-                                j === i ? { ...r, description: e.target.value } : r,
-                              ),
-                            }))
-                          }
-                          placeholder="Labor description"
-                          className="h-9 min-h-9"
-                          aria-label="Labor description"
-                        />
-                      </td>
-                      <td className="px-3 py-2">
-                        <HoursInput
-                          hours={l.hours}
-                          onCommit={(hours) =>
-                            setForm((f) => ({
-                              ...f,
-                              labor: f.labor.map((r, j) =>
-                                j === i ? { ...r, hours, flatAmountCents: null } : r,
-                              ),
-                            }))
-                          }
-                          placeholder="1.5"
-                          className={fullNumericInput}
-                          aria-label="Hours"
-                        />
-                      </td>
-                      <td className="px-3 py-2">
-                        <LaborDollarsInput
-                          labor={l}
-                          laborRateCents={laborRateCents}
-                          onCommitFlat={(flatAmountCents) =>
-                            setForm((f) => ({
-                              ...f,
-                              labor: f.labor.map((r, j) =>
-                                j === i ? { ...r, flatAmountCents } : r,
-                              ),
-                            }))
-                          }
-                          placeholder="0.00"
-                          className={fullNumericInput}
-                          aria-label="Labor dollars"
-                        />
-                      </td>
-                      <td className="px-2 py-2 align-middle">
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          size="icon-sm"
-                          className="text-muted-foreground hover:text-destructive"
-                          onClick={() =>
-                            setForm((f) => ({ ...f, labor: f.labor.filter((_, j) => j !== i) }))
-                          }
-                          aria-label="Remove labor line"
-                          tabIndex={0}
-                        >
-                          <X className="size-4" />
-                        </Button>
-                      </td>
-                    </tr>
-                  ))
-                )}
-              </tbody>
-            </table>
-          </div>
-          <p className="mt-2 text-[11px] text-amber-900/70">
-            Enter hours or a flat labor amount — each field is independent. Flat $ overrides
-            rate-based pricing at ${(laborRateCents / 100).toFixed(0)}/hr when applied to an estimate.
-          </p>
-        </section>
   );
 
-  const partsTableBody = compact ? (
+  const partsTableBody = (
     <div className="rounded-md border border-border">
       <table className="w-full table-fixed text-xs">
         <colgroup>
@@ -1034,6 +1238,22 @@ export function CannedJobIntakeForm({
                     className="h-9 min-h-9 text-xs"
                     aria-label="Part description"
                   />
+                  {!compact ? (
+                    <Input
+                      value={p.brand}
+                      onChange={(e) =>
+                        setForm((f) => ({
+                          ...f,
+                          parts: f.parts.map((r, j) =>
+                            j === i ? { ...r, brand: e.target.value } : r,
+                          ),
+                        }))
+                      }
+                      placeholder="Brand (optional)"
+                      className="mt-1 h-8 text-xs"
+                      aria-label="Brand optional"
+                    />
+                  ) : null}
                 </td>
                 <td className="px-1.5 py-1">
                   <Input
@@ -1108,140 +1328,6 @@ export function CannedJobIntakeForm({
         </tbody>
       </table>
     </div>
-  ) : (
-    <div className="rounded-lg border-2 border-emerald-200 bg-white">
-      <table className="w-full table-fixed text-sm">
-        <colgroup>
-          <col />
-          <col className="w-[5rem]" />
-          <col className="w-[6.5rem]" />
-          <col className="w-[7rem]" />
-          <col className="w-12" />
-        </colgroup>
-        <thead>
-          <tr className="border-b border-emerald-100 bg-emerald-100/60 text-[11px] font-semibold uppercase tracking-wide text-emerald-900/80">
-            <th className="px-4 py-2.5 text-left font-medium">Description</th>
-            <th className="px-3 py-2.5 text-right font-medium">Qty</th>
-            <th className="px-3 py-2.5 text-right font-medium">Cost ($)</th>
-            <th className="px-3 py-2.5 text-left font-medium">Part #</th>
-            <th className="px-2 py-2.5" />
-          </tr>
-        </thead>
-        <tbody>
-          {form.parts.length === 0 ? (
-            <tr>
-              <td colSpan={5} className="px-4 py-8 text-center text-sm text-emerald-900/60">
-                No parts — labor-only jobs are fine.
-              </td>
-            </tr>
-          ) : (
-            form.parts.map((p, i) => (
-              <tr key={p.id ?? `part-${i}`} className="border-b border-border/70 last:border-0">
-                <td className="px-3 py-2">
-                  <Input
-                    value={p.description}
-                    onChange={(e) =>
-                      setForm((f) => ({
-                        ...f,
-                        parts: f.parts.map((r, j) =>
-                          j === i ? { ...r, description: e.target.value } : r,
-                        ),
-                      }))
-                    }
-                    placeholder="Part description"
-                    className="h-9 min-h-9"
-                    aria-label="Part description"
-                  />
-                  <Input
-                    value={p.brand}
-                    onChange={(e) =>
-                      setForm((f) => ({
-                        ...f,
-                        parts: f.parts.map((r, j) =>
-                          j === i ? { ...r, brand: e.target.value } : r,
-                        ),
-                      }))
-                    }
-                    placeholder="Brand (optional)"
-                    className="mt-1.5 h-8 text-xs"
-                    tabIndex={-1}
-                    aria-label="Brand optional"
-                  />
-                </td>
-                <td className="px-3 py-2 align-middle">
-                  <Input
-                    type="text"
-                    inputMode="numeric"
-                    value={qtyDisplay(p.quantity)}
-                    onChange={(e) => {
-                      const raw = e.target.value;
-                      if (raw !== "" && !/^\d+$/.test(raw)) return;
-                      setForm((f) => ({
-                        ...f,
-                        parts: f.parts.map((r, j) =>
-                          j === i ? { ...r, quantity: raw === "" ? 1 : parseInt(raw, 10) || 1 } : r,
-                        ),
-                      }));
-                    }}
-                    onFocus={(e) => e.target.select()}
-                    onKeyDown={(e) => handlePartEnter(i, e)}
-                    className={fullNumericInput}
-                    aria-label="Quantity"
-                  />
-                </td>
-                <td className="px-3 py-2 align-middle">
-                  <DollarsInput
-                    cents={p.costCents}
-                    onCommit={(costCents) =>
-                      setForm((f) => ({
-                        ...f,
-                        parts: f.parts.map((r, j) => (j === i ? { ...r, costCents } : r)),
-                      }))
-                    }
-                    onKeyDown={(e) => handlePartEnter(i, e)}
-                    placeholder="0.00"
-                    className={fullNumericInput}
-                    aria-label="Cost"
-                  />
-                </td>
-                <td className="px-3 py-2 align-middle">
-                  <Input
-                    value={p.partNumber}
-                    onChange={(e) =>
-                      setForm((f) => ({
-                        ...f,
-                        parts: f.parts.map((r, j) =>
-                          j === i ? { ...r, partNumber: e.target.value } : r,
-                        ),
-                      }))
-                    }
-                    onKeyDown={(e) => handlePartEnter(i, e)}
-                    placeholder="Part #"
-                    className="h-9 min-h-9 text-xs"
-                    aria-label="Part number"
-                  />
-                </td>
-                <td className="px-2 py-2 align-middle">
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon-sm"
-                    className="text-muted-foreground hover:text-destructive"
-                    onClick={() =>
-                      setForm((f) => ({ ...f, parts: f.parts.filter((_, j) => j !== i) }))
-                    }
-                    aria-label="Remove part line"
-                    tabIndex={0}
-                  >
-                    <X className="size-4" />
-                  </Button>
-                </td>
-              </tr>
-            ))
-          )}
-        </tbody>
-      </table>
-    </div>
   );
 
   const partsSection = compact ? (
@@ -1285,23 +1371,23 @@ export function CannedJobIntakeForm({
       </section>
     </Collapsible>
   ) : (
-        <section className="rounded-xl border-2 border-emerald-200/80 bg-emerald-50/20 p-5">
-          <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
-            <SectionHeader
-              icon={Package}
-              title="Parts"
-              description="Part cost and quantity — retail markup applies on the estimate."
-            />
-            <AddLineButton label="Add part" onClick={addPart} />
-          </div>
-
-          {partsTableBody}
-        </section>
+    <section className={cn(useDenseLayout ? "space-y-2" : "space-y-3")}>
+      <div className="flex items-center justify-between gap-2">
+        <StripLabel className="mb-0">Parts</StripLabel>
+        <AddLineButton label="Add part" onClick={addPart} />
+      </div>
+      {partsTableBody}
+    </section>
   );
 
   if (isStepped || hideInlineSummary) {
     return (
-      <div className={cn("min-w-0", compact ? "space-y-2" : "space-y-4")}>
+      <div
+        className={cn(
+          "min-w-0",
+          dense ? "space-y-3" : compact ? "space-y-2" : "space-y-4",
+        )}
+      >
         {showBasics ? basicsSection : null}
         {showLabor ? laborSection : null}
         {showParts ? partsSection : null}

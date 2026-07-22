@@ -35,7 +35,7 @@ export const RP2_NAV_GROUPS: NavGroup[] = [
       { title: "Estimates", href: "/job-board", icon: FileSpreadsheet },
       { title: "Appointments", href: "/appointments", icon: CalendarDays },
       { title: "Calendar", href: "/calendar", icon: Calendar, stub: true },
-      { title: "Parts Inventory", href: "/inventory", icon: Package },
+      { title: "Parts", href: "/inventory", icon: Package },
       { title: "Technicians", href: "/employees", icon: IdCard },
       { title: "Time Clock", href: "/time-clock", icon: Clock, stub: true },
       { title: "Digital Inspections", href: "/inspections", icon: ClipboardCheck },

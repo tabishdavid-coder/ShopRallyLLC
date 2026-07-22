@@ -14,6 +14,7 @@
 | Torque360 alternative | `/compare/torque360-alternative` | Growing budget cloud |
 | Shop-Ware alternative | `/compare/shop-ware-alternative` | Growing cloud / DVI focus |
 | RepairShopr alternative | `/compare/repairshopr-alternative` | Multi-trade → auto-native |
+| ARI alternative | `/compare/ari-alternative` | Mobile-first / budget → multi-bay CRM |
 | ShopRally demo / walkthrough | `/demo` | Soft conversion |
 | founding seat / Q4 2026 launch | `/launch` | Campaign URL |
 | ShopRally signup / reserve | `/signup` | Secondary conversion |

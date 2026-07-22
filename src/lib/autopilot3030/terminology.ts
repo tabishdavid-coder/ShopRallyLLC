@@ -9,7 +9,7 @@ export const AP_TERMS = {
   jobBoard: "Job Board",
   techBoard: "Tech Board",
   quickLabor: "Labor Book",
-  cannedJobs: "Service Templates",
+  cannedJobs: "Canned Jobs",
   smartJobs: "Work Lines",
   estimate: "Quote",
   workInProgress: "Active Bay",

@@ -52,7 +52,7 @@ export function InventoryPartDetailView({
   }
 
   function handleDeactivate() {
-    if (!confirm("Deactivate this part? It will be removed from the inventory list.")) return;
+    if (!confirm("Deactivate this part? It will be removed from the parts list.")) return;
     startTransition(async () => {
       const result = await deactivateInventoryPart(part.id);
       if (result.ok) router.push("/inventory");

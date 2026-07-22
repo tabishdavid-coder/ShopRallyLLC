@@ -17,6 +17,7 @@ import {
 } from "lucide-react";
 
 import { AdjustQuantityDialog } from "@/components/inventory/adjust-quantity-dialog";
+import { ImportPartsDialog } from "@/components/inventory/import-parts-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -42,6 +43,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { mergeInventoryCategories } from "@/lib/inventory-categories";
 import { formatCents } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import type { InventoryPartRow } from "@/server/inventory";
@@ -74,6 +76,13 @@ export function InventoryTable({
   const [search, setSearch] = useState(query);
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [adjustPart, setAdjustPart] = useState<InventoryPartRow | null>(null);
+  const [importOpen, setImportOpen] = useState(false);
+
+  const categoryOptions = mergeInventoryCategories(categories, categoryFilter);
+  const categoryLabel =
+    categoryFilter === "all" ? "All categories" : categoryFilter;
+  const isVirginEmpty =
+    total === 0 && !query && categoryFilter === "all" && !lowStockFilter;
 
   const setParams = useCallback(
     (next: Record<string, string | number | null | boolean>) => {
@@ -112,31 +121,6 @@ export function InventoryTable({
       return next;
     });
 
-  if (total === 0 && !query && categoryFilter === "all" && !lowStockFilter) {
-    return (
-      <div className="rounded-xl border bg-card shadow-sm">
-        <div className="flex flex-col items-center justify-center gap-4 px-6 py-16 text-center">
-          <div className="flex size-16 items-center justify-center rounded-full bg-muted">
-            <Package className="size-8 text-muted-foreground" />
-          </div>
-          <div className="space-y-1">
-            <p className="text-lg font-medium">No inventory items yet</p>
-            <p className="max-w-sm text-sm text-muted-foreground">
-              There are currently no items in your shop&apos;s inventory. Add parts to track
-              quantity on hand, reorder points, and bin locations.
-            </p>
-          </div>
-          <Button asChild className="bg-brand-navy">
-            <Link href="/inventory/new">
-              <Plus className="size-4" />
-              Add part
-            </Link>
-          </Button>
-        </div>
-      </div>
-    );
-  }
-
   return (
     <>
       <div className="rounded-xl border bg-card shadow-sm">
@@ -154,15 +138,15 @@ export function InventoryTable({
             />
           </div>
           <Select
-            value={categoryFilter}
+            value={categoryFilter || "all"}
             onValueChange={(v) => setParams({ category: v === "all" ? null : v, page: null })}
           >
-            <SelectTrigger className="w-40">
-              <SelectValue placeholder="Category" />
+            <SelectTrigger className="w-44" aria-label="Filter by category">
+              <SelectValue placeholder="Category">{categoryLabel}</SelectValue>
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent position="popper">
               <SelectItem value="all">All categories</SelectItem>
-              {categories.map((c) => (
+              {categoryOptions.map((c) => (
                 <SelectItem key={c} value={c}>
                   {c}
                 </SelectItem>
@@ -178,7 +162,12 @@ export function InventoryTable({
             <SlidersHorizontal className="size-4" />
             Low stock
           </Button>
-          <Button variant="outline" size="sm" className="gap-1.5" disabled title="Coming soon">
+          <Button
+            variant="outline"
+            size="sm"
+            className="gap-1.5"
+            onClick={() => setImportOpen(true)}
+          >
             <Upload className="size-4" />
             Import CSV
           </Button>
@@ -220,8 +209,34 @@ export function InventoryTable({
           <TableBody>
             {rows.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={10} className="py-10 text-center text-muted-foreground">
-                  No parts match your filters.
+                <TableCell colSpan={10} className="py-12 text-center">
+                  {isVirginEmpty ? (
+                    <div className="flex flex-col items-center gap-3 px-4">
+                      <div className="flex size-14 items-center justify-center rounded-full bg-muted">
+                        <Package className="size-7 text-muted-foreground" />
+                      </div>
+                      <div className="space-y-1">
+                        <p className="text-base font-medium">No parts yet</p>
+                        <p className="mx-auto max-w-sm text-sm text-muted-foreground">
+                          Add parts to track quantity on hand, reorder points, and bin
+                          locations. Import a CSV to bulk-load your parts catalog.
+                        </p>
+                      </div>
+                      <div className="flex flex-wrap justify-center gap-2">
+                        <Button asChild size="sm" className="bg-brand-navy">
+                          <Link href="/inventory/new">
+                            <Plus className="size-4" />
+                            Add part
+                          </Link>
+                        </Button>
+                        <Button variant="outline" size="sm" onClick={() => setImportOpen(true)}>
+                          Import CSV
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <p className="text-muted-foreground">No parts match your filters.</p>
+                  )}
                 </TableCell>
               </TableRow>
             ) : (
@@ -351,6 +366,8 @@ export function InventoryTable({
           onOpenChange={(open) => !open && setAdjustPart(null)}
         />
       ) : null}
+
+      <ImportPartsDialog open={importOpen} onOpenChange={setImportOpen} />
     </>
   );
 }

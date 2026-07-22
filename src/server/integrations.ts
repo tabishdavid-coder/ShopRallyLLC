@@ -132,12 +132,12 @@ function resolveWeldon(row: ShopIntegrationRow | null): VendorIntegrationStatus 
 
   const detail =
     state === "connected"
-      ? "API ordering enabled — approve tire orders on /tires to submit to Weldon."
+      ? "API ordering enabled — manage supplier orders from Vendor Connect."
       : state === "configured"
         ? "Shop account saved — live API test pending aggregator partnership."
         : state === "mock"
-          ? `Manual mode: place orders in the Weldon portal after approval on /tires.`
-          : "Add your Weldon commercial account to streamline tire supplier approval.";
+          ? "Manual mode: place orders in the Weldon portal from Vendor Connect."
+          : "Add your Weldon commercial account to streamline tire supplier ordering.";
 
   return {
     key: "weldon",

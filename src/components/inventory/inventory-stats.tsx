@@ -44,9 +44,9 @@ export function InventoryStatsRow({ stats }: { stats: InventoryStats }) {
 export function InventoryModuleHeader() {
   return (
     <div>
-      <h1 className="text-2xl font-bold tracking-tight">Inventory</h1>
+      <h1 className="text-2xl font-bold tracking-tight">Parts</h1>
       <p className="text-sm text-muted-foreground">
-        Parts on hand, reorder levels, and stock adjustments.
+        On-hand stock, reorder levels, and quantity adjustments.
       </p>
     </div>
   );

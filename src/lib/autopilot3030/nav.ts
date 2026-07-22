@@ -142,7 +142,7 @@ export const AP_OPERATIONS_NAV_ITEMS: ApNavLink[] = [
     title: "Tires",
     href: "/tires",
     icon: Disc3,
-    description: "Quotes, orders & tire inventory",
+    description: "Tires on hand — new & used stock",
   },
   {
     title: AP_TERMS.quickLabor,
@@ -219,7 +219,7 @@ export const AP_SIDEBAR_NAV_GROUPS: ApNavGroup[] = [
         title: "Tires",
         href: "/tires",
         icon: Disc3,
-        description: "Quotes, orders & tire inventory",
+        description: "Tires on hand — new & used stock",
       },
       {
         title: AP_TERMS.quickLabor,
@@ -228,10 +228,16 @@ export const AP_SIDEBAR_NAV_GROUPS: ApNavGroup[] = [
         description: "Labor times by VIN or plate",
       },
       {
-        title: "Catalog",
+        title: AP_TERMS.cannedJobs,
+        href: "/canned-jobs",
+        icon: Star,
+        description: "Reusable canned jobs for estimates",
+      },
+      {
+        title: "Parts",
         href: "/inventory",
         icon: Package,
-        description: "Parts inventory & stock levels",
+        description: "Parts on hand & stock levels",
       },
       {
         title: "Messages",
@@ -280,12 +286,6 @@ export const AP_SIDEBAR_NAV_GROUPS: ApNavGroup[] = [
         href: "/settings",
         icon: Settings,
         description: "Team, vendors, shop libraries & settings",
-      },
-      {
-        title: AP_TERMS.cannedJobs,
-        href: "/canned-jobs",
-        icon: Star,
-        description: "Reusable service templates for estimates",
       },
       {
         title: "Labor Library",
@@ -468,11 +468,11 @@ export const AP_NAV_SECTIONS: ApNavSection[] = [
   },
   {
     id: "catalog",
-    label: "Catalog",
+    label: "Parts",
     icon: Package,
     href: "/inventory",
-    description: "Parts inventory & stock levels",
-    items: [{ title: "Inventory", href: "/inventory", icon: Package }],
+    description: "Parts on hand & stock levels",
+    items: [{ title: "Parts", href: "/inventory", icon: Package }],
   },
   {
     id: "growth",
@@ -491,7 +491,6 @@ export const AP_NAV_SECTIONS: ApNavSection[] = [
     items: [
       { title: "Team", href: "/employees", icon: IdCard },
       { title: "Vendor Connect", href: "/vendors/integrations", icon: Truck },
-      { title: AP_TERMS.cannedJobs, href: "/canned-jobs", icon: Star },
       {
         title: "Labor Library",
         href: "/labor-guide",
@@ -545,7 +544,6 @@ export const AP_CUSTOMERS_MODULE_NAV_ITEMS: ApNavLink[] =
 export const AP_ADMIN_MODULE_NAV_ITEMS: ApNavLink[] = [
   { title: "Team", href: "/employees", icon: IdCard },
   { title: "Vendor Connect", href: "/vendors/integrations", icon: Truck },
-  { title: AP_TERMS.cannedJobs, href: "/canned-jobs", icon: Star },
   {
     title: "Labor Library",
     href: "/labor-guide",
@@ -567,9 +565,8 @@ export function apAdminNavItemsForPlan(features: PlanFeatureSet): ApNavLink[] {
 
 const CATALOG_PATH_PREFIXES = ["/inventory"] as const;
 
-/** Shop libraries live under Admin IA (not Catalog). */
+/** Shop libraries under System/Admin IA (not Catalog). Canned Jobs lives in Shop sidebar. */
 const ADMIN_SHOP_LIBRARY_PATH_PREFIXES = [
-  "/canned-jobs",
   "/labor-guide",
   "/inspections",
 ] as const;
@@ -594,6 +591,7 @@ const OPERATIONS_PATH_PREFIXES = [
   "/tech-board",
   "/tires",
   "/quick-labor",
+  "/canned-jobs",
   "/messages",
   "/marketing/reviews",
   "/reports",

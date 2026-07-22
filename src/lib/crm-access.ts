@@ -21,7 +21,7 @@ export const CRM_NAV_HREF_PERMISSIONS: Record<string, readonly string[]> = {
   "/job-board": ["job_board.view", "job_board.view_all"],
   "/workflow": ["job_board.view", "job_board.view_all"],
   "/tech-board": ["job_board.view", "job_board.view_all"],
-  "/tires": ["job_board.view", "job_board.view_all"],
+  "/tires": ["inventory.view", "inventory.edit"],
   "/quick-labor": ["job_board.view", "job_board.view_all", "estimate.view"],
   "/messages": ["customers.message", "customers.view"],
   "/marketing/reviews": [],
@@ -235,7 +235,7 @@ export const CRM_ROUTE_RULES: CrmRouteRule[] = [
   { prefix: "/workflow", anyOf: ["job_board.view", "job_board.view_all"] },
   { prefix: "/tech-board", anyOf: ["job_board.view", "job_board.view_all"] },
   { prefix: "/job-board", anyOf: ["job_board.view", "job_board.view_all"] },
-  { prefix: "/tires", anyOf: ["job_board.view", "job_board.view_all"] },
+  { prefix: "/tires", anyOf: ["inventory.view", "inventory.edit"] },
   { prefix: "/quick-labor", anyOf: ["job_board.view", "job_board.view_all", "estimate.view"] },
 ];
 

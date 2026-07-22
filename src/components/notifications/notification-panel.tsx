@@ -70,7 +70,7 @@ function iconForType(type: NotificationTypeKey) {
       return FileText;
     case "SMS_RECEIVED":
       return MessageSquare;
-    case "TIRE_APPROVAL_PENDING":
+    case "TIRE_LOW_STOCK":
       return Wrench;
     case "PAYMENT_RECEIVED":
       return CreditCard;

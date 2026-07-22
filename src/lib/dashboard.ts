@@ -176,7 +176,7 @@ export type DashboardKpis = {
   appointmentsThisWeek: number;
   /** Appointments created (booked) in the selected period. */
   appointmentsBookedInPeriod: number;
-  tireOrdersPending: number;
+  tiresLowStock: number;
   invoicedCents: number;
   collectedCents: number;
   /** ROs created in period that are still ESTIMATE. */

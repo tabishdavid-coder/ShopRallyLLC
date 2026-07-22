@@ -22,8 +22,6 @@ import {
   InspectionItemStatus,
   AppointmentStatus,
   PurchaseOrderStatus,
-  TireOrderStatus,
-  TireOrderSource,
   type Prisma,
 } from "../src/generated/prisma";
 import { phoneDigitsKey } from "../src/lib/phone";
@@ -373,6 +371,8 @@ async function main() {
       apptDefaultDurationMins: 60,
       plan: "STARTER",
       billingStatus: "ACTIVE",
+      twilioPhoneNumber: "+17185550199",
+      smsEnabled: true,
       legalEntityName: "Macuto Auto Repair",
       legalEntityState: "NY",
       estimateTermsHtml: DEFAULT_ESTIMATE_TERMS_HTML,
@@ -381,7 +381,7 @@ async function main() {
       estimateTermsUpdatedAt: new Date(),
       planFeatures: {
         freeformRoIntake: true,
-        _release: { aiSuite: true },
+        _release: { aiSuite: true, sms: true, partsTech: true },
       },
     },
   });
@@ -629,6 +629,217 @@ async function main() {
         ],
       },
     },
+  });
+
+  // ── Macuto SMS demo threads (Messages inbox) ───────────
+  const MACUTO_SMS_FROM = "+17185550199";
+  const macutoJames = await prisma.customer.create({
+    data: {
+      id: "cust_macuto_james",
+      shopId: macuto.id,
+      firstName: "James",
+      lastName: "Rivera",
+      phone: "(718) 555-0188",
+      phoneDigits: phoneDigitsKey("(718) 555-0188"),
+      email: "james.rivera@example.com",
+    },
+  });
+  const macutoSandra = await prisma.customer.create({
+    data: {
+      id: "cust_macuto_sandra",
+      shopId: macuto.id,
+      firstName: "Sandra",
+      lastName: "Okonkwo",
+      phone: "(347) 555-0166",
+      phoneDigits: phoneDigitsKey("(347) 555-0166"),
+      email: "sandra.okonkwo@example.com",
+    },
+  });
+  const macutoKevin = await prisma.customer.create({
+    data: {
+      id: "cust_macuto_kevin",
+      shopId: macuto.id,
+      firstName: "Kevin",
+      lastName: "Tran",
+      phone: "(929) 555-0133",
+      phoneDigits: phoneDigitsKey("(929) 555-0133"),
+      email: "kevin.tran@example.com",
+    },
+  });
+
+  const macutoNow = Date.now();
+  const macutoHoursAgo = (h: number) => new Date(macutoNow - h * 60 * 60 * 1000);
+  const macutoDaysAgo = (d: number) => new Date(macutoNow - d * 24 * 60 * 60 * 1000);
+
+  await prisma.message.createMany({
+    data: [
+      // Maria Cortes — brake estimate thread (RO #1001), 1 unread inbound
+      {
+        shopId: macuto.id,
+        customerId: macutoCustomer.id,
+        repairOrderId: "ro_macuto_1001",
+        direction: "OUTBOUND",
+        body: "Hi Maria, your 2014 Accord is checked in at Macuto Auto Repair. We'll inspect the front brakes and text you an update.",
+        status: "delivered",
+        fromNumber: MACUTO_SMS_FROM,
+        toNumber: "+17185550144",
+        sentAt: macutoDaysAgo(3),
+        createdAt: macutoDaysAgo(3),
+      },
+      {
+        shopId: macuto.id,
+        customerId: macutoCustomer.id,
+        repairOrderId: "ro_macuto_1001",
+        direction: "INBOUND",
+        body: "Thanks! How long will the inspection take?",
+        status: "received",
+        fromNumber: "+17185550144",
+        toNumber: MACUTO_SMS_FROM,
+        sentAt: new Date(macutoDaysAgo(3).getTime() + 45 * 60 * 1000),
+        createdAt: new Date(macutoDaysAgo(3).getTime() + 45 * 60 * 1000),
+        readAt: macutoDaysAgo(2),
+      },
+      {
+        shopId: macuto.id,
+        customerId: macutoCustomer.id,
+        repairOrderId: "ro_macuto_1001",
+        direction: "OUTBOUND",
+        body: "About 30 minutes for the inspection. We'll send your estimate by text once the advisor reviews it.",
+        status: "delivered",
+        fromNumber: MACUTO_SMS_FROM,
+        toNumber: "+17185550144",
+        sentAt: macutoDaysAgo(2),
+        createdAt: macutoDaysAgo(2),
+      },
+      {
+        shopId: macuto.id,
+        customerId: macutoCustomer.id,
+        repairOrderId: "ro_macuto_1001",
+        direction: "OUTBOUND",
+        body: "Maria, your brake estimate for RO #1001 is ready — $470.42 total. Reply YES to approve or call us with questions.",
+        status: "delivered",
+        fromNumber: MACUTO_SMS_FROM,
+        toNumber: "+17185550144",
+        sentAt: macutoHoursAgo(6),
+        createdAt: macutoHoursAgo(6),
+      },
+      {
+        shopId: macuto.id,
+        customerId: macutoCustomer.id,
+        repairOrderId: "ro_macuto_1001",
+        direction: "INBOUND",
+        body: "Can I pick up tomorrow morning instead?",
+        status: "received",
+        fromNumber: "+17185550144",
+        toNumber: MACUTO_SMS_FROM,
+        sentAt: macutoHoursAgo(2),
+        createdAt: macutoHoursAgo(2),
+      },
+      // James Rivera — drop-off / on my way
+      {
+        shopId: macuto.id,
+        customerId: macutoJames.id,
+        direction: "OUTBOUND",
+        body: "Hi James, reminder: your oil change appointment at Macuto is tomorrow at 9:00 AM. Reply C to confirm.",
+        status: "delivered",
+        fromNumber: MACUTO_SMS_FROM,
+        toNumber: "+17185550188",
+        sentAt: macutoDaysAgo(2),
+        createdAt: macutoDaysAgo(2),
+      },
+      {
+        shopId: macuto.id,
+        customerId: macutoJames.id,
+        direction: "INBOUND",
+        body: "C",
+        status: "received",
+        fromNumber: "+17185550188",
+        toNumber: MACUTO_SMS_FROM,
+        sentAt: macutoDaysAgo(1),
+        createdAt: macutoDaysAgo(1),
+        readAt: macutoHoursAgo(20),
+      },
+      {
+        shopId: macuto.id,
+        customerId: macutoJames.id,
+        direction: "INBOUND",
+        body: "On my way — running about 10 min late.",
+        status: "received",
+        fromNumber: "+17185550188",
+        toNumber: MACUTO_SMS_FROM,
+        sentAt: macutoHoursAgo(3),
+        createdAt: macutoHoursAgo(3),
+      },
+      {
+        shopId: macuto.id,
+        customerId: macutoJames.id,
+        direction: "OUTBOUND",
+        body: "No problem, James — we'll see you when you get here.",
+        status: "delivered",
+        fromNumber: MACUTO_SMS_FROM,
+        toNumber: "+17185550188",
+        sentAt: macutoHoursAgo(2.5),
+        createdAt: macutoHoursAgo(2.5),
+      },
+      // Sandra Okonkwo — appointment confirm
+      {
+        shopId: macuto.id,
+        customerId: macutoSandra.id,
+        direction: "OUTBOUND",
+        body: "Hi Sandra, Macuto Auto Repair confirmed your alignment for Thu at 2:00 PM. Reply YES to confirm or call to reschedule.",
+        status: "delivered",
+        fromNumber: MACUTO_SMS_FROM,
+        toNumber: "+13475550166",
+        sentAt: macutoDaysAgo(1),
+        createdAt: macutoDaysAgo(1),
+      },
+      {
+        shopId: macuto.id,
+        customerId: macutoSandra.id,
+        direction: "INBOUND",
+        body: "YES — see you Thursday.",
+        status: "received",
+        fromNumber: "+13475550166",
+        toNumber: MACUTO_SMS_FROM,
+        sentAt: macutoHoursAgo(18),
+        createdAt: macutoHoursAgo(18),
+      },
+      {
+        shopId: macuto.id,
+        customerId: macutoSandra.id,
+        direction: "OUTBOUND",
+        body: "Perfect, Sandra. We'll text when your vehicle is on the rack.",
+        status: "delivered",
+        fromNumber: MACUTO_SMS_FROM,
+        toNumber: "+13475550166",
+        sentAt: macutoHoursAgo(17),
+        createdAt: macutoHoursAgo(17),
+      },
+      // Kevin Tran — short reply thread (read)
+      {
+        shopId: macuto.id,
+        customerId: macutoKevin.id,
+        direction: "OUTBOUND",
+        body: "Kevin, your inspection report from Macuto is ready to view. Check your email for the link or reply here with questions.",
+        status: "delivered",
+        fromNumber: MACUTO_SMS_FROM,
+        toNumber: "+19295550133",
+        sentAt: macutoDaysAgo(4),
+        createdAt: macutoDaysAgo(4),
+      },
+      {
+        shopId: macuto.id,
+        customerId: macutoKevin.id,
+        direction: "INBOUND",
+        body: "Got it, thanks!",
+        status: "received",
+        fromNumber: "+19295550133",
+        toNumber: MACUTO_SMS_FROM,
+        sentAt: macutoDaysAgo(3),
+        createdAt: macutoDaysAgo(3),
+        readAt: macutoDaysAgo(3),
+      },
+    ],
   });
 
   // Demo login history for the owner (Employees → History tab).
@@ -1382,122 +1593,32 @@ async function main() {
     await prisma.appointment.createMany({ data: apptRows });
   }
 
-  // ── Demo tire orders (separate from online booking) ─────
-  const markCustTire = await prisma.customer.findFirst({
-    where: { shopId: demo.id, phone: "(919) 836-3766" },
-  });
-  const markVehTire = markCustTire
-    ? await prisma.vehicle.findFirst({ where: { shopId: demo.id, customerId: markCustTire.id } })
-    : null;
-  const davidCustTire = await prisma.customer.findFirst({
-    where: { shopId: demo.id, phone: "(518) 227-9897" },
-  });
-  const davidVehTire = davidCustTire
-    ? await prisma.vehicle.findFirst({ where: { shopId: demo.id, customerId: davidCustTire.id } })
-    : null;
 
-  let tireOrderNum = 1001;
+  // ── Demo tire stock (local inventory — new & used) ─────
+  const TIRE_STOCK = [
+    { stockNumber: "TR-MIC-2256517", brand: "Michelin", model: "Defender T+H", size: "225/65R17", loadSpeed: "102H", condition: "NEW" as const, quantityOnHand: 12, reorderPoint: 4, reorderQty: 8, costCents: dollars(89), retailCents: dollars(149), binLocation: "T1-A1" },
+    { stockNumber: "TR-BFG-2454518", brand: "BFGoodrich", model: "g-Force COMP-2", size: "245/45R18", loadSpeed: "96W", condition: "NEW" as const, quantityOnHand: 8, reorderPoint: 4, reorderQty: 8, costCents: dollars(112), retailCents: dollars(189), binLocation: "T1-A2" },
+    { stockNumber: "TR-GDY-2657017", brand: "Goodyear", model: "Wrangler SR-A", size: "265/70R17", loadSpeed: "113T", condition: "NEW" as const, quantityOnHand: 6, reorderPoint: 4, reorderQty: 4, costCents: dollars(95), retailCents: dollars(165), binLocation: "T1-B1" },
+    { stockNumber: "TR-CON-2254517-U", brand: "Continental", model: "ProContact TX", size: "225/45R17", loadSpeed: "91H", condition: "USED" as const, quantityOnHand: 4, reorderPoint: 2, reorderQty: 4, costCents: dollars(35), retailCents: dollars(69), binLocation: "T2-U1", treadDepth32nds: 6, dotCode: "2319" },
+    { stockNumber: "TR-FIR-2055516", brand: "Firestone", model: "WeatherGrip", size: "205/55R16", loadSpeed: "91H", condition: "NEW" as const, quantityOnHand: 2, reorderPoint: 4, reorderQty: 8, costCents: dollars(72), retailCents: dollars(125), binLocation: "T1-C1", notes: "Low stock demo SKU" },
+  ] as const;
 
-  if (markCustTire) {
-    const tireApptSlot = apptSlot(3, 13, 30, 90);
-    const tireAppt = await prisma.appointment.create({
-      data: {
-        shopId: demo.id,
-        customerId: markCustTire.id,
-        vehicleId: markVehTire?.id ?? null,
-        title: "Mark Johnson — Tire install (2018 Honda Accord)",
-        ...tireApptSlot,
-        status: AppointmentStatus.SCHEDULED,
-        serviceName: "Tire install",
-        source: "TIRES",
-        notes: "Size: 225/65R17 · Brand: Michelin · Drop-off: drop-off",
-      },
-    });
-
-    await prisma.tireOrder.create({
-      data: {
-        shopId: demo.id,
-        number: tireOrderNum++,
-        customerId: markCustTire.id,
-        vehicleId: markVehTire?.id ?? null,
-        appointmentId: tireAppt.id,
-        status: TireOrderStatus.SCHEDULED,
-        source: TireOrderSource.CRM,
-        tireSizeFront: "225/65R17",
-        tireBrand: "Michelin Defender",
-        tireQuantity: 4,
-        tireType: "all-season",
-        dropOffType: "drop-off",
-        estimatedTotalCents: dollars(892),
-        depositCents: dollars(50),
-        depositPaidAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
-        depositMethod: PaymentMethod.CARD,
-        notes: "Customer requested alignment check after install.",
-      },
-    });
-  }
-
-  if (davidCustTire) {
-    const demoWebsiteTireDepositPaidAt = new Date(Date.now() - 4 * 60 * 60 * 1000);
-    const demoWebsiteTireData = {
-      shopId: demo.id,
-      number: 1002,
-      customerId: davidCustTire.id,
-      vehicleId: davidVehTire?.id ?? null,
-      status: TireOrderStatus.PENDING_SUPPLIER_APPROVAL,
-      source: TireOrderSource.WEBSITE,
-      tireSizeFront: "245/45R18",
-      tireSizeRear: "245/45R18",
-      tireBrand: "Continental",
-      tireQuantity: 4,
-      tireType: "performance",
-      dropOffType: "wait",
-      estimatedTotalCents: dollars(1240),
-      depositCents: dollars(75),
-      depositPaidAt: demoWebsiteTireDepositPaidAt,
-      depositMethod: PaymentMethod.CARD,
-      depositReference: "pi_demo_website_tire_deposit",
-      websiteSubmissionId: "web-demo-tire-001",
-      supplierName: "Weldon Tire",
-      notes: "Website intake — deposit paid, awaiting Weldon supplier approval.",
-    };
-    await prisma.tireOrder.upsert({
-      where: { shopId_number: { shopId: demo.id, number: 1002 } },
-      create: demoWebsiteTireData,
-      update: {
-        ...demoWebsiteTireData,
-        customerId: davidCustTire.id,
-        vehicleId: davidVehTire?.id ?? null,
-      },
-    });
-    tireOrderNum = 1003;
-  }
-
-  if (extraCust[0]) {
-    const c = extraCust[0];
-    const veh = await prisma.vehicle.findFirst({
-      where: { shopId: demo.id, customerId: c.id },
-      select: { id: true },
-    });
-    await prisma.tireOrder.create({
-      data: {
-        shopId: demo.id,
-        number: tireOrderNum++,
-        customerId: c.id,
-        vehicleId: veh?.id ?? null,
-        status: TireOrderStatus.DEPOSIT_RECEIVED,
-        source: TireOrderSource.CRM,
-        tireSizeFront: "265/70R17",
-        tireBrand: "Goodyear Wrangler",
-        tireQuantity: 4,
-        tireType: "all-terrain",
-        dropOffType: "drop-off",
-        estimatedTotalCents: dollars(980),
-        depositCents: dollars(100),
-        depositPaidAt: new Date(),
-        depositMethod: PaymentMethod.CASH,
-      },
-    });
+  for (const shopId of [demo.id, macuto.id]) {
+    for (const t of TIRE_STOCK) {
+      const tire = await prisma.tireStock.create({
+        data: { shopId, ...t },
+      });
+      if (t.quantityOnHand > 0) {
+        await prisma.tireStockAdjustment.create({
+          data: {
+            shopId,
+            tireId: tire.id,
+            delta: t.quantityOnHand,
+            reason: "Initial stock (seed)",
+          },
+        });
+      }
+    }
   }
 
   // Backfill auto-apply shop fees onto every demo RO (estimates, WIP, invoices).
@@ -1692,7 +1813,7 @@ async function main() {
     void draft;
   }
 
-  // Inventory parts — demo stock for In & Out AutoHaus
+  // Inventory parts — demo stock for In & Out AutoHaus + Macuto Core QA
   const INVENTORY_PARTS = [
     { partNumber: "OF-1240", description: "Oil filter — standard spin-on", brand: "Motorcraft", category: "Filters", vendorName: "NAPA", quantityOnHand: 24, reorderPoint: 10, reorderQty: 20, costCents: dollars(7), retailCents: dollars(28), binLocation: "A1-01" },
     { partNumber: "OF-3517", description: "Oil filter — cartridge type", brand: "WIX", category: "Filters", vendorName: "WorldPac", quantityOnHand: 8, reorderPoint: 12, reorderQty: 24, costCents: dollars(9), retailCents: dollars(36), binLocation: "A1-02" },
@@ -1723,19 +1844,21 @@ async function main() {
     { partNumber: "PCV-VALVE", description: "PCV valve", brand: "Standard", category: "Engine", vendorName: "NAPA", quantityOnHand: 7, reorderPoint: 5, reorderQty: 10, costCents: dollars(6), retailCents: dollars(24), binLocation: "D1-02" },
   ] as const;
 
-  for (const p of INVENTORY_PARTS) {
-    const part = await prisma.inventoryPart.create({
-      data: { shopId: demo.id, ...p },
-    });
-    if (p.quantityOnHand > 0) {
-      await prisma.inventoryAdjustment.create({
-        data: {
-          shopId: demo.id,
-          partId: part.id,
-          delta: p.quantityOnHand,
-          reason: "Initial stock (seed)",
-        },
+  for (const shopId of [demo.id, macuto.id]) {
+    for (const p of INVENTORY_PARTS) {
+      const part = await prisma.inventoryPart.create({
+        data: { shopId, ...p },
       });
+      if (p.quantityOnHand > 0) {
+        await prisma.inventoryAdjustment.create({
+          data: {
+            shopId,
+            partId: part.id,
+            delta: p.quantityOnHand,
+            reason: "Initial stock (seed)",
+          },
+        });
+      }
     }
   }
 
@@ -1809,7 +1932,12 @@ async function main() {
   const total = await prisma.customer.count({ where: { shopId: demo.id } });
   const roCount = await prisma.repairOrder.count({ where: { shopId: demo.id } });
   const apptCount = await prisma.appointment.count({ where: { shopId: demo.id } });
-  const tireCount = await prisma.tireOrder.count({ where: { shopId: demo.id } });
+  const tireStockCount = await prisma.tireStock.count({ where: { shopId: demo.id } });
+  const macutoTireCount = await prisma.tireStock.count({ where: { shopId: macuto.id } });
+  const macutoMessageThreadCount = await prisma.customer.count({
+    where: { shopId: macuto.id, messages: { some: {} } },
+  });
+  const macutoMessageCount = await prisma.message.count({ where: { shopId: macuto.id } });
   const reviewCount = await prisma.googleReview.count({ where: { shopId: demo.id } });
   const messageThreadCount = await prisma.customer.count({
     where: {
@@ -1819,12 +1947,16 @@ async function main() {
   });
   const faqCount = await prisma.faqArticle.count();
   const invCount = await prisma.inventoryPart.count({ where: { shopId: demo.id } });
+  const macutoInvCount = await prisma.inventoryPart.count({ where: { shopId: macuto.id } });
   const approvalRo = await prisma.repairOrder.findFirst({
     where: { shopId: demo.id, approvalToken: { not: null } },
     select: { number: true, approvalToken: true },
   });
   console.log(
-    `Seed complete: shop "${demo.name}" with ${total} customers, ${roCount} repair orders, ${apptCount} appointments, ${tireCount} tire orders, ${invCount} inventory parts, ${messageThreadCount} SMS threads, ${reviewCount} Google reviews, ${faqCount} FAQ articles.`,
+    `Seed complete: shop "${demo.name}" with ${total} customers, ${roCount} repair orders, ${apptCount} appointments, ${tireStockCount} tire SKUs, ${invCount} inventory parts, ${messageThreadCount} SMS threads, ${reviewCount} Google reviews, ${faqCount} FAQ articles.`,
+  );
+  console.log(
+    `Macuto Core QA ("${macuto.name}"): ${macutoInvCount} inventory parts, ${macutoTireCount} tire SKUs, ${macutoMessageThreadCount} SMS threads (${macutoMessageCount} messages) — Parts: http://localhost:3031/platform/enter?shop=shop_macuto&next=/inventory · Tires: http://localhost:3031/platform/enter?shop=shop_macuto&next=/tires · Messages: http://localhost:3031/platform/enter?shop=shop_macuto&next=/messages`,
   );
   if (approvalRo?.approvalToken) {
     console.log(

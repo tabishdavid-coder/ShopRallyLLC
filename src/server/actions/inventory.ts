@@ -4,6 +4,10 @@ import { z } from "zod";
 import { revalidatePath } from "next/cache";
 
 import { prisma } from "@/db/client";
+import {
+  parseInventoryPartCsv,
+  type ParsedInventoryPartCsvRow,
+} from "@/lib/inventory-part-csv";
 import { getShopId } from "@/lib/shop";
 import { gates } from "@/server/permission-gates";
 
@@ -27,6 +31,56 @@ export type CreateInventoryPartInput = z.infer<typeof PartInput>;
 export type InventoryActionResult =
   | { ok: true; id: string }
   | { ok: false; error: string };
+
+export type InventoryPartImportResult =
+  | { ok: true; created: number; skipped: number; rowErrors?: { row: number; message: string }[] }
+  | { ok: false; error: string; rowErrors?: { row: number; message: string }[] };
+
+async function createPartFromParsed(
+  shopId: string,
+  data: ParsedInventoryPartCsvRow,
+): Promise<{ ok: true; id: string } | { ok: false; error: string }> {
+  const existing = await prisma.inventoryPart.findUnique({
+    where: { shopId_partNumber: { shopId, partNumber: data.partNumber } },
+    select: { id: true, active: true },
+  });
+  if (existing?.active) {
+    return { ok: false, error: `Part # ${data.partNumber} already exists.` };
+  }
+
+  const part = await prisma.inventoryPart.create({
+    data: {
+      shopId,
+      partNumber: data.partNumber,
+      description: data.description,
+      brand: data.brand || null,
+      category: data.category || null,
+      vendorName: data.vendorName || null,
+      vendorPartNumber: data.vendorPartNumber || null,
+      quantityOnHand: data.quantityOnHand,
+      reorderPoint: data.reorderPoint ?? 0,
+      reorderQty: data.reorderQty ?? 0,
+      costCents: data.costCents,
+      retailCents: data.retailCents,
+      binLocation: data.binLocation || null,
+      notes: data.notes || null,
+    },
+    select: { id: true },
+  });
+
+  if (data.quantityOnHand > 0) {
+    await prisma.inventoryAdjustment.create({
+      data: {
+        shopId,
+        partId: part.id,
+        delta: data.quantityOnHand,
+        reason: "Initial stock",
+      },
+    });
+  }
+
+  return { ok: true, id: part.id };
+}
 
 export async function createInventoryPart(
   raw: CreateInventoryPartInput,
@@ -199,4 +253,44 @@ export async function deactivateInventoryPart(id: string): Promise<InventoryActi
 
   revalidatePath("/inventory");
   return { ok: true, id };
+}
+
+export async function importInventoryPartsCsv(csvText: string): Promise<InventoryPartImportResult> {
+  const shopId = await getShopId();
+  const denied = await gates.inventoryEdit(shopId);
+  if (denied) return { ok: false, error: denied.error };
+
+  const { rows, errors } = parseInventoryPartCsv(csvText);
+  if (errors.length > 0 && rows.length === 0) {
+    return { ok: false, error: "Fix CSV errors and try again.", rowErrors: errors };
+  }
+
+  let created = 0;
+  let skipped = 0;
+  const rowErrors = [...errors];
+
+  for (let i = 0; i < rows.length; i++) {
+    const row = rows[i]!;
+    const result = await createPartFromParsed(shopId, row);
+    if (result.ok) {
+      created++;
+    } else {
+      skipped++;
+      rowErrors.push({ row: i + 2, message: result.error });
+    }
+  }
+
+  if (created === 0) {
+    return {
+      ok: false,
+      error: rowErrors.length ? "No rows imported." : "No data rows found.",
+      rowErrors,
+    };
+  }
+
+  revalidatePath("/inventory");
+  if (rowErrors.length > 0) {
+    return { ok: true, created, skipped, rowErrors };
+  }
+  return { ok: true, created, skipped };
 }

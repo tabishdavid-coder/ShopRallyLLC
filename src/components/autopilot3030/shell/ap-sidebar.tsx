@@ -6,14 +6,14 @@ import { useEffect, useState, useTransition } from "react";
 import {
   Check,
   ChevronLeft,
-  ChevronRight,
   Loader2,
   MoreVertical,
+  Pin,
   Plus,
 } from "lucide-react";
 import { useClerk } from "@clerk/nextjs";
 
-import { ShopRallyLogo } from "@/components/brand/shoprally-logo";
+import { ShopRallyMark } from "@/components/brand/shoprally-logo";
 import { useRoIntakeOptional } from "@/components/repair-order/ro-intake-context";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -33,6 +33,7 @@ import {
 } from "@/lib/autopilot3030/nav";
 import { apSidebarLinkClass, apSidebarSectionClass } from "@/lib/autopilot3030/nav-active";
 import { AP_TERMS } from "@/lib/autopilot3030/terminology";
+import { BRAND } from "@/lib/brand";
 import { isPlanHiddenNavHref } from "@/lib/crm-access";
 import { isClerkConfigured } from "@/lib/clerk-auth-client";
 import { syncClerkActiveOrg } from "@/lib/clerk-org-client";
@@ -41,7 +42,8 @@ import { useShopCapabilities } from "@/lib/shop-capabilities";
 import { cn } from "@/lib/utils";
 import { switchShop } from "@/server/actions/platform";
 
-const SIDEBAR_COLLAPSED_KEY = "sr_ap_sidebar_collapsed";
+const SIDEBAR_PINNED_KEY = "sr_sidebar_pinned";
+const LEGACY_SIDEBAR_COLLAPSED_KEY = "sr_ap_sidebar_collapsed";
 
 function navHrefAllowed(href: string, allowed: Set<string>): boolean {
   if (allowed.has(href)) return true;
@@ -102,27 +104,56 @@ function SidebarLink({
   pathname,
   unreadSmsCount = 0,
   collapsed,
+  showTooltips = false,
 }: {
   item: ApNavLink;
   pathname: string;
   unreadSmsCount?: number;
   collapsed?: boolean;
+  showTooltips?: boolean;
 }) {
   const active = apSidebarNavItemIsActive(pathname, item);
   const Icon = item.icon;
+  const messageBadge =
+    item.href === "/messages" && unreadSmsCount > 0 ? (
+      <Badge className="ap-sidebar-badge ap-badge-accent text-white">
+        {unreadSmsCount > 9 ? "9+" : unreadSmsCount}
+      </Badge>
+    ) : null;
+
+  const linkBody = (
+    <>
+      <span className="ap-sidebar-icon-wrap shrink-0">
+        <Icon
+          className={cn("ap-sidebar-icon shrink-0", item.disabled ? "opacity-70" : "opacity-90")}
+          aria-hidden
+        />
+        {messageBadge}
+      </span>
+      <span className="ap-sidebar-reveal min-w-0 truncate" aria-hidden={collapsed}>
+        {item.title}
+      </span>
+      {item.stub ? (
+        <Badge
+          variant="outline"
+          className="ap-sidebar-reveal h-4 shrink-0 border-white/20 bg-white/10 px-1 text-[9px] text-white/80"
+          aria-hidden={collapsed}
+        >
+          Soon
+        </Badge>
+      ) : null}
+    </>
+  );
+
+  const linkClass = cn(apSidebarLinkClass(active), "relative");
 
   if (item.disabled) {
     return (
       <span
-        className={cn(
-          apSidebarLinkClass(false),
-          "cursor-not-allowed opacity-45",
-          collapsed && "justify-center px-0",
-        )}
+        className={cn(linkClass, "cursor-not-allowed opacity-45")}
         title={item.title}
       >
-        <Icon className="size-4 shrink-0 opacity-70" aria-hidden />
-        {!collapsed ? <span className="truncate">{item.title}</span> : null}
+        {linkBody}
       </span>
     );
   }
@@ -131,45 +162,39 @@ function SidebarLink({
     <Link
       href={item.href}
       aria-current={active ? "page" : undefined}
-      title={collapsed ? item.title : item.description}
-      className={cn(
-        apSidebarLinkClass(active),
-        "relative",
-        collapsed && "justify-center px-0",
-      )}
+      title={showTooltips ? item.title : item.description}
+      className={linkClass}
     >
-      <Icon className="size-4 shrink-0 opacity-90" aria-hidden />
-      {!collapsed ? (
-        <>
-          <span className="min-w-0 flex-1 truncate">{item.title}</span>
-          {item.stub ? (
-            <Badge
-              variant="outline"
-              className="h-4 border-white/20 bg-white/10 px-1 text-[9px] text-white/80"
-            >
-              Soon
-            </Badge>
-          ) : null}
-          {item.href === "/messages" && unreadSmsCount > 0 ? (
-            <Badge className="ap-badge-accent h-4 px-1.5 text-[9px] text-white">
-              {unreadSmsCount > 9 ? "9+" : unreadSmsCount}
-            </Badge>
-          ) : null}
-        </>
-      ) : item.href === "/messages" && unreadSmsCount > 0 ? (
-        <span className="absolute right-1 top-1 size-1.5 rounded-full bg-brand-orange" />
-      ) : null}
+      {linkBody}
     </Link>
   );
 }
 
-function SidebarCreateButton({ collapsed }: { collapsed?: boolean }) {
+function SidebarCreateButton({
+  collapsed,
+  showTooltips = false,
+}: {
+  collapsed?: boolean;
+  showTooltips?: boolean;
+}) {
   const { openIntake, config } = useRoIntakeOptional();
 
   const className = cn(
-    "w-full gap-1.5 bg-brand-orange font-semibold text-white shadow-md hover:bg-brand-orange/90 active:bg-brand-orange/85",
-    collapsed ? "h-10 px-0 justify-center" : "h-10 justify-start rounded-lg px-3",
+    "ap-sidebar-create-btn bg-brand-orange font-semibold text-white shadow-md hover:bg-brand-orange/90 active:bg-brand-orange/85",
   );
+
+  const buttonBody = (
+    <>
+      <span className="ap-sidebar-icon-wrap shrink-0">
+        <Plus className="ap-sidebar-icon shrink-0" aria-hidden />
+      </span>
+      <span className="ap-sidebar-reveal truncate" aria-hidden={collapsed}>
+        {AP_TERMS.newRepairOrder}
+      </span>
+    </>
+  );
+
+  const tooltipTitle = showTooltips ? AP_TERMS.newRepairOrder : undefined;
 
   if (config) {
     return (
@@ -177,20 +202,23 @@ function SidebarCreateButton({ collapsed }: { collapsed?: boolean }) {
         type="button"
         className={className}
         aria-label={AP_TERMS.newRepairOrder}
+        title={tooltipTitle}
         onClick={() => openIntake()}
       >
-        <Plus className="size-4 shrink-0" aria-hidden />
-        {collapsed ? null : <span>{AP_TERMS.newRepairOrder}</span>}
+        {buttonBody}
       </Button>
     );
   }
 
   return (
-    <Button type="button" className={className} aria-label={AP_TERMS.newRepairOrder} asChild>
-      <Link href="/repair-orders/new">
-        <Plus className="size-4 shrink-0" aria-hidden />
-        {collapsed ? null : <span>{AP_TERMS.newRepairOrder}</span>}
-      </Link>
+    <Button
+      type="button"
+      className={className}
+      aria-label={AP_TERMS.newRepairOrder}
+      title={tooltipTitle}
+      asChild
+    >
+      <Link href="/repair-orders/new">{buttonBody}</Link>
     </Button>
   );
 }
@@ -199,13 +227,17 @@ function SidebarShopFooterInner({
   shops,
   activeShopId,
   collapsed,
-  onToggleCollapse,
+  pinned,
+  onTogglePin,
+  showTooltips = false,
   clerk,
 }: {
   shops: Shop[];
   activeShopId: string;
   collapsed?: boolean;
-  onToggleCollapse: () => void;
+  pinned?: boolean;
+  onTogglePin: () => void;
+  showTooltips?: boolean;
   clerk?: ReturnType<typeof useClerk>;
 }) {
   const router = useRouter();
@@ -228,59 +260,59 @@ function SidebarShopFooterInner({
     });
   }
 
-  const collapseBtn = (
+  const pinBtn = (
     <button
       type="button"
-      onClick={onToggleCollapse}
-      className={cn(
-        "flex w-full items-center gap-2 rounded-lg px-2 py-2 text-xs font-medium text-white/70 transition-colors hover:bg-white/10 hover:text-white",
-        collapsed && "justify-center",
-      )}
-      aria-label={collapsed ? "Expand sidebar" : "Collapse sidebar"}
+      onClick={onTogglePin}
+      className="ap-sidebar-footer-pin rounded-lg py-1 text-xs font-medium text-white/70 transition-colors hover:bg-white/10 hover:text-white"
+      aria-label={pinned ? "Collapse sidebar to icon rail" : "Keep sidebar expanded"}
+      title={showTooltips ? (pinned ? "Collapse" : "Keep expanded") : undefined}
     >
-      {collapsed ? (
-        <ChevronRight className="size-4" aria-hidden />
-      ) : (
-        <>
-          <ChevronLeft className="size-4 shrink-0" aria-hidden />
-          Collapse
-        </>
-      )}
+      <span className="ap-sidebar-icon-wrap shrink-0">
+        {pinned ? (
+          <ChevronLeft className="ap-sidebar-icon shrink-0" aria-hidden />
+        ) : (
+          <Pin className="ap-sidebar-icon shrink-0" aria-hidden />
+        )}
+      </span>
+      <span className="ap-sidebar-reveal truncate" aria-hidden={collapsed}>
+        {pinned ? "Collapse" : "Keep expanded"}
+      </span>
     </button>
   );
 
-  if (!active) return <div className="space-y-1">{collapseBtn}</div>;
+  if (!active) return <div className="space-y-1">{pinBtn}</div>;
 
   const initials = shopInitials(active.name, active.code);
+
+  const shopTrigger = (
+    <button
+      type="button"
+      className="ap-sidebar-footer-shop border border-white/10 bg-white/5 py-1 text-left transition-colors hover:bg-white/10"
+      title={showTooltips ? shortShopName(active.name) : undefined}
+    >
+      <span className="ap-sidebar-icon-wrap shrink-0">
+        <span className="ap-sidebar-shop-avatar">
+          {pending ? <Loader2 className="size-3 animate-spin" /> : initials}
+        </span>
+      </span>
+      <span className="ap-sidebar-reveal min-w-0 flex-1" aria-hidden={collapsed}>
+        <span className="block truncate text-[13px] font-semibold text-white">
+          {shortShopName(active.name)}
+        </span>
+        <span className="block truncate text-[11px] text-white/55">Shop workspace</span>
+      </span>
+      <MoreVertical
+        className="ap-sidebar-reveal ap-sidebar-icon shrink-0 text-white/50"
+        aria-hidden={collapsed}
+      />
+    </button>
+  );
 
   return (
     <div className="space-y-2">
       <DropdownMenu>
-        <DropdownMenuTrigger asChild>
-          <button
-            type="button"
-            className={cn(
-              "flex w-full items-center gap-2.5 rounded-lg border border-white/10 bg-white/5 px-2.5 py-2 text-left transition-colors hover:bg-white/10",
-              collapsed && "justify-center px-0",
-            )}
-            title={active.name}
-          >
-            <span className="flex size-8 shrink-0 items-center justify-center rounded-full bg-[#00A9FF] text-[11px] font-bold text-white">
-              {pending ? <Loader2 className="size-3.5 animate-spin" /> : initials}
-            </span>
-            {!collapsed ? (
-              <>
-                <span className="min-w-0 flex-1">
-                  <span className="block truncate text-[13px] font-semibold text-white">
-                    {shortShopName(active.name)}
-                  </span>
-                  <span className="block truncate text-[11px] text-white/55">Shop workspace</span>
-                </span>
-                <MoreVertical className="size-4 shrink-0 text-white/50" aria-hidden />
-              </>
-            ) : null}
-          </button>
-        </DropdownMenuTrigger>
+        <DropdownMenuTrigger asChild>{shopTrigger}</DropdownMenuTrigger>
         <DropdownMenuContent align="start" className="w-56" side="right">
           <DropdownMenuLabel>Switch shop</DropdownMenuLabel>
           <DropdownMenuSeparator />
@@ -293,7 +325,7 @@ function SidebarShopFooterInner({
           {error ? <p className="px-2 py-1 text-xs text-destructive">{error}</p> : null}
         </DropdownMenuContent>
       </DropdownMenu>
-      {collapseBtn}
+      {pinBtn}
     </div>
   );
 }
@@ -302,7 +334,9 @@ function SidebarShopFooter(props: {
   shops: Shop[];
   activeShopId: string;
   collapsed?: boolean;
-  onToggleCollapse: () => void;
+  pinned?: boolean;
+  onTogglePin: () => void;
+  showTooltips?: boolean;
 }) {
   if (isClerkConfigured()) {
     return <SidebarShopFooterWithClerk {...props} />;
@@ -314,7 +348,9 @@ function SidebarShopFooterWithClerk(props: {
   shops: Shop[];
   activeShopId: string;
   collapsed?: boolean;
-  onToggleCollapse: () => void;
+  pinned?: boolean;
+  onTogglePin: () => void;
+  showTooltips?: boolean;
 }) {
   const clerk = useClerk();
   return <SidebarShopFooterInner {...props} clerk={clerk} />;
@@ -341,21 +377,33 @@ export function ApSidebar({
     stripePayments: caps.stripePayments,
     motorLabor: caps.motorLabor,
   };
-  const [collapsed, setCollapsed] = useState(false);
+  const [pinned, setPinned] = useState(false);
+  const [hovered, setHovered] = useState(false);
 
   useEffect(() => {
     try {
-      if (localStorage.getItem(SIDEBAR_COLLAPSED_KEY) === "1") setCollapsed(true);
+      const pinnedPref = localStorage.getItem(SIDEBAR_PINNED_KEY);
+      if (pinnedPref === "1") {
+        setPinned(true);
+        return;
+      }
+      if (pinnedPref === null) {
+        const legacyCollapsed = localStorage.getItem(LEGACY_SIDEBAR_COLLAPSED_KEY);
+        if (legacyCollapsed === "0") {
+          setPinned(true);
+          localStorage.setItem(SIDEBAR_PINNED_KEY, "1");
+        }
+      }
     } catch {
       /* ignore */
     }
   }, []);
 
-  function toggleCollapse() {
-    setCollapsed((prev) => {
+  function togglePin() {
+    setPinned((prev) => {
       const next = !prev;
       try {
-        localStorage.setItem(SIDEBAR_COLLAPSED_KEY, next ? "1" : "0");
+        localStorage.setItem(SIDEBAR_PINNED_KEY, next ? "1" : "0");
       } catch {
         /* ignore */
       }
@@ -363,39 +411,48 @@ export function ApSidebar({
     });
   }
 
+  const expanded = pinned || hovered;
+  const collapsed = !expanded;
+  const showTooltips = collapsed && !hovered;
+
   return (
     <aside
-      className={cn("ap-sidebar", collapsed && "ap-sidebar--collapsed")}
+      className={cn(
+        "ap-sidebar",
+        collapsed && "ap-sidebar--collapsed",
+        hovered && !pinned && "ap-sidebar--hovered",
+        pinned && "ap-sidebar--pinned",
+      )}
       aria-label="Main navigation"
       data-collapsed={collapsed ? "true" : "false"}
+      data-pinned={pinned ? "true" : "false"}
+      data-expanded={expanded ? "true" : "false"}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
     >
-      <div className={cn("ap-sidebar-header shrink-0 px-4 py-3", collapsed && "flex justify-center px-2")}>
-        <ShopRallyLogo
-          href={AP_HOME_HREF}
-          size="sm"
-          variant="onDark"
-          markOnly={collapsed}
-          className="max-w-full"
-        />
+      <div className="ap-sidebar-header ap-sidebar-body-pad shrink-0 py-3">
+        <Link href={AP_HOME_HREF} aria-label={BRAND.name} className="ap-sidebar-logo-link cursor-pointer">
+          <span className="ap-sidebar-icon-wrap shrink-0">
+            <ShopRallyMark size={24} variant="onDark" decorative className="ap-sidebar-icon" />
+          </span>
+          <span className="ap-sidebar-reveal ap-sidebar-logo-wordmark truncate">{BRAND.name}</span>
+        </Link>
       </div>
 
-      <div className={cn("shrink-0 px-2.5 pt-3", collapsed && "px-1.5")}>
-        <SidebarCreateButton collapsed={collapsed} />
+      <div className="ap-sidebar-body-pad shrink-0 pt-3">
+        <SidebarCreateButton collapsed={collapsed} showTooltips={showTooltips} />
       </div>
 
-      <div
-        className={cn(
-          "min-h-0 flex-1 overflow-y-auto overscroll-contain px-2.5 py-3",
-          collapsed && "px-1.5",
-        )}
-      >
+      <div className="ap-sidebar-body-pad min-h-0 flex-1 overflow-y-auto overscroll-contain py-3">
         {AP_SIDEBAR_NAV_GROUPS.map((group) => {
           const filtered = filterItems(group.items, allowedNavHrefs, planFlags);
           if (filtered.length === 0) return null;
           return (
-            <div key={group.id} className="pb-3">
-              {!collapsed ? <p className={apSidebarSectionClass()}>{group.label}</p> : null}
-              <div className={cn("space-y-0.5", !collapsed && "mt-1")}>
+            <div key={group.id} className="ap-sidebar-nav-group pb-3">
+              <p className={cn(apSidebarSectionClass(), "ap-sidebar-reveal")} aria-hidden={collapsed}>
+                {group.label}
+              </p>
+              <div className="mt-1 space-y-0.5">
                 {filtered.map((item) => (
                   <SidebarLink
                     key={`${group.id}-${item.href}-${item.title}`}
@@ -403,6 +460,7 @@ export function ApSidebar({
                     pathname={pathname}
                     unreadSmsCount={unreadSmsCount}
                     collapsed={collapsed}
+                    showTooltips={showTooltips}
                   />
                 ))}
               </div>
@@ -411,12 +469,14 @@ export function ApSidebar({
         })}
       </div>
 
-      <div className={cn("ap-sidebar-footer shrink-0 px-2.5 py-3", collapsed && "px-1.5")}>
+      <div className="ap-sidebar-footer ap-sidebar-body-pad shrink-0 py-3">
         <SidebarShopFooter
           shops={shops}
           activeShopId={activeShopId}
           collapsed={collapsed}
-          onToggleCollapse={toggleCollapse}
+          pinned={pinned}
+          onTogglePin={togglePin}
+          showTooltips={showTooltips}
         />
       </div>
     </aside>

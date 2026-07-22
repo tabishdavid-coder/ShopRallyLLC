@@ -109,13 +109,19 @@ export const CRM_DASHBOARD_NAV_ITEMS: CrmNavLink[] = [
     title: "Tires",
     href: "/tires",
     icon: Disc3,
-    description: "Quotes, orders & tire inventory",
+    description: "Tires on hand — new & used stock",
   },
   {
     title: "Quick Labor",
     href: "/quick-labor",
     icon: Timer,
     description: "Labor times by VIN or plate — no customer needed",
+  },
+  {
+    title: "Canned Jobs",
+    href: "/canned-jobs",
+    icon: Star,
+    description: "Reusable canned jobs for estimates",
   },
   {
     title: "Messages",
@@ -201,10 +207,10 @@ export const CRM_NAV_SECTIONS: CrmNavSection[] = [
   },
   {
     id: "catalog",
-    label: "Catalog",
+    label: "Parts",
     icon: Package,
     href: "/inventory",
-    items: [{ title: "Inventory", href: "/inventory", icon: Package }],
+    items: [{ title: "Parts", href: "/inventory", icon: Package }],
   },
   {
     id: "growth",
@@ -220,7 +226,6 @@ export const CRM_NAV_SECTIONS: CrmNavSection[] = [
     items: [
       { title: "Employees", href: "/employees", icon: IdCard },
       { title: "Vendor Connect", href: "/vendors/integrations", icon: Truck },
-      { title: "Service Templates", href: "/canned-jobs", icon: Star },
       { title: "Labor Library", href: "/labor-guide", icon: Wrench },
       { title: "Inspection Templates", href: "/inspections", icon: ClipboardCheck },
       { title: "Shop Settings", href: "/settings", icon: Settings },
@@ -251,6 +256,7 @@ const DASHBOARD_PATH_PREFIXES = [
   "/tech-board",
   "/tires",
   "/quick-labor",
+  "/canned-jobs",
   "/messages",
   "/reports",
   "/repair-orders",

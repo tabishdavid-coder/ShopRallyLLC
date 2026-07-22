@@ -1,30 +1,25 @@
-import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ChevronLeft } from "lucide-react";
 
-import { TireOrderDetailView } from "@/components/tires/tire-order-detail";
-import { Button } from "@/components/ui/button";
+import { TireStockDetailView } from "@/components/tires/tire-stock-detail";
 import { getShopId } from "@/lib/shop";
-import { getTireOrder } from "@/server/tires";
+import { getTireStock } from "@/server/tire-stock";
 
-export default async function TireOrderDetailPage({
+export default async function TireDetailPage({
   params,
+  searchParams,
 }: {
   params: Promise<{ id: string }>;
+  searchParams: Promise<{ edit?: string }>;
 }) {
   const { id } = await params;
-  const order = await getTireOrder(await getShopId(), id);
-  if (!order) notFound();
+  const sp = await searchParams;
+  const shopId = await getShopId();
+  const tire = await getTireStock(shopId, id);
+  if (!tire) notFound();
 
   return (
-    <div className="flex flex-col gap-4 workspace-surface">
-      <Button variant="ghost" size="sm" className="w-fit" asChild>
-        <Link href="/tires">
-          <ChevronLeft className="mr-1 size-4" />
-          Back to tires
-        </Link>
-      </Button>
-      <TireOrderDetailView order={order} />
+    <div className="workspace-surface">
+      <TireStockDetailView tire={tire} editMode={sp.edit === "1"} />
     </div>
   );
 }

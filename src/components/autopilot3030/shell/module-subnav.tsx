@@ -17,11 +17,12 @@ import { AP_TERMS } from "@/lib/autopilot3030/terminology";
 import { ApSubnavPills } from "@/components/autopilot3030/shell/ap-subnav-pills";
 import { RoPhaseStepperFromPath } from "@/components/repair-order/ro-phase-stepper";
 import { isRoEstimateWorkspacePath } from "@/lib/ro-workspace";
-import { usePlanFeatures } from "@/lib/shop-capabilities";
+import { usePartsTechUiEnabled, usePlanFeatures } from "@/lib/shop-capabilities";
 
 export function ApModuleSubnav() {
   const pathname = usePathname();
   const planFeatures = usePlanFeatures();
+  const partsTechEnabled = usePartsTechUiEnabled();
 
   if (/^\/repair-orders\/(?!new(?:\/|$))[^/]+/.test(pathname)) {
     if (isRoEstimateWorkspacePath(pathname)) return null;
@@ -87,7 +88,7 @@ export function ApModuleSubnav() {
       return (
         <ApSubnavPills
           items={apCatalogNavItemsForPlan(planFeatures)}
-          ariaLabel="Catalog"
+          ariaLabel="Parts"
           pathname={pathname}
         />
       );
@@ -98,7 +99,13 @@ export function ApModuleSubnav() {
     case "admin":
       return (
         <ApSubnavPills
-          items={apAdminNavItemsForPlan(planFeatures)}
+          items={apAdminNavItemsForPlan(planFeatures).filter((item) => {
+            // Vendor Connect chip must match released PartsTech entitlement (not plan flag alone).
+            if (item.href === "/vendors/integrations" || item.href.startsWith("/vendors/integrations/")) {
+              return partsTechEnabled;
+            }
+            return true;
+          })}
           ariaLabel="Admin"
           pathname={pathname}
         />

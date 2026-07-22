@@ -16,6 +16,8 @@ export function EstimateRoAdjustments({
   discountTemplates,
   feeTemplates = [],
   jobCount,
+  layout = "estimate-ro",
+  canEdit = true,
 }: {
   roId: string;
   fees: Fee[];
@@ -23,6 +25,8 @@ export function EstimateRoAdjustments({
   discountTemplates: DiscountTemplate[];
   feeTemplates?: DiscountTemplate[];
   jobCount?: number;
+  layout?: "estimate-ro" | "right-rail";
+  canEdit?: boolean;
 }) {
   const { totals } = useEstimateSelection();
 
@@ -35,8 +39,9 @@ export function EstimateRoAdjustments({
       partsCents={totals.partsCents}
       discountTemplates={discountTemplates}
       feeTemplates={feeTemplates}
-      layout="estimate-ro"
+      layout={layout}
       jobCount={jobCount}
+      canEdit={canEdit}
     />
   );
 }

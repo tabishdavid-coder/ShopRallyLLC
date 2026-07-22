@@ -9,7 +9,7 @@ const globalForPrisma = globalThis as unknown as {
 };
 
 /** Bump when generated client shape changes (e.g. Shop.apptWeeklyHours). */
-const PRISMA_SCHEMA_REVISION = 12;
+const PRISMA_SCHEMA_REVISION = 14;
 
 function withDevPoolParams(url: string): string {
   if (process.env.NODE_ENV !== "development") return url;
@@ -49,19 +49,33 @@ function createPrismaClient() {
   return client;
 }
 
+function hasModelDelegate(client: PrismaClient, model: string): boolean {
+  const delegate = (client as unknown as Record<string, unknown>)[model];
+  return (
+    typeof delegate === "object" &&
+    delegate !== null &&
+    typeof (delegate as { findMany?: unknown }).findMany === "function"
+  );
+}
+
 function isPrismaClientStale(cached: PrismaClient): boolean {
-  if (!Object.hasOwn(cached, "maintenanceProgramService")) return true;
-  if (!Object.hasOwn(cached, "depositRequest")) return true;
-  if (!Object.hasOwn(cached, "motorCatalogNode")) return true;
-  if (!Object.hasOwn(cached, "shopInspectionTemplate")) return true;
-  return globalForPrisma.prismaSchemaRevision !== PRISMA_SCHEMA_REVISION;
+  if (globalForPrisma.prismaSchemaRevision !== PRISMA_SCHEMA_REVISION) return true;
+  if (!hasModelDelegate(cached, "maintenanceProgramService")) return true;
+  if (!hasModelDelegate(cached, "depositRequest")) return true;
+  if (!hasModelDelegate(cached, "motorCatalogNode")) return true;
+  if (!hasModelDelegate(cached, "shopInspectionTemplate")) return true;
+  if (!hasModelDelegate(cached, "tireStock")) return true;
+  return false;
 }
 
 export function getPrismaClient(): PrismaClient {
   const cached = globalForPrisma.prisma;
   if (cached && isPrismaClientStale(cached)) {
-    void cached.$disconnect();
-    delete globalForPrisma.prisma;
+    globalForPrisma.prisma = undefined;
+    globalForPrisma.prismaSchemaRevision = undefined;
+    void cached.$disconnect().catch(() => {
+      /* pool cleanup best-effort */
+    });
   }
 
   if (!globalForPrisma.prisma) {

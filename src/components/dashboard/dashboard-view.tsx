@@ -131,11 +131,11 @@ export function DashboardView({ data, shopName, stripe }: DashboardViewProps) {
           icon={TrendingUp}
           tint="bg-emerald-100 text-emerald-600"
         />
-        {kpis.tireOrdersPending > 0 ? (
+        {kpis.tiresLowStock > 0 ? (
           <KpiCard
-            label="Tire orders"
-            value={String(kpis.tireOrdersPending)}
-            hint="Pending supplier approval"
+            label="Tires low stock"
+            value={String(kpis.tiresLowStock)}
+            hint="SKUs at or below reorder point"
             icon={Receipt}
             tint="bg-brand-red/10 text-brand-red"
           />

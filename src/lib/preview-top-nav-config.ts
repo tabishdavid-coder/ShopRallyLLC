@@ -91,7 +91,7 @@ export const PREVIEW_TOP_NAV: TopNavEntry[] = [
     icon: Package,
     description: "Parts, jobs & vendors",
     items: [
-      { title: "Inventory", href: "/inventory", icon: Package },
+      { title: "Parts", href: "/inventory", icon: Package },
       { title: "Tires", href: "/tires", icon: Disc3 },
       { title: "Canned Jobs", href: "/canned-jobs", icon: Star },
       { title: "Labor Book", href: "/labor-guide", icon: Wrench },

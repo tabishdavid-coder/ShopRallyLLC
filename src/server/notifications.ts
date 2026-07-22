@@ -1,7 +1,7 @@
 import "server-only";
 
 import { prisma } from "@/db/client";
-import { ROStatus, TireOrderStatus } from "@/generated/prisma";
+import { ROStatus } from "@/generated/prisma";
 import { customerDisplayName } from "@/lib/format";
 import {
   mergeNotificationPreferences,
@@ -9,6 +9,7 @@ import {
 } from "@/lib/notification-types";
 import { getCurrentUser } from "@/lib/platform";
 import { roEstimateActionHref } from "@/lib/ro-context-actions";
+import { countTiresLowStock } from "@/server/tire-stock";
 
 export type AppNotification = {
   id: string;
@@ -66,7 +67,7 @@ async function buildNotificationEvents(shopId: string): Promise<RawEvent[]> {
   const cutoff = since();
   const events: RawEvent[] = [];
 
-  const [estimateViewed, roApproved, inboundSms, tirePending, recentPayments, roCompleted] =
+  const [estimateViewed, roApproved, inboundSms, tiresLowStock, recentPayments, roCompleted] =
     await Promise.all([
       prisma.repairOrder.findMany({
         where: {
@@ -115,17 +116,7 @@ async function buildNotificationEvents(shopId: string): Promise<RawEvent[]> {
         orderBy: { createdAt: "desc" },
         take: 50,
       }),
-      prisma.tireOrder.findMany({
-        where: { shopId, status: TireOrderStatus.PENDING_SUPPLIER_APPROVAL },
-        select: {
-          id: true,
-          number: true,
-          createdAt: true,
-          customer: { select: { firstName: true, lastName: true, company: true } },
-        },
-        orderBy: { createdAt: "desc" },
-        take: 20,
-      }),
+      countTiresLowStock(shopId).catch(() => 0),
       prisma.payment.findMany({
         where: { shopId, paidAt: { gte: cutoff } },
         select: {
@@ -200,14 +191,13 @@ async function buildNotificationEvents(shopId: string): Promise<RawEvent[]> {
     });
   }
 
-  for (const order of tirePending) {
-    const name = customerDisplayName(order.customer);
+  if (tiresLowStock > 0) {
     events.push({
-      id: `tire-pending:${order.id}`,
-      type: "TIRE_APPROVAL_PENDING",
-      title: `Tire order #${order.number} for ${name} needs supplier approval`,
-      timestamp: order.createdAt,
-      href: `/tires/${order.id}`,
+      id: `tire-low-stock:${shopId}`,
+      type: "TIRE_LOW_STOCK",
+      title: `${tiresLowStock} tire SKU${tiresLowStock === 1 ? "" : "s"} at or below reorder point`,
+      timestamp: new Date(),
+      href: "/tires?lowStock=1",
     });
   }
 
@@ -242,38 +232,45 @@ export async function getNotifications(
   shopId: string,
   userId?: string,
 ): Promise<NotificationsResult> {
-  let uid = userId;
-  if (!uid) {
-    try {
-      uid = (await getCurrentUser()).id;
-    } catch {
-      uid = undefined;
+  try {
+    let uid = userId;
+    if (!uid) {
+      try {
+        uid = (await getCurrentUser()).id;
+      } catch {
+        uid = undefined;
+      }
     }
+
+    const [events, readKeys, userPrefs] = await Promise.all([
+      buildNotificationEvents(shopId),
+      uid ? loadReadKeys(shopId, uid) : Promise.resolve(new Set<string>()),
+      uid
+        ? prisma.user
+            .findUnique({
+              where: { id: uid },
+              select: { notificationPreferences: true },
+            })
+            .then((u) => mergeNotificationPreferences(u?.notificationPreferences))
+            .catch(() => mergeNotificationPreferences({}))
+        : Promise.resolve(mergeNotificationPreferences({})),
+    ]);
+
+    const filtered = events.filter((e) => userPrefs[e.type] !== "NONE");
+
+    const notifications: AppNotification[] = filtered.map((e) => ({
+      ...e,
+      read: readKeys.has(e.id),
+    }));
+
+    const unreadCount = notifications.filter((n) => !n.read).length;
+    return { notifications, unreadCount };
+  } catch (err) {
+    if (process.env.NODE_ENV === "development") {
+      console.warn("[notifications] load failed — returning empty feed", err);
+    }
+    return { notifications: [], unreadCount: 0 };
   }
-
-  const [events, readKeys, userPrefs] = await Promise.all([
-    buildNotificationEvents(shopId),
-    uid ? loadReadKeys(shopId, uid) : Promise.resolve(new Set<string>()),
-    uid
-      ? prisma.user
-          .findUnique({
-            where: { id: uid },
-            select: { notificationPreferences: true },
-          })
-          .then((u) => mergeNotificationPreferences(u?.notificationPreferences))
-          .catch(() => mergeNotificationPreferences({}))
-      : Promise.resolve(mergeNotificationPreferences({})),
-  ]);
-
-  const filtered = events.filter((e) => userPrefs[e.type] !== "NONE");
-
-  const notifications: AppNotification[] = filtered.map((e) => ({
-    ...e,
-    read: readKeys.has(e.id),
-  }));
-
-  const unreadCount = notifications.filter((n) => !n.read).length;
-  return { notifications, unreadCount };
 }
 
 export async function getNotificationSummary(shopId: string): Promise<NotificationSummary> {
@@ -287,7 +284,7 @@ export async function getNotificationSummary(shopId: string): Promise<Notificati
   }
 
   const variantFor = (type: NotificationTypeKey): NotificationItem["variant"] => {
-    if (type === "TIRE_APPROVAL_PENDING") return "warning";
+    if (type === "TIRE_LOW_STOCK") return "warning";
     return "default";
   };
 
@@ -299,8 +296,8 @@ export async function getNotificationSummary(shopId: string): Promise<Notificati
         return "Repair orders authorized";
       case "SMS_RECEIVED":
         return "Unread text messages";
-      case "TIRE_APPROVAL_PENDING":
-        return "Tire supplier approvals";
+      case "TIRE_LOW_STOCK":
+        return "Tires low on stock";
       case "PAYMENT_RECEIVED":
         return "Payments received";
       case "RO_COMPLETED":
@@ -312,7 +309,7 @@ export async function getNotificationSummary(shopId: string): Promise<Notificati
 
   const hrefFor = (type: NotificationTypeKey, items: AppNotification[]): string => {
     if (type === "SMS_RECEIVED") return "/messages";
-    if (type === "TIRE_APPROVAL_PENDING") return "/tires";
+    if (type === "TIRE_LOW_STOCK") return "/tires?lowStock=1";
     return items[0]?.href ?? "/job-board";
   };
 

@@ -5,7 +5,7 @@ export const metadata = marketingPageMetadata({
   path: "/features",
   title: "Auto repair shop management features — Ignition",
   description:
-    "ShopRally Ignition features for auto repair shop management: job board, PartsTech catalog & punchout, digital vehicle inspections, email estimates & approvals, canned jobs, appointments, payment tracking, and Live Operations Daily Snapshot. Launching Q4 2026.",
+    "Full ShopRally Ignition features catalog: AI Plus, PartsTech, Carfax, Google Reviews inbox, two-way SMS, digital vehicle inspections, job board, estimates, appointments, Live Operations Daily Snapshot, and more — organized like the Features menu. Launching Q4 2026.",
 });
 
 export default function FeaturesPage() {

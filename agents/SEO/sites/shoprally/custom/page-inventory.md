@@ -15,6 +15,7 @@ Model: on-page (02) · Last audit: 2026-07-21
 | `/compare/torque360-alternative` | Competitor | Torque360 alternative… | ✅ | Present | ✅ |
 | `/compare/shop-ware-alternative` | Competitor | Shop-Ware alternative… | ✅ | Present | ✅ |
 | `/compare/repairshopr-alternative` | Competitor | RepairShopr alternative… | ✅ | Present | ✅ |
+| `/compare/ari-alternative` | Competitor | ARI alternative… | ✅ | Present | ✅ |
 | `/demo` | Conversion / education | Product walkthrough… | ✅ | Present | ✅ |
 | `/launch` | Founding waitlist | Reserve a founding seat… | ✅ | Present | ✅ |
 | `/signup` | Waitlist alt | Reserve Ignition + AI Plus | ✅ | Present | ✅ |

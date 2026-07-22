@@ -27,7 +27,7 @@ Thanks for reserving a ShopRally founding seat.
 
 Ignition launches in Q4 2026. Your founding seat puts you in line for:
 • Invite at Q4 2026 launch (not instant access)
-• Founding-shop pricing locked for life (annual billing)
+• Founding-shop pricing locked for life (${shoprallyStarterPricePairLabel()})
 • Priority onboarding when we open
 • A say in what we ship next
 

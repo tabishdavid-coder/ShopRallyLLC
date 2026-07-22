@@ -4,7 +4,6 @@ import { prisma } from "@/db/client";
 import {
   AppointmentStatus,
   ROStatus,
-  TireOrderStatus,
   type Prisma,
 } from "@/generated/prisma";
 import {
@@ -20,6 +19,7 @@ import {
   type TrendPoint,
 } from "@/lib/dashboard";
 import { getGrossVolumeCents } from "@/server/services/stripe-payments";
+import { countTiresLowStock } from "@/server/tire-stock";
 
 function startOfDay(d: Date): Date {
   const x = new Date(d);
@@ -208,7 +208,7 @@ export async function getDashboardData(
     appointmentsThisWeek,
     appointmentsWeekRaw,
     appointmentsBookedInPeriod,
-    tireOrdersPending,
+    tiresLowStock,
     paymentsInPeriod,
     paymentsForTrend,
     paymentMixRaw,
@@ -276,9 +276,7 @@ export async function getDashboardData(
         createdAt: { gte: start, lte: end },
       },
     }),
-    prisma.tireOrder.count({
-      where: { shopId, status: TireOrderStatus.PENDING_SUPPLIER_APPROVAL },
-    }),
+    countTiresLowStock(shopId),
     prisma.payment.findMany({
       where: { shopId, paidAt: { gte: start, lte: end } },
       select: { amountCents: true, method: true, paidAt: true },
@@ -421,7 +419,7 @@ export async function getDashboardData(
       appointmentsToday,
       appointmentsThisWeek,
       appointmentsBookedInPeriod,
-      tireOrdersPending,
+      tiresLowStock,
       invoicedCents,
       collectedCents,
       estimatesPendingInPeriod,

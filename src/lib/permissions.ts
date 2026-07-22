@@ -96,17 +96,17 @@ export const PERMISSION_CATEGORIES: PermissionCategory[] = [
   },
   {
     id: "inventory",
-    label: "Inventory",
+    label: "Parts",
     permissions: [
       {
         key: "inventory.view",
-        label: "Can view inventory parts, order history and activity",
+        label: "Can view parts, order history and activity",
         children: [
           {
             key: "inventory.edit",
-            label: "Can create new parts; can edit inventory part details and quantities",
+            label: "Can create new parts; can edit part details and quantities",
           },
-          { key: "inventory.bulk", label: "Bulk inventory changes" },
+          { key: "inventory.bulk", label: "Bulk parts changes" },
           { key: "inventory.delete", label: "Can delete parts" },
         ],
       },

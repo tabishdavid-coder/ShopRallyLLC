@@ -73,6 +73,7 @@ export function EstimateAdjustments({
   feeTemplates = [],
   layout = "default",
   jobCount,
+  canEdit = true,
 }: {
   roId: string;
   jobId?: string;
@@ -84,11 +85,11 @@ export function EstimateAdjustments({
   discountTitle?: string;
   discountTemplates?: DiscountTemplate[];
   feeTemplates?: FeeTemplate[];
-  layout?: "default" | "job-card" | "estimate-ro";
+  layout?: "default" | "job-card" | "estimate-ro" | "right-rail";
   jobCount?: number;
+  canEdit?: boolean;
 }) {
-  if (layout === "estimate-ro") {
-    // Same column inset as job cards (parent provides px) — no extra white pad/frame.
+  if (layout === "estimate-ro" || layout === "right-rail") {
     return (
       <Section
         kind="fee"
@@ -99,8 +100,9 @@ export function EstimateAdjustments({
         laborCents={laborCents}
         partsCents={partsCents}
         templates={feeTemplates}
-        layout="estimate-ro"
+        layout={layout}
         jobCount={jobCount}
+        canEdit={canEdit}
       />
     );
   }
@@ -145,6 +147,7 @@ function Section({
   templates = [],
   layout = "default",
   jobCount,
+  canEdit = true,
 }: {
   kind: "fee" | "discount";
   title: string;
@@ -154,8 +157,9 @@ function Section({
   laborCents: number;
   partsCents: number;
   templates?: (DiscountTemplate | FeeTemplate)[];
-  layout?: "default" | "job-card" | "estimate-ro";
+  layout?: "default" | "job-card" | "estimate-ro" | "right-rail";
   jobCount?: number;
+  canEdit?: boolean;
 }) {
   const router = useRouter();
   const [pending, start] = useTransition();
@@ -259,6 +263,166 @@ function Section({
       if (res.ok) router.refresh();
       else setError(res.error);
     });
+  }
+
+  if (layout === "right-rail" && isFee) {
+    return (
+      <div className="overflow-hidden rounded-none border-[1.5px] border-[var(--jb-line,#dde5ef)] bg-[var(--jb-card,#ffffff)] shadow-[0_1px_2px_rgba(11,31,59,0.05)]">
+        <div className="flex items-center justify-between border-b border-[var(--jb-line,#dde5ef)] px-3.5 py-2">
+          <span className="text-[12px] font-bold uppercase tracking-[0.08em] text-[var(--jb-ink,#0b1f3b)]">
+            {title}
+          </span>
+          <span className="text-[12px] font-semibold tabular-nums text-[var(--jb-ink,#0b1f3b)]">
+            {formatCents(total)}
+          </span>
+        </div>
+
+        <div className="px-3.5 py-2">
+          {items.length > 0 ? (
+            <ul className="space-y-1">
+              {items.map((a) => (
+                <li
+                  key={a.id}
+                  className="group flex items-center justify-between gap-2 py-[2px] text-[13px]"
+                >
+                  <span
+                    className="min-w-0 truncate text-[var(--jb-ink,#0b1f3b)]"
+                    title={a.name}
+                  >
+                    {a.name}
+                  </span>
+                  <div className="flex shrink-0 items-center gap-1">
+                    <span className="font-medium tabular-nums text-[var(--jb-ink,#0b1f3b)]">
+                      {formatCents(calc(a, laborCents, partsCents))}
+                    </span>
+                    {canEdit ? (
+                      <>
+                        <button
+                          type="button"
+                          onClick={() => beginEdit(a)}
+                          disabled={pending}
+                          aria-label={`Edit ${a.name}`}
+                          className="rounded p-0.5 text-[var(--jb-faint,#8ca2c0)] opacity-0 transition-opacity hover:bg-[var(--jb-surface,#f0f3f8)] hover:text-[var(--jb-azure,#1e7fe0)] group-hover:opacity-100 focus-visible:opacity-100"
+                        >
+                          <Pencil className="size-3" />
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => remove(a.id)}
+                          disabled={pending}
+                          aria-label={`Remove ${a.name}`}
+                          className="rounded p-0.5 text-[var(--jb-faint,#8ca2c0)] opacity-0 transition-opacity hover:bg-[var(--jb-red,#c93838)]/10 hover:text-[var(--jb-red,#c93838)] group-hover:opacity-100 focus-visible:opacity-100"
+                        >
+                          <Trash2 className="size-3" />
+                        </button>
+                      </>
+                    ) : null}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="py-0.5 text-[12px] text-[var(--jb-faint,#8ca2c0)]">No fees applied</p>
+          )}
+
+          {error ? <p className="pt-1.5 text-[12px] text-destructive">{error}</p> : null}
+
+          {canEdit && (adding || editingId) ? (
+            <div className="mt-2 space-y-2 border-t border-dashed border-[var(--jb-line,#dde5ef)] pt-2">
+              <div className="flex flex-wrap items-center gap-1.5">
+                <Input
+                  value={draft.name}
+                  onChange={(e) => setDraft((d) => ({ ...d, name: e.target.value }))}
+                  placeholder="Fee name"
+                  className="h-7 min-w-0 flex-1 basis-[7rem] rounded-none border-[var(--jb-line,#dde5ef)] text-[12px]"
+                />
+                <select
+                  value={draft.method}
+                  onChange={(e) => setDraft((d) => ({ ...d, method: e.target.value as Method }))}
+                  className="h-7 rounded-none border border-[var(--jb-line,#dde5ef)] bg-white px-1.5 text-[12px]"
+                >
+                  <option value="PERCENT">%</option>
+                  <option value="FIXED">$</option>
+                </select>
+                <Input
+                  type="number"
+                  step="0.01"
+                  value={draft.amountStr}
+                  onChange={(e) => setDraft((d) => ({ ...d, amountStr: e.target.value }))}
+                  placeholder={draft.method === "PERCENT" ? "3" : "0.00"}
+                  className="h-7 w-16 rounded-none border-[var(--jb-line,#dde5ef)] text-[12px]"
+                />
+                <select
+                  value={draft.base}
+                  onChange={(e) => setDraft((d) => ({ ...d, base: e.target.value as Base }))}
+                  className="h-7 max-w-[6.5rem] rounded-none border border-[var(--jb-line,#dde5ef)] bg-white px-1 text-[11px]"
+                >
+                  <option value="LABOR_PARTS">L+P</option>
+                  <option value="LABOR">Labor</option>
+                  <option value="PARTS">Parts</option>
+                </select>
+                <label className="flex items-center gap-1 text-[11px] text-[var(--jb-slate,#5b7295)]">
+                  <input
+                    type="checkbox"
+                    checked={draft.taxable}
+                    onChange={(e) => setDraft((d) => ({ ...d, taxable: e.target.checked }))}
+                  />
+                  Tax
+                </label>
+              </div>
+              <div className="flex justify-end gap-1.5">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={cancel}
+                  disabled={pending}
+                  className="h-7 rounded-none border-[var(--jb-line,#dde5ef)] px-2 text-[11px]"
+                >
+                  Cancel
+                </Button>
+                <Button
+                  size="sm"
+                  onClick={submit}
+                  disabled={pending}
+                  className="h-7 gap-1 rounded-none px-2 text-[11px]"
+                >
+                  {pending ? <Loader2 className="size-3 animate-spin" /> : null}
+                  Save
+                </Button>
+              </div>
+            </div>
+          ) : canEdit ? (
+            <div className="mt-2 space-y-1.5 border-t border-dashed border-[var(--jb-line,#dde5ef)] pt-2">
+              {availableFeeTemplates.length > 0 ? (
+                <div className="flex flex-wrap gap-1">
+                  {availableFeeTemplates.map((t) => (
+                    <Button
+                      key={t.name}
+                      variant="outline"
+                      size="sm"
+                      disabled={pending}
+                      onClick={() => quickAddTemplate(t)}
+                      className="h-6 rounded-none border-[var(--jb-line,#dde5ef)] px-1.5 text-[10px] text-[var(--jb-slate,#5b7295)]"
+                    >
+                      + {t.name}
+                    </Button>
+                  ))}
+                </div>
+              ) : null}
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={beginAdd}
+                disabled={pending}
+                className="h-7 gap-1 rounded-none px-0 text-[11px] font-semibold uppercase tracking-wide text-[var(--jb-azure,#1e7fe0)] hover:bg-[var(--jb-azure,#1e7fe0)]/10 hover:text-[var(--jb-azure,#1e7fe0)]"
+              >
+                <Plus className="size-3.5" /> Add fee
+              </Button>
+            </div>
+          ) : null}
+        </div>
+      </div>
+    );
   }
 
   return (

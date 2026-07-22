@@ -13,7 +13,6 @@ import { filterActiveRoFees } from "@/server/ro-fees";
 import { listCannedJobsForPicker, listCannedJobCategories } from "@/server/canned-jobs";
 import { ServiceConcernsPanel } from "@/components/repair-order/service-concerns-panel";
 import { EstimateSelectionProvider } from "@/components/repair-order/estimate-selection-context";
-import { EstimateRoAdjustments } from "@/components/repair-order/estimate-ro-adjustments";
 import { parseApprovalSignature } from "@/lib/approval-signature";
 import { isEstimateEditable } from "@/lib/estimate-editable";
 import { EstimateActionToastProvider } from "@/components/repair-order/estimate-action-toast";
@@ -524,16 +523,6 @@ export async function EstimateBuildingLabPanel({
                       embedded
                       jobsLayout={jobsLayout}
                     />
-                    <div className={cn(ESTIMATE_JOBS_CONTENT, "pb-4")}>
-                      <EstimateRoAdjustments
-                        roId={ro.id}
-                        fees={activeRoFees}
-                        discounts={ro.discounts.filter((d) => !d.jobId)}
-                        discountTemplates={discountTemplates}
-                        feeTemplates={feeTemplates.map(({ autoApply: _, ...t }) => t)}
-                        jobCount={ro.jobs.length}
-                      />
-                    </div>
                   </>
                 ) : (
                   <div className={cn(ESTIMATE_JOBS_CONTENT, "py-12 text-center")}>
@@ -602,6 +591,9 @@ export async function EstimateBuildingLabPanel({
           baseFinancial={baseFinancial}
           baseJobs={authJobs}
           gpGoalCents={gpGoalCents}
+          roFees={activeRoFees}
+          feeTemplates={feeTemplates.map(({ autoApply: _, ...t }) => t)}
+          jobCount={ro.jobs.length}
         />
       ) : (
         <EstimateLabRightRail

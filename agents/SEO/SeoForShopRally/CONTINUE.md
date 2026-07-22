@@ -34,6 +34,8 @@ When the user adds client #2…#N: **do not** dump their work into `sites/shopra
 
 **Not in scope unless user expands:** SEO Autopilot product, ShopSite tenant sites, CRM RO/estimate UI.
 
+**Marketing UI quality:** When editing getShopRally.com pages, follow `.cursor/rules/marketing-ui-wow-bar.mdc` + `docs/MARKETING-UI-BAR.md` (engagement bar; navy/light-blue/red — never AutoLeap teal).
+
 ---
 
 ## Isolation rules

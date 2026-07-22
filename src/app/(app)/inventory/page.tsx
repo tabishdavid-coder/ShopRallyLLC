@@ -3,6 +3,7 @@ import {
   InventoryStatsRow,
 } from "@/components/inventory/inventory-stats";
 import { InventoryTable } from "@/components/inventory/inventory-table";
+import { mergeInventoryCategories } from "@/lib/inventory-categories";
 import { getShopId } from "@/lib/shop";
 import {
   getInventoryCategories,
@@ -29,7 +30,7 @@ export default async function InventoryPage({
   const categoryFilter = sp.category ?? "all";
   const lowStockFilter = sp.lowStock === "1" || sp.lowStock === "true";
 
-  const [{ rows, total }, stats, categories] = await Promise.all([
+  const [{ rows, total }, stats, dbCategories] = await Promise.all([
     getInventoryParts({
       shopId,
       q,
@@ -41,6 +42,8 @@ export default async function InventoryPage({
     getInventoryStats(shopId),
     getInventoryCategories(shopId),
   ]);
+
+  const categories = mergeInventoryCategories(dbCategories, categoryFilter);
 
   return (
     <div className="flex flex-col gap-6 workspace-surface">

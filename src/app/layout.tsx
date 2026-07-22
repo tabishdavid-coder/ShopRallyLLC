@@ -4,6 +4,7 @@ import { headers } from "next/headers";
 import { Suspense } from "react";
 import "./globals.css";
 
+import { DocumentScrollSync } from "@/components/document-scroll-sync";
 import { ShopRallyClerkProvider } from "@/components/providers/clerk-provider";
 import { DesignModeDevEntryBar } from "@/components/design-mode/design-mode-dev-entry";
 import { DesignModeDock } from "@/components/design-mode/design-mode-dock";
@@ -49,8 +50,10 @@ export default async function RootLayout({
         )}
       >
         <ShopRallyClerkProvider>
+          <DocumentScrollSync />
           {designMode ? <DesignModeDevEntryBar /> : null}
           <div
+            data-document-scroll-root
             className={cn(
               "flex flex-1 flex-col",
               documentScroll ? "min-h-svh" : "min-h-0 overflow-hidden",

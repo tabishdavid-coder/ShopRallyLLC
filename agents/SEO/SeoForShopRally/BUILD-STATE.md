@@ -19,3 +19,4 @@ Last updated: 2026-07-20
 - [ ] Production GSC verification + sitemap submit
 - [ ] Confirm analytics on live marketing pages
 - [ ] Next client onboard via `sites/_template/` when ready
+- [ ] **Marketing UI wow bar** — `/compare` hub + competitor pages below bar (text list + tables; no product hub / VS cards). Parameters shipped: `.cursor/rules/marketing-ui-wow-bar.mdc`, `docs/MARKETING-UI-BAR.md`. Rebuild compare hub when owner approves (keep claims per `GROWTH-POSITIONING.md`).
