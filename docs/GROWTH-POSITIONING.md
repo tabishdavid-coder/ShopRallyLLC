@@ -26,7 +26,7 @@ Annual rates shown on `/pricing` (list / monthly billing in parentheses):
 
 **Ignition (public):** Core marketed as **Ignition** at **$99.99/mo** ($94.99/mo annual) with **PartsTech, Carfax, two-way SMS, and Google Reviews inbox included**. Optional **AI Plus $49.99/mo** (Core-only).
 
-**Launch (pre-GA):** Public site says **launching Q4 2026** and **not available yet** — CTAs reserve a seat (waitlist), not instant software access. Internal waitlist cap (`foundingSpotsTotal`) is **not** shown as public scarcity. Flip when `MARKETING_LAUNCH.preLaunch = false`.
+**Launch (pre-GA):** Public site says **launching Q4 2026** and **not available yet** — CTAs reserve a seat (waitlist), not instant software access. Soft static copy OK (“Founding seats open…” or once “Launching with 50 founding seats”). **Never** show remaining-count, “X left”, progress-to-50, or a ticking scarcity meter. Flip when `MARKETING_LAUNCH.preLaunch = false`.
 
 **Web presence add-ons (Core/Pro):** ShopSite **$99/mo**, Local SEO **$129/mo**, bundle **$199/mo** (+ launch setup). Included on Elite.
 

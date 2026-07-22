@@ -14,10 +14,10 @@ Track every public product / pricing / competitive claim. Agents fill rows; verd
 | Verified | 9 |
 | OK with nuance | 10 |
 | Overclaim → Fixed | 2 (migration; testimonials) |
-| Stale → Fixed | 2 (benchmark; docs 50-seats) |
+| Stale → Fixed | 2 (benchmark; docs 50-seats → static-only) |
 | Needs source | 0 |
 | Not present | 1 (blanket $199 claim) |
-| UNVERIFIED — needs human | 2 (founder narrative; seat-cap size) |
+| UNVERIFIED — needs human | 0 (founder + seat-cap resolved by owner) |
 | **Total rows** | **26** |
 
 ## Claims
@@ -38,10 +38,10 @@ Track every public product / pricing / competitive claim. Agents fill rows; verd
 | Two-way SMS on Ignition | Hero, plans, compare | Product Twilio path + `SMS_ENABLED`; Tekmetric Scale contrast Verified | **OK with nuance** — ships with Ignition packaging; Twilio env required in prod |
 | Google Reviews inbox (sync & reply) on Ignition; review-request campaigns Pro+ | Features, pricing FAQ, GROWTH | `googleReviews` on Core; campaigns Pro+ per GROWTH / plans FAQ | **Verified** (product packaging) |
 | Free migration — “customers, vehicles, and full history come with you” | Was `Hero.tsx` / `home-hero.tsx` | Softened to priority cutover help (matches HOME_FAQ) | **Overclaim** → Fixed |
-| “50 founding seats / spots” scarcity | `MARKETING_LAUNCH.foundingSpotsTotal=50`; GROWTH-POSITIONING | Docs no longer claim public “50 seats”; UI retired meters; cap internal-only | **Stale** → Fixed (docs). Cap size = **UNVERIFIED — needs human** |
+| “50 founding seats / spots” scarcity | `MARKETING_LAUNCH.foundingSpotsTotal=50`; GROWTH-POSITIONING | Owner: soft static “50 founding seats” OK once; **no** countdown / remaining / “X left”. Docs + helpers aligned. | **Fixed** (static-only policy) |
 | Anonymous testimonials with metrics (3×, +28%) | Committed `home-page.tsx` testimonials | Softened to qualitative themes (`6e99481`); simplified WIP spine has no block | **Overclaim** → Fixed |
 | Q4 2026 launch · reserve seat · not available yet | Hero, launch, marketing-launch `preLaunch: true` | `MARKETING_LAUNCH` + GROWTH | **Verified** (product/GTM config) |
-| Founder still runs a real repair shop | `FOUNDER_SHOP_PROOF` / home copy | Founder narrative in `marketing-launch.ts` | **UNVERIFIED — needs human** |
+| Founder narrative | `FOUNDER_SHOP_PROOF` / Hero | Owner: “built by a shop owner / built by an owner” only — no Skyline/Albany/named shop bio | **Fixed** (scrubbed) |
 | Garage360 Basic ~$79 · Clever ~$119 · Genius ~$199 | Compare Garage360 + accuracy matrix | `COMPARE-ACCURACY.md` | **OK with nuance** — cite verify on their site |
 | Torque360 Starter PartsTech/Carfax/DVI + one-way SMS · 5 co-users; Turbo two-way | Compare Torque360 | `COMPARE-ACCURACY.md` | **OK with nuance** |
 | ARI Pro ~$39.99 · has PartsTech & Carfax · not GBP inbox clearly | Compare ARI | `COMPARE-ACCURACY.md` + ari.app | **OK with nuance** |

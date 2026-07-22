@@ -17,10 +17,12 @@ export const MARKETING_LAUNCH = {
   launchWindowLabel: "Launching Q4 2026",
   launchQuarter: "Q4 2026",
   foundingProgramLabel: "Founding Shop Program",
-  /** Internal waitlist cap for stats — do not display remaining/total in public UI. */
+  /**
+   * Optional static founding-program size for internal ops / soft copy once
+   * (“Launching with 50 founding seats”). Never drive a public countdown,
+   * remaining-count, “X left”, or progress meter from this number.
+   */
   foundingSpotsTotal: 50,
-  /** Fallback claimed count for internal stats when live waitlist count is unavailable. */
-  foundingSpotsClaimed: 13,
 
   /** Pre-launch destinations (waitlist + demo). */
   primaryHref: "/launch",
@@ -91,20 +93,18 @@ export function marketingPrimaryHint(preLaunch: boolean = MARKETING_LAUNCH.preLa
     : MARKETING_LAUNCH.cta.primaryHintPostLaunch;
 }
 
-/** Internal remaining helper — do not surface counts in public marketing UI. */
-export function foundingSpotsRemaining(
-  claimed: number = MARKETING_LAUNCH.foundingSpotsClaimed,
-) {
-  return Math.max(0, MARKETING_LAUNCH.foundingSpotsTotal - claimed);
-}
-
 export type FoundingSpotUrgency = "open";
 
-/** Public strip copy — Q4 window + reserve CTA only (no seat counts / urgency meters). */
-export function getFoundingSpotMessaging(_claimed?: number) {
+/**
+ * Public strip copy — soft founding seats only.
+ * Never pass live remaining/claimed into UI; no countdown / “X left”.
+ */
+export function getFoundingSpotMessaging() {
   return {
     primary: MARKETING_LAUNCH.launchWindowLabel,
-    secondary: "Reserve a founding seat — we'll invite you at launch",
+    secondary: "Founding seats open for the Q4 2026 launch",
+    /** Optional one-line static size — not a live inventory meter. */
+    staticCapNote: `Launching with ${MARKETING_LAUNCH.foundingSpotsTotal} founding seats`,
     urgency: "open" as FoundingSpotUrgency,
   };
 }
@@ -316,13 +316,16 @@ export const OUTCOME_METRICS = [
   { value: "Q4", unit: "2026", label: "Launch window — not billed today" },
 ] as const;
 
-/** Founder shop proof — real bay, no invented scale metrics. */
+/**
+ * Founder narrative — “built by a shop owner / built by an owner” only.
+ * No named shop, city, or invented founder biography.
+ */
 export const FOUNDER_SHOP_PROOF = {
-  eyebrow: "Built in a working shop",
-  headline: "ShopRally is shaped by a founder who still runs a real repair shop",
+  eyebrow: "Built by a shop owner",
+  headline: "ShopRally is built by an owner who knows the bay and the counter",
   body:
-    "Our founder still runs a real repair shop. Ignition is built from bay and counter work — estimates, PartsTech, inspections, and the job board — not from a pitch deck. No invented customer counts or revenue claims.",
-  proofTag: "Founder still in the bays",
+    "Ignition is shaped by real shop work — estimates, PartsTech, inspections, and the job board — not a pitch deck. No invented customer counts or revenue claims.",
+  proofTag: "Built by an owner",
 } as const;
 
 /** Homepage FAQ — founding reserve, billing start, migration honesty. */
