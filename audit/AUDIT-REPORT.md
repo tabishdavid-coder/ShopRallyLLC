@@ -167,9 +167,57 @@ No TypeScript or page-generation failures. Marketing routes including `/compare/
 
 ---
 
-## Agent 2 — Visual / UX / design bar
+## Agent 2 — Claims research & visibility
 
-_(empty — Agent 2)_
+**Scope:** Factual / numeric / competitive claims + SEO visibility (titles, meta, OG/Twitter, JSON-LD, sitemap/robots). No redesign.  
+**Ledger:** `audit/CLAIMS.md` (26 rows). **Findings:** `A2-001`…`A2-008` in `audit/FINDINGS.md`.
+
+### CLAIMS verdict counts
+
+| Verdict | Count |
+|---------|------:|
+| Verified | 8 |
+| OK with nuance | 10 |
+| Overclaim | 1 (free migration — Fixed) |
+| Stale | 2 (docs 50-seats; was benchmark — Fixed) |
+| Not present | 3 |
+| UNVERIFIED — needs human | 2 |
+| Needs source | 0 |
+
+### Priority claim outcomes
+
+| Claim | Verdict | Action |
+|-------|---------|--------|
+| “Comparable shop platforms start at $199/mo” (blanket) | **Not present** on UI | Tekmetric Start **$199** Verified (live tekmetric.com/pricing). Shopmonkey starts **$239**. Do not reintroduce blanket industry claim. |
+| Competitor capability / prices on compare pages | Mostly **Verified** / **OK with nuance** vs `COMPARE-ACCURACY.md` | Softened packaging already in `marketing-compare.ts`. |
+| Anonymous testimonials 3× / +28% | **Overclaim** on committed home spine | Softened (**A2-008** `6e99481`). |
+| “50 spots” scarcity | **Stale** in GROWTH-POSITIONING vs UI | Docs aligned (**A2-005**); UI already retired seat meters. |
+| CARFAX / two-way SMS / PartsTech / free migration | Packaging **OK with nuance**; migration was **Overclaim** | Migration → priority cutover (**A2-001**). PartsTech punchout = launch packaging, not live-today guarantee. |
+
+### Visibility
+
+| Check | Result |
+|-------|--------|
+| Unique title + meta | Marketing routes via `marketingPageMetadata`; home `absoluteTitle` |
+| No `ShopRally — … — ShopRally` | Legal hardcodes fixed (**A2-002** `66f24b7`) |
+| One h1 | Primary marketing surfaces OK |
+| OG / Twitter | Set per marketing page; prices via helpers |
+| JSON-LD AggregateOffer | **$94.99–$99.99** current Ignition pair; description Ignition-accurate (**A1-007** / **A2-004**) |
+| sitemap.xml + robots.txt | Present; compare/* incl. ARI; CRM paths disallowed |
+| Lighthouse SEO | **100** on `/` (Agent 4 `audit/_a4-lighthouse.json`) |
+
+### Commits (this agent)
+
+| Commit | Finding |
+|--------|---------|
+| `66f24b7` | A2-002 — legal title template doubles |
+| `6e99481` | A2-008 — unverifiable testimonial metrics |
+| `c514db1` | A2-003 — Tekmetric/Shopmonkey benchmark prices |
+
+### Open / deferred
+
+- Competitor AutoLeap / Garage360 / Torque360 / ARI prices: rely on `COMPARE-ACCURACY.md`; re-verify before sales use
+- Founder-shop narrative + founding-seat cap size: **UNVERIFIED — needs human**
 
 ---
 
