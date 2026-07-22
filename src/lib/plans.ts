@@ -14,6 +14,8 @@ export type PlanFeature =
   | "motorLabor"
   | "customerEmail"
   | "customerSms"
+  /** Carfax service history on vehicles / ROs — Ignition and above. */
+  | "carfax"
   | "digitalInspections"
   | "appointments"
   | "reports"
@@ -187,7 +189,7 @@ export const PLAN_TRAINING: Record<
     headline: "Self-serve with demo support",
     sessions: "Product guides & early demo",
     description:
-      "Get started on the job board, repair orders, digital vehicle inspections, and Operations Daily Snapshot — book a demo if you want a guided walkthrough.",
+      "Get started on the job board, repair orders, digital vehicle inspections, Google Reviews inbox, and Operations Daily Snapshot — book a demo if you want a guided walkthrough.",
   },
   PROFESSIONAL: {
     headline: "Self-serve with product resources",
@@ -264,6 +266,14 @@ export const PLATFORM_MODULES = [
       "Shop-level Care Plans (maintenance subscriptions), member portal, Stripe billing, and counter enrollment — Elite premium.",
     icon: "repeat" as const,
     pricingNote: "Elite only · not on Core",
+  },
+  {
+    id: "reviews",
+    name: "Google Reviews inbox",
+    description:
+      "Connect Google Business Profile, sync reviews, and reply from the CRM — included on Ignition. Review-request campaigns stay Pro+.",
+    icon: "sparkles" as const,
+    pricingNote: "All monthly tiers",
   },
   {
     id: "growth",
@@ -572,6 +582,7 @@ const starterFeatures: PlanFeatureSet = {
   motorLabor: false,
   customerEmail: true,
   customerSms: true,
+  carfax: true,
   digitalInspections: true,
   appointments: true,
   reports: true,
@@ -606,6 +617,7 @@ const professionalFeatures: PlanFeatureSet = {
   motorLabor: true,
   customerEmail: true,
   customerSms: true,
+  carfax: true,
   digitalInspections: true,
   appointments: true,
   reports: true,
@@ -640,6 +652,7 @@ const EliteFeatures: PlanFeatureSet = {
   motorLabor: true,
   customerEmail: true,
   customerSms: true,
+  carfax: true,
   digitalInspections: true,
   appointments: true,
   reports: true,
@@ -719,7 +732,6 @@ export const PLANS: Record<ShopPlan, PlanDefinition> = {
         "OEM fluid capacities",
         "Advanced inventory & multi-vendor parts workflows",
         "Stripe Connect payments",
-        "Two-way SMS",
         "Online booking",
         "Growth Engine — automations & win-back campaigns",
         "Review-request campaigns after service",
@@ -830,7 +842,7 @@ export function buildPriceComparisonRows(annual: boolean): PriceComparisonRow[] 
       crmLabel: `$${starter}/mo`,
       marketingLabel: "—",
       stackTotal: starter,
-      note: "Ignition CRM · PartsTech · digital vehicle inspections · Google Reviews inbox · Live Operations Daily Snapshot · appointments · payment tracking · NHTSA VIN",
+      note: "Ignition CRM · PartsTech · Carfax · two-way SMS · digital vehicle inspections · Google Reviews inbox · Live Operations Daily Snapshot · appointments · payment tracking · NHTSA VIN",
       shoprally: true,
     },
     {
@@ -1202,7 +1214,7 @@ export const IGNITION_COMING_LATER_FEATURES = [
   { name: "OEM service specs & fluid capacities", note: "Pro+" },
   { name: "Markup matrices", note: "Pro+" },
   { name: "Advanced reporting & analytics", note: "Pro+" },
-  { name: "QuickBooks & third-party integrations", note: "Pro+" },
+  { name: "QuickBooks & other third-party integrations", note: "Pro+" },
   { name: "AI receptionist & Elite AI suite", note: "Elite / add-on" },
   { name: "Care Plans (member maintenance subscriptions)", note: "Elite premium" },
 ] as const;
@@ -1329,8 +1341,9 @@ export function annualSavingsDollars(plan: PlanDefinition): number {
  */
 export const INTEGRATION_PARTNERS = [
   "PartsTech",
-  "Stripe",
+  "Carfax",
   "Twilio",
+  "Stripe",
   "QuickBooks",
   "Google Business",
 ] as const;
@@ -1395,7 +1408,7 @@ export const PRICING_FAQ = [
   },
   {
     q: "What's included in the founding-shop pricing?",
-    a: `Founding shops lock in Ignition launch rates (${shoprallyStarterPricePairLabel()}) on annual billing when we open — before public list pricing rises. Priority walkthroughs and feedback access included. Reserving a seat does not bill you today.`,
+    a: `Founding shops lock in Ignition launch rates (${shoprallyStarterPricePairLabel()}) when we open — before public list pricing rises. Choose monthly or annual at launch. Priority walkthroughs and feedback access included. Reserving a seat does not bill you today.`,
   },
   {
     q: "Are digital vehicle inspections included?",
