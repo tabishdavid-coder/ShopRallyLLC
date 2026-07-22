@@ -27,10 +27,10 @@ export const CORE_PLAN_CARD_BULLETS: readonly string[] = PLANS.STARTER.pricingCa
 export const CORE_OFFERING_MOCK = {
   planName: "Core",
   marketingName: "Ignition",
-  priceMonthly: 89.99,
-  priceAnnualMonthly: 84.99,
-  tagline: "Everything to run the shop floor — without locking you into Pro bolt-ons.",
-  bestFor: "Independent shops going cloud-first with a full CRM, estimates, digital vehicle inspections, and daily ops.",
+  priceMonthly: 99.99,
+  priceAnnualMonthly: 94.99,
+  tagline: "Everything to run the shop floor — PartsTech, Carfax, two-way SMS, and Google Reviews inbox included.",
+  bestFor: "Independent shops going cloud-first with a full CRM, estimates, digital vehicle inspections, Carfax, SMS, Google Reviews inbox, and daily ops.",
   priceNote: "Per location · cancel anytime · no CRM setup fee",
   groups: [
     {
@@ -54,6 +54,11 @@ export const CORE_OFFERING_MOCK = {
         { name: "Vehicle records", detail: "VIN, YMM, plate, mileage, notes" },
         { name: "Free-type Year / Make / Model / Trim", detail: "No catalog lock-in on Core" },
         { name: "Unlimited NHTSA VIN decode", detail: "Free NHTSA vPIC — no monthly cap" },
+        {
+          name: "Carfax service history",
+          detail: "Prior service records on the vehicle / RO when VIN is present",
+          highlight: true,
+        },
         { name: "Job board", detail: "Estimates · WIP · Completed with drag-and-drop", highlight: true },
         { name: "Workflow / board views", detail: "Pipeline visibility for the floor" },
         { name: "Global customer search", detail: "Find people and ROs fast" },
@@ -63,7 +68,7 @@ export const CORE_OFFERING_MOCK = {
     {
       id: "estimates",
       title: "Estimates & approvals",
-      blurb: "Build the ticket, authorize work, share digitally by email.",
+      blurb: "Build the ticket, authorize work, share digitally by email or SMS.",
       items: [
         { name: "Full repair-order workspace", detail: "Summary, Estimate, Inspections, WIP, Payment", highlight: true },
         { name: "Inline service / estimate grid", detail: "Labor, parts, fees, discounts — edit in place" },
@@ -80,6 +85,11 @@ export const CORE_OFFERING_MOCK = {
         { name: "Service advisor on the order", detail: "Writer assignment on the RO header" },
         { name: "Authorization states", detail: "Pending / approved / deferred / declined counts" },
         { name: "Email estimate & approval links", detail: "Customer opens & signs on their phone", highlight: true },
+        {
+          name: "Two-way SMS estimates & approvals",
+          detail: "Text the link and keep the customer thread in the CRM",
+          highlight: true,
+        },
         { name: "Public approval page", detail: "Branded approve flow + signature capture" },
         { name: "Print estimate / invoice", detail: "Shop and customer print views" },
         { name: "Create RO from customer / vehicle", detail: "Guided intake path" },
@@ -150,10 +160,16 @@ export const CORE_OFFERING_MOCK = {
     {
       id: "comms",
       title: "Customer communications",
-      blurb: "Digital by email on Core — SMS lands on Pro.",
+      blurb: "Email, two-way SMS, and Google Reviews inbox on Ignition — Growth Engine campaigns stay Pro+.",
       items: [
         { name: "Email estimate / approval / invoice", highlight: true },
-        { name: "Copy link sharing", detail: "Share without forcing SMS" },
+        { name: "Two-way SMS threads", detail: "Advisor ↔ customer texting on the RO", highlight: true },
+        {
+          name: "Google Reviews inbox",
+          detail: "Connect GBP, sync reviews, and reply from the CRM — not a Marketing add-on",
+          highlight: true,
+        },
+        { name: "Copy link sharing", detail: "Share without forcing a channel" },
         { name: "Consent & marketing opt-in fields", detail: "TCPA-aware customer records" },
       ],
     },
@@ -171,10 +187,11 @@ export const CORE_OFFERING_MOCK = {
   notIncluded: [
     { name: "Licensed MOTOR labor data", note: "Pro+" },
     { name: "Stripe Connect / text-to-pay", note: "Pro+" },
-    { name: "Two-way SMS & campaigns", note: "Pro+" },
-    { name: "Growth Engine automations", note: "Pro+" },
+    { name: "Growth Engine campaigns & automations", note: "Pro+" },
     { name: "Online booking widget", note: "Pro+" },
-    { name: "Maintenance / care programs", note: "Pro+" },
+    { name: "Review-request campaigns", note: "Pro+" },
+    { name: "AI review-reply drafts", note: "Elite" },
+    { name: "Maintenance / care programs", note: "Elite" },
     { name: "Markup matrices", note: "Pro+" },
     { name: "Auto.dev plate→VIN", note: "Pro+" },
     // ShopSite & Local SEO: companion product line — not Ignition CRM "coming later"

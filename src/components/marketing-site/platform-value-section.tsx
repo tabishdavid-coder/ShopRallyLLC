@@ -5,7 +5,9 @@ import {
   ClipboardCheck,
   Mail,
   Package,
+  Shield,
   Sparkles,
+  Star,
   Users,
   Wrench,
 } from "lucide-react";
@@ -37,6 +39,13 @@ const VALUE_PILLARS = [
     tiers: `${ignitionName} · included`,
   },
   {
+    icon: Shield,
+    title: "Carfax service history",
+    description:
+      "Pull prior service records onto the vehicle / RO when a VIN is present — included with Ignition.",
+    tiers: `${ignitionName} · included`,
+  },
+  {
     icon: ClipboardCheck,
     title: "Digital vehicle inspections",
     description:
@@ -59,10 +68,17 @@ const VALUE_PILLARS = [
   },
   {
     icon: Mail,
-    title: "Email estimates & invoices",
+    title: "Email & two-way SMS",
     description:
-      "Send approval and invoice links by email. Manual payment recording in-shop. Card collect via Stripe Connect comes later on Pro.",
+      "Send approval and invoice links by email or SMS, with customer threads in the CRM. Card collect via Stripe Connect comes later on Pro.",
     tiers: ignitionName,
+  },
+  {
+    icon: Star,
+    title: "Google Reviews inbox",
+    description:
+      "Sync and reply to Google Business Profile reviews from the CRM — included with Ignition. Review-request campaigns stay Pro+; AI reply drafts are Elite.",
+    tiers: `${ignitionName} · included`,
   },
   {
     icon: Calendar,
@@ -99,7 +115,7 @@ export function PlatformValueSection() {
           </h2>
           <p className="mt-4 text-slate-600">
             {PHASE_ONE_LAUNCH
-              ? "All-in-one auto repair shop management software for the bay and counter: estimates, PartsTech, digital vehicle inspections, job board, appointments, and live ops — without selling later-roadmap modules as if they're live today."
+              ? "All-in-one auto repair shop management software for the bay and counter: estimates, PartsTech, digital vehicle inspections, Google Reviews inbox, job board, appointments, and live ops — without selling later-roadmap modules as if they're live today."
               : "CRM, marketing, payments, and AI — with live training included from day one."}
           </p>
         </div>

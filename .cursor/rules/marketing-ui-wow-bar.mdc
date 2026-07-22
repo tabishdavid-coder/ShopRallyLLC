@@ -1,0 +1,66 @@
+---
+description: Marketing UI wow bar — AutoLeap-level engagement psychology for ShopRally landing/compare/pricing/features (navy/light-blue/red, never teal)
+globs:
+  - src/app/(marketing)/**
+  - src/components/marketing-site/**
+  - src/components/pricing/**
+  - docs/MARKETING-UI-BAR.md
+  - docs/GROWTH-POSITIONING.md
+alwaysApply: false
+---
+
+# Marketing UI wow bar
+
+Extends `.cursor/rules/design-quality-bar.mdc` for **conversion psychology + visual engagement** on the public ShopRally marketing site. Design-quality-bar = deliberate redesign floor; this rule = AutoLeap-comparable *wow* without copying AutoLeap teal/branding.
+
+**Owner summary:** `docs/MARKETING-UI-BAR.md`  
+**Positioning truth:** `docs/GROWTH-POSITIONING.md` (claims, pricing honesty, what not to claim)
+
+## Scope (marketing only)
+
+`src/app/(marketing)/`, `src/components/marketing-site/`, `src/components/pricing/` — home, pricing, compare, features, launch, demo, mega-menu/nav.  
+**Out of scope:** CRM, ShopSite tenant sites, platform admin.
+
+## Psychology (must design for)
+
+| Principle | What it means on-page |
+|-----------|------------------------|
+| Credibility hub | Product UI is the visual center — not stock photos or icon grids |
+| Competitive framing | Competitor logos / VS treatments place ShopRally in the market (honest, not smear) |
+| Reciprocity before ask | Helpful overview first; demo/waitlist CTA after value |
+| Scannable density | Rich info, clear groups, breathing room — not walls of text or sparse emptiness |
+| Outcome framing | Show dashboards/results advisors recognize; lead with shop outcomes, not feature dumps |
+
+## Wow-factor checklist (pass before shipping)
+
+- [ ] **Dominant product visual** — real (or faithful) ShopRally UI as hero hub; soft elevation, not a tiny inset card
+- [ ] **Context logos** when relevant — competitors / category around the hub (muted), ShopRally brand-forward
+- [ ] **VS cards or equivalent** on compare — branded left/right treatments; not flat text tables alone
+- [ ] **SEO headline + honest overview** — clear H1; “help you decide” copy before hard sell
+- [ ] **Strong primary CTA** — demo / reserve seat per `marketing-launch.ts`; high contrast
+- [ ] **Motion with purpose** — 2–3 intentional moments (reveal, hover depth); respect `prefers-reduced-motion`
+- [ ] **Brand-first** — ShopRally navy / light-blue / red (`brand-navy`, `brand-light`, `brand-red`). **NEVER AutoLeap teal** or Tekmetric colored chrome
+
+## Anti-patterns (instant fail)
+
+- Same layout + new colors/borders
+- Generic SaaS purple / indigo gradients
+- Inset tiny screenshots or floating collage instead of a full visual plane
+- Feature dump / checklist-only compare with no hierarchy
+- Weak branding (remove nav → could be any CRM)
+- Copying AutoLeap teal, logo lockups, or competitor trademark stylings beyond fair nominative use of names/logos
+
+## Definition of done
+
+Ask: *Could this sit next to AutoLeap’s Comparisons page and feel equally intentional?*
+
+**Fail if:** text-list hub, table-only compare, no product visual, no competitive framing, CTA buried, or “honest” claims that violate `GROWTH-POSITIONING.md`.  
+**Pass if:** structural composition matches the bar (hub + VS + reciprocity copy + CTA), ShopRally brand intact, gaps called out honestly.
+
+## Agent workflow
+
+1. `Read` reference screenshots — do not guess from filenames  
+2. Prefer **structural** layout change over className polish  
+3. Keep claims aligned with positioning; don’t invent competitor facts  
+4. Do **not** regress the homepage Hero composition unless the task explicitly redesigns it  
+5. After shipping, list remaining gaps vs this bar — never claim parity you didn’t achieve

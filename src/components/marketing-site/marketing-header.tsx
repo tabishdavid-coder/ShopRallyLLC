@@ -3,10 +3,14 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Menu, X } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { Button } from "@/components/ui/button";
 import { ShopRallyLogo } from "@/components/brand/shoprally-logo";
+import {
+  FeaturesMegaMenu,
+  FeaturesMobileAccordion,
+} from "@/components/marketing-site/features-mega-menu";
 import {
   MARKETING_LAUNCH,
   marketingPrimaryCta,
@@ -15,14 +19,12 @@ import {
 import { cn } from "@/lib/utils";
 
 const NAV = [
-  { href: "/features", label: "Product" },
   { href: "/pricing", label: "Pricing" },
   { href: "/compare", label: "Compare" },
   { href: "/demo", label: "Demo" },
 ] as const;
 
 function isNavActive(pathname: string, href: string) {
-  if (href === "/features") return pathname === "/features" || pathname.startsWith("/features/");
   if (href === "/pricing") return pathname === "/pricing";
   if (href === "/compare") return pathname === "/compare" || pathname.startsWith("/compare/");
   if (href === "/demo") return pathname === "/demo";
@@ -35,6 +37,21 @@ export function MarketingHeader() {
   const preLaunch = MARKETING_LAUNCH.preLaunch;
   const primaryHref = marketingPrimaryHref(preLaunch);
   const primaryLabel = marketingPrimaryCta({ preLaunch });
+  const featuresActive =
+    pathname === "/features" || pathname.startsWith("/features/");
+
+  useEffect(() => {
+    setOpen(false);
+  }, [pathname]);
+
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+    document.addEventListener("keydown", onKey);
+    return () => document.removeEventListener("keydown", onKey);
+  }, [open]);
 
   return (
     <header className="sticky top-0 z-40 border-b border-brand-navy/10 bg-white/90 backdrop-blur-md">
@@ -43,14 +60,15 @@ export function MarketingHeader() {
           <ShopRallyLogo />
         </div>
 
-        <nav className="hidden items-center justify-center gap-1 md:flex">
+        <nav className="hidden items-center justify-center gap-1 md:flex" aria-label="Primary">
+          <FeaturesMegaMenu active={featuresActive} />
           {NAV.map((item) => (
             <Link
               key={item.href}
               href={item.href}
               className={cn(
                 "rounded-lg px-3 py-2 text-sm font-medium transition-colors",
-                pathname === item.href || isNavActive(pathname, item.href)
+                isNavActive(pathname, item.href)
                   ? "bg-brand-navy/10 text-brand-navy"
                   : "text-slate-600 hover:bg-brand-light/20 hover:text-brand-navy",
               )}
@@ -73,6 +91,7 @@ export function MarketingHeader() {
           type="button"
           className="justify-self-end rounded-lg p-2 text-brand-navy md:hidden"
           onClick={() => setOpen((v) => !v)}
+          aria-expanded={open}
           aria-label={open ? "Close menu" : "Open menu"}
         >
           {open ? <X className="size-5" /> : <Menu className="size-5" />}
@@ -81,7 +100,8 @@ export function MarketingHeader() {
 
       {open ? (
         <div className="border-t border-brand-navy/10 bg-white px-4 py-4 md:hidden">
-          <nav className="flex flex-col gap-1">
+          <nav className="flex flex-col gap-1" aria-label="Mobile">
+            <FeaturesMobileAccordion onNavigate={() => setOpen(false)} />
             {NAV.map((item) => (
               <Link
                 key={item.href}
