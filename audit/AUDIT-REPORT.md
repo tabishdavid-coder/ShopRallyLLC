@@ -148,7 +148,8 @@ No TypeScript or page-generation failures. Marketing routes including `/compare/
 | `91093e8` | A1-006 — ARI + Carfax/SMS on `/compare` meta |
 | `d4a99c4` | A1-005 — demo meta honesty |
 | `0195336` | A1-008 — MarketPositioning subhead |
-| (+ A1-016) | Pricing FAQ no longer parks Twilio SMS on Pro+ |
+| `2cf231f` | A1-016 — pricing FAQ Carfax+SMS on Ignition |
+| `85be5bc` | FINDINGS + AUDIT-REPORT Agent 1 summary |
 
 ### Verified OK
 
