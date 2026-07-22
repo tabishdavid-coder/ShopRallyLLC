@@ -1,7 +1,7 @@
 # Ignition (Core) — market go-live checklist
 
 **Last updated:** 2026-07-19  
-**Plan:** Ignition = Core = `STARTER` · $89.99/mo · $84.99/mo annual · PartsTech included · AI Plus $49.99/mo  
+**Plan:** Ignition = Core = `STARTER` · $99.99/mo · $94.99/mo annual · PartsTech + Carfax + two-way SMS included · AI Plus $49.99/mo  
 **Code:** `PHASE_ONE_LAUNCH` in [`src/lib/plans.ts`](../src/lib/plans.ts)  
 **Product gates:** [`docs/CORE-PLAN-FIDELITY.md`](./CORE-PLAN-FIDELITY.md) · [`docs/PHASED-ROLLOUT.md`](./PHASED-ROLLOUT.md)  
 **Marketing CTAs:** “Start now” vocabulary in [`src/lib/marketing-launch.ts`](../src/lib/marketing-launch.ts) · flip checklist [`docs/MARKETING-GO-LIVE-FLIP.md`](./MARKETING-GO-LIVE-FLIP.md)
@@ -69,7 +69,7 @@ Shop UI: **Settings → Subscription / Billing** → Subscribe monthly/annual ·
 1. Platform → Shops → **Add shop** (or edit) → plan **Core / STARTER**, billing Active or Trial  
 2. Complete legal acceptances (compliance gate)  
 3. **Enter shop CRM** → run bay-loop smoke  
-4. Confirm **Release flags** stay off for Growth / SMS / MOTOR / PartsTech / AI in production  
+4. Confirm **Release flags** stay off for Growth / MOTOR / AI in production; enable **SMS** + **PartsTech** per shop when Twilio / partner env is ready (both are plan-entitled on Core)  
 5. Do **not** sell Pro/Elite on `/pricing` while `PHASE_ONE_LAUNCH=true`
 
 Seed QA tenant: **Macuto Auto Repair** (`shop_macuto`).
@@ -78,7 +78,8 @@ Seed QA tenant: **Macuto Auto Repair** (`shop_macuto`).
 
 ## D. Explicitly deferred
 
-Licensed MOTOR · SMS · Stripe Connect · Growth Engine · ShopSite / SEO · Elite AI receptionist
+Licensed MOTOR · Stripe Connect · Growth Engine · ShopSite / SEO · Elite AI receptionist  
+(Two-way SMS is plan-included on Ignition — still env + release gated until Twilio is ready)
 
 ---
 

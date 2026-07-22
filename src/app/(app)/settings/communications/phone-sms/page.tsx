@@ -22,7 +22,7 @@ export default async function CommunicationsPhoneSmsPage() {
         description={
           onPlan
             ? undefined
-            : `Two-way customer SMS is included on ${PLANS.PROFESSIONAL.name} and ${PLANS.ENTERPRISE.name}. Email sharing stays available on Core.`
+            : `Two-way customer SMS is included on ${PLANS.STARTER.name} (Ignition), ${PLANS.PROFESSIONAL.name}, and ${PLANS.ENTERPRISE.name}. Email sharing stays available when SMS is off.`
         }
         notAvailableYet={onPlan}
         secondaryHref="/settings/communications/email"

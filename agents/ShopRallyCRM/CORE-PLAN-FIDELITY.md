@@ -43,7 +43,7 @@
 | Licensed MOTOR labor | `motorLabor: false` | `motorLabor` | ⚠️ Resolver may still serve MOTOR when env on — enforce per shop |
 | PartsTech punchout | `partsTech: false` | `partsTech` | Open PR #26 — nav + Vendor Connect + test connection |
 | Stripe Connect / RO payments | `integrations: false` | — | Collect CTA hidden; manual Record path (2026-07-13) |
-| Two-way SMS | `customerSms: false` | `sms` | Shell hides SMS count; audit share + messages |
+| Two-way SMS | `customerSms: true` | `sms` | Plan entitled on Core/Ignition; still requires `SMS_ENABLED` + per-shop release flag |
 | Growth Engine | `marketingCampaigns: false` | `growthEngine` | Growth section + settings hidden (2026-07-13) |
 | ShopSite / SEO | `shopSite` / `websiteSeo: false` | `shopSite`, `websiteSeo` | |
 | Care Plans | `maintenancePrograms: false` | `growthEngine` | Hidden from Core nav + drawer (2026-07-21) |
@@ -64,7 +64,7 @@ Run with demo shop on **STARTER** plan (seed: **`shop_macuto`** — Macuto Auto 
 - [ ] Operations: job board, customers, ROs, inspections, labor (shop lane only)
 - [ ] Labor Book: **no MOTOR BOOK** rows / no licensed hours UI
 - [ ] RO Payment tab: no Stripe Connect capture (email/manual only)
-- [ ] Share dialogs: **email only**, SMS disabled/hidden
+- [ ] Share dialogs: email + SMS when release flag `sms` is on (plan entitled on Core)
 - [ ] `/marketing/**` → redirect or access denied
 - [ ] `/maintenance-programs/**` → denied
 - [ ] Settings → Subscription shows Core bullets only

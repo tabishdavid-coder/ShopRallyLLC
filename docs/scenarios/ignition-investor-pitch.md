@@ -48,7 +48,7 @@ Think of it like: **one restaurant kitchen, many customers** — not “build a 
 | **DNS** | Domain Name System — how getshoprally.com points to the host |
 | **PITR** | Point-In-Time Recovery — database restore to a prior moment (Neon paid plans) |
 | **MAU** | Monthly Active Users — Clerk billing metric |
-| **SMS** | Short Message Service — text messaging (off on Ignition; Pro later) |
+| **SMS** | Short Message Service — two-way texting included on Ignition (Twilio + release flag) |
 | **VIN** | Vehicle Identification Number |
 | **YMM** | Year / Make / Model |
 | **NHTSA** | National Highway Traffic Safety Administration — public VIN decode source |

@@ -10,37 +10,7 @@ When a shop is on **Core**, this document defines what they **see**, **can click
 
 ## 1. Entitlement source of truth
 
-```478:506:src/lib/plans.ts
-const starterFeatures: PlanFeatureSet = {
-  maxUsers: null,
-  maxRepairOrdersPerMonth: null,
-  maxVinPlateDecodesPerMonth: null, // unlimited NHTSA VIN
-  cannedJobs: true,
-  partsTech: true,
-  laborGuide: true,
-  motorLabor: false,
-  customerEmail: true,
-  customerSms: false,
-  digitalInspections: true,
-  appointments: true,
-  reports: true,
-  integrations: false,
-  multiLocation: false,
-  approvalLinks: true,
-  invoiceSharing: true,
-  advancedReports: false,
-  markupMatrices: false,
-  shopSite: false,
-  websiteSeo: false,
-  marketingCampaigns: false,
-  maintenancePrograms: false,
-  aiReviewReplies: false,
-  aiCampaignDrafting: false,
-  aiSeoContent: false,
-  aiCustomerInsights: false,
-  aiReceptionist: false,
-};
-```
+See `starterFeatures` in `src/lib/plans.ts` — Core/Ignition includes `customerSms: true`, `partsTech: true`, `carfax: true`, `googleReviews: true`. Still false on Core: `motorLabor`, `integrations` (Stripe Connect), `marketingCampaigns`, `maintenancePrograms`, `markupMatrices`, `autodevDecoding`.
 
 **Gate helpers:** `canUseFeature(shopId, feature)` · `canUseReleasedFeature(shopId, feature)`  
 **P0 release:** Phase 1+ modules dark in production (`docs/PHASED-ROLLOUT.md`).
@@ -58,7 +28,7 @@ const starterFeatures: PlanFeatureSet = {
 | `/marketing/**` routes | ❌ | `checkCrmRouteAccess` + release | 🟡 gated 2026-07-13 |
 | `/maintenance-programs/**` (Care Plans) | ❌ | Elite premium only — Core never entitled | ✅ plan `maintenancePrograms: false` |
 | Customer drawer **Care Plan** tab | ❌ | Hidden when `!maintenancePrograms` | ✅ 2026-07-21 |
-| Messages / SMS inbox prominence | ❌ | `capabilities.sms` in shell | ⬜ verify |
+| Messages / SMS inbox prominence | ✅ | `customerSms: true` + `SMS_ENABLED` + release flag `sms` | ⬜ verify |
 | Payments nav / Stripe Connect | ❌ | Manual Record path; Stripe Collect hidden | 🟡 gated 2026-07-13 |
 | Customer drawer Finances / Credit Memo | ❌ | Drawer tab + stub removed (PR #29 merged) | ✅ |
 | Reports (basic) | ✅ | `reports: true` | ⬜ verify |
@@ -88,7 +58,7 @@ const starterFeatures: PlanFeatureSet = {
 | Channel | Core |
 |---------|:----:|
 | Email estimate / invoice / approval | ✅ |
-| SMS share / campaigns / two-way | ❌ |
+| SMS share / two-way (not Growth campaigns) | ✅ (plan) · release-gated |
 | Stripe Connect checkout on RO | ❌ |
 | Manual payment recording | ✅ (if implemented without Connect) |
 
@@ -99,7 +69,7 @@ const starterFeatures: PlanFeatureSet = {
 Assigning **Core** on `/platform/shops`:
 
 1. Set `Shop.plan = STARTER`
-2. P0: keep `planFeatures._release` dark for `growthEngine`, `sms`, `motorLabor`, etc.
+2. P0: keep `planFeatures._release` dark for `growthEngine`, `motorLabor`, etc. Enable `sms` per shop when Twilio is ready (plan already entitles Core).
 3. **Enter shop** → experience must match tables above
 
 ---

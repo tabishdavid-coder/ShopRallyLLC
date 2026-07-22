@@ -581,6 +581,7 @@ const starterFeatures: PlanFeatureSet = {
   laborGuide: true,
   motorLabor: false,
   customerEmail: true,
+  /** Two-way SMS included on Ignition/Core (price includes messaging). Still env + release gated. */
   customerSms: true,
   carfax: true,
   digitalInspections: true,

@@ -7,7 +7,7 @@ import type { PlanFeatureSet } from "@/lib/plans";
 
 /** Per-shop plan capabilities for client UI (server still enforces). */
 export type ShopCapabilities = {
-  /** Two-way SMS / share-via-SMS — Pro+ only (also requires SMS_ENABLED). */
+  /** Two-way SMS / share-via-SMS — Ignition/Core+ (also requires SMS_ENABLED + release flag). */
   sms: boolean;
   /** Stripe Connect / online RO checkout — Pro+ only. */
   stripePayments: boolean;

@@ -94,7 +94,7 @@ async function dispatchOutbound(opts: {
         ok: false,
         error:
           planDenied === "This feature is not included in your plan."
-            ? "Two-way SMS is not included on Core. Share via email, or upgrade to Pro."
+            ? "Two-way SMS is not available on this shop's plan. Share via email, or contact support."
             : planDenied,
       };
     }

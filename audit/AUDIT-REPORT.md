@@ -125,7 +125,7 @@ No TypeScript or page-generation failures. Marketing routes including `/compare/
 | P1 | 9 | Meta/feature lists, ARI omit, JSON-LD Growth Engine, positioning subhead, FAQ integrate row; Watch/live/migration overlapped A3/A5 |
 | P2 | 4 | Bundle JSDoc `$134.98`, `#product` blurb, Hero CLS/contrast note, Live badge (fixed w/ A5) |
 | P3 | 1 | Dead `home-hero.tsx` |
-| Needs product | 1 | A1-009 CRM still gates SMS as Pro+ while marketing includes it on Ignition |
+| Needs product | 0 | A1-009 resolved — SMS plan-entitled on Ignition/STARTER (release/kill switches kept) |
 
 ### Commits (this agent)
 
@@ -490,7 +490,7 @@ Source: `audit/_a4-lighthouse.json`.
 
 ### Open items for the human
 
-1. **A1-009 — CRM SMS gate vs marketing Ignition** — Public Ignition packaging includes two-way SMS; in-app still gates SMS as Pro+/not Core. Product decision required before go-live (align CRM gates **or** soften marketing).
+1. ~~**A1-009 — CRM SMS gate vs marketing Ignition**~~ — **Fixed:** owner priced SMS into Ignition; `customerSms` on STARTER + Pro+ copy scrubbed; `SMS_ENABLED` + release flag `sms` kept.
 2. **50 founding spots — UNVERIFIED** — Cap size (`foundingSpotsTotal=50`) is internal-only; confirm real seat inventory before any public scarcity copy returns. (CLAIMS ledger)
 3. **Founder-shop narrative — UNVERIFIED** — “Founder still runs a real repair shop” needs human confirmation if used in sales.
 4. **A3-010 — `/demo` form-first layout (P1)** — Copy honesty fixed (See, not Watch); moments still sit after the optional call form. Layout redesign intentionally out of audit scope.

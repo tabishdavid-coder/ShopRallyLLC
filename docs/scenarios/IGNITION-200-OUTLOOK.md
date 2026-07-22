@@ -11,7 +11,7 @@
 |------|------:|-------|
 | **Ignition** (Core CRM) | **$89.99/mo** ($84.99/mo annual) | Job board, ROs, DVIs, email share/approve, **PartsTech**, shop labor library, appointments, payment tracking, Live Ops Snapshot, NHTSA VIN |
 | **AI Plus** | **$49.99/mo** | Smart / freeform RO intake · labor assist · **advisor mobile app** |
-| MOTOR / SMS / Stripe Connect | — | **Off** until Pro |
+| MOTOR / Stripe Connect | — | **Off** until Pro (two-way SMS plan-included on Ignition; release-gated) |
 | ShopSite / Local SEO | $99–$199/mo | Optional attach (soft) |
 
 Base Ignition ARPU ≈ **$47.24/mo** before AI/web attach.
@@ -200,7 +200,7 @@ Payroll dominates. Infra stays a small % of ARR even at 200.
 1. **AI Plus attach** drives both ARPU and Gemini COGS — mobile is the conversion lever.
 2. **Stay on Vercel+Neon+Clerk** — vendor % of ARR stays mid–single digits at 200.
 3. **People, not infra, gate profit** — hire carefully until ~100+ logos.
-4. **No MOTOR / SMS on Ignition** keeps variable COGS near zero until Pro.
+4. **No MOTOR / Stripe Connect on Ignition** keeps those COGS off until Pro; two-way SMS is included (Twilio usage).
 
 
 

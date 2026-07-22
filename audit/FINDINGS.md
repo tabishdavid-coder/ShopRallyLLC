@@ -26,7 +26,7 @@ Number sequentially within each prefix (`A1-001`, `A1-002`, …). Severity: `P0`
 | A1-006 | P1 | `/compare` meta | `src/app/(marketing)/compare/page.tsx` | Competitor list omits **ARI** though `/compare/ari-alternative` exists. | Fixed |
 | A1-007 | P1 | Home JSON-LD | `src/lib/marketing-seo.ts` | SoftwareApplication cited “Growth Engine marketing” (Pro+) and omitted Carfax/SMS. Cross-ref **A2-004**. | Fixed |
 | A1-008 | P1 | Market positioning subhead | `src/lib/marketing-launch.ts` | Phase-one subhead omits Carfax + two-way SMS while tier bullets include them. | Fixed |
-| A1-009 | P1 | Product vs marketing SMS gate | CRM `shop-capabilities` / share actions vs `plans.ts` marketing | **Needs product:** In-app still gates two-way SMS as Pro+/not Core while public Ignition marketing includes it. | Needs product |
+| A1-009 | P0 | Product vs marketing SMS gate | CRM `shop-capabilities` / share actions vs `plans.ts` | Owner decision: two-way SMS included on Ignition/STARTER (price includes core messaging). `customerSms: true` on STARTER; Pro+ copy/errors scrubbed; billing credits no longer zero on Core. Kill switch `SMS_ENABLED` + release flag `sms` kept. | Fixed |
 | A1-010 | P2 | Bundle price comment | `src/lib/plans.ts:1251` | JSDoc example still `$139.98` / `$134.98`. Runtime is `$149.98` / `$144.98`. | Fixed |
 | A1-011 | P2 | Home `#product` blurb | `home-page.tsx` | Feature enumeration omits Carfax + two-way SMS. | Fixed |
 | A1-012 | P2 | Hero “Live” badge | `Hero.tsx` | Synthetic animation labeled Live (now Preview — see A1-003). | Fixed |
@@ -49,7 +49,7 @@ Number sequentially within each prefix (`A1-001`, `A1-002`, …). Severity: `P0`
 | A3-007 | P2 | Hero trust | `Hero.tsx` | Thin social proof above fold (founder line only; no logos/reviews). | Open |
 | A3-008 | P2 | Mobile hero | `Hero.tsx` / `Hero.module.css` | Product board still costs a scroll on phone for “is the UI real?” | Open |
 | A3-009 | P3 | How-it-works jargon | `home-page.tsx` `#product` | PartsTech punchout / Live Operations Daily Snapshot — insider terms for paper shops. | Open |
-| A3-010 | P1 | `/demo` layout | `demo-page.tsx` | Form-first before product moments; still no video. Copy honesty fixed; **layout redesign out of audit scope**. | Needs human — layout redesign (form-first → moments-first) |
+| A3-010 | P1 | `/demo` layout | `demo-page.tsx` | Form-first before product moments; still no video. Owner: **moments-first**, optional Request a call below. | Fixed |
 | A3-011 | P2 | Pricing wedge order | `home-page.tsx` `#pricing-wedge` | Evaluate-dollars hop before `#reserve` for “just get on the list” owners. | Open |
 | A3-013 | P2 | Launch outcome metrics | `/launch` Easy Start / metrics strip | Numeric outcome strip may feel unproven without sources (cross-ref A2 testimonials work). | Open |
 | A5-001 | P1 | Hero board caption | `Hero.tsx` | Live board CTA honesty. Cross-ref **A1-003**. | Fixed |
@@ -93,10 +93,10 @@ Number sequentially within each prefix (`A1-001`, `A1-002`, …). Severity: `P0`
 | P0 | A1-015 | Fixed | Ignition `$99.99` / `$94.99` restored |
 | P0 | A3-001 | Fixed | Watch → See demo CTAs |
 | P1 | A1-002…A1-008, A1-016 | Fixed | Meta, ARI, JSON-LD, positioning, FAQ |
-| P1 | A1-009 | Needs product | CRM SMS still Pro+ while marketing Ignition includes two-way SMS |
+| P0 | A1-009 | Fixed | SMS plan gate aligned to Ignition/STARTER; release/kill switches kept |
 | P1 | A2-001, A2-002, A2-003, A2-008 | Fixed | Migration, legal titles, benchmarks, testimonials |
 | P1 | A3-002 | Fixed | Login “Book a demo” → See walkthrough |
-| P1 | A3-010 | Needs human | `/demo` form-first layout — redesign out of audit scope |
+| P1 | A3-010 | Fixed | `/demo` product moments before optional call form |
 | P1 | A4-001, A4-002, A4-003 | Fixed | Waitlist errors, double-submit, OG image |
 | P1 | A5-001, A5-002 | Fixed | Preview + walkthrough board; migration cutover |
 

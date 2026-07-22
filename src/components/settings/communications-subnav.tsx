@@ -7,7 +7,7 @@ import { useShopCapabilities } from "@/lib/shop-capabilities";
 export function CommunicationsSubnav({ children }: { children: React.ReactNode }) {
   const { sms } = useShopCapabilities();
   const items = COMMUNICATIONS_SUBNAV.map((item) =>
-    item.id === "phone-sms" && !sms ? { ...item, label: "Phone & SMS (Pro+)" } : item,
+    item.id === "phone-sms" && !sms ? { ...item, label: "Phone & SMS" } : item,
   );
 
   return (
