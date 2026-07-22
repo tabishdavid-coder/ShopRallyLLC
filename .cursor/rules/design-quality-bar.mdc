@@ -34,3 +34,7 @@ For design-heavy tasks, prefer a high-capability model for the implementing suba
 ## Verify
 
 After redesign, compare against the reference. Call out remaining gaps honestly — do not claim parity you didn't achieve.
+
+## Related (marketing site)
+
+For public marketing / landing / pricing / compare / features, also follow `.cursor/rules/marketing-ui-wow-bar.mdc` and `docs/MARKETING-UI-BAR.md` (conversion psychology + wow bar). This file stays the general redesign floor.
