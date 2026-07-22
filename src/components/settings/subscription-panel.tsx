@@ -24,6 +24,7 @@ const FEATURE_LABELS: Record<PlanFeature, string> = {
   laborGuide: "Labor guide & estimate tooling",
   customerEmail: "Customer email",
   customerSms: "Two-way SMS",
+  carfax: "Carfax service history",
   digitalInspections: "Digital vehicle inspections",
   appointments: "Appointments",
   reports: "Operations Daily Snapshot",
