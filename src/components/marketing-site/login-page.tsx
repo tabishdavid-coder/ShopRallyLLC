@@ -62,7 +62,7 @@ export function LoginPageContent({ marketingOnlyProduction = false }: LoginPageC
               <Link href={marketingPrimaryHref()}>{marketingPrimaryCta()}</Link>
             </Button>
             <Button size="lg" variant="outline" className="border-brand-navy text-brand-navy" asChild>
-              <Link href="/demo">Book a demo</Link>
+              <Link href="/demo">See the walkthrough</Link>
             </Button>
           </div>
           <p className="mx-auto mt-4 max-w-sm text-xs text-slate-500">
