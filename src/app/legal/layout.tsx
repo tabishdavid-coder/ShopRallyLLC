@@ -8,7 +8,8 @@ import {
 import { MarketingGa } from "@/components/marketing-site/marketing-ga";
 
 export const metadata: Metadata = {
-  title: "Legal — ShopRally",
+  // Avoid "Legal — ShopRally — ShopRally" from root title template.
+  title: { absolute: "Legal — ShopRally" },
 };
 
 export default function LegalLayout({ children }: { children: React.ReactNode }) {

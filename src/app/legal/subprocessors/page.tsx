@@ -2,7 +2,14 @@ import Link from "next/link";
 
 import { SUBPROCESSORS } from "@/lib/legal-subprocessors";
 
-export const metadata = { title: "Subprocessors — ShopRally" };
+import { marketingPageMetadata } from "@/lib/marketing-seo";
+
+export const metadata = marketingPageMetadata({
+  path: "/legal/subprocessors",
+  title: "Subprocessors",
+  description:
+    "ShopRally subprocessors — third parties that may process data on our behalf for shop management software.",
+});
 
 export default function SubprocessorsPage() {
   return (

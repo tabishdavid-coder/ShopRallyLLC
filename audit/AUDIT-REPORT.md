@@ -273,6 +273,67 @@ _(empty — Agent 4)_
 
 ---
 
-## Agent 5 — Cross-page consistency
+## Agent 5 — Flow & narrative
 
-_(empty — Agent 5)_
+**Persona:** Homepage as one argument — does each section answer the question the previous one raised?  
+**Scope:** Simplified home spine (Hero → MarketPositioning → How it works → pricing wedge → FAQ → reserve). Small copy-only P0/P1 fixes. No redesign / no new sections. Migration FAQ depth = recommendation only.  
+**Findings:** `A5-001`…`A5-009` in `audit/FINDINGS.md` (cross-refs A2-001, A3-001).
+
+### Verdict (one line)
+
+The spine **holds as a pre-launch argument** (fit → day loop → dollars → objections → reserve); the only hard narrative breaks were **live-board / video cues** and a **migration overclaim** (latter already aligned in Hero; live-board fixed this pass).
+
+### Flow map (question → answer)
+
+| # | Section | Reader question entering | Section answers | Hands off to |
+|---|---------|--------------------------|-----------------|--------------|
+| 1 | **Hero** | “What is this, and is it for my shop?” | Category + Ignition Q4 2026 + one-board RO cycle; Reserve / See walkthrough; switcher strip | “Why not the cheap stack / my legacy CRM?” |
+| 2 | **MarketPositioning** | “Where do you sit vs what I already know?” | Legacy vs budget bolt-ons vs Ignition price/capability map | “OK — what’s a day in the product?” |
+| 3 | **How it works** (`#product`) | “How does work actually move?” | Estimate → approval → one board (3 steps) + features link | “What’s the deal / founding price?” |
+| 4 | **Pricing wedge** (`#pricing-wedge`) | “Can I afford / evaluate dollars?” | Ignition name + price pair + AI Plus note → `/pricing` / `/features` | “Still worried about seat / billing / switch?” |
+| 5 | **FAQ** (`#faq`) | Remaining objections | What / seat / billing / PartsTech / switch honesty | “Ready to act?” |
+| 6 | **Reserve** (`#reserve`) | “How do I get on the list?” | Pre-launch honesty + waitlist / `/launch` | Done |
+
+**Soft gaps (P2/P3, no redesign):** Positioning → How-it-works bridge is thin (**A5-009**). Mid-spine Reserve path thin until `#reserve` (**A5-003**).
+
+### CTA funnel (scroll depth → Reserve)
+
+| Depth | Reserve path | Notes |
+|-------|--------------|-------|
+| Above fold (Hero) | **Primary** → `/launch` “Reserve a founding seat” | Strong; microcopy honest (no card, invite at Q4) |
+| Hero secondary | → `/demo` “See the 3-min walkthrough” | Aligned after A3-001; play icon removed with **A5-001** |
+| Board caption | → `/demo` “See the walkthrough” | Was “Try the live board” (**A5-001** fixed) |
+| Positioning | None | Educational by design |
+| How it works | Soft → `/features` only | OK |
+| Pricing wedge | → `/pricing`, `/features` — **no Reserve** | Mid-funnel evaluate-then-reserve hop (**A5-003** P2) |
+| FAQ related links | features / pricing / demo / compare | No `#reserve` / `/launch` |
+| `#reserve` | Form + `/launch` | Correct close |
+
+### Repetition counts (home spine)
+
+| Theme | Count | Verdict |
+|-------|------:|---------|
+| ShopRally “Website & SEO separate” disclaimer | **0** | No consolidation needed (**A5-005**) |
+| Competitor website/SEO stack pain (positioning cards) | **3** | Intentional contrast, not duplicate ShopRally disclaimers |
+| Roadmap / “later” honesty | **1** (FAQ migration) | Under threshold |
+| Capability laundry (PartsTech / DVI / SMS / Reviews / board) | **~3** (Hero + How + FAQ) | **A5-004** P2 — consolidate later |
+
+### Tone
+
+Honest-operator baseline is strong: Q4 2026, founding seat ≠ access, no card, FAQ refuses fake one-click import. Hype pockets were “Live” / “live board” and (historically) free full-history migration — cleared (**A5-001**, **A5-002** / **A2-001**). Anonymous testimonials remain off home (**A5-007** / **A2-006**).
+
+### Known suspects
+
+| Suspect | Status |
+|---------|--------|
+| Demo walkthrough “Watch” ≠ video | Fixed by Agent 3 (**A3-001**); residual play icon + live-board CTA fixed here (**A5-001**) |
+| Anonymous testimonials on home | Confirmed **off** spine — no action |
+| Migration FAQ depth | **Recommendation only** (**A5-006**): keep FAQ short; add compare/launch migration note when package is product-owned |
+
+### Fixes shipped (Agent 5)
+
+1. `audit(flow): honest Preview + walkthrough CTA on hero board [A5-001, P1]` — `Live` → `Preview`; `Try the live board` → `See the walkthrough`; drop secondary play icon.
+
+**A5-002 / A2-001:** Hero switch strip already uses priority cutover / no invented one-click language (aligned with HOME_FAQ) — marked Fixed, no additional commit.
+
+No new sections. No migration FAQ expansion.

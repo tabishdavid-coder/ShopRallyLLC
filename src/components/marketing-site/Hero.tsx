@@ -369,9 +369,6 @@ export function Hero() {
               </svg>
             </Link>
             <Link className={styles.ctaghost} href="/demo">
-              <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M8 5.5v13l11-6.5Z" />
-              </svg>
               See the 3-min walkthrough
             </Link>
           </div>
@@ -489,11 +486,11 @@ export function Hero() {
           <div className={styles.boardcaption}>
             <span className={styles.livedot}>
               <i />
-              Live
+              Preview
             </span>
             Every stage, one system — declined work loops back instead of leaking.
             <Link href="/demo">
-              Try the live board
+              See the walkthrough
               <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
                 <path d="M5 12h14M13 6l6 6-6 6" />
               </svg>
