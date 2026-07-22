@@ -353,7 +353,7 @@ function CompareVsGrid() {
               <CompareVsCard
                 competitor={page.competitor}
                 href={page.path}
-                blurb={page.heroWedge}
+                blurb={page.intro}
               />
             </li>
           ))}
