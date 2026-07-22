@@ -363,7 +363,7 @@ export const MARKET_POSITIONING = {
   eyebrow: "Where ShopRally fits",
   headline: "All-in-one shop management — not legacy, not a bolt-on stack",
   subhead: PHASE_ONE_LAUNCH
-    ? "Legacy systems split workflow across desktop installs and agency retainers. Budget cloud CRMs look cheap until extras stack on. ShopRally Ignition is all-in-one auto repair shop management software — PartsTech, Google Reviews inbox, and digital vehicle inspections included — add AI Plus when you're ready."
+    ? "Legacy systems split workflow across desktop installs and agency retainers. Budget cloud CRMs look cheap until extras stack on. ShopRally Ignition is all-in-one auto repair shop management software — PartsTech, Carfax, two-way SMS, Google Reviews inbox, and digital vehicle inspections included — add AI Plus when you're ready."
     : "Legacy systems split workflow across desktop installs and agency retainers. Budget cloud CRMs look cheap until SMS, booking, reviews, and website work stack on. ShopRally is the modern all-in-one — Ignition through Elite full stack.",
   tiers: [
     {
