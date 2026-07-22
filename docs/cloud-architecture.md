@@ -73,12 +73,19 @@ Replace stub incrementally: middleware → `getCurrentUser` → `getShopId` / `c
 
 Copy `.env.example` → Vercel Project Settings → Environment Variables.
 
-### Required for prod
+### Required for prod (marketing-only phase)
 
 | Variable | Purpose |
 |----------|---------|
 | `DATABASE_URL` | Neon **pooled** connection string (`?pgbouncer=true` or Neon pooler host) |
-| `APP_URL` | Canonical HTTPS origin, e.g. `https://app.getshoprally.com` |
+| `APP_URL` | Canonical HTTPS origin, e.g. `https://getshoprally.com` |
+| `MARKETING_ONLY` | `true` — public site is marketing only; CRM stays local (see [`MARKETING-ONLY-DEPLOY.md`](./MARKETING-ONLY-DEPLOY.md)) |
+
+### Required when CRM unlocks on Production
+
+| Variable | Purpose |
+|----------|---------|
+| `MARKETING_ONLY` | `false` — explicit unlock (Clerk alone does **not** open CRM) |
 | `CLERK_SECRET_KEY` | Server auth (when M1b ships) |
 | `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | Client auth |
 | `STRIPE_SECRET_KEY` | Platform Stripe secret |

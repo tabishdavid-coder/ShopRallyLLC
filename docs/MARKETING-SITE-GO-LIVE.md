@@ -6,7 +6,7 @@
 
 **Do not** flip `MARKETING_LAUNCH.preLaunch` yet — keep waitlist / founding-seat CTAs until self-serve CRM is real. See [`MARKETING-GO-LIVE-FLIP.md`](./MARKETING-GO-LIVE-FLIP.md) for Phase B.
 
-**Prod gate:** When `VERCEL_ENV=production` and Clerk publishable key is unset, middleware locks CRM/platform and redirects to `/launch`. Local + Preview keep stub access for Macuto QA. Code: [`src/lib/marketing-prod-gate.ts`](../src/lib/marketing-prod-gate.ts), [`src/middleware.ts`](../src/middleware.ts).
+**Prod gate:** Vercel Production serves **marketing only**. Gate is on when `MARKETING_ONLY=true`, or by fail-safe when `VERCEL=1` + `VERCEL_ENV=production` and `MARKETING_ONLY` is unset. **Clerk keys do not unlock CRM** — set `MARKETING_ONLY=false` only when CRM release is intentional. Blocked CRM routes go to `/crm-unavailable`. Local + Preview keep full CRM unless you set `MARKETING_ONLY=true`. See [`MARKETING-ONLY-DEPLOY.md`](./MARKETING-ONLY-DEPLOY.md). Code: [`src/lib/marketing-prod-gate.ts`](../src/lib/marketing-prod-gate.ts), [`src/middleware.ts`](../src/middleware.ts).
 
 ---
 
@@ -21,13 +21,14 @@ Linked project (local `.vercel/project.json`): **`shoprally`**.
 |----------|--------|
 | `DATABASE_URL` | Neon pooled Postgres URL (same DB as waitlist `SupportTicket` writes) |
 | `APP_URL` | `https://getshoprally.com` |
+| `MARKETING_ONLY` | `true` — keep CRM off Production (fail-safe also defaults on) |
 
 Optional:
 
 | Variable | Notes |
 |----------|--------|
 | `RESEND_API_KEY` | Lead-notification email; waitlist still works via DB without it |
-| Clerk keys | **Leave unset** for marketing-only phase (enables the prod gate) |
+| Clerk keys | Optional for marketing phase; **do not** treat as CRM unlock |
 
 3. Deploy Production:
 
@@ -109,7 +110,7 @@ SiteGround is **not** answering NS today. If you previously pointed the domain t
 curl -sI https://getshoprally.com/
 curl -sI https://www.getshoprally.com/pricing
 curl -sI https://getshoprally.com/dashboard
-# Expect /dashboard → redirect to /launch?from=app while Clerk unset
+# Expect /dashboard → redirect to /crm-unavailable?from=/dashboard
 ```
 
 ### 2e. Prefer ShopRally Vercel hostnames (optional cleanup)
@@ -154,7 +155,7 @@ Renaming the project in the dashboard does **not** always retire the old `*.verc
 Follow [`IGNITION-GO-LIVE.md`](./IGNITION-GO-LIVE.md) then [`MARKETING-GO-LIVE-FLIP.md`](./MARKETING-GO-LIVE-FLIP.md):
 
 1. Add Clerk Orgs + keys on Production; map org → `Shop.clerkOrgId`.
-2. Middleware unlocks automatically when `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` is set (prod gate off; Clerk `auth.protect` on).
+2. Set **`MARKETING_ONLY=false`** on Production (required — Clerk alone does **not** unlock CRM).
 3. Add DNS **`app.getshoprally.com`** → same Vercel project (recommended: marketing on apex, product on `app`).
 4. Set `APP_URL=https://app.getshoprally.com` for CRM canonical links.
 5. Provision founding shops from Platform; do not open self-serve until Stripe Prices + checkout verified.

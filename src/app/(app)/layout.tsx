@@ -12,6 +12,10 @@ import {
 import { LegalComplianceGate } from "@/components/legal/legal-compliance-gate";
 import { KeyedChildren } from "@/lib/keyed-children";
 import { prisma } from "@/db/client";
+import {
+  isMarketingOnlyProduction,
+  MARKETING_GATE_REDIRECT,
+} from "@/lib/marketing-prod-gate";
 import { isPlatformAdmin } from "@/lib/platform";
 import { getCurrentShop, getShopId, listShops, ShopAccessError, DEMO_SHOP_ID } from "@/lib/shop";
 import { settingsRouteDenied } from "@/lib/settings-plan-gates";
@@ -27,6 +31,11 @@ export default async function AppLayout({
 }: {
   children: React.ReactNode;
 }) {
+  // Defense in depth: never render the CRM shell on the marketing-only surface.
+  if (isMarketingOnlyProduction()) {
+    redirect(`${MARKETING_GATE_REDIRECT}?from=app-shell`);
+  }
+
   const pathname = (await headers()).get("x-pathname") ?? "";
   const isPlatformRoute = pathname.startsWith("/platform");
 

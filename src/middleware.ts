@@ -1,12 +1,11 @@
 import { clerkMiddleware, createRouteMatcher } from "@clerk/nextjs/server";
-import { NextResponse, type NextRequest } from "next/server";
+import { NextResponse, type NextFetchEvent, type NextRequest } from "next/server";
 
 import { isClerkConfigured } from "@/lib/clerk-auth-client";
 import { isPrimaryAppHost, slugFromSitesSubdomain } from "@/lib/custom-domain";
 import {
   isMarketingOnlyProduction,
   isMarketingPublicPath,
-  isProdLockedPath,
   MARKETING_GATE_REDIRECT,
 } from "@/lib/marketing-prod-gate";
 import {
@@ -41,6 +40,7 @@ const isPublicRoute = createRouteMatcher([
   "/sign-in(.*)",
   "/sign-up(.*)",
   "/legal(.*)",
+  "/crm-unavailable(.*)",
   "/sitemap.xml",
   "/robots.txt",
   "/opengraph-image(.*)",
@@ -100,8 +100,8 @@ async function resolveCustomHostRewrite(
 }
 
 /**
- * Production without Clerk: marketing + waitlist only.
- * Redirect CRM/platform stub entry points so the public site cannot open the app open-door.
+ * Hard marketing-only gate (Vercel Production / MARKETING_ONLY=true).
+ * Runs before Clerk so adding Clerk keys cannot open CRM by accident.
  */
 function marketingOnlyProdGate(request: NextRequest): NextResponse | null {
   if (!isMarketingOnlyProduction()) return null;
@@ -110,37 +110,26 @@ function marketingOnlyProdGate(request: NextRequest): NextResponse | null {
 
   if (isMarketingPublicPath(pathname)) return null;
 
-  // Block non-public APIs (tRPC, internal actions endpoints, etc.)
+  // Block all APIs on the marketing surface (waitlist/demo use Server Actions on page paths).
   if (pathname.startsWith("/api/")) {
     return NextResponse.json(
-      { error: "Shop access opens Q4 2026 — reserve a founding seat at /launch" },
-      { status: 403 },
+      {
+        error:
+          "ShopRally CRM is not available on this host. Use local development, or reserve a founding seat at /launch.",
+      },
+      { status: 404 },
     );
   }
 
-  if (isProdLockedPath(pathname) || isCrmRoute(pathname) || pathname.startsWith("/platform")) {
-    const url = request.nextUrl.clone();
-    url.pathname = MARKETING_GATE_REDIRECT;
-    url.search = "";
-    url.searchParams.set("from", "app");
-    return NextResponse.redirect(url);
-  }
-
-  // Unknown non-marketing app paths — send to founding reserve.
-  if (!pathname.startsWith("/_next")) {
-    const url = request.nextUrl.clone();
-    url.pathname = MARKETING_GATE_REDIRECT;
-    url.searchParams.set("from", "app");
-    return NextResponse.redirect(url);
-  }
-
-  return null;
+  // CRM / platform / share / microsite paths → clean unavailable page (not the app shell).
+  const url = request.nextUrl.clone();
+  url.pathname = MARKETING_GATE_REDIRECT;
+  url.search = "";
+  url.searchParams.set("from", pathname);
+  return NextResponse.redirect(url, 307);
 }
 
 async function shoprallyMiddleware(request: NextRequest) {
-  const gate = marketingOnlyProdGate(request);
-  if (gate) return gate;
-
   const { pathname } = request.nextUrl;
   const host = request.headers.get("host") ?? "";
   const requestHeaders = new Headers(request.headers);
@@ -170,14 +159,24 @@ async function shoprallyMiddleware(request: NextRequest) {
   return response;
 }
 
-export default isClerkConfigured()
-  ? clerkMiddleware(async (auth, request) => {
-      if (!isPublicRoute(request)) {
-        await auth.protect();
-      }
-      return shoprallyMiddleware(request);
-    })
-  : shoprallyMiddleware;
+const clerkHandler = clerkMiddleware(async (auth, request) => {
+  if (!isPublicRoute(request)) {
+    await auth.protect();
+  }
+  return shoprallyMiddleware(request);
+});
+
+export default function middleware(request: NextRequest, event: NextFetchEvent) {
+  // Gate first — before Clerk protect can send users into the CRM sign-in flow.
+  const gate = marketingOnlyProdGate(request);
+  if (gate) return gate;
+
+  if (isClerkConfigured()) {
+    return clerkHandler(request, event);
+  }
+
+  return shoprallyMiddleware(request);
+}
 
 export const config = {
   matcher: [
