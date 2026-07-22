@@ -42,28 +42,35 @@ export function FoundingWaitlistForm({
   const [error, setError] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState(false);
   const [pending, start] = useTransition();
+  const submittingRef = useRef(false);
 
   function submit(e: React.FormEvent) {
     e.preventDefault();
+    if (submittingRef.current || pending) return;
+    submittingRef.current = true;
     setError(null);
     start(async () => {
-      const res = await submitFoundingWaitlist({
-        email,
-        shopName: shopName || undefined,
-        source: wantWebsiteSeo
-          ? variant === "compact"
-            ? "homepage-inline-website"
-            : "launch-page-website"
-          : variant === "compact"
-            ? "homepage-inline"
-            : "launch-page",
-        interests: wantWebsiteSeo ? webPresenceInterestLabel() : undefined,
-      });
-      if (!res.ok) {
-        setError(res.error);
-        return;
+      try {
+        const res = await submitFoundingWaitlist({
+          email,
+          shopName: shopName || undefined,
+          source: wantWebsiteSeo
+            ? variant === "compact"
+              ? "homepage-inline-website"
+              : "launch-page-website"
+            : variant === "compact"
+              ? "homepage-inline"
+              : "launch-page",
+          interests: wantWebsiteSeo ? webPresenceInterestLabel() : undefined,
+        });
+        if (!res.ok) {
+          setError(res.error);
+          return;
+        }
+        setSubmitted(true);
+      } finally {
+        submittingRef.current = false;
       }
-      setSubmitted(true);
     });
   }
 

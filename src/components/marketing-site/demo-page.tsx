@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useTransition, type ReactNode } from "react";
+import { useRef, useState, useTransition, type ReactNode } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import {
@@ -420,27 +420,34 @@ export function DemoPageContent() {
   const [error, setError] = useState<string | null>(null);
   const [submitted, setSubmitted] = useState(false);
   const [pending, start] = useTransition();
+  const submittingRef = useRef(false);
 
   function submit(e: React.FormEvent) {
     e.preventDefault();
+    if (submittingRef.current || pending) return;
+    submittingRef.current = true;
     setError(null);
     start(async () => {
-      const res = await submitDemoRequest({
-        name,
-        email,
-        shopName,
-        phone: phone || undefined,
-        bayCount: needWebsite ? undefined : bayCount || undefined,
-        currentSoftware: currentSoftware || undefined,
-        message: message || undefined,
-        need: needWebsite ? WEB_PRESENCE_MARKETING.needQuery : undefined,
-        interests: needWebsite ? webPresenceInterestLabel() : undefined,
-      });
-      if (!res.ok) {
-        setError(res.error);
-        return;
+      try {
+        const res = await submitDemoRequest({
+          name,
+          email,
+          shopName,
+          phone: phone || undefined,
+          bayCount: needWebsite ? undefined : bayCount || undefined,
+          currentSoftware: currentSoftware || undefined,
+          message: message || undefined,
+          need: needWebsite ? WEB_PRESENCE_MARKETING.needQuery : undefined,
+          interests: needWebsite ? webPresenceInterestLabel() : undefined,
+        });
+        if (!res.ok) {
+          setError(res.error);
+          return;
+        }
+        setSubmitted(true);
+      } finally {
+        submittingRef.current = false;
       }
-      setSubmitted(true);
     });
   }
 
