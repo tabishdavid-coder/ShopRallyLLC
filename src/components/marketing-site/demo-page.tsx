@@ -341,12 +341,14 @@ function ProductMomentsStrip({
   title,
   blurb,
   meta,
+  id = "moments",
 }: {
   moments: DemoMoment[];
   eyebrow: string;
   title: string;
   blurb: string;
   meta: string;
+  id?: string;
 }) {
   return (
     <div className="relative">
@@ -355,7 +357,10 @@ function ProductMomentsStrip({
         aria-hidden
         className="pointer-events-none absolute inset-x-0 -top-16 h-16 bg-gradient-to-b from-transparent via-brand-navy/20 to-[#e8f4ff]"
       />
-      <section className="relative bg-gradient-to-b from-[#e8f4ff] via-brand-light/20 to-background pb-16 pt-4 sm:pb-20 sm:pt-6">
+      <section
+        id={id}
+        className="relative scroll-mt-24 bg-gradient-to-b from-[#e8f4ff] via-brand-light/20 to-background pb-16 pt-4 sm:pb-20 sm:pt-6"
+      >
         <div className="mx-auto max-w-7xl px-4 sm:px-6">
           <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
             <div>
@@ -461,14 +466,14 @@ export function DemoPageContent() {
           <span className="font-medium text-brand-navy">{email}</span>
           {needWebsite
             ? " about Website & SEO setup (separate from Ignition CRM)."
-            : " if you requested a call — or enjoy the walkthrough moments below anytime."}
+            : " about your call request."}
         </p>
         <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:justify-center">
           <Button className="bg-brand-navy" asChild>
-            <Link href="/launch">Reserve a founding seat instead</Link>
+            <Link href="/demo#moments">See the walkthrough again</Link>
           </Button>
           <Button variant="outline" className="border-brand-navy text-brand-navy" asChild>
-            <Link href="/">Back to home</Link>
+            <Link href="/launch">Reserve a founding seat</Link>
           </Button>
         </div>
       </div>
@@ -477,96 +482,148 @@ export function DemoPageContent() {
 
   return (
     <>
+      {/* Intro only — product moments are the ungated walkthrough; form is secondary */}
       <section
         className={cn(
           "relative text-white",
           "bg-gradient-to-br from-brand-navy via-brand-navy to-[#0f3d66]",
-          // Soften bottom edge so the moments strip wash doesn't read as a hard white break
-          "pb-20 sm:pb-24",
+          "pb-16 sm:pb-20",
         )}
       >
         <div
           aria-hidden
           className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,oklch(0.798_0.108_247_/_0.18),transparent_55%)]"
         />
-        <div className="relative mx-auto grid max-w-7xl gap-10 px-4 py-14 sm:px-6 lg:grid-cols-2 lg:items-start lg:py-20">
-          <div>
-            <div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-semibold text-brand-light">
-              {needWebsite ? <Globe className="size-3.5" /> : <Play className="size-3.5" />}
-              {needWebsite ? WEB_PRESENCE_MARKETING.eyebrow : "Ungated product story"}
-            </div>
-            <h1 className="mt-4 text-3xl font-bold sm:text-4xl lg:text-5xl">
-              {needWebsite
-                ? WEB_PRESENCE_MARKETING.intakeHeadline
-                : "See a 3-minute walkthrough"}
-            </h1>
-            <p className="mt-4 max-w-lg text-white/80 leading-relaxed">
-              {needWebsite
-                ? WEB_PRESENCE_MARKETING.intakeSubhead
-                : "See Ignition in product moments — job board, PartsTech on the estimate, digital vehicle inspections, and email approvals. No gate. Optional call below if you want a live conversation."}
-            </p>
+        <div className="relative mx-auto max-w-3xl px-4 py-14 text-center sm:px-6 sm:py-16">
+          <div className="inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-semibold text-brand-light">
+            {needWebsite ? <Globe className="size-3.5" /> : <Play className="size-3.5" />}
+            {needWebsite ? WEB_PRESENCE_MARKETING.eyebrow : "Ungated product story"}
+          </div>
+          <h1 className="mt-4 text-3xl font-bold sm:text-4xl lg:text-5xl">
+            {needWebsite
+              ? WEB_PRESENCE_MARKETING.intakeHeadline
+              : "See a 3-minute walkthrough"}
+          </h1>
+          <p className="mx-auto mt-4 max-w-xl text-white/80 leading-relaxed">
+            {needWebsite
+              ? WEB_PRESENCE_MARKETING.intakeSubhead
+              : "Product moments first — job board, PartsTech on the estimate, digital vehicle inspections, and email approvals. No video player. No gate. Optional call if you want a live conversation."}
+          </p>
 
-            {needWebsite ? (
-              <div className="mt-8 max-w-lg">
-                <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-brand-light/80">
-                  {WEB_PRESENCE_MARKETING.intakeValueLead}
-                </p>
-                <ul className="mt-3 space-y-2.5">
-                  {WEB_PRESENCE_MARKETING.intakeValueMirror.map((item) => (
-                    <li
-                      key={item}
-                      className="flex items-start gap-2.5 rounded-lg border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-white/90"
-                    >
-                      <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-brand-light" />
-                      <span>{item}</span>
-                    </li>
-                  ))}
-                </ul>
-                <p className="mt-4 text-xs leading-relaxed text-white/60">
-                  {WEB_PRESENCE_MARKETING.honestyNote}
-                </p>
-                <p className="mt-3 text-sm text-white/70">
-                  Prefer to scan pricing first?{" "}
-                  <Link
-                    href={webPresencePricingTabHref()}
-                    className="font-semibold text-brand-light underline-offset-2 hover:underline"
+          {needWebsite ? (
+            <div className="mx-auto mt-8 max-w-lg text-left">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-brand-light/80">
+                {WEB_PRESENCE_MARKETING.intakeValueLead}
+              </p>
+              <ul className="mt-3 space-y-2.5">
+                {WEB_PRESENCE_MARKETING.intakeValueMirror.map((item) => (
+                  <li
+                    key={item}
+                    className="flex items-start gap-2.5 rounded-lg border border-white/10 bg-white/5 px-3 py-2.5 text-sm text-white/90"
                   >
-                    Website &amp; SEO on /pricing
-                  </Link>
-                </p>
-              </div>
-            ) : (
-              <ul className="mt-6 space-y-2 text-sm text-white/85">
-                {[
-                  "Product moments you can scan in about 3 minutes",
-                  "Job board → PartsTech → estimate → email approve → invoice",
-                  "Honest scope — Ignition at launch, not a later-roadmap pitch",
-                  "Optional call if you want questions answered live",
-                ].map((item) => (
-                  <li key={item} className="flex items-center gap-2">
-                    <CheckCircle2 className="size-4 shrink-0 text-brand-light" />
-                    {item}
+                    <CheckCircle2 className="mt-0.5 size-4 shrink-0 text-brand-light" />
+                    <span>{item}</span>
                   </li>
                 ))}
               </ul>
-            )}
-          </div>
+              <p className="mt-4 text-xs leading-relaxed text-white/60">
+                {WEB_PRESENCE_MARKETING.honestyNote}
+              </p>
+            </div>
+          ) : (
+            <ul className="mx-auto mt-6 max-w-md space-y-2 text-left text-sm text-white/85">
+              {[
+                "Scan product moments in about 3 minutes",
+                "Job board → PartsTech → estimate → email approve → invoice",
+                "Honest scope — Ignition at launch, not a later-roadmap pitch",
+              ].map((item) => (
+                <li key={item} className="flex items-center gap-2">
+                  <CheckCircle2 className="size-4 shrink-0 text-brand-light" />
+                  {item}
+                </li>
+              ))}
+            </ul>
+          )}
 
-          {/*
-            Critical: parent section is text-white. Reset dark text on the card so
-            inputs are not white-on-white (looks like “can’t type”).
-          */}
-          <div className="rounded-2xl border border-white/15 bg-white p-6 text-slate-900 shadow-2xl sm:p-8">
+          <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
+            <Button
+              size="lg"
+              className="bg-brand-red hover:bg-brand-red/90"
+              asChild
+            >
+              <a href="#moments">
+                {needWebsite ? "See Website & SEO moments" : "See the walkthrough"}
+              </a>
+            </Button>
+            <Button
+              size="lg"
+              variant="outline"
+              className="border-white/40 bg-white/5 text-white hover:bg-white/10 hover:text-white"
+              asChild
+            >
+              <a href="#request-call">
+                {needWebsite ? WEB_PRESENCE_MARKETING.intakeFormTitle : "Request a call"}
+              </a>
+            </Button>
+          </div>
+          {needWebsite ? (
+            <p className="mt-4 text-sm text-white/70">
+              Prefer to scan pricing first?{" "}
+              <Link
+                href={webPresencePricingTabHref()}
+                className="font-semibold text-brand-light underline-offset-2 hover:underline"
+              >
+                Website &amp; SEO on /pricing
+              </Link>
+            </p>
+          ) : (
+            <p className="mt-4 text-xs text-white/55">
+              Call is optional — the walkthrough is open either way.
+            </p>
+          )}
+        </div>
+
+        <div
+          aria-hidden
+          className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-b from-transparent to-[#e8f4ff]"
+        />
+      </section>
+
+      {needWebsite ? (
+        <ProductMomentsStrip
+          moments={WEBSITE_DEMO_MOMENTS}
+          eyebrow="What we'll cover"
+          title="Website & SEO moments"
+          blurb="ShopSite, local presence, and ads help — companion to Ignition, not the bay loop. Hover a card to peek the UI."
+          meta="Companion · billed separately"
+        />
+      ) : (
+        <ProductMomentsStrip
+          moments={DEMO_MOMENTS}
+          eyebrow="3-minute product story"
+          title="Ignition moments — no gate"
+          blurb="Same bay loop as the live product — job board, PartsTech, inspections, approvals. Hover a card to peek the UI."
+          meta="~3 min · Ignition · call optional"
+        />
+      )}
+
+      {/* Optional lead form — secondary to ungated moments */}
+      <section
+        id="request-call"
+        className="scroll-mt-24 border-t border-brand-navy/10 bg-white py-14 sm:py-16"
+      >
+        <div className="mx-auto max-w-xl px-4 sm:px-6">
+          <div className="rounded-2xl border border-brand-navy/10 bg-gradient-to-b from-brand-light/10 to-white p-6 text-slate-900 shadow-sm sm:p-8">
             <div className="flex items-center gap-2 text-brand-navy">
               {needWebsite ? <Globe className="size-5" /> : <Calendar className="size-5" />}
               <h2 className="text-lg font-bold">
-                {needWebsite ? WEB_PRESENCE_MARKETING.intakeFormTitle : "Book a call (optional)"}
+                {needWebsite ? WEB_PRESENCE_MARKETING.intakeFormTitle : "Request a call (optional)"}
               </h2>
             </div>
             <p className="mt-1 text-sm text-slate-600">
               {needWebsite
                 ? WEB_PRESENCE_MARKETING.intakeFormHint
-                : "Prefer a live conversation? Leave your details — walkthrough moments below are open either way."}
+                : "Prefer a live conversation? Leave your details — the product moments above stay open either way."}
             </p>
 
             <form onSubmit={submit} className="mt-6 grid gap-4">
@@ -729,37 +786,17 @@ export function DemoPageContent() {
                 </p>
               ) : (
                 <p className="text-center text-xs text-slate-500">
-                  Or skip the form — scroll to the product moments below.
+                  Or skip —{" "}
+                  <a href="#moments" className="font-medium text-brand-navy underline-offset-2 hover:underline">
+                    back to the walkthrough
+                  </a>
+                  .
                 </p>
               )}
             </form>
           </div>
         </div>
-
-        {/* Fade hero into moments wash instead of a knife-edge border */}
-        <div
-          aria-hidden
-          className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-b from-transparent to-[#e8f4ff]"
-        />
       </section>
-
-      {needWebsite ? (
-        <ProductMomentsStrip
-          moments={WEBSITE_DEMO_MOMENTS}
-          eyebrow="What we'll cover"
-          title="Website & SEO moments"
-          blurb="ShopSite, local presence, and ads help — companion to Ignition, not the bay loop. Hover a card to peek the UI."
-          meta="Companion · billed separately"
-        />
-      ) : (
-        <ProductMomentsStrip
-          moments={DEMO_MOMENTS}
-          eyebrow="3-minute product story"
-          title="Ignition moments — no gate"
-          blurb="Same bay loop as the live product — job board, PartsTech, inspections, approvals. Hover a card to peek the UI."
-          meta="~3 min · Ignition · call optional"
-        />
-      )}
     </>
   );
 }
