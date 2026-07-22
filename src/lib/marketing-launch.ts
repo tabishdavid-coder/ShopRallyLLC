@@ -17,10 +17,12 @@ export const MARKETING_LAUNCH = {
   launchWindowLabel: "Launching Q4 2026",
   launchQuarter: "Q4 2026",
   foundingProgramLabel: "Founding Shop Program",
-  /** Internal waitlist cap for stats — do not display remaining/total in public UI. */
+  /**
+   * Optional static founding-program size for internal ops / soft copy once
+   * (“Launching with 50 founding seats”). Never drive a public countdown,
+   * remaining-count, “X left”, or progress meter from this number.
+   */
   foundingSpotsTotal: 50,
-  /** Fallback claimed count for internal stats when live waitlist count is unavailable. */
-  foundingSpotsClaimed: 13,
 
   /** Pre-launch destinations (waitlist + demo). */
   primaryHref: "/launch",
@@ -41,9 +43,9 @@ export const MARKETING_LAUNCH = {
     primaryHintPreLaunch: "Launching Q4 2026 · no card · we'll invite you at launch",
     /** Under-CTA when self-serve is live. */
     primaryHintPostLaunch: "14-day trial · no card · cancel anytime",
-    /** Secondary — ungated product story; call optional on /demo. */
-    secondaryPreLaunch: "Watch a 3-minute walkthrough",
-    secondaryPostLaunch: "Watch a 3-minute walkthrough",
+    /** Secondary — ungated product moments on /demo (not a video); call optional. */
+    secondaryPreLaunch: "See the 3-minute walkthrough",
+    secondaryPostLaunch: "See the 3-minute walkthrough",
     /** Post-launch destinations (dormant until preLaunch=false). */
     primaryHrefPostLaunch: "/signup",
     secondaryHrefPostLaunch: "/demo",
@@ -54,7 +56,7 @@ export const MARKETING_LAUNCH = {
   /** @deprecated Use marketingPrimaryCta() */
   primaryCta: "Reserve a founding seat",
   /** @deprecated Use marketingSecondaryCta() */
-  secondaryCta: "Watch a 3-minute walkthrough",
+  secondaryCta: "See the 3-minute walkthrough",
 } as const;
 
 export function marketingPrimaryHref(preLaunch: boolean = MARKETING_LAUNCH.preLaunch): string {
@@ -91,20 +93,18 @@ export function marketingPrimaryHint(preLaunch: boolean = MARKETING_LAUNCH.preLa
     : MARKETING_LAUNCH.cta.primaryHintPostLaunch;
 }
 
-/** Internal remaining helper — do not surface counts in public marketing UI. */
-export function foundingSpotsRemaining(
-  claimed: number = MARKETING_LAUNCH.foundingSpotsClaimed,
-) {
-  return Math.max(0, MARKETING_LAUNCH.foundingSpotsTotal - claimed);
-}
-
 export type FoundingSpotUrgency = "open";
 
-/** Public strip copy — Q4 window + reserve CTA only (no seat counts / urgency meters). */
-export function getFoundingSpotMessaging(_claimed?: number) {
+/**
+ * Public strip copy — soft founding seats only.
+ * Never pass live remaining/claimed into UI; no countdown / “X left”.
+ */
+export function getFoundingSpotMessaging() {
   return {
     primary: MARKETING_LAUNCH.launchWindowLabel,
-    secondary: "Reserve a founding seat — we'll invite you at launch",
+    secondary: "Founding seats open for the Q4 2026 launch",
+    /** Optional one-line static size — not a live inventory meter. */
+    staticCapNote: `Launching with ${MARKETING_LAUNCH.foundingSpotsTotal} founding seats`,
     urgency: "open" as FoundingSpotUrgency,
   };
 }
@@ -191,25 +191,25 @@ export const HOW_SHOPRALLY_WORKS = {
   eyebrow: "How ShopRally works for your shop",
   headline: "Auto repair shop management from the first concern to the final invoice",
   subhead:
-    "Ignition is all-in-one auto repair shop management software for independents — not a stack of logins. PartsTech and digital vehicle inspections ship with the plan.",
+    "Ignition is all-in-one auto repair shop management software for independents — not a stack of logins. PartsTech, Carfax, two-way SMS, Google Reviews inbox, and digital vehicle inspections ship with the plan.",
   steps: [
     {
       step: "01",
       title: "Build the estimate once",
       description:
-        "Concerns, canned jobs, shop labor, and PartsTech catalog & punchout live on the same repair order — no retyping parts into a second screen.",
+        "Concerns, canned jobs, shop labor, PartsTech catalog & punchout, and Carfax history live on the same repair order — no retyping parts into a second screen.",
     },
     {
       step: "02",
       title: "Show the work, get the yes",
       description:
-        "Digital vehicle inspections with photo checklists customers can see, plus email estimates and approval links so the counter isn’t stuck on phone tag.",
+        "Digital vehicle inspections with photo checklists customers can see, plus email and two-way SMS estimate/approval links so the counter isn’t stuck on phone tag.",
     },
     {
       step: "03",
       title: "Run the day from one board",
       description:
-        "Job board, appointments, payment tracking, and Live Operations Daily Snapshot keep advisors ahead of the bays — one login for the whole loop.",
+        "Job board, appointments, payment tracking, Google Reviews inbox, and Live Operations Daily Snapshot keep advisors ahead of the bays — one login for the whole loop.",
     },
   ],
 } as const;
@@ -229,10 +229,13 @@ export const IGNITION_PLAN_MARKETING = {
    */
   features: [
     { label: "PartsTech catalog & punchout" },
+    { label: "Carfax service history" },
+    { label: "Two-way SMS" },
+    { label: "Google Reviews inbox — sync & reply" },
     { label: "Job board" },
     { label: "Full repair-order workspace" },
     { label: "Digital estimates" },
-    { label: "Email approvals" },
+    { label: "Email & SMS approvals" },
     { label: "Invoices" },
     { label: "Digital vehicle inspections customers can see" },
     { label: "Live Operations Daily Snapshot every morning" },
@@ -313,24 +316,27 @@ export const OUTCOME_METRICS = [
   { value: "Q4", unit: "2026", label: "Launch window — not billed today" },
 ] as const;
 
-/** Founder shop proof — real bay, no invented scale metrics. */
+/**
+ * Founder narrative — “built by a shop owner / built by an owner” only.
+ * No named shop, city, or invented founder biography.
+ */
 export const FOUNDER_SHOP_PROOF = {
-  eyebrow: "Built in a working shop",
-  headline: "ShopRally is shaped by a founder who still runs a real repair shop",
+  eyebrow: "Built by a shop owner",
+  headline: "ShopRally is built by an owner who knows the bay and the counter",
   body:
-    "Our founder still runs a real repair shop. Ignition is built from bay and counter work — estimates, PartsTech, inspections, and the job board — not from a pitch deck. No invented customer counts or revenue claims.",
-  proofTag: "Founder still in the bays",
+    "Ignition is shaped by real shop work — estimates, PartsTech, inspections, and the job board — not a pitch deck. No invented customer counts or revenue claims.",
+  proofTag: "Built by an owner",
 } as const;
 
 /** Homepage FAQ — founding reserve, billing start, migration honesty. */
 export const HOME_FAQ = [
   {
     q: "What is ShopRally?",
-    a: "ShopRally is all-in-one auto repair shop management software — a cloud shop CRM for independent shops. Ignition covers the job board, repair orders, PartsTech catalog & punchout, digital vehicle inspections, email estimates & approvals, appointments, payment tracking, and Live Operations Daily Snapshot in one login.",
+    a: "ShopRally is all-in-one auto repair shop management software — a cloud shop CRM for independent shops. Ignition covers the job board, repair orders, PartsTech catalog & punchout, Carfax, two-way SMS, Google Reviews inbox (sync & reply), digital vehicle inspections, email estimates & approvals, appointments, payment tracking, and Live Operations Daily Snapshot in one login.",
   },
   {
     q: "What does reserving a founding seat mean?",
-    a: `You're on the invite list for the ${MARKETING_LAUNCH.launchQuarter} launch and lock founding Ignition pricing (${shoprallyStarterPricePairLabel()}, annual) when we open. You don't get software access or a charge today.`,
+    a: `You're on the invite list for the ${MARKETING_LAUNCH.launchQuarter} launch and lock founding Ignition pricing (${shoprallyStarterPricePairLabel()}) when we open. You don't get software access or a charge today.`,
   },
   {
     q: "When does billing start?",
@@ -360,7 +366,7 @@ export const MARKET_POSITIONING = {
   eyebrow: "Where ShopRally fits",
   headline: "All-in-one shop management — not legacy, not a bolt-on stack",
   subhead: PHASE_ONE_LAUNCH
-    ? "Legacy systems split workflow across desktop installs and agency retainers. Budget cloud CRMs look cheap until extras stack on. ShopRally Ignition is all-in-one auto repair shop management software — PartsTech and digital vehicle inspections included — add AI Plus when you're ready."
+    ? "Legacy systems split workflow across desktop installs and agency retainers. Budget cloud CRMs look cheap until extras stack on. ShopRally Ignition is all-in-one auto repair shop management software — PartsTech, Carfax, two-way SMS, Google Reviews inbox, and digital vehicle inspections included — add AI Plus when you're ready."
     : "Legacy systems split workflow across desktop installs and agency retainers. Budget cloud CRMs look cheap until SMS, booking, reviews, and website work stack on. ShopRally is the modern all-in-one — Ignition through Elite full stack.",
   tiers: [
     {
@@ -403,18 +409,21 @@ export const MARKET_POSITIONING = {
         : "Pro flagship · licensed MOTOR + Growth Engine · Elite full stack",
       points: PHASE_ONE_LAUNCH
         ? [
-            "Unlimited users & ROs, job board, digital vehicle inspections, email estimates & approvals",
+            "Unlimited users & ROs, job board, digital vehicle inspections, email & SMS estimates & approvals",
             "PartsTech catalog & punchout — parts on the estimate without retyping",
+            "Carfax service history on the vehicle / RO",
+            "Two-way SMS customer threads — included with Ignition",
+            "Google Reviews inbox — sync & reply from the CRM (not a Marketing add-on)",
             "Live Operations Daily Snapshot, appointments & payment tracking",
             "Canned jobs & shop labor library · unlimited NHTSA VIN decode",
             `AI Plus recommended (+${aiPlusPriceLabel()}): freeform RO intake, labor assist & advisor app`,
           ]
         : [
-            "Ignition: unlimited users & ROs, job board, digital vehicle inspections, email estimates & approvals",
-            "Ignition: PartsTech catalog & punchout on every shop plan",
+            "Ignition: unlimited users & ROs, job board, digital vehicle inspections, email & SMS estimates & approvals",
+            "Ignition: PartsTech, Carfax, two-way SMS, and Google Reviews inbox on every shop plan",
             "Ignition: Live Operations Daily Snapshot, appointments & payment tracking",
             "Licensed MOTOR labor data included on Pro & Elite",
-            "Pro (coming later): plate→VIN, OEM specs & fluids, SMS, Stripe Connect, booking, Growth Engine",
+            "Pro (coming later): plate→VIN, OEM specs & fluids, Stripe Connect, booking, Growth Engine campaigns",
             "Google Reviews inbox on Core · review-request campaigns on Pro · AI drafts on Elite",
             "Elite adds AI receptionist & Care Plans · ShopSite/Local SEO also à la carte",
             "One customer record from job board to invoice to campaign",
@@ -425,8 +434,9 @@ export const MARKET_POSITIONING = {
 
 export const FOUNDING_BENEFITS = [
   "Founding seat for the Q4 2026 launch",
-  "Founding Ignition pricing locked when we open (annual)",
+  `Founding Ignition pricing locked when we open (${shoprallyStarterPricePairLabel()})`,
   "PartsTech catalog & punchout included with Ignition at launch",
+  "Google Reviews inbox — sync & reply from the CRM on Ignition",
   "Priority onboarding — we set up with you, not at you",
   "Your feedback shapes what we ship next",
   "We'll invite you at the Q4 2026 launch",
@@ -464,15 +474,27 @@ export const VS_BUDGET_COMPETITORS = [
     torque360: "Labor on higher tiers · no native marketing stack",
   },
   {
-    category: "SMS, booking & campaigns",
-    shoprally: `Growth Engine automations & win-back on ${PLANS.PROFESSIONAL.name} ($${shoprallyAllInMonthly(true)}/mo annual)`,
+    category: "Two-way SMS",
+    shoprally: "Included with Ignition — estimate, approval & invoice threads",
     garage360: "Not included on any CRM tier",
     torque360: "One-way SMS on Starter · two-way on Turbo",
   },
   {
+    category: "Carfax service history",
+    shoprally: "Included with Ignition",
+    garage360: "Varies by tier / add-on",
+    torque360: "Varies by tier",
+  },
+  {
+    category: "Booking & Growth Engine campaigns",
+    shoprally: `Online booking & win-back campaigns on ${PLANS.PROFESSIONAL.name} ($${shoprallyAllInMonthly(true)}/mo annual)`,
+    garage360: "Not included on any CRM tier",
+    torque360: "Limited marketing on higher tiers",
+  },
+  {
     category: "Review management",
-    shoprally: `Google Reviews inbox on ${PLANS.STARTER.name}+ · AI drafts on ${PLANS.ENTERPRISE.name}`,
-    garage360: "Not included",
+    shoprally: `Google Reviews inbox on Ignition (${PLANS.STARTER.name}) · AI drafts on ${PLANS.ENTERPRISE.name}`,
+    garage360: "Not included on CRM tiers (verify)",
     torque360: "Auto review mgmt on Turbo (~$180/mo)",
   },
   {

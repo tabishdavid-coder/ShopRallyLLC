@@ -4,7 +4,7 @@
 
 **Phase A (done):** Pre-launch CTAs reserve founding seats (not instant access). Ignition naming on public pricing/signup. Platform admin removed from marketing footer. Waitlist destinations stay while `preLaunch: true`.
 
-**Launch window:** Public copy says **Q4 2026**, **50 founding spots**, and **not available yet** — flip `preLaunch` only when self-serve is real.
+**Launch window:** Public copy says **Q4 2026**, soft founding seats (optional static “Launching with 50 founding seats” — **no** countdown / “X left”), and **not available yet** — flip `preLaunch` only when self-serve is real.
 
 **Easy-start psychology (2026-07-19):** `/launch` uses `EasyStartPath` (friction picks → value mirror → one email) with goal-gradient progress, smart defaults, reciprocity before ask. Home shows product preview before the email capture.
 

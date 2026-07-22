@@ -6,12 +6,16 @@ import { MARKETING_LAUNCH } from "@/lib/marketing-launch";
 const WAITLIST_SUBJECT_PREFIX = "Founding waitlist";
 
 export type FoundingWaitlistStats = {
+  /** Internal waitlist signup count only — never show as “spots left” publicly. */
   claimed: number;
+  /** Static founding-program size (soft copy). Not a live scarcity meter. */
   total: number;
-  remaining: number;
 };
 
-/** Live founding waitlist count from marketing-site support tickets. */
+/**
+ * Internal founding waitlist count from marketing-site support tickets.
+ * Do not render remaining/countdown/urgency meters from this on the public site.
+ */
 export async function getFoundingWaitlistStats(): Promise<FoundingWaitlistStats> {
   const claimed = await prisma.supportTicket.count({
     where: {
@@ -20,8 +24,5 @@ export async function getFoundingWaitlistStats(): Promise<FoundingWaitlistStats>
     },
   });
 
-  const total = MARKETING_LAUNCH.foundingSpotsTotal;
-  const remaining = Math.max(0, total - claimed);
-
-  return { claimed, total, remaining };
+  return { claimed, total: MARKETING_LAUNCH.foundingSpotsTotal };
 }

@@ -137,8 +137,9 @@ async function loadUsage(shopId: string, plan: ShopPlan): Promise<BillingOvervie
     usersLimit: features.maxUsers,
     repairOrdersThisMonth,
     repairOrdersLimit: features.maxRepairOrdersPerMonth,
-    smsCreditsUsed: plan === "STARTER" ? 0 : Math.min(250, repairOrdersThisMonth * 3),
-    smsCreditsLimit: plan === "STARTER" ? 0 : plan === "PROFESSIONAL" ? 500 : null,
+    // Two-way SMS is on Ignition/STARTER+; Elite = uncapped display. Stub usage until metered billing.
+    smsCreditsUsed: Math.min(250, repairOrdersThisMonth * 3),
+    smsCreditsLimit: plan === "ENTERPRISE" ? null : 500,
     locationsCount: Math.max(1, locationsCount),
     vinPlateDecodesThisMonth,
     vinPlateDecodesLimit,

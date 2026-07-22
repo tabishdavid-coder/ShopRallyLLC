@@ -141,9 +141,9 @@ export const FAQ_SEED: FaqSeed[] = [
     category: "Messaging",
     question: "How do I enable two-way SMS with customers?",
     answer:
-      "Two-way SMS requires a Professional plan or higher and Twilio credentials configured by your " +
-      "platform administrator. Once live, open a repair order → Messages to text the customer. " +
-      "Inbound replies are logged on the customer thread.",
+      "Two-way SMS is included on Ignition (Core) and above. Your platform administrator configures " +
+      "Twilio credentials and the shop SMS release flag. Once live, open a repair order → Messages " +
+      "to text the customer. Inbound replies are logged on the customer thread.",
     sortOrder: 1,
   },
   {

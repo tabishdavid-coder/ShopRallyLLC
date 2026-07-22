@@ -76,12 +76,13 @@ const FEATURES = [
   { icon: Users, label: "Unlimited users & ROs" },
 ] as const;
 
+/** Illustrative themes only — anonymous quotes with no measured ROI claims. */
 const TESTIMONIALS = [
   {
     quote:
       "We finally have one system for the front counter and the bays — estimates, digital vehicle inspections, and the job board in one place.",
     role: "Independent shop owner",
-    metric: "3× faster estimates",
+    metric: "Bay + counter in one login",
   },
   {
     quote:
@@ -91,9 +92,9 @@ const TESTIMONIALS = [
   },
   {
     quote:
-      "Customers approve jobs from an email link. That alone paid for the software in the first month.",
+      "Customers approve jobs from an email link — fewer phone chases for a signature.",
     role: "Service advisor",
-    metric: "+28% approval rate",
+    metric: "Email approval links",
   },
 ] as const;
 

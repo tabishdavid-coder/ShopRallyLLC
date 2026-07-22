@@ -155,8 +155,8 @@ export function MessagesInbox({
   if (!smsEnabled) {
     return (
       <p className="text-sm text-muted-foreground">
-        Two-way SMS is not included on Core. Upgrade to Pro to message customers in-app, or share
-        estimates and invoices by email.
+        Two-way SMS isn&apos;t available for this shop yet. Share estimates and invoices by email,
+        or ask a platform admin to enable SMS under Release flags when you&apos;re ready.
       </p>
     );
   }

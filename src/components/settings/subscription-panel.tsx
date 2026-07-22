@@ -250,7 +250,7 @@ export function SubscriptionPanel({
           <div className="mt-3 border-t pt-3 text-sm text-muted-foreground">
             <p className="font-medium text-foreground">Need Pro features?</p>
             <p className="mt-1">
-              Markup matrices, two-way SMS, Stripe payments, and Growth Engine tools are on{" "}
+              Markup matrices, Stripe payments, and Growth Engine campaigns are on{" "}
               {PLANS.PROFESSIONAL.name} and above.
             </p>
             {upgrade ? (

@@ -14,6 +14,8 @@ export type PlanFeature =
   | "motorLabor"
   | "customerEmail"
   | "customerSms"
+  /** Carfax service history on vehicles / ROs — Ignition and above. */
+  | "carfax"
   | "digitalInspections"
   | "appointments"
   | "reports"
@@ -187,7 +189,7 @@ export const PLAN_TRAINING: Record<
     headline: "Self-serve with demo support",
     sessions: "Product guides & early demo",
     description:
-      "Get started on the job board, repair orders, digital vehicle inspections, and Operations Daily Snapshot — book a demo if you want a guided walkthrough.",
+      "Get started on the job board, repair orders, digital vehicle inspections, Google Reviews inbox, and Operations Daily Snapshot — book a demo if you want a guided walkthrough.",
   },
   PROFESSIONAL: {
     headline: "Self-serve with product resources",
@@ -264,6 +266,14 @@ export const PLATFORM_MODULES = [
       "Shop-level Care Plans (maintenance subscriptions), member portal, Stripe billing, and counter enrollment — Elite premium.",
     icon: "repeat" as const,
     pricingNote: "Elite only · not on Core",
+  },
+  {
+    id: "reviews",
+    name: "Google Reviews inbox",
+    description:
+      "Connect Google Business Profile, sync reviews, and reply from the CRM — included on Ignition. Review-request campaigns stay Pro+.",
+    icon: "sparkles" as const,
+    pricingNote: "All monthly tiers",
   },
   {
     id: "growth",
@@ -450,9 +460,9 @@ export const COMPETITOR_BENCHMARK = {
     { name: "Torque360 Starter", crm: 90, marketing: 0, note: "Digital vehicle inspections & PartsTech · 5 co-users · one-way SMS only" },
     { name: "Garage360 Genius", crm: 199, marketing: 0, note: "Labor guides & diagrams · bolt-on marketing ~+$80/mo typical" },
     { name: "Torque360 Turbo", crm: 180, marketing: 0, note: "Two-way SMS & review mgmt · no AI, SEO, or maintenance programs" },
-    { name: "Tekmetric", crm: 179, marketing: 345, note: "Marketing add-on · Scale tier ~$409/mo" },
-    { name: "Shopmonkey", crm: 179, marketing: 315, note: "CRM Essentials add-on · Pro ~$399/mo" },
-    { name: "AutoLeap", crm: 179, marketing: 130, note: "Pro ($309) adds marketing · AIR receptionist +$99/mo" },
+    { name: "Tekmetric", crm: 199, marketing: 345, note: "Start $199/mo list ($179 annual) · Marketing add-on · Scale ~$439/$409" },
+    { name: "Shopmonkey", crm: 239, marketing: 349, note: "Basic $239/mo list ($215 annual) · CRM Essentials ~$349/$314 · Clever ~$399" },
+    { name: "AutoLeap", crm: 199, marketing: 130, note: "Essentials ~$199/mo list ($179 annual) · Pro ($309) adds marketing · AIR +$99/mo" },
   ],
   /** Garage360 Genius + typical SMS/booking/review bolt-ons. */
   budgetGrowthStackMonthly: 279,
@@ -502,7 +512,7 @@ export function aiPlusPriceLabel(): string {
 export const PHASE_ONE_COPY = {
   headline: "Shop management software pricing — one Ignition plan",
   subhead:
-    "ShopRally Ignition is all-in-one auto repair shop management software — unlimited users & ROs, job board, PartsTech catalog & punchout, digital estimates & approvals, digital vehicle inspections, appointments, payment tracking, and Live Operations Daily Snapshot. No tier maze.",
+    "ShopRally Ignition is all-in-one auto repair shop management software — unlimited users & ROs, job board, PartsTech catalog & punchout, Carfax service history, two-way SMS, Google Reviews inbox (sync & reply), digital estimates & approvals, digital vehicle inspections, appointments, payment tracking, and Live Operations Daily Snapshot. No tier maze.",
   addonHeadline: "Recommended — AI Plus",
   addonSubhead:
     "Most founding shops reserve Ignition + AI Plus for Q4 2026: freeform RO intake, labor-hour assist, and the advisor app — so the counter moves as fast as the conversation at launch.",
@@ -571,7 +581,9 @@ const starterFeatures: PlanFeatureSet = {
   laborGuide: true,
   motorLabor: false,
   customerEmail: true,
-  customerSms: false,
+  /** Two-way SMS included on Ignition/Core (price includes messaging). Still env + release gated. */
+  customerSms: true,
+  carfax: true,
   digitalInspections: true,
   appointments: true,
   reports: true,
@@ -606,6 +618,7 @@ const professionalFeatures: PlanFeatureSet = {
   motorLabor: true,
   customerEmail: true,
   customerSms: true,
+  carfax: true,
   digitalInspections: true,
   appointments: true,
   reports: true,
@@ -640,6 +653,7 @@ const EliteFeatures: PlanFeatureSet = {
   motorLabor: true,
   customerEmail: true,
   customerSms: true,
+  carfax: true,
   digitalInspections: true,
   appointments: true,
   reports: true,
@@ -672,18 +686,20 @@ export const PLANS: Record<ShopPlan, PlanDefinition> = {
     marketingName: "Ignition",
     subtitle: "Shop plan",
     tagline:
-      "Everything to run your shop — job board, digital vehicle inspections, estimates, PartsTech parts ordering, appointments & live ops.",
-    monthlyCents: 8999,
-    annualMonthlyCents: 8499,
+      "Everything to run your shop — job board, digital vehicle inspections, estimates, PartsTech, Carfax, two-way SMS, Google Reviews inbox, appointments & live ops.",
+    monthlyCents: 9999,
+    annualMonthlyCents: 9499,
     valueNote:
-      "Full shop CRM · PartsTech · digital vehicle inspections · Live Operations Daily Snapshot · payment tracking",
+      "Full shop CRM · PartsTech · Carfax · two-way SMS · Google Reviews inbox · digital vehicle inspections · Live Operations Daily Snapshot",
     savingsNote:
-      "Full shop CRM · PartsTech · digital vehicle inspections · Live Operations Daily Snapshot · payment tracking",
+      "Full shop CRM · PartsTech · Carfax · two-way SMS · Google Reviews inbox · digital vehicle inspections · Live Operations Daily Snapshot",
     pricingCard: {
       bestFor:
-        "Independent shops that want one system for the bay and the counter — including PartsTech parts on the estimate",
+        "Independent shops that want one system for the bay and the counter — including PartsTech, Carfax, two-way SMS, and Google Reviews inbox",
       bullets: [
         "PartsTech catalog & punchout — search vendors and drop parts onto the RO",
+        "Carfax service history on the vehicle / RO",
+        "Two-way SMS — estimate, approval & invoice threads with the customer",
         "Job board + full RO workspace (Estimates → WIP → Done)",
         "Digital estimates, email approvals & invoices",
         "Digital vehicle inspections (photo checklists customers can see)",
@@ -717,7 +733,6 @@ export const PLANS: Record<ShopPlan, PlanDefinition> = {
         "OEM fluid capacities",
         "Advanced inventory & multi-vendor parts workflows",
         "Stripe Connect payments",
-        "Two-way SMS",
         "Online booking",
         "Growth Engine — automations & win-back campaigns",
         "Review-request campaigns after service",
@@ -828,7 +843,7 @@ export function buildPriceComparisonRows(annual: boolean): PriceComparisonRow[] 
       crmLabel: `$${starter}/mo`,
       marketingLabel: "—",
       stackTotal: starter,
-      note: "Ignition CRM · PartsTech · digital vehicle inspections · Google Reviews inbox · Live Operations Daily Snapshot · appointments · payment tracking · NHTSA VIN",
+      note: "Ignition CRM · PartsTech · Carfax · two-way SMS · digital vehicle inspections · Google Reviews inbox · Live Operations Daily Snapshot · appointments · payment tracking · NHTSA VIN",
       shoprally: true,
     },
     {
@@ -941,13 +956,16 @@ export const COMPARISON_ROWS: {
     values: { STARTER: false, PROFESSIONAL: true, ENTERPRISE: true },
   },
   {
-    // Ignition = email only; SMS approve/share is Pro+ (see Two-way SMS row).
     label: "Email estimates, approvals & invoices",
     values: { STARTER: true, PROFESSIONAL: true, ENTERPRISE: true },
   },
   {
     label: "Two-way SMS",
-    values: { STARTER: false, PROFESSIONAL: true, ENTERPRISE: true },
+    values: { STARTER: true, PROFESSIONAL: true, ENTERPRISE: true },
+  },
+  {
+    label: "Carfax service history",
+    values: { STARTER: true, PROFESSIONAL: true, ENTERPRISE: true },
   },
   {
     label: "Online booking widget",
@@ -1153,6 +1171,18 @@ export const IGNITION_LAUNCH_COMPARISON_ROWS: {
     values: { STARTER: true, PROFESSIONAL: true, ENTERPRISE: true },
   },
   {
+    label: "Two-way SMS",
+    values: { STARTER: true, PROFESSIONAL: true, ENTERPRISE: true },
+  },
+  {
+    label: "Carfax service history",
+    values: { STARTER: true, PROFESSIONAL: true, ENTERPRISE: true },
+  },
+  {
+    label: "Google Reviews inbox (sync & reply)",
+    values: { STARTER: true, PROFESSIONAL: true, ENTERPRISE: true },
+  },
+  {
     label: "Operations Daily Snapshot",
     category: "Insights & support",
     values: DASHBOARD_PLAN_COPY.comparisonAllTiers,
@@ -1178,7 +1208,6 @@ export const IGNITION_LAUNCH_COMPARISON_ROWS: {
 export const IGNITION_COMING_LATER_FEATURES = [
   { name: "Licensed MOTOR labor data", note: "Pro+" },
   { name: "Stripe Connect card capture", note: "Pro+" },
-  { name: "Two-way SMS", note: "Pro+" },
   { name: "Growth Engine / marketing campaigns", note: "Pro+" },
   { name: "Online booking widget", note: "Pro+" },
   { name: "Review-request campaigns", note: "Pro+" },
@@ -1186,7 +1215,7 @@ export const IGNITION_COMING_LATER_FEATURES = [
   { name: "OEM service specs & fluid capacities", note: "Pro+" },
   { name: "Markup matrices", note: "Pro+" },
   { name: "Advanced reporting & analytics", note: "Pro+" },
-  { name: "QuickBooks & third-party integrations", note: "Pro+" },
+  { name: "QuickBooks & other third-party integrations", note: "Pro+" },
   { name: "AI receptionist & Elite AI suite", note: "Elite / add-on" },
   { name: "Care Plans (member maintenance subscriptions)", note: "Elite premium" },
 ] as const;
@@ -1220,7 +1249,7 @@ export function shoprallyIgnitionAiBundleMonthly(annual = false): number {
   return shoprallyStarterMonthly(annual) + aiPlusMonthlyDollars();
 }
 
-/** Bundle pair label — e.g. "$139.98 monthly · $134.98 annual". */
+/** Bundle pair label — e.g. "$149.98 monthly · $144.98 annual". */
 export function shoprallyIgnitionAiBundlePricePairLabel(): string {
   return `$${shoprallyIgnitionAiBundleMonthly(false).toFixed(2)} monthly · $${shoprallyIgnitionAiBundleMonthly(true).toFixed(2)} annual`;
 }
@@ -1313,8 +1342,9 @@ export function annualSavingsDollars(plan: PlanDefinition): number {
  */
 export const INTEGRATION_PARTNERS = [
   "PartsTech",
-  "Stripe",
+  "Carfax",
   "Twilio",
+  "Stripe",
   "QuickBooks",
   "Google Business",
 ] as const;
@@ -1325,6 +1355,9 @@ export const INTEGRATION_PARTNERS = [
  */
 export const IGNITION_LAUNCH_HIGHLIGHTS = [
   "PartsTech catalog & punchout",
+  "Carfax service history",
+  "Two-way SMS",
+  "Google Reviews inbox (sync & reply)",
   "Unlimited NHTSA VIN",
   "Email estimates & approvals",
   "Digital vehicle inspections",
@@ -1339,20 +1372,24 @@ export const PRICING_FAQ = [
   {
     q: "How much does auto repair shop management software cost with ShopRally?",
     a: PHASE_ONE_LAUNCH
-      ? `Ignition founding pricing is ${shoprallyStarterPricePairLabel()} — one all-in-one shop management plan with PartsTech included. Optional AI Plus is ${aiPlusPriceLabel()}. Website & SEO is a separate companion offer on this page. Reserving a founding seat for Q4 2026 does not bill you today.`
-      : `Ignition is ${shoprallyStarterPricePairLabel()} for all-in-one shop management with PartsTech. Pro and Elite add growth and AI stacks — compare the table on this page.`,
+      ? `Ignition founding pricing is ${shoprallyStarterPricePairLabel()} — one all-in-one shop management plan with PartsTech, Carfax, two-way SMS, and Google Reviews inbox (sync & reply) included. Optional AI Plus is ${aiPlusPriceLabel()}. Website & SEO is a separate companion offer on this page. Reserving a founding seat for Q4 2026 does not bill you today.`
+      : `Ignition is ${shoprallyStarterPricePairLabel()} for all-in-one shop management with PartsTech, Carfax, two-way SMS, and Google Reviews inbox. Pro and Elite add growth and AI stacks — compare the table on this page.`,
   },
   {
     q: "Which plan should I choose?",
     a: PHASE_ONE_LAUNCH
-      ? `Ignition (${shoprallyStarterPricePairLabel()}) is the plan we're launching in Q4 2026. Reserve a founding seat for: unlimited users & ROs, job board, full RO workspace, PartsTech parts catalog & punchout, canned jobs & shop labor library, digital estimates/approvals/invoices (email), digital vehicle inspections, Live Operations Daily Snapshot, appointments, payment tracking, unlimited NHTSA VIN decode, and inventory basics. Add AI Plus (${aiPlusPriceLabel()}) for freeform AI repair-order intake, labor assist, and the advisor mobile app.`
-      : "Ignition for shops that want CRM + PartsTech in one bill — unlimited users & ROs, job board, digital vehicle inspections, Google Reviews inbox, email estimates & approvals, Live Operations Daily Snapshot, appointments, payment tracking, PartsTech punchout, and shop catalog. Ignition does not include Stripe Connect, licensed MOTOR, or Care Plans. Pro when you want licensed MOTOR, unlimited VIN & plate decoding, OEM specs & fluids, SMS, booking, Growth Engine campaigns, and review-request automations. Elite when you want AI receptionist, ShopSite, Local SEO, and Care Plans in one bill.",
+      ? `Ignition (${shoprallyStarterPricePairLabel()}) is the plan we're launching in Q4 2026. Reserve a founding seat for: unlimited users & ROs, job board, full RO workspace, PartsTech parts catalog & punchout, Carfax service history, two-way SMS, Google Reviews inbox (sync & reply from the CRM), canned jobs & shop labor library, digital estimates/approvals/invoices (email + SMS), digital vehicle inspections, Live Operations Daily Snapshot, appointments, payment tracking, unlimited NHTSA VIN decode, and inventory basics. Add AI Plus (${aiPlusPriceLabel()}) for freeform AI repair-order intake, labor assist, and the advisor mobile app. Review-request campaigns stay on the Pro+ Growth Engine roadmap; AI review-reply drafts are Elite.`
+      : "Ignition for shops that want CRM + PartsTech + Carfax + two-way SMS + Google Reviews inbox in one bill — unlimited users & ROs, job board, digital vehicle inspections, email & SMS estimates & approvals, Live Operations Daily Snapshot, appointments, payment tracking, PartsTech punchout, and shop catalog. Ignition does not include Stripe Connect, licensed MOTOR, Care Plans, or review-request campaigns. Pro when you want licensed MOTOR, unlimited VIN & plate decoding, OEM specs & fluids, booking, Growth Engine campaigns, and review-request automations. Elite when you want AI receptionist, AI review-reply drafts, ShopSite, Local SEO, and Care Plans in one bill.",
   },
   {
     q: "What's not on Ignition yet?",
     a: PHASE_ONE_LAUNCH
-      ? "Licensed MOTOR, Stripe Connect card capture, two-way SMS, Growth Engine campaigns, and online booking stay on the Pro+ roadmap. Care Plans and AI receptionist are Elite premium (not Core/Ignition). PartsTech parts ordering is included on Ignition. ShopSite and Local SEO are a separate Website & SEO product line (see the Website & SEO tab) — not buried in Ignition CRM pricing."
+      ? "Licensed MOTOR, Stripe Connect card capture, Growth Engine campaigns, online booking, and review-request campaigns stay on the Pro+ roadmap. Care Plans, AI receptionist, and AI review-reply drafts are Elite premium (not Core/Ignition). PartsTech, Carfax, two-way SMS, and Google Reviews inbox (sync & reply) ship with Ignition. ShopSite and Local SEO are a separate Website & SEO product line (see the Website & SEO tab) — not buried in Ignition CRM pricing."
       : "ShopSite ($99/mo) and Local SEO ($129/mo) are separate monthly subscriptions on any CRM tier. Subscribe to both for $199/mo with the bundle. A one-time launch setup applies when each service starts ($349 ShopSite, $299 Local SEO, or $549 bundle). Elite includes monthly fees and launch setup. Care Plans are Elite-only — not on Core or Pro.",
+  },
+  {
+    q: "Are Google Reviews included on Ignition?",
+    a: "Yes — Ignition includes the Google Reviews inbox: connect Google Business Profile, sync reviews into the CRM, and reply from one place. That is Core/Ignition recognition tooling — not Growth Engine. Automated review-request campaigns after service are Pro+; AI-drafted review replies are Elite.",
   },
   {
     q: "Can I get a website and SEO?",
@@ -1372,7 +1409,7 @@ export const PRICING_FAQ = [
   },
   {
     q: "What's included in the founding-shop pricing?",
-    a: `Founding shops lock in Ignition launch rates (${shoprallyStarterPricePairLabel()}) on annual billing when we open — before public list pricing rises. Priority walkthroughs and feedback access included. Reserving a seat does not bill you today.`,
+    a: `Founding shops lock in Ignition launch rates (${shoprallyStarterPricePairLabel()}) when we open — before public list pricing rises. Choose monthly or annual at launch. Priority walkthroughs and feedback access included. Reserving a seat does not bill you today.`,
   },
   {
     q: "Are digital vehicle inspections included?",
@@ -1397,10 +1434,10 @@ export const PRICING_FAQ = [
       : "MOTOR labor data is licensed flat-rate guides and procedures in the estimate. It is included on Pro and Elite. Ignition uses the shop labor library.",
   },
   {
-    q: "Do you integrate with PartsTech and QuickBooks?",
+    q: "Do you integrate with PartsTech, Carfax, SMS, and QuickBooks?",
     a: PHASE_ONE_LAUNCH
-      ? "PartsTech catalog & punchout ships with Ignition at launch. QuickBooks, Stripe Connect, Twilio SMS, and other Pro-class integrations are not part of Ignition — they stay on the later Pro/Elite roadmap."
-      : "PartsTech is on every plan. Stripe Connect is on Pro and Elite. QuickBooks integration is on our roadmap — contact us for timeline.",
+      ? "PartsTech catalog & punchout, Carfax service history, two-way SMS (Twilio), and Google Reviews inbox (sync & reply) ship with Ignition at launch. QuickBooks and Stripe Connect stay on the later Pro/Elite roadmap."
+      : "PartsTech, Carfax, two-way SMS, and Google Reviews inbox are on every plan. Stripe Connect is on Pro and Elite. QuickBooks integration is on our roadmap — contact us for timeline.",
   },
   {
     q: "How does additional locations work?",

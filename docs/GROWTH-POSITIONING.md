@@ -1,6 +1,6 @@
 # Growth Positioning — ShopRally vs Shop CRM Market
 
-**Last updated:** 2026-07-09  
+**Last updated:** 2026-07-21  
 **Use for:** `/pricing`, sales one-pagers, onboarding deck, website hero copy  
 **Canonical prices & bullets:** `src/lib/plans.ts` (`PLANS`, `pricingCard.bullets`) + `src/lib/billing-shared.ts` (`BILLING_PLAN_FEATURES`)
 
@@ -20,13 +20,13 @@ Annual rates shown on `/pricing` (list / monthly billing in parentheses):
 
 | Plan | Annual /mo | Monthly /mo | Headline offer |
 |------|------------|-------------|----------------|
-| **Core** | **$84.99** | $89.99 | Unlimited users & ROs, job board + RO workspace, **PartsTech catalog & punchout**, canned jobs & shop labor library, digital estimates/approvals/invoices (email), digital vehicle inspections, **Live Operations Daily Snapshot**, appointments, payment tracking, **unlimited NHTSA VIN decode**, inventory basics; **no SMS**, **no Stripe Connect**, **no licensed MOTOR**, **no Care Plans** |
-| **Pro** | **$239** | $279 | Everything in Core, plus licensed MOTOR, **unlimited VIN & plate decode** (Auto.dev), OEM specs & fluid capacities, PartsTech, **two-way SMS**, **Stripe Connect**, online booking, Growth Engine (automations & win-back), Google review management; **no Care Plans** |
-| **Elite** | **$409** | $479 | Everything in Pro, plus AI receptionist + review replies, ShopSite & Local SEO included ($228/mo value), **Care Plans** (member maintenance subscriptions — premium), AI SEO/campaign drafting, dedicated onboarding · migration included |
+| **Core** | **$94.99** | $99.99 | Unlimited users & ROs, job board + RO workspace, **PartsTech catalog & punchout**, **Carfax service history**, **two-way SMS**, **Google Reviews inbox (sync & reply)**, canned jobs & shop labor library, digital estimates/approvals/invoices (email + SMS), digital vehicle inspections, **Live Operations Daily Snapshot**, appointments, payment tracking, **unlimited NHTSA VIN decode**, inventory basics; **no Stripe Connect**, **no licensed MOTOR**, **no Care Plans**, **no Growth Engine campaigns**, **no review-request campaigns** |
+| **Pro** | **$239** | $279 | Everything in Core, plus licensed MOTOR, **unlimited VIN & plate decode** (Auto.dev), OEM specs & fluid capacities, **Stripe Connect**, online booking, Growth Engine (automations & win-back), **review-request campaigns**; **no Care Plans** |
+| **Elite** | **$409** | $479 | Everything in Pro, plus AI receptionist + **AI review-reply drafts**, ShopSite & Local SEO included ($228/mo value), **Care Plans** (member maintenance subscriptions — premium), AI SEO/campaign drafting, dedicated onboarding · migration included |
 
-**Ignition (public):** Core marketed as **Ignition** at **$89.99/mo** ($84.99/mo annual) with **PartsTech included**. Optional **AI Plus $49.99/mo** (Core-only).
+**Ignition (public):** Core marketed as **Ignition** at **$99.99/mo** ($94.99/mo annual) with **PartsTech, Carfax, two-way SMS, and Google Reviews inbox included**. Optional **AI Plus $49.99/mo** (Core-only).
 
-**Launch (pre-GA):** Public site says **launching Q4 2026**, **50 founding seats**, **not available yet** — CTAs reserve a seat (waitlist), not instant software access. Flip when `MARKETING_LAUNCH.preLaunch = false`.
+**Launch (pre-GA):** Public site says **launching Q4 2026** and **not available yet** — CTAs reserve a seat (waitlist), not instant software access. Soft static copy OK (“Founding seats open…” or once “Launching with 50 founding seats”). **Never** show remaining-count, “X left”, progress-to-50, or a ticking scarcity meter. Flip when `MARKETING_LAUNCH.preLaunch = false`.
 
 **Web presence add-ons (Core/Pro):** ShopSite **$99/mo**, Local SEO **$129/mo**, bundle **$199/mo** (+ launch setup). Included on Elite.
 
@@ -41,12 +41,17 @@ Annual rates shown on `/pricing` (list / monthly billing in parentheses):
 | SMS campaigns & automations in base Pro | `/marketing/campaigns`, Inngest batch sends | Tekmetric Marketing separate product |
 | Win-back for lapsed customers | `/marketing/campaigns/winback` | Often manual or Kukui overlay |
 | Online booking on your domain | `/book/[slug]`, ShopSite embed | Tekmetric booking beta in Marketing tier |
-| Google Reviews hub | `/marketing/reviews` | Shopmonkey CRM Essentials gate |
+| **Google Reviews inbox on Core / Ignition** (sync & reply) | `/marketing/reviews` · plan feature `googleReviews` | Tekmetric Marketing add-on · Shopmonkey CRM Essentials · AutoLeap Elite (typical) |
+| Review-request campaigns after service | Growth Engine / Pro+ | Often same Marketing / Essentials SKU |
 | SEO toolkit | `/marketing/seo-automation` | Not in Tekmetric/AutoLeap core |
+
+**Honesty split:** Google Reviews **inbox** = Core/Ignition recognition (Shop chrome, not Growth Engine release gate). **Review-request campaigns** + booking/automations = Pro Growth Engine. **AI review-reply drafts** = Elite / `aiSuite`.
 
 **Hero copy:** *"Run your shop and grow it — without a $345 marketing add-on."*
 
-**Subhead:** *Campaigns, automations, booking, reviews, and two-way texting on Pro. No second subscription."*
+**Subhead (Ignition):** *"Google Reviews inbox on Ignition — sync & reply without a Marketing / Essentials tax. Campaigns & booking on Pro."*
+
+**Subhead (multi-tier):** *"Campaigns, automations, booking, and review-request flows on Pro. Reviews inbox already on Core. No second subscription for the inbox."*
 
 ---
 
@@ -139,7 +144,7 @@ Annual rates shown on `/pricing` (list / monthly billing in parentheses):
 
 | Objection | Response |
 |-----------|----------|
-| "We already use Tekmetric." | ShopRally Pro includes Growth Engine (booking, SMS, win-back, reviews) Tekmetric charges as Marketing — plus platform onboarding if you operate multiple locations. |
+| "We already use Tekmetric." | Ignition includes Google Reviews inbox (sync & reply) without Tekmetric Marketing (+$345). Pro adds Growth Engine (booking, win-back, review-request campaigns) Tekmetric sells as Marketing — plus platform onboarding if you operate multiple locations. |
 | "AutoLeap has better estimate UX." | Sprint 1 merges our Estimate Building Lab to production; you get inline editing **and** matrix depth, month-to-month. |
 | "Shopmonkey Work Request is great." | Forms Hub Sprint 2 matches work-request → Estimate; plus native campaigns without CRM Essentials pricing. |
 | "We need MOTOR labor times." | Licensed MOTOR is included on Pro & Elite. |
@@ -151,7 +156,7 @@ Annual rates shown on `/pricing` (list / monthly billing in parentheses):
 
 1. **Hero** — Pillar A headline + plan cards from `PLANS`  
 2. **Compare** — Feature matrix (`COMPARISON_ROWS`)  
-3. **Growth Engine** — Campaigns, automations, booking, reviews  
+3. **Growth Engine** — Campaigns, automations, booking, review-request flows (inbox already on Ignition)  
 4. **Platform** — MSO console (unique)  
 5. **Plans** — Core / Pro / Elite from `src/lib/plans.ts`  
 6. **FAQ** — MOTOR, ShopSite/SEO, migrations, integrations honesty  
