@@ -110,7 +110,8 @@ export function PricingPageContent() {
             ) : (
               <>
                 Transparent pricing for auto repair shop management software:{" "}
-                {ignitionMarketingName} at {shoprallyStarterPricePairLabel()} with PartsTech
+                {ignitionMarketingName} at {shoprallyStarterPricePairLabel()} with PartsTech,
+                Carfax &amp; two-way SMS
                 included.{" "}
                 {preLaunch ? "Launching Q4 2026." : "No CRM setup fees · month-to-month."}
               </>
@@ -283,7 +284,7 @@ export function PricingPageContent() {
                   ))}
                 </div>
                 <p className="mt-4 text-xs text-slate-500">
-                  Optional AI Plus stacks on Ignition. Licensed MOTOR, Stripe Connect, SMS, Growth Engine,
+                  Optional AI Plus stacks on Ignition. Licensed MOTOR, Stripe Connect, Growth Engine,
                   and similar Pro+ tools are{" "}
                   <Link
                     href="/features#coming-later"
