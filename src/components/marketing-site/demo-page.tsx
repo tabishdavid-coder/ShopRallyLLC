@@ -491,7 +491,7 @@ export function DemoPageContent() {
             <h1 className="mt-4 text-3xl font-bold sm:text-4xl lg:text-5xl">
               {needWebsite
                 ? WEB_PRESENCE_MARKETING.intakeHeadline
-                : "Watch a 3-minute walkthrough"}
+                : "See a 3-minute walkthrough"}
             </h1>
             <p className="mt-4 max-w-lg text-white/80 leading-relaxed">
               {needWebsite

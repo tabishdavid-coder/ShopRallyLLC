@@ -104,7 +104,7 @@ export function SignupPageContent() {
             <Link href="/login">Already have access? Sign in</Link>
           </Button>
           <Button variant="outline" className="border-brand-navy text-brand-navy" asChild>
-            <Link href="/demo">Watch a 3-minute walkthrough</Link>
+            <Link href="/demo">See a 3-minute walkthrough</Link>
           </Button>
         </div>
       </div>
