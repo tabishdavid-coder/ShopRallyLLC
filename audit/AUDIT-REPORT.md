@@ -1,45 +1,35 @@
 # ShopRally marketing site audit — 2026-07-21
 
 **Branch:** `audit/site-20260721`  
-**Orchestrator:** Agent 0 (setup only — Agents 1–5 not started)  
-**Dev URL:** http://localhost:3031 (`npm run dev`)
+**Orchestrator:** Agent 0 → Agents 1–5 → **Agent 6 closeout**  
+**Dev URL:** http://localhost:3031 (`npm run dev`)  
+**PR title:** Site audit — 2026-07-21
 
 ---
 
-## What changed today
+## What changed today (user-visible)
 
-Regression surface from recent commits (≈ last 2 days + recent marketing history). Working tree also has **uncommitted** marketing edits (Hero premium cleanup, compare hub, ARI page, features catalog, etc.) — treat dirty marketing files as in-flight surface for Agents 1–5.
+| Area | Change |
+|------|--------|
+| Price | Ignition restored to **$99.99 / $94.99** (was $89.99 / $84.99 on branch) |
+| Packaging | Carfax + two-way SMS on Ignition in pricing/meta/JSON-LD/positioning/compare |
+| Demo honesty | Watch → **See** walkthrough; login **See the walkthrough**; hero **Preview** + walkthrough CTA |
+| Migration | “Free full history” → **priority cutover help** |
+| Proof | Unverifiable testimonial metrics softened |
+| Competitive | Shopmonkey/Tekmetric benchmark helpers corrected |
+| Legal SEO | Double “— ShopRally” titles fixed |
+| Forms / OG | Waitlist errors + double-submit guards; `/opengraph-image` PNG fixed |
 
-### Git log (since 2026-07-19)
+Full plain-language list: root `CHANGELOG.md` → **Site audit 2026-07-21**.
+
+### Pre-audit git context (since 2026-07-19)
 
 ```
 eb0cfe3 Ship CRM Google Reviews placement, Catalog/Admin nav IA, and inventory demo seed.
 7f41171 Ship Macuto CRM polish: appointments calendar, dashboard KPIs/Shop Activity, and share dialogs.
 b88c295 Add Garage360, Torque360, Shop-Ware, and RepairShopr compare pages.
-c2e1227 Surface Compare pages in nav and money-page internal links.
-d0c5a92 Fix AI Plus showcase bundleHint call for production typecheck.
-c7dec08 Add marketing showcase modules required by features and pricing pages.
-86bd1c0 Trigger production deploy after Vercel Pro upgrade.
-ae1842f Ship SEO batch: compare pages, legal meta, FAQ, OG-ready sitemap.
-c761219 Allow /opengraph-image through the marketing production gate.
-7b222db Use the 1200x630 opengraph-image for marketing and root share previews.
-8ca3ed3 Strengthen getShopRally.com content SEO on features, pricing, and FAQs.
-185d004 Allow CANCELED in appointment status updates so production typecheck passes.
-639c486 Add GA4 tracking for getShopRally.com marketing pages.
-662027a Ship getShopRally.com sitemap/robots and unblock GSC fetch.
-ed7856b Ship Ignition pricing card restyle with orange AI Plus icon.
+… (marketing SEO / OG / pricing history — see full log on branch)
 ```
-
-### Known recent marketing changes (for audit focus)
-
-| Change | Notes for later agents |
-|--------|------------------------|
-| Hero premium cleanup | No `$99.99` price table in Hero; no Skyline/Albany locale copy. Hero = orbit/circuit RO cycle visual + Ignition launch eyebrow. |
-| Compare hub + ARI | `/compare` hub + `/compare/ari-alternative` (and other competitor alternatives). |
-| Features catalog | Features page / mega-menu catalog work. |
-| Google Reviews on Ignition | CRM Reviews placement shipped (`eb0cfe3`); pricing/Ignition surfacing to verify on marketing pages. |
-| Homepage simplified spine | Shorter home: Hero → positioning → how-it-works → pricing wedge → FAQ → reserve. |
-| Demo CTA mismatch | Watch-for: CTAs that imply live video/watch vs static `/demo` walkthrough page. |
 
 ---
 
@@ -107,10 +97,9 @@ Source: `src/components/marketing-site/home-page.tsx` + `Hero` (`src/components/
 | Field | Value |
 |-------|-------|
 | Command | `npm run build` |
-| Result | **PASS** |
-| Exit code | `0` |
-| Duration | ~71s (compile ~23s, TypeScript ~36s, static pages 154/154) |
-| Log | `audit/build-baseline.log` |
+| A0 baseline | **PASS** (~71s, 154 pages) — `audit/build-baseline.log` |
+| A6 closeout | **PASS** (exit 0; compile ~28s, TypeScript ~51s, 155/155 pages) — `audit/build-closeout.log` |
+| Tests | No dedicated marketing site test suite run; repo has motor/integration scripts only (`test:motor`, etc.) — not exercised this audit |
 
 ### Warnings (non-blocking — do not deep-fix in A0)
 
@@ -176,11 +165,11 @@ No TypeScript or page-generation failures. Marketing routes including `/compare/
 
 | Verdict | Count |
 |---------|------:|
-| Verified | 8 |
+| Verified | 9 |
 | OK with nuance | 10 |
-| Overclaim | 1 (free migration — Fixed) |
-| Stale | 2 (docs 50-seats; was benchmark — Fixed) |
-| Not present | 3 |
+| Overclaim → Fixed | 2 |
+| Stale → Fixed | 2 |
+| Not present | 1 |
 | UNVERIFIED — needs human | 2 |
 | Needs source | 0 |
 
@@ -458,3 +447,63 @@ Honest-operator baseline is strong: Q4 2026, founding seat ≠ access, no card, 
 **A5-002 / A2-001:** Hero switch strip already uses priority cutover / no invented one-click language (aligned with HOME_FAQ) — marked Fixed, no separate code commit.
 
 No new sections. No migration FAQ expansion.
+
+---
+
+## Agent 6 — Fix & trail keeper (closeout)
+
+**Role:** Reconcile P0/P1, finalize trail, verification gate, push PR (do not merge).
+
+### Findings summary by severity
+
+| Severity | Fixed | Open | Needs product / human | Won't fix |
+|----------|------:|-----:|----------------------:|----------:|
+| P0 | 3 | 0 | 0 | 0 |
+| P1 | 18 | 0 | 2 | 0 |
+| P2 | 6 | 11 | 0 | 0 |
+| P3 | 1 | 3 | 0 | 7 |
+
+P0 fixed: **A1-001**, **A1-015**, **A3-001**.  
+P1 needs human/product: **A1-009** (Needs product), **A3-010** (Needs human — `/demo` form-first layout).
+
+### Claims verdict counts (`audit/CLAIMS.md`)
+
+| Verdict | Count |
+|---------|------:|
+| Verified | 9 |
+| OK with nuance | 10 |
+| Overclaim → Fixed | 2 |
+| Stale → Fixed | 2 |
+| Not present | 1 |
+| UNVERIFIED — needs human | 2 |
+| **Total rows** | **26** |
+
+### Lighthouse (Agent 4 — home `/`)
+
+| Category | Score |
+|----------|------:|
+| Performance | **78** |
+| Accessibility | **96** |
+| SEO | **100** |
+
+Source: `audit/_a4-lighthouse.json`.
+
+### Open items for the human
+
+1. **A1-009 — CRM SMS gate vs marketing Ignition** — Public Ignition packaging includes two-way SMS; in-app still gates SMS as Pro+/not Core. Product decision required before go-live (align CRM gates **or** soften marketing).
+2. **50 founding spots — UNVERIFIED** — Cap size (`foundingSpotsTotal=50`) is internal-only; confirm real seat inventory before any public scarcity copy returns. (CLAIMS ledger)
+3. **Founder-shop narrative — UNVERIFIED** — “Founder still runs a real repair shop” needs human confirmation if used in sales.
+4. **A3-010 — `/demo` form-first layout (P1)** — Copy honesty fixed (See, not Watch); moments still sit after the optional call form. Layout redesign intentionally out of audit scope.
+5. **P2 polish backlog** — Mid-spine Reserve gap (A5-003), capability repetition (A5-004), branded 404 (A4-004), Hero CLS/contrast note (A1-013), nav “Demo” label (A3-003), features footer CTA dilution (A3-006).
+
+### Verification gate
+
+| Check | Result |
+|-------|--------|
+| `npm run build` | **PASS** (A6 closeout) |
+| Scope discipline | No redesign; trail + missing A3 FINDINGS rows only |
+| Marketing tests | None dedicated — not run |
+
+### Closeout commit
+
+`audit(trail): finalize site audit report — Agent 6 closeout [A6-CLOSE, P3]`

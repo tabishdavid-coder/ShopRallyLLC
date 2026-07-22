@@ -42,6 +42,16 @@ Number sequentially within each prefix (`A1-001`, `A1-002`, …). Severity: `P0`
 | A2-006 | P3 | Testimonials absent on WIP spine | Marketing home (simplified) | Simplified home spine has no testimonial block — OK. | Won't fix |
 | A2-007 | P3 | Lighthouse SEO | — | Agent 4 later ran LH SEO **100** on `/` (`audit/_a4-lighthouse.json`). | Won't fix |
 | A2-008 | P1 | Anonymous testimonials + metrics | `home-page.tsx` (committed spine) | Unverifiable “3× faster estimates” / “+28% approval rate” + ROI quote. Softened to qualitative themes. | Fixed `6e99481` |
+| A3-001 | P0 | Demo CTAs | `marketing-launch.ts`; Hero; `/demo`; signup; features | “Watch” implied video; `/demo` is ungated product moments. Vocabulary → **See**. | Fixed `4e7471e` |
+| A3-002 | P1 | Login secondary CTA | `login-page.tsx` | “Book a demo” implied sales booking; destination is walkthrough + optional call. | Fixed `814c484` |
+| A3-003 | P2 | Nav label | `marketing-header` | Nav still says “Demo” while CTAs say walkthrough — mild sales flavor. | Open |
+| A3-006 | P2 | Features footer CTAs | `features-page.tsx` | Three footer CTAs (pricing / walkthrough / reserve) dilute primary. | Open |
+| A3-007 | P2 | Hero trust | `Hero.tsx` | Thin social proof above fold (founder line only; no logos/reviews). | Open |
+| A3-008 | P2 | Mobile hero | `Hero.tsx` / `Hero.module.css` | Product board still costs a scroll on phone for “is the UI real?” | Open |
+| A3-009 | P3 | How-it-works jargon | `home-page.tsx` `#product` | PartsTech punchout / Live Operations Daily Snapshot — insider terms for paper shops. | Open |
+| A3-010 | P1 | `/demo` layout | `demo-page.tsx` | Form-first before product moments; still no video. Copy honesty fixed; **layout redesign out of audit scope**. | Needs human — layout redesign (form-first → moments-first) |
+| A3-011 | P2 | Pricing wedge order | `home-page.tsx` `#pricing-wedge` | Evaluate-dollars hop before `#reserve` for “just get on the list” owners. | Open |
+| A3-013 | P2 | Launch outcome metrics | `/launch` Easy Start / metrics strip | Numeric outcome strip may feel unproven without sources (cross-ref A2 testimonials work). | Open |
 | A5-001 | P1 | Hero board caption | `Hero.tsx` | Live board CTA honesty. Cross-ref **A1-003**. | Fixed |
 | A5-002 | P1 | Hero switch strip vs FAQ | `Hero.tsx` | Migration overclaim. Cross-ref **A1-004**. | Fixed |
 | A5-003 | P2 | CTA funnel | `home-page.tsx` | Mid-spine Reserve gap. | Open |
@@ -74,3 +84,20 @@ Number sequentially within each prefix (`A1-001`, `A1-002`, …). Severity: `P0`
 | Legal pages | No public Ignition price claims found |
 | Sitemap / robots | Marketing routes + robots CRM disallow present |
 | No lorem / TODO in marketing-site | None found (form placeholders only) |
+
+## Agent 6 — P0/P1 gate (closeout)
+
+| Severity | ID | Status | Notes |
+|----------|-----|--------|-------|
+| P0 | A1-001 | Fixed | SMS removed from Pro+ coming-later |
+| P0 | A1-015 | Fixed | Ignition `$99.99` / `$94.99` restored |
+| P0 | A3-001 | Fixed | Watch → See demo CTAs |
+| P1 | A1-002…A1-008, A1-016 | Fixed | Meta, ARI, JSON-LD, positioning, FAQ |
+| P1 | A1-009 | Needs product | CRM SMS still Pro+ while marketing Ignition includes two-way SMS |
+| P1 | A2-001, A2-002, A2-003, A2-008 | Fixed | Migration, legal titles, benchmarks, testimonials |
+| P1 | A3-002 | Fixed | Login “Book a demo” → See walkthrough |
+| P1 | A3-010 | Needs human | `/demo` form-first layout — redesign out of audit scope |
+| P1 | A4-001, A4-002, A4-003 | Fixed | Waitlist errors, double-submit, OG image |
+| P1 | A5-001, A5-002 | Fixed | Preview + walkthrough board; migration cutover |
+
+**Trail note:** A3-004, A3-005, A3-012 were never logged as discrete rows (Agent 3 claimed `A3-001`…`A3-013` in narrative only). Documented A3 IDs above are reconstructed at closeout from `AUDIT-REPORT` + fix commits.

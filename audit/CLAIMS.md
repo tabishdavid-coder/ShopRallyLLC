@@ -11,12 +11,12 @@ Track every public product / pricing / competitive claim. Agents fill rows; verd
 
 | Verdict | Count |
 |---------|------:|
-| Verified | 8 |
+| Verified | 9 |
 | OK with nuance | 10 |
 | Overclaim → Fixed | 2 (migration; testimonials) |
 | Stale → Fixed | 2 (benchmark; docs 50-seats) |
 | Needs source | 0 |
-| Not present | 2 (blanket $199 claim; LH skipped by A2 — A4 ran SEO 100) |
+| Not present | 1 (blanket $199 claim) |
 | UNVERIFIED — needs human | 2 (founder narrative; seat-cap size) |
 | **Total rows** | **26** |
 
@@ -52,4 +52,4 @@ Track every public product / pricing / competitive claim. Agents fill rows; verd
 | Unique per-route title/meta; no `ShopRally — … — ShopRally` | Marketing routes via `marketingPageMetadata` + absolute home | Home uses `absoluteTitle`; compare/features/pricing OK | Marketing primary OK. Legal aup/dpa/sms/payment/subprocessors + legal layout hardcode `— ShopRally` under root template → **double brand** (see A2 findings) |
 | Sitemap + robots for marketing | `sitemap.ts`, `robots.ts`, `MARKETING_SITEMAP_ROUTES` | Includes compare/* (incl. ARI), pricing, features, demo, launch; disallows CRM paths + `/login` | **Verified** |
 | One `<h1>` per marketing page | Hero, pricing, features, compare, demo, launch | Spot-check components | **OK with nuance** — primary surfaces use single h1; Lighthouse not run |
-| Lighthouse SEO score | — | Not run this pass | **Not present** (skipped — note in AUDIT-REPORT) |
+| Lighthouse SEO score | home `/` | Agent 4 `audit/_a4-lighthouse.json` SEO **100** | **Verified** (A4) |
