@@ -31,6 +31,7 @@ export const MARKETING_SITEMAP_ROUTES = [
   { path: "/", changeFrequency: "weekly" as const, priority: 1 },
   { path: "/pricing", changeFrequency: "weekly" as const, priority: 0.95 },
   { path: "/features", changeFrequency: "weekly" as const, priority: 0.9 },
+  { path: "/integrations", changeFrequency: "monthly" as const, priority: 0.85 },
   { path: "/compare", changeFrequency: "monthly" as const, priority: 0.85 },
   {
     path: "/compare/tekmetric-alternative",

@@ -19,6 +19,7 @@ export const MARKETING_PUBLIC_PREFIXES = [
   "/",
   "/pricing",
   "/features",
+  "/integrations",
   "/compare",
   "/launch",
   "/demo",

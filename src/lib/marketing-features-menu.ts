@@ -15,6 +15,7 @@ import {
   LayoutGrid,
   MessageSquare,
   Package,
+  Plug,
   Receipt,
   ScanBarcode,
   Share2,
@@ -78,6 +79,11 @@ export const FEATURES_MENU_COLUMNS: FeaturesMenuColumn[] = [
         label: "Email & SMS approvals",
         href: "/features#approvals",
         icon: Share2,
+      },
+      {
+        label: "Partner integrations",
+        href: "/integrations",
+        icon: Plug,
       },
     ],
   },
@@ -199,4 +205,4 @@ export const FEATURES_MENU_SEE_ALL = {
   label: "See all features",
   href: "/features" as const,
 };
-
+
