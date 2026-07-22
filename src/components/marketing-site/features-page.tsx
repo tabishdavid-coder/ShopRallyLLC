@@ -223,6 +223,13 @@ export function FeaturesPageContent() {
               >
                 See Ignition pricing
               </Link>
+              {" · "}
+              <Link
+                href="/integrations"
+                className="font-semibold text-brand-navy underline-offset-2 hover:underline"
+              >
+                Partner integrations
+              </Link>
               .
             </p>
           </div>

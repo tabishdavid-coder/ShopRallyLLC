@@ -1,0 +1,213 @@
+/* Ported from standalone Integrations HTML — section-scoped only. */
+
+.section {
+  --navy: #0b1f3b;
+  --navy-deep: #071528;
+  --azure: #1e7fe0;
+  --orange: #ff7a1a;
+  --orange-deep: #e86a10;
+  --chalk: #e9f0fa;
+  --dusk: #8fa0bc;
+  --ink: #0b1f3b;
+
+  position: relative;
+  overflow-x: hidden;
+  scroll-margin-top: 5rem;
+  background: radial-gradient(1100px 700px at 50% 12%, #12294b 0%, var(--navy) 46%, var(--navy-deep) 100%);
+  color: var(--chalk);
+  line-height: 1.5;
+  padding: clamp(48px, 8vh, 80px) 20px;
+}
+
+.frame {
+  width: min(640px, 100%);
+  margin: 0 auto;
+  text-align: center;
+}
+
+.eyebrow {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--dusk);
+}
+
+.title {
+  font-size: clamp(28px, 5.4vw, 42px);
+  font-weight: 900;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+  margin-top: 12px;
+  color: #fff;
+}
+
+.titleAccent {
+  display: block;
+  color: var(--orange);
+}
+
+/* ---------- the ring ---------- */
+.ringwrap {
+  --D: min(540px, 92vw);
+  position: relative;
+  width: var(--D);
+  height: var(--D);
+  margin: clamp(28px, 5vh, 44px) auto;
+}
+
+.dashring {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+
+.dashringSpin {
+  transform-origin: center;
+  animation: spin 90s linear infinite;
+}
+
+.dashring circle {
+  fill: none;
+  stroke: rgba(143, 160, 188, 0.5);
+  stroke-width: 2;
+  stroke-dasharray: 3 11;
+  stroke-linecap: round;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.core {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 56%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+}
+
+.core::before {
+  content: "";
+  position: absolute;
+  inset: -14%;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(30, 127, 224, 0.22), transparent 68%);
+  animation: breathe 5.5s ease-in-out infinite;
+  z-index: -1;
+}
+
+@keyframes breathe {
+  0%,
+  100% {
+    opacity: 0.7;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.06);
+  }
+}
+
+.corename {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  font-size: clamp(24px, 4.6vw, 34px);
+  font-weight: 900;
+  letter-spacing: -0.02em;
+  color: #fff;
+}
+
+.coreline {
+  font-size: clamp(12.5px, 2.3vw, 15px);
+  font-weight: 700;
+  color: var(--dusk);
+}
+
+.corelineAccent {
+  color: var(--orange);
+  font-weight: 800;
+}
+
+.itile {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: min(98px, 18.5vw);
+  aspect-ratio: 1;
+  transform: translate(-50%, -50%) rotate(var(--a)) translateY(calc(var(--D) / -2 + min(52px, 10vw)))
+    rotate(calc(-1 * var(--a)));
+  background: #fff;
+  border-radius: 18px;
+  box-shadow: 0 14px 34px rgba(2, 10, 22, 0.5);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  animation: pop 0.55s cubic-bezier(0.2, 0.9, 0.3, 1.35) backwards;
+}
+
+@keyframes pop {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -50%) rotate(var(--a)) translateY(calc(var(--D) / -2 + min(52px, 10vw)))
+      rotate(calc(-1 * var(--a))) scale(0.6);
+  }
+}
+
+.idot {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+  background: var(--bd);
+  display: block;
+}
+
+.iname {
+  font-size: clamp(9.5px, 1.9vw, 12px);
+  font-weight: 800;
+  color: var(--ink);
+  letter-spacing: -0.01em;
+  line-height: 1.15;
+  padding: 0 6px;
+}
+
+.icat {
+  font-size: 8px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: #7b879c;
+}
+
+/* ---------- below ---------- */
+.micro {
+  font-size: clamp(12px, 2.4vw, 14px);
+  color: var(--dusk);
+  font-weight: 600;
+  max-width: 52ch;
+  margin: 0 auto;
+  line-height: 1.6;
+}
+
+.microStrong {
+  color: var(--chalk);
+  font-weight: 800;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .dashringSpin,
+  .core::before,
+  .itile {
+    animation: none !important;
+  }
+}

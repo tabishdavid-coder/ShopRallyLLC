@@ -15,6 +15,7 @@ const preLaunch = MARKETING_LAUNCH.preLaunch;
 const FOOTER_LINKS = {
   Product: [
     { href: "/features", label: "What's included" },
+    { href: "/integrations", label: "Partner integrations" },
     { href: "/pricing", label: "Ignition pricing" },
     { href: "/compare", label: "Compare alternatives" },
     { href: marketingPrimaryHref(preLaunch), label: marketingPrimaryCta({ preLaunch }) },
