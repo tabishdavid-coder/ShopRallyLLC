@@ -450,9 +450,9 @@ export const COMPETITOR_BENCHMARK = {
     { name: "Torque360 Starter", crm: 90, marketing: 0, note: "Digital vehicle inspections & PartsTech · 5 co-users · one-way SMS only" },
     { name: "Garage360 Genius", crm: 199, marketing: 0, note: "Labor guides & diagrams · bolt-on marketing ~+$80/mo typical" },
     { name: "Torque360 Turbo", crm: 180, marketing: 0, note: "Two-way SMS & review mgmt · no AI, SEO, or maintenance programs" },
-    { name: "Tekmetric", crm: 179, marketing: 345, note: "Marketing add-on · Scale tier ~$409/mo" },
-    { name: "Shopmonkey", crm: 179, marketing: 315, note: "CRM Essentials add-on · Pro ~$399/mo" },
-    { name: "AutoLeap", crm: 179, marketing: 130, note: "Pro ($309) adds marketing · AIR receptionist +$99/mo" },
+    { name: "Tekmetric", crm: 199, marketing: 345, note: "Start $199/mo list ($179 annual) · Marketing add-on · Scale ~$439/$409" },
+    { name: "Shopmonkey", crm: 239, marketing: 349, note: "Basic $239/mo list ($215 annual) · CRM Essentials ~$349/$314 · Clever ~$399" },
+    { name: "AutoLeap", crm: 199, marketing: 130, note: "Essentials ~$199/mo list ($179 annual) · Pro ($309) adds marketing · AIR +$99/mo" },
   ],
   /** Garage360 Genius + typical SMS/booking/review bolt-ons. */
   budgetGrowthStackMonthly: 279,
@@ -1420,10 +1420,10 @@ export const PRICING_FAQ = [
       : "MOTOR labor data is licensed flat-rate guides and procedures in the estimate. It is included on Pro and Elite. Ignition uses the shop labor library.",
   },
   {
-    q: "Do you integrate with PartsTech and QuickBooks?",
+    q: "Do you integrate with PartsTech, Carfax, SMS, and QuickBooks?",
     a: PHASE_ONE_LAUNCH
-      ? "PartsTech catalog & punchout ships with Ignition at launch. QuickBooks, Stripe Connect, Twilio SMS, and other Pro-class integrations are not part of Ignition — they stay on the later Pro/Elite roadmap."
-      : "PartsTech is on every plan. Stripe Connect is on Pro and Elite. QuickBooks integration is on our roadmap — contact us for timeline.",
+      ? "PartsTech catalog & punchout, Carfax service history, two-way SMS (Twilio), and Google Reviews inbox (sync & reply) ship with Ignition at launch. QuickBooks and Stripe Connect stay on the later Pro/Elite roadmap."
+      : "PartsTech, Carfax, two-way SMS, and Google Reviews inbox are on every plan. Stripe Connect is on Pro and Elite. QuickBooks integration is on our roadmap — contact us for timeline.",
   },
   {
     q: "How does additional locations work?",
