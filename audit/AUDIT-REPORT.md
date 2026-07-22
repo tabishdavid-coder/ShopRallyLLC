@@ -332,8 +332,8 @@ Honest-operator baseline is strong: Q4 2026, founding seat ≠ access, no card, 
 
 ### Fixes shipped (Agent 5)
 
-1. `audit(flow): honest Preview + walkthrough CTA on hero board [A5-001, P1]` — `Live` → `Preview`; `Try the live board` → `See the walkthrough`; drop secondary play icon.
+1. `audit(flow): honest Preview + walkthrough CTA on hero board [A5-001, P1]` — Hero `Live` → `Preview`; `Try the live board` → `See the walkthrough`; drop secondary play icon (code on branch; trail commit below).
 
-**A5-002 / A2-001:** Hero switch strip already uses priority cutover / no invented one-click language (aligned with HOME_FAQ) — marked Fixed, no additional commit.
+**A5-002 / A2-001:** Hero switch strip already uses priority cutover / no invented one-click language (aligned with HOME_FAQ) — marked Fixed, no separate code commit.
 
 No new sections. No migration FAQ expansion.
