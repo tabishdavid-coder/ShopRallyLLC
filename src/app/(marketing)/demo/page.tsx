@@ -7,7 +7,7 @@ export const metadata = marketingPageMetadata({
   path: "/demo",
   title: "Product walkthrough for shop management software",
   description:
-    "See a 3-minute ShopRally walkthrough — job board, PartsTech, digital vehicle inspections, and email approvals for auto repair shops. Optional call if you want a live conversation.",
+    "See a ShopRally product walkthrough — job board, PartsTech, Carfax, two-way SMS, digital vehicle inspections, and email approvals for auto repair shops. Optional call if you want a live conversation.",
 });
 
 export default function DemoPage() {
