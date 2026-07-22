@@ -213,6 +213,7 @@ No TypeScript or page-generation failures. Marketing routes including `/compare/
 | `66f24b7` | A2-002 — legal title template doubles |
 | `6e99481` | A2-008 — unverifiable testimonial metrics |
 | `c514db1` | A2-003 — Tekmetric/Shopmonkey benchmark prices |
+| `67579f2` | A2-005 + CLAIMS/FINDINGS/AUDIT-REPORT trail |
 
 ### Open / deferred
 
