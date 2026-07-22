@@ -3,6 +3,10 @@ import type { Metadata } from "next";
 import { BRAND, BRAND_ASSETS, BRAND_OG_IMAGE_SIZE } from "@/lib/brand";
 import { getAppUrl } from "@/lib/app-url";
 import { HOME_FAQ } from "@/lib/marketing-launch";
+import {
+  shoprallyStarterMonthly,
+  shoprallyStarterPricePairLabel,
+} from "@/lib/plans";
 
 /**
  * Canonical marketing host for getShopRally.com SEO.
@@ -60,6 +64,11 @@ export const MARKETING_SITEMAP_ROUTES = [
   },
   {
     path: "/compare/repairshopr-alternative",
+    changeFrequency: "monthly" as const,
+    priority: 0.8,
+  },
+  {
+    path: "/compare/ari-alternative",
     changeFrequency: "monthly" as const,
     priority: 0.8,
   },
@@ -143,12 +152,14 @@ export function buildMarketingHomeJsonLd(): Record<string, unknown>[] {
     operatingSystem: "Web",
     url: site,
     description:
-      "Cloud shop management software for auto repair shops — job board, estimates, PartsTech, digital vehicle inspections, and Growth Engine marketing.",
+      "Cloud shop management software for auto repair shops — job board, estimates, PartsTech, Carfax, two-way SMS, Google Reviews inbox, and digital vehicle inspections on Ignition.",
     offers: {
-      "@type": "Offer",
+      "@type": "AggregateOffer",
       priceCurrency: "USD",
-      price: "84.99",
-      description: "Ignition annual founding price per month (see /pricing for current offers)",
+      lowPrice: shoprallyStarterMonthly(true).toFixed(2),
+      highPrice: shoprallyStarterMonthly(false).toFixed(2),
+      offerCount: "2",
+      description: `Ignition founding pricing — ${shoprallyStarterPricePairLabel()} (see /pricing)`,
       url: marketingAbsoluteUrl("/pricing"),
     },
     publisher: {
