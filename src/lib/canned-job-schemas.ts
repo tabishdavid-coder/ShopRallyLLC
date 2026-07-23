@@ -16,6 +16,19 @@ export const CannedJobPartLineInput = z.object({
   quantity: z.number().int().min(1).max(9999),
 });
 
+const AdjustMethod = z.enum(["PERCENT", "FIXED"]);
+const AdjustBase = z.enum(["LABOR", "PARTS", "LABOR_PARTS"]);
+
+export const CannedJobFeeLineInput = z.object({
+  id: z.string().optional(),
+  name: z.string().trim().min(1).max(200),
+  method: AdjustMethod.default("FIXED"),
+  base: AdjustBase.default("LABOR_PARTS"),
+  amount: z.number().int().min(0),
+  capCents: z.number().int().min(0).nullable().optional(),
+  taxable: z.boolean().default(false),
+});
+
 export const SaveCannedJobInput = z.object({
   id: z.string().optional(),
   name: z.string().trim().min(1, "Job name is required.").max(200),
@@ -24,11 +37,13 @@ export const SaveCannedJobInput = z.object({
   isActive: z.boolean().default(true),
   laborLines: z.array(CannedJobLaborLineInput).max(50),
   partLines: z.array(CannedJobPartLineInput).max(100),
+  feeLines: z.array(CannedJobFeeLineInput).max(20).default([]),
 });
 
 export type SaveCannedJobInput = z.infer<typeof SaveCannedJobInput>;
 export type CannedJobLaborLineInput = z.infer<typeof CannedJobLaborLineInput>;
 export type CannedJobPartLineInput = z.infer<typeof CannedJobPartLineInput>;
+export type CannedJobFeeLineInput = z.infer<typeof CannedJobFeeLineInput>;
 
 /** Save an estimate job as a canned template (star icon flow). */
 export const SaveJobAsCannedJobInput = z.object({

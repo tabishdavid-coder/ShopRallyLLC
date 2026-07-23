@@ -12,6 +12,7 @@ export type CannedJobSummary = {
   sortOrder: number;
   laborLineCount: number;
   partLineCount: number;
+  feeLineCount: number;
   laborHours: number;
   partsCostCents: number;
 };
@@ -31,6 +32,16 @@ export type CannedJobDetail = CannedJobSummary & {
     partNumber: string | null;
     costCents: number;
     quantity: number;
+    sortOrder: number;
+  }[];
+  feeLines: {
+    id: string;
+    name: string;
+    method: "PERCENT" | "FIXED";
+    base: "LABOR" | "PARTS" | "LABOR_PARTS";
+    amount: number;
+    capCents: number | null;
+    taxable: boolean;
     sortOrder: number;
   }[];
 };

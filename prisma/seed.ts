@@ -36,6 +36,8 @@ import {
   DEFAULT_INVOICE_TERMS_HTML,
 } from "../src/lib/estimate-terms-default";
 import { ensureAutoApplyFees } from "../src/lib/ro-fees-apply";
+import { CANNED_JOB_SEED_TEMPLATES } from "../src/lib/canned-jobs-seed-data";
+import { SHOP_LABOR_ITEM_SEED } from "../src/lib/shop-labor-items-seed-data";
 import { FAQ_SEED } from "./data/faqs";
 import { hashAgreementContent } from "../src/lib/agreement-hash";
 import {
@@ -49,6 +51,83 @@ const prisma = new PrismaClient();
 
 const TAX_BPS = 800; // 8.00%
 const dollars = (d: number) => Math.round(d * 100); // → integer cents
+
+async function seedCannedJobsForShop(
+  prismaClient: PrismaClient,
+  shopId: string,
+  createdById: string | null,
+) {
+  const now = Date.now();
+  await prismaClient.cannedJob.createMany({
+    data: CANNED_JOB_SEED_TEMPLATES.map((t, i) => ({
+      shopId,
+      name: t.name,
+      category: t.category,
+      description: t.description ?? null,
+      sortOrder: i,
+      usageCount: t.usageCount ?? 0,
+      lastUsedAt:
+        t.lastUsedDaysAgo != null
+          ? new Date(now - t.lastUsedDaysAgo * 24 * 3600 * 1000)
+          : null,
+      createdById,
+    })),
+  });
+
+  const canned = await prismaClient.cannedJob.findMany({
+    where: { shopId },
+    orderBy: { sortOrder: "asc" },
+  });
+
+  const laborRows: Prisma.CannedJobLaborLineCreateManyInput[] = [];
+  const partRows: Prisma.CannedJobPartLineCreateManyInput[] = [];
+
+  canned.forEach((job, i) => {
+    const template = CANNED_JOB_SEED_TEMPLATES[i];
+    if (!template) return;
+    template.labor.forEach((l, li) => {
+      laborRows.push({
+        shopId,
+        cannedJobId: job.id,
+        description: l.description,
+        hours: l.hours,
+        flatAmountCents: l.flatAmountCents ?? null,
+        sortOrder: li,
+      });
+    });
+    template.parts.forEach((p, pi) => {
+      partRows.push({
+        shopId,
+        cannedJobId: job.id,
+        description: p.description,
+        brand: p.brand || null,
+        partNumber: p.partNumber || null,
+        costCents: p.costCents,
+        quantity: p.quantity,
+        sortOrder: pi,
+      });
+    });
+  });
+
+  if (laborRows.length) await prismaClient.cannedJobLaborLine.createMany({ data: laborRows });
+  if (partRows.length) await prismaClient.cannedJobPartLine.createMany({ data: partRows });
+}
+
+async function seedShopLaborItemsForShop(prismaClient: PrismaClient, shopId: string) {
+  await prismaClient.shopLaborItem.createMany({
+    data: SHOP_LABOR_ITEM_SEED.map((item, i) => ({
+      shopId,
+      name: item.name,
+      description: item.description ?? null,
+      rateCents: item.rateCents,
+      defaultHours: item.defaultHours,
+      costCents: item.costCents ?? 0,
+      taxable: item.taxable ?? true,
+      isActive: item.isActive ?? true,
+      sortOrder: i,
+    })),
+  });
+}
 
 /** Tekmetric-style default parts matrix (Standard Parts sample). */
 const DEFAULT_PART_MATRIX = [
@@ -548,18 +627,6 @@ async function main() {
     },
   });
 
-  await prisma.cannedJob.create({
-    data: {
-      shopId: macuto.id,
-      name: "Front brake pads & rotors",
-      category: "Brakes",
-      description: "Replace front brake pads and rotors",
-      sortOrder: 0,
-      usageCount: 3,
-      createdById: owner.id,
-    },
-  });
-
   const macutoLabor = dollars(187.5);
   const macutoParts = dollars(89) + dollars(178);
   const macutoSupplies = dollars(6);
@@ -854,108 +921,14 @@ async function main() {
     })),
   });
 
-  // ── Canned jobs (demo templates) ───────────────────────
-  await prisma.cannedJob.createMany({
-    data: [
-      {
-        shopId: demo.id,
-        name: "Synthetic oil & filter change",
-        category: "Maintenance",
-        description: "Full synthetic oil change with filter replacement",
-        sortOrder: 0,
-        usageCount: 12,
-        lastUsedAt: new Date(Date.now() - 2 * 24 * 3600 * 1000),
-        createdById: owner.id,
-      },
-      {
-        shopId: demo.id,
-        name: "Front brake pads & rotors",
-        category: "Brakes",
-        description: "Replace front brake pads and rotors",
-        sortOrder: 1,
-        usageCount: 5,
-        lastUsedAt: new Date(Date.now() - 7 * 24 * 3600 * 1000),
-        createdById: owner.id,
-      },
-      {
-        shopId: demo.id,
-        name: "NYS inspection",
-        category: "Inspection",
-        sortOrder: 2,
-        usageCount: 8,
-        createdById: priya.id,
-      },
-      {
-        shopId: demo.id,
-        name: "Coolant flush",
-        category: "Fluids",
-        sortOrder: 3,
-        usageCount: 2,
-        createdById: owner.id,
-      },
-      {
-        shopId: demo.id,
-        name: "Tire rotation",
-        category: "Maintenance",
-        description: "Rotate tires and check tread depth",
-        sortOrder: 4,
-        usageCount: 6,
-        createdById: owner.id,
-      },
-      {
-        shopId: demo.id,
-        name: "Brake inspection",
-        category: "Brakes",
-        description: "Visual brake pad, rotor, and fluid check",
-        sortOrder: 5,
-        usageCount: 4,
-        createdById: owner.id,
-      },
-      {
-        shopId: demo.id,
-        name: "Multi-point inspection",
-        category: "Inspection",
-        description: "21-point vehicle health inspection",
-        sortOrder: 6,
-        usageCount: 10,
-        createdById: priya.id,
-      },
-      {
-        shopId: demo.id,
-        name: "Battery test & service",
-        category: "Maintenance",
-        description: "Load test battery and clean terminals",
-        sortOrder: 7,
-        usageCount: 3,
-        createdById: owner.id,
-      },
-    ],
-  });
+  // ── Canned jobs (demo + Macuto templates) ───────────────
+  await seedCannedJobsForShop(prisma, demo.id, owner.id);
+  await seedCannedJobsForShop(prisma, macuto.id, owner.id);
+  console.log(`  seeded ${CANNED_JOB_SEED_TEMPLATES.length} canned jobs per shop (demo + macuto)`);
 
-  const canned = await prisma.cannedJob.findMany({ where: { shopId: demo.id }, orderBy: { sortOrder: "asc" } });
-
-  await prisma.cannedJobLaborLine.createMany({
-    data: [
-      { shopId: demo.id, cannedJobId: canned[0].id, description: "Full synthetic oil & filter change", hours: 0.5, sortOrder: 0 },
-      { shopId: demo.id, cannedJobId: canned[1].id, description: "Replace front brake pads and rotors", hours: 2.0, sortOrder: 0 },
-      { shopId: demo.id, cannedJobId: canned[2].id, description: "NYS safety & emissions inspection", hours: 0.5, sortOrder: 0 },
-      { shopId: demo.id, cannedJobId: canned[3].id, description: "Drain, flush cooling system, refill coolant", hours: 1.2, sortOrder: 0 },
-      { shopId: demo.id, cannedJobId: canned[4].id, description: "Rotate tires, check pressure & tread", hours: 0.4, sortOrder: 0 },
-      { shopId: demo.id, cannedJobId: canned[5].id, description: "Visual brake inspection", hours: 0.3, sortOrder: 0 },
-      { shopId: demo.id, cannedJobId: canned[6].id, description: "21-point inspection checklist", hours: 0.3, sortOrder: 0 },
-      { shopId: demo.id, cannedJobId: canned[7].id, description: "Battery load test & terminal clean", hours: 0.2, sortOrder: 0 },
-    ],
-  });
-
-  await prisma.cannedJobPartLine.createMany({
-    data: [
-      { shopId: demo.id, cannedJobId: canned[0].id, description: "Oil filter", brand: "Motorcraft", partNumber: "OF-1240", costCents: dollars(7), quantity: 1, sortOrder: 0 },
-      { shopId: demo.id, cannedJobId: canned[0].id, description: "5W-30 full synthetic (6 qt)", brand: "Mobil 1", partNumber: "OIL-530", costCents: dollars(28), quantity: 1, sortOrder: 1 },
-      { shopId: demo.id, cannedJobId: canned[1].id, description: "Front brake pad set", brand: "Akebono", partNumber: "BP-4821", costCents: dollars(48), quantity: 1, sortOrder: 0 },
-      { shopId: demo.id, cannedJobId: canned[1].id, description: "Front rotor", brand: "Bosch", partNumber: "RT-9920", costCents: dollars(95), quantity: 2, sortOrder: 1 },
-      { shopId: demo.id, cannedJobId: canned[3].id, description: "Coolant concentrate (1 gal)", brand: "Prestone", partNumber: "AF-550", costCents: dollars(18), quantity: 1, sortOrder: 0 },
-    ],
-  });
+  await seedShopLaborItemsForShop(prisma, demo.id);
+  await seedShopLaborItemsForShop(prisma, macuto.id);
+  console.log(`  seeded ${SHOP_LABOR_ITEM_SEED.length} shop labor items per shop (demo + macuto)`);
 
   // ── Import real customers from CSV ─────────────────────
   const customers = loadCustomers(demo.id);
@@ -1596,11 +1569,11 @@ async function main() {
 
   // ── Demo tire stock (local inventory — new & used) ─────
   const TIRE_STOCK = [
-    { stockNumber: "TR-MIC-2256517", brand: "Michelin", model: "Defender T+H", size: "225/65R17", loadSpeed: "102H", condition: "NEW" as const, quantityOnHand: 12, reorderPoint: 4, reorderQty: 8, costCents: dollars(89), retailCents: dollars(149), binLocation: "T1-A1" },
-    { stockNumber: "TR-BFG-2454518", brand: "BFGoodrich", model: "g-Force COMP-2", size: "245/45R18", loadSpeed: "96W", condition: "NEW" as const, quantityOnHand: 8, reorderPoint: 4, reorderQty: 8, costCents: dollars(112), retailCents: dollars(189), binLocation: "T1-A2" },
-    { stockNumber: "TR-GDY-2657017", brand: "Goodyear", model: "Wrangler SR-A", size: "265/70R17", loadSpeed: "113T", condition: "NEW" as const, quantityOnHand: 6, reorderPoint: 4, reorderQty: 4, costCents: dollars(95), retailCents: dollars(165), binLocation: "T1-B1" },
-    { stockNumber: "TR-CON-2254517-U", brand: "Continental", model: "ProContact TX", size: "225/45R17", loadSpeed: "91H", condition: "USED" as const, quantityOnHand: 4, reorderPoint: 2, reorderQty: 4, costCents: dollars(35), retailCents: dollars(69), binLocation: "T2-U1", treadDepth32nds: 6, dotCode: "2319" },
-    { stockNumber: "TR-FIR-2055516", brand: "Firestone", model: "WeatherGrip", size: "205/55R16", loadSpeed: "91H", condition: "NEW" as const, quantityOnHand: 2, reorderPoint: 4, reorderQty: 8, costCents: dollars(72), retailCents: dollars(125), binLocation: "T1-C1", notes: "Low stock demo SKU" },
+    { stockNumber: "TR-MIC-2256517", brand: "Michelin", model: "Defender T+H", size: "225/65R17", width: 225, aspectRatio: 65, rimDiameter: 17, loadSpeed: "102H", seasonality: "ALL_SEASON" as const, condition: "NEW" as const, quantityOnHand: 12, reorderPoint: 4, reorderQty: 8, costCents: dollars(89), retailCents: dollars(149), binLocation: "T1-A1" },
+    { stockNumber: "TR-BFG-2454518", brand: "BFGoodrich", model: "g-Force COMP-2", size: "245/45R18", width: 245, aspectRatio: 45, rimDiameter: 18, loadSpeed: "96W", seasonality: "SUMMER" as const, condition: "NEW" as const, quantityOnHand: 8, reorderPoint: 4, reorderQty: 8, costCents: dollars(112), retailCents: dollars(189), binLocation: "T1-A2" },
+    { stockNumber: "TR-GDY-2657017", brand: "Goodyear", model: "Wrangler SR-A", size: "265/70R17", width: 265, aspectRatio: 70, rimDiameter: 17, loadSpeed: "113T", seasonality: "ALL_SEASON" as const, condition: "NEW" as const, quantityOnHand: 6, reorderPoint: 4, reorderQty: 4, costCents: dollars(95), retailCents: dollars(165), binLocation: "T1-B1" },
+    { stockNumber: "TR-CON-2254517-U", brand: "Continental", model: "ProContact TX", size: "225/45R17", width: 225, aspectRatio: 45, rimDiameter: 17, loadSpeed: "91H", seasonality: "ALL_SEASON" as const, condition: "USED" as const, quantityOnHand: 4, reorderPoint: 2, reorderQty: 4, costCents: dollars(35), retailCents: dollars(69), binLocation: "T2-U1", treadDepth32nds: 6, dotCode: "2319" },
+    { stockNumber: "TR-FIR-2055516", brand: "Firestone", model: "WeatherGrip", size: "205/55R16", width: 205, aspectRatio: 55, rimDiameter: 16, loadSpeed: "91H", seasonality: "ALL_WEATHER" as const, condition: "NEW" as const, quantityOnHand: 2, reorderPoint: 4, reorderQty: 8, costCents: dollars(72), retailCents: dollars(125), binLocation: "T1-C1", notes: "Low stock demo SKU" },
   ] as const;
 
   for (const shopId of [demo.id, macuto.id]) {

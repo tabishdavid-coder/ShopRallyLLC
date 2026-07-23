@@ -56,7 +56,15 @@ type Method = "PERCENT" | "FIXED";
 type Base = "LABOR" | "PARTS" | "LABOR_PARTS";
 
 type LaborRateRow = { name: string; rate: number; isDefault: boolean };
-type FeeRow = { name: string; autoApply: boolean; method: Method; base: Base; amount: number; cap: number | null; taxable: boolean };
+type FeeRow = {
+  name: string;
+  autoApply: boolean;
+  method: Method;
+  base: Base;
+  amount: number;
+  cap: number | null;
+  taxable: boolean;
+};
 type DiscountRow = { name: string; method: Method; base: Base; amount: number; cap: number | null };
 type Taxes = { salesTaxPct: number; taxOnLabor: boolean; taxOnParts: boolean; taxOnFees: boolean; cap: number | null };
 
@@ -131,7 +139,7 @@ export function RoSettings(props: {
         contentCard
       >
         {section === "labor" ? <LaborRatesSection rows={props.laborRates} /> : null}
-        {section === "fees" ? <ShopFeesSection rows={props.fees} /> : null}
+        {section === "fees" ? <FeesSection rows={props.fees} /> : null}
         {section === "discounts" ? <DiscountsSection rows={props.discounts} /> : null}
         {section === "taxes" ? <TaxesSection initial={props.taxes} zip={props.zip} /> : null}
         {section === "gp" ? <GpGoalSection initial={props.gpGoal} /> : null}
@@ -347,16 +355,33 @@ function LaborRatesSection({ rows: initial }: { rows: LaborRateRow[] }) {
 
 /* ───────────────────────── Shop Fees ───────────────────────── */
 
-function ShopFeesSection({ rows: initial }: { rows: FeeRow[] }) {
+function FeesSection({ rows: initial }: { rows: FeeRow[] }) {
   const [rows, setRows] = useState<FeeRow[]>(initial);
   const { saved, error, pending, run } = useSaver();
-  const set = (i: number, patch: Partial<FeeRow>) => setRows((rs) => rs.map((r, idx) => (idx === i ? { ...r, ...patch } : r)));
-  const add = () => setRows((rs) => [...rs, { name: "", autoApply: true, method: "PERCENT", base: "LABOR_PARTS", amount: 0, cap: null, taxable: false }]);
+  const set = (i: number, patch: Partial<FeeRow>) =>
+    setRows((rs) => rs.map((r, idx) => (idx === i ? { ...r, ...patch } : r)));
+  const add = () =>
+    setRows((rs) => [
+      ...rs,
+      {
+        name: "",
+        autoApply: true,
+        method: "PERCENT",
+        base: "LABOR_PARTS",
+        amount: 0,
+        cap: null,
+        taxable: false,
+      },
+    ]);
   const remove = (i: number) => setRows((rs) => rs.filter((_, idx) => idx !== i));
 
   return (
     <div>
-      <SectionHeader icon={HandCoins} title="Shop Fees" desc="Set up your standard shop fees here, and select how they should be applied on repair orders." />
+      <SectionHeader
+        icon={HandCoins}
+        title="Shop Fees"
+        desc="Set up your standard shop fees here, and select how they should be applied on repair orders."
+      />
       <div className="overflow-x-auto rounded-lg border">
         <table className="w-full text-sm">
           <thead>
@@ -375,35 +400,97 @@ function ShopFeesSection({ rows: initial }: { rows: FeeRow[] }) {
             {rows.map((r, i) => (
               <tr key={i} className="border-b align-middle last:border-0">
                 <td className="px-4 py-2">
-                  <select className={input} value={r.autoApply ? "ROs" : "none"} onChange={(e) => set(i, { autoApply: e.target.value === "ROs" })}>
+                  <select
+                    className={input}
+                    value={r.autoApply ? "ROs" : "none"}
+                    onChange={(e) => set(i, { autoApply: e.target.value === "ROs" })}
+                  >
                     <option value="ROs">ROs</option>
                     <option value="none">Don&apos;t auto-apply</option>
                   </select>
                 </td>
-                <td className="py-2 pr-2"><input className={cn(input, "w-32")} value={r.name} onChange={(e) => set(i, { name: e.target.value })} placeholder="Fee name" /></td>
-                <td className="py-2 pr-2"><MethodSelect value={r.method} onChange={(m) => set(i, { method: m })} /></td>
-                <td className="py-2 pr-2"><BaseSelect value={r.base} onChange={(b) => set(i, { base: b })} /></td>
+                <td className="py-2 pr-2">
+                  <input
+                    className={cn(input, "w-32")}
+                    value={r.name}
+                    onChange={(e) => set(i, { name: e.target.value })}
+                    placeholder="Fee name"
+                  />
+                </td>
+                <td className="py-2 pr-2">
+                  <MethodSelect value={r.method} onChange={(m) => set(i, { method: m })} />
+                </td>
+                <td className="py-2 pr-2">
+                  <BaseSelect value={r.base} onChange={(b) => set(i, { base: b })} />
+                </td>
                 <td className="py-2 pr-2">
                   <div className="flex items-center gap-1">
-                    <input type="number" min={0} step="0.01" className={cn(input, "w-20")} value={r.amount} onChange={(e) => set(i, { amount: Number(e.target.value) })} />
+                    <input
+                      type="number"
+                      min={0}
+                      step="0.01"
+                      className={cn(input, "w-20")}
+                      value={r.amount}
+                      onChange={(e) => set(i, { amount: Number(e.target.value) })}
+                    />
                     <span className="text-muted-foreground">{r.method === "PERCENT" ? "%" : "$"}</span>
                   </div>
                 </td>
                 <td className="py-2 pr-2">
                   <div className="flex items-center gap-1">
                     <span className="text-muted-foreground">$</span>
-                    <input type="number" min={0} step="0.01" className={cn(input, "w-20")} value={r.cap ?? ""} placeholder="—" onChange={(e) => set(i, { cap: e.target.value === "" ? null : Number(e.target.value) })} />
+                    <input
+                      type="number"
+                      min={0}
+                      step="0.01"
+                      className={cn(input, "w-20")}
+                      value={r.cap ?? ""}
+                      placeholder="—"
+                      onChange={(e) =>
+                        set(i, { cap: e.target.value === "" ? null : Number(e.target.value) })
+                      }
+                    />
                   </div>
                 </td>
-                <td className="py-2 text-center"><input type="checkbox" checked={r.taxable} onChange={(e) => set(i, { taxable: e.target.checked })} className="size-4 accent-primary" /></td>
-                <td className="px-3 py-2 text-right"><button onClick={() => remove(i)} aria-label="Remove" className="rounded p-1 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"><X className="size-4" /></button></td>
+                <td className="py-2 text-center">
+                  <input
+                    type="checkbox"
+                    checked={r.taxable}
+                    onChange={(e) => set(i, { taxable: e.target.checked })}
+                    className="size-4 accent-primary"
+                  />
+                </td>
+                <td className="px-3 py-2 text-right">
+                  <button
+                    type="button"
+                    onClick={() => remove(i)}
+                    aria-label="Remove"
+                    className="rounded p-1 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
+                  >
+                    <X className="size-4" />
+                  </button>
+                </td>
               </tr>
             ))}
-            {rows.length === 0 ? <tr><td colSpan={8} className="py-6 text-center text-muted-foreground">No fees yet.</td></tr> : null}
+            {rows.length === 0 ? (
+              <tr>
+                <td colSpan={8} className="py-6 text-center text-muted-foreground">
+                  No fees yet.
+                </td>
+              </tr>
+            ) : null}
           </tbody>
         </table>
       </div>
-      <SaveBar label="Save Fees" onSave={() => run(() => saveShopFees(rows))} saved={saved} error={error} pending={pending} onAdd={add} addLabel="Add Fee" />
+      <SaveBar
+        label="Save Fees"
+        onSave={() => run(() => saveShopFees(rows))}
+        saved={saved}
+        error={error}
+        pending={pending}
+        onAdd={add}
+        addLabel="Add Fee"
+      />
     </div>
   );
 }

@@ -1,8 +1,14 @@
+import Link from "next/link";
+import { Plus } from "lucide-react";
+
 import {
-  InventoryModuleHeader,
-  InventoryStatsRow,
-} from "@/components/inventory/inventory-stats";
+  CatalogListHeader,
+  CatalogListPage,
+  CatalogListStats,
+} from "@/components/catalog/catalog-list-chrome";
+import { InventoryStatsRow } from "@/components/inventory/inventory-stats";
 import { InventoryTable } from "@/components/inventory/inventory-table";
+import { Button } from "@/components/ui/button";
 import { mergeInventoryCategories } from "@/lib/inventory-categories";
 import { getShopId } from "@/lib/shop";
 import {
@@ -46,9 +52,22 @@ export default async function InventoryPage({
   const categories = mergeInventoryCategories(dbCategories, categoryFilter);
 
   return (
-    <div className="flex flex-col gap-6 workspace-surface">
-      <InventoryModuleHeader />
-      <InventoryStatsRow stats={stats} />
+    <CatalogListPage className="workspace-surface">
+      <CatalogListHeader
+        title="Parts"
+        description="On-hand stock, reorder levels, and quantity adjustments."
+        action={
+          <Button asChild className="gap-1.5 bg-brand-navy hover:bg-brand-navy/90">
+            <Link href="/inventory/new">
+              <Plus className="size-4" />
+              Part
+            </Link>
+          </Button>
+        }
+      />
+      <CatalogListStats>
+        <InventoryStatsRow stats={stats} />
+      </CatalogListStats>
       <InventoryTable
         rows={rows}
         total={total}
@@ -59,6 +78,6 @@ export default async function InventoryPage({
         lowStockFilter={lowStockFilter}
         categories={categories}
       />
-    </div>
+    </CatalogListPage>
   );
 }

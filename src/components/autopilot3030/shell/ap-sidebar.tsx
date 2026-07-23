@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect, useState, useTransition } from "react";
+import { useEffect, useState, useTransition, type ReactNode } from "react";
 import {
   Check,
   ChevronLeft,
@@ -17,6 +17,11 @@ import { ShopRallyMark } from "@/components/brand/shoprally-logo";
 import { useRoIntakeOptional } from "@/components/repair-order/ro-intake-context";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -99,18 +104,47 @@ function shortShopName(name: string): string {
   return name.replace(/\s+Garage$/i, "").trim() || name;
 }
 
+/** Microsoft-style flyout label when the sidebar is collapsed to the icon rail. */
+function SidebarFlyoutWrap({
+  label,
+  section,
+  collapsed,
+  children,
+}: {
+  label: string;
+  section?: string;
+  collapsed?: boolean;
+  children: ReactNode;
+}) {
+  if (!collapsed) {
+    return <>{children}</>;
+  }
+
+  return (
+    <Tooltip delayDuration={200}>
+      <TooltipTrigger asChild>
+        <span className="ap-sidebar-flyout-trigger">{children}</span>
+      </TooltipTrigger>
+      <TooltipContent side="right" align="center" sideOffset={10} className="ap-sidebar-flyout">
+        {section ? <span className="ap-sidebar-flyout-section">{section}</span> : null}
+        <span className="ap-sidebar-flyout-label">{label}</span>
+      </TooltipContent>
+    </Tooltip>
+  );
+}
+
 function SidebarLink({
   item,
   pathname,
   unreadSmsCount = 0,
   collapsed,
-  showTooltips = false,
+  sectionLabel,
 }: {
   item: ApNavLink;
   pathname: string;
   unreadSmsCount?: number;
   collapsed?: boolean;
-  showTooltips?: boolean;
+  sectionLabel?: string;
 }) {
   const active = apSidebarNavItemIsActive(pathname, item);
   const Icon = item.icon;
@@ -149,34 +183,27 @@ function SidebarLink({
 
   if (item.disabled) {
     return (
-      <span
-        className={cn(linkClass, "cursor-not-allowed opacity-45")}
-        title={item.title}
-      >
-        {linkBody}
-      </span>
+      <SidebarFlyoutWrap label={item.title} section={sectionLabel} collapsed={collapsed}>
+        <span className={cn(linkClass, "cursor-not-allowed opacity-45")}>{linkBody}</span>
+      </SidebarFlyoutWrap>
     );
   }
 
   return (
-    <Link
-      href={item.href}
-      aria-current={active ? "page" : undefined}
-      title={showTooltips ? item.title : item.description}
-      className={linkClass}
-    >
-      {linkBody}
-    </Link>
+    <SidebarFlyoutWrap label={item.title} section={sectionLabel} collapsed={collapsed}>
+      <Link
+        href={item.href}
+        aria-current={active ? "page" : undefined}
+        title={collapsed ? undefined : item.description}
+        className={linkClass}
+      >
+        {linkBody}
+      </Link>
+    </SidebarFlyoutWrap>
   );
 }
 
-function SidebarCreateButton({
-  collapsed,
-  showTooltips = false,
-}: {
-  collapsed?: boolean;
-  showTooltips?: boolean;
-}) {
+function SidebarCreateButton({ collapsed }: { collapsed?: boolean }) {
   const { openIntake, config } = useRoIntakeOptional();
 
   const className = cn(
@@ -194,32 +221,25 @@ function SidebarCreateButton({
     </>
   );
 
-  const tooltipTitle = showTooltips ? AP_TERMS.newRepairOrder : undefined;
-
-  if (config) {
-    return (
-      <Button
-        type="button"
-        className={className}
-        aria-label={AP_TERMS.newRepairOrder}
-        title={tooltipTitle}
-        onClick={() => openIntake()}
-      >
-        {buttonBody}
-      </Button>
-    );
-  }
-
-  return (
+  const button = config ? (
     <Button
       type="button"
       className={className}
       aria-label={AP_TERMS.newRepairOrder}
-      title={tooltipTitle}
-      asChild
+      onClick={() => openIntake()}
     >
+      {buttonBody}
+    </Button>
+  ) : (
+    <Button type="button" className={className} aria-label={AP_TERMS.newRepairOrder} asChild>
       <Link href="/repair-orders/new">{buttonBody}</Link>
     </Button>
+  );
+
+  return (
+    <SidebarFlyoutWrap label={AP_TERMS.newRepairOrder} collapsed={collapsed}>
+      {button}
+    </SidebarFlyoutWrap>
   );
 }
 
@@ -229,7 +249,6 @@ function SidebarShopFooterInner({
   collapsed,
   pinned,
   onTogglePin,
-  showTooltips = false,
   clerk,
 }: {
   shops: Shop[];
@@ -237,7 +256,6 @@ function SidebarShopFooterInner({
   collapsed?: boolean;
   pinned?: boolean;
   onTogglePin: () => void;
-  showTooltips?: boolean;
   clerk?: ReturnType<typeof useClerk>;
 }) {
   const router = useRouter();
@@ -260,36 +278,40 @@ function SidebarShopFooterInner({
     });
   }
 
+  const pinLabel = pinned ? "Collapse" : "Keep expanded";
+
   const pinBtn = (
-    <button
-      type="button"
-      onClick={onTogglePin}
-      className="ap-sidebar-footer-pin rounded-lg py-1 text-xs font-medium text-white/70 transition-colors hover:bg-white/10 hover:text-white"
-      aria-label={pinned ? "Collapse sidebar to icon rail" : "Keep sidebar expanded"}
-      title={showTooltips ? (pinned ? "Collapse" : "Keep expanded") : undefined}
-    >
-      <span className="ap-sidebar-icon-wrap shrink-0">
-        {pinned ? (
-          <ChevronLeft className="ap-sidebar-icon shrink-0" aria-hidden />
-        ) : (
-          <Pin className="ap-sidebar-icon shrink-0" aria-hidden />
-        )}
-      </span>
-      <span className="ap-sidebar-reveal truncate" aria-hidden={collapsed}>
-        {pinned ? "Collapse" : "Keep expanded"}
-      </span>
-    </button>
+    <SidebarFlyoutWrap label={pinLabel} collapsed={collapsed}>
+      <button
+        type="button"
+        onClick={onTogglePin}
+        className="ap-sidebar-footer-pin rounded-lg py-1 text-xs font-medium text-white/70 transition-colors hover:bg-white/10 hover:text-white"
+        aria-label={pinned ? "Collapse sidebar to icon rail" : "Keep sidebar expanded"}
+      >
+        <span className="ap-sidebar-icon-wrap shrink-0">
+          {pinned ? (
+            <ChevronLeft className="ap-sidebar-icon shrink-0" aria-hidden />
+          ) : (
+            <Pin className="ap-sidebar-icon shrink-0" aria-hidden />
+          )}
+        </span>
+        <span className="ap-sidebar-reveal truncate" aria-hidden={collapsed}>
+          {pinLabel}
+        </span>
+      </button>
+    </SidebarFlyoutWrap>
   );
 
   if (!active) return <div className="space-y-1">{pinBtn}</div>;
 
   const initials = shopInitials(active.name, active.code);
 
-  const shopTrigger = (
+  const shopName = shortShopName(active.name);
+
+  const shopButton = (
     <button
       type="button"
       className="ap-sidebar-footer-shop border border-white/10 bg-white/5 py-1 text-left transition-colors hover:bg-white/10"
-      title={showTooltips ? shortShopName(active.name) : undefined}
     >
       <span className="ap-sidebar-icon-wrap shrink-0">
         <span className="ap-sidebar-shop-avatar">
@@ -297,9 +319,7 @@ function SidebarShopFooterInner({
         </span>
       </span>
       <span className="ap-sidebar-reveal min-w-0 flex-1" aria-hidden={collapsed}>
-        <span className="block truncate text-[13px] font-semibold text-white">
-          {shortShopName(active.name)}
-        </span>
+        <span className="block truncate text-[13px] font-semibold text-white">{shopName}</span>
         <span className="block truncate text-[11px] text-white/55">Shop workspace</span>
       </span>
       <MoreVertical
@@ -309,10 +329,24 @@ function SidebarShopFooterInner({
     </button>
   );
 
+  const shopTrigger =
+    collapsed ? (
+      <Tooltip delayDuration={200}>
+        <TooltipTrigger asChild>
+          <DropdownMenuTrigger asChild>{shopButton}</DropdownMenuTrigger>
+        </TooltipTrigger>
+        <TooltipContent side="right" align="center" sideOffset={10} className="ap-sidebar-flyout">
+          <span className="ap-sidebar-flyout-section">Shop workspace</span>
+          <span className="ap-sidebar-flyout-label">{shopName}</span>
+        </TooltipContent>
+      </Tooltip>
+    ) : (
+      <DropdownMenuTrigger asChild>{shopButton}</DropdownMenuTrigger>
+    );
+
   return (
     <div className="space-y-2">
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>{shopTrigger}</DropdownMenuTrigger>
+      <DropdownMenu>{shopTrigger}
         <DropdownMenuContent align="start" className="w-56" side="right">
           <DropdownMenuLabel>Switch shop</DropdownMenuLabel>
           <DropdownMenuSeparator />
@@ -336,7 +370,6 @@ function SidebarShopFooter(props: {
   collapsed?: boolean;
   pinned?: boolean;
   onTogglePin: () => void;
-  showTooltips?: boolean;
 }) {
   if (isClerkConfigured()) {
     return <SidebarShopFooterWithClerk {...props} />;
@@ -350,7 +383,6 @@ function SidebarShopFooterWithClerk(props: {
   collapsed?: boolean;
   pinned?: boolean;
   onTogglePin: () => void;
-  showTooltips?: boolean;
 }) {
   const clerk = useClerk();
   return <SidebarShopFooterInner {...props} clerk={clerk} />;
@@ -378,7 +410,6 @@ export function ApSidebar({
     motorLabor: caps.motorLabor,
   };
   const [pinned, setPinned] = useState(false);
-  const [hovered, setHovered] = useState(false);
 
   useEffect(() => {
     try {
@@ -411,36 +442,32 @@ export function ApSidebar({
     });
   }
 
-  const expanded = pinned || hovered;
-  const collapsed = !expanded;
-  const showTooltips = collapsed && !hovered;
+  const collapsed = !pinned;
 
   return (
     <aside
       className={cn(
         "ap-sidebar",
         collapsed && "ap-sidebar--collapsed",
-        hovered && !pinned && "ap-sidebar--hovered",
         pinned && "ap-sidebar--pinned",
       )}
       aria-label="Main navigation"
       data-collapsed={collapsed ? "true" : "false"}
       data-pinned={pinned ? "true" : "false"}
-      data-expanded={expanded ? "true" : "false"}
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
     >
       <div className="ap-sidebar-header ap-sidebar-body-pad shrink-0 py-3">
-        <Link href={AP_HOME_HREF} aria-label={BRAND.name} className="ap-sidebar-logo-link cursor-pointer">
-          <span className="ap-sidebar-icon-wrap shrink-0">
-            <ShopRallyMark size={24} variant="onDark" decorative className="ap-sidebar-icon" />
-          </span>
-          <span className="ap-sidebar-reveal ap-sidebar-logo-wordmark truncate">{BRAND.name}</span>
-        </Link>
+        <SidebarFlyoutWrap label={BRAND.name} collapsed={collapsed}>
+          <Link href={AP_HOME_HREF} aria-label={BRAND.name} className="ap-sidebar-logo-link cursor-pointer">
+            <span className="ap-sidebar-icon-wrap shrink-0">
+              <ShopRallyMark size={24} variant="onDark" decorative className="ap-sidebar-icon" />
+            </span>
+            <span className="ap-sidebar-reveal ap-sidebar-logo-wordmark truncate">{BRAND.name}</span>
+          </Link>
+        </SidebarFlyoutWrap>
       </div>
 
       <div className="ap-sidebar-body-pad shrink-0 pt-3">
-        <SidebarCreateButton collapsed={collapsed} showTooltips={showTooltips} />
+        <SidebarCreateButton collapsed={collapsed} />
       </div>
 
       <div className="ap-sidebar-body-pad min-h-0 flex-1 overflow-y-auto overscroll-contain py-3">
@@ -460,7 +487,7 @@ export function ApSidebar({
                     pathname={pathname}
                     unreadSmsCount={unreadSmsCount}
                     collapsed={collapsed}
-                    showTooltips={showTooltips}
+                    sectionLabel={group.label}
                   />
                 ))}
               </div>
@@ -476,7 +503,6 @@ export function ApSidebar({
           collapsed={collapsed}
           pinned={pinned}
           onTogglePin={togglePin}
-          showTooltips={showTooltips}
         />
       </div>
     </aside>

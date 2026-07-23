@@ -17,6 +17,7 @@ import {
   CannedJobIntakeForm,
   cannedJobFormToPayload,
   emptyCannedJobForm,
+  laborRowTitle,
   type CannedJobFormState,
 } from "@/components/canned-jobs/canned-job-form";
 import { Button } from "@/components/ui/button";
@@ -50,13 +51,13 @@ type PickerMode = "browse" | "create";
 function defaultCreateForm(): CannedJobFormState {
   return {
     ...emptyCannedJobForm(),
-    labor: [{ description: "", hours: 0, flatAmountCents: null }],
+    labor: [{ name: "", description: "", hours: 0, flatAmountCents: null }],
   };
 }
 
 function validateCreateForm(form: CannedJobFormState): string | null {
   if (!form.name.trim()) return "Job name is required.";
-  if (!form.labor.some((l) => l.description.trim())) return "Add at least one labor line.";
+  if (!form.labor.some((l) => laborRowTitle(l))) return "Add at least one labor line.";
   return null;
 }
 

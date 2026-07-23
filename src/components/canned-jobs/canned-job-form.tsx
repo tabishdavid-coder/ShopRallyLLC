@@ -9,6 +9,11 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 
+import {
+  CRM_CHIP_ACTIVE,
+  CRM_CHIP_INACTIVE,
+  FormStripLabel,
+} from "@/components/crm/form-strip-label";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -19,12 +24,20 @@ import {
   resolveCategoryFromUi,
   type SaveCannedJobInput,
 } from "@/lib/canned-job-schemas";
+import {
+  calcAdjustmentTotal,
+  type AdjustBase,
+  type AdjustMethod,
+} from "@/components/estimate-building/estimate-lab-adjustment-shared";
 import { formatCents } from "@/lib/format";
 import type { CannedJobDetail } from "@/lib/canned-job-types";
 import { cn } from "@/lib/utils";
 
 export type LaborRow = {
   id?: string;
+  /** Labor catalog / line title (Name column). */
+  name: string;
+  /** Optional line detail (Description column); merged into persisted description on save. */
   description: string;
   hours: number;
   flatAmountCents?: number | null;
@@ -38,12 +51,24 @@ export type PartRow = {
   quantity: number;
 };
 
+export type FeeRow = {
+  id?: string;
+  name: string;
+  method: AdjustMethod;
+  base: AdjustBase;
+  amount: number;
+  capCents?: number | null;
+  taxable: boolean;
+};
+
 export type CannedJobFormState = {
   name: string;
   description: string;
   category: string;
+  isActive: boolean;
   labor: LaborRow[];
   parts: PartRow[];
+  fees: FeeRow[];
 };
 
 const dollars = (cents: number) => (cents / 100).toFixed(2);
@@ -58,8 +83,33 @@ function formatHours(hours: number): string {
 
 export const DEFAULT_CANNED_JOB_LABOR_RATE_CENTS = 15000;
 
+/** Display/save label for a labor row (name preferred, falls back to description). */
+export function laborRowTitle(l: Pick<LaborRow, "name" | "description">): string {
+  return l.name.trim() || l.description.trim();
+}
+
+/** Single DB description from Name + Description columns. */
+export function laborRowPersistedDescription(l: Pick<LaborRow, "name" | "description">): string {
+  const name = l.name.trim();
+  const detail = l.description.trim();
+  if (name && detail) return `${name} — ${detail}`;
+  return name || detail;
+}
+
+/** Split stored description back into name + detail for the builder table. */
+export function laborRowFromPersisted(description: string): Pick<LaborRow, "name" | "description"> {
+  const trimmed = description.trim();
+  if (!trimmed) return { name: "", description: "" };
+  const sep = trimmed.indexOf(" — ");
+  if (sep === -1) return { name: trimmed, description: "" };
+  return {
+    name: trimmed.slice(0, sep).trim(),
+    description: trimmed.slice(sep + 3).trim(),
+  };
+}
+
 /** Decimal hours field — keeps raw string while typing; commits on blur. */
-function HoursInput({
+export function HoursInput({
   hours,
   onCommit,
   className,
@@ -98,7 +148,7 @@ function HoursInput({
 }
 
 /** Dollar field backed by cents — raw string while typing; commits on blur. */
-function DollarsInput({
+export function DollarsInput({
   cents,
   onCommit,
   skipCommitIfUnchanged = false,
@@ -141,7 +191,7 @@ function DollarsInput({
 }
 
 /** Labor $ display: flat override when set, otherwise hours × shop rate. */
-function LaborDollarsInput({
+export function LaborDollarsInput({
   labor,
   laborRateCents,
   onCommitFlat,
@@ -182,19 +232,6 @@ const fieldClass = cn(
 const compactNumericInput =
   "h-9 min-h-9 w-full min-w-[4rem] text-right text-xs tabular-nums";
 
-function StripLabel({ children, className }: { children: ReactNode; className?: string }) {
-  return (
-    <p
-      className={cn(
-        "mb-2 text-[10px] font-bold uppercase tracking-[0.12em] text-muted-foreground",
-        className,
-      )}
-    >
-      {children}
-    </p>
-  );
-}
-
 function Field({
   label,
   required,
@@ -222,7 +259,7 @@ function Field({
   );
 }
 
-function CategorySelectField({
+export function CategorySelectField({
   category,
   onCategoryChange,
   idPrefix,
@@ -307,9 +344,7 @@ function CategorySelectField({
     const chipClass = (active: boolean) =>
       cn(
         "rounded px-2 py-1 text-[11px] font-semibold transition-colors",
-        active
-          ? "bg-brand-navy text-white"
-          : "border border-border bg-white text-muted-foreground hover:border-brand-light hover:bg-brand-light/20 hover:text-brand-navy",
+        active ? CRM_CHIP_ACTIVE : CRM_CHIP_INACTIVE,
       );
 
     return (
@@ -412,9 +447,17 @@ function CategorySelectField({
   );
 }
 
-function laborLineAmountCents(l: LaborRow, laborRateCents: number): number {
+export function laborLineAmountCents(l: LaborRow, laborRateCents: number): number {
   if (l.flatAmountCents != null && l.flatAmountCents > 0) return l.flatAmountCents;
   return Math.round(l.hours * laborRateCents);
+}
+
+export function feeLineAmountCents(
+  f: Pick<FeeRow, "method" | "base" | "amount" | "capCents">,
+  laborCostCents: number,
+  partsCostCents: number,
+): number {
+  return calcAdjustmentTotal(f, laborCostCents, partsCostCents);
 }
 
 function qtyDisplay(qty: number) {
@@ -435,11 +478,13 @@ export const CANNED_JOB_QUICK_TEMPLATES: QuickTemplate[] = [
       name: "Synthetic oil & filter change",
       category: "Maintenance",
       description: "Drain and refill engine oil, replace oil filter, reset maintenance reminder.",
-      labor: [{ description: "Oil & filter change", hours: 0.5 }],
+      isActive: true,
+      labor: [{ name: "Oil & filter change", description: "", hours: 0.5 }],
       parts: [
         { brand: "", description: "Engine oil (5 qt)", partNumber: "", costCents: 3500, quantity: 1 },
         { brand: "", description: "Oil filter", partNumber: "", costCents: 800, quantity: 1 },
       ],
+      fees: [],
     },
   },
   {
@@ -449,14 +494,16 @@ export const CANNED_JOB_QUICK_TEMPLATES: QuickTemplate[] = [
       name: "Front brake pad replacement",
       category: "Brakes",
       description: "Replace front brake pads, inspect rotors, road test.",
+      isActive: true,
       labor: [
-        { description: "Remove and replace front brake pads", hours: 1.0 },
-        { description: "Brake system inspection & road test", hours: 0.3 },
+        { name: "Remove and replace front brake pads", description: "", hours: 1.0 },
+        { name: "Brake system inspection & road test", description: "", hours: 0.3 },
       ],
       parts: [
         { brand: "", description: "Front brake pads (set)", partNumber: "", costCents: 6500, quantity: 1 },
         { brand: "", description: "Brake cleaner", partNumber: "", costCents: 400, quantity: 1 },
       ],
+      fees: [],
     },
   },
   {
@@ -466,8 +513,10 @@ export const CANNED_JOB_QUICK_TEMPLATES: QuickTemplate[] = [
       name: "Multi-point vehicle inspection",
       category: "Inspection",
       description: "Comprehensive safety and maintenance inspection with written report.",
-      labor: [{ description: "Multi-point inspection", hours: 0.75 }],
+      isActive: true,
+      labor: [{ name: "Multi-point inspection", description: "", hours: 0.75 }],
       parts: [],
+      fees: [],
     },
   },
 ];
@@ -477,8 +526,10 @@ export function emptyCannedJobForm(): CannedJobFormState {
     name: "",
     description: "",
     category: "",
+    isActive: true,
     labor: [],
     parts: [],
+    fees: [],
   };
 }
 
@@ -487,19 +538,29 @@ export function cannedJobFormFromDetail(job: CannedJobDetail): CannedJobFormStat
     name: job.name,
     description: job.description ?? "",
     category: job.category ?? "",
-    labor: job.laborLines.map((l) => ({
+    isActive: job.isActive ?? true,
+    labor: (job.laborLines ?? []).map((l) => ({
       id: l.id,
-      description: l.description,
+      ...laborRowFromPersisted(l.description),
       hours: l.hours,
       flatAmountCents: l.flatAmountCents,
     })),
-    parts: job.partLines.map((p) => ({
+    parts: (job.partLines ?? []).map((p) => ({
       id: p.id,
       brand: p.brand ?? "",
       description: p.description,
       partNumber: p.partNumber ?? "",
       costCents: p.costCents,
       quantity: p.quantity,
+    })),
+    fees: (job.feeLines ?? []).map((f) => ({
+      id: f.id,
+      name: f.name,
+      method: f.method,
+      base: f.base,
+      amount: f.amount,
+      capCents: f.capCents,
+      taxable: f.taxable,
     })),
   };
 }
@@ -514,12 +575,12 @@ export function cannedJobFormToPayload(
     name: form.name,
     description: form.description || null,
     category,
-    isActive: true,
+    isActive: form.isActive,
     laborLines: form.labor
-      .filter((l) => l.description.trim())
+      .filter((l) => laborRowTitle(l))
       .map((l) => ({
         id: l.id,
-        description: l.description.trim(),
+        description: laborRowPersistedDescription(l),
         hours: l.hours,
         flatAmountCents: l.flatAmountCents ?? null,
       })),
@@ -533,6 +594,17 @@ export function cannedJobFormToPayload(
         costCents: p.costCents,
         quantity: p.quantity,
       })),
+    feeLines: form.fees
+      .filter((f) => f.name.trim())
+      .map((f) => ({
+        id: f.id,
+        name: f.name.trim(),
+        method: f.method,
+        base: f.base,
+        amount: f.amount,
+        capCents: f.capCents ?? null,
+        taxable: f.taxable,
+      })),
   };
 }
 
@@ -541,20 +613,27 @@ export function useCannedJobFormSummary(
   laborRateCents = DEFAULT_CANNED_JOB_LABOR_RATE_CENTS,
 ) {
   return useMemo(() => {
-    const laborLines = form.labor.filter((l) => l.description.trim());
+    const laborLines = form.labor.filter((l) => laborRowTitle(l));
     const partLines = form.parts.filter((p) => p.description.trim());
+    const feeLines = form.fees.filter((f) => f.name.trim());
     const laborHours = laborLines.reduce((s, l) => s + l.hours, 0);
     const laborCostCents = laborLines.reduce(
       (s, l) => s + laborLineAmountCents(l, laborRateCents),
       0,
     );
     const partsCostCents = partLines.reduce((s, p) => s + p.costCents * p.quantity, 0);
+    const feesCostCents = feeLines.reduce(
+      (s, f) => s + feeLineAmountCents(f, laborCostCents, partsCostCents),
+      0,
+    );
     return {
       laborLineCount: laborLines.length,
       partLineCount: partLines.length,
+      feeLineCount: feeLines.length,
       laborHours,
       laborCostCents,
       partsCostCents,
+      feesCostCents,
     };
   }, [form, laborRateCents]);
 }
@@ -572,7 +651,7 @@ export function CannedJobFormSummary({
   compact?: boolean;
 }) {
   const summary = useCannedJobFormSummary(form, laborRateCents);
-  const laborLines = form.labor.filter((l) => l.description.trim());
+  const laborLines = form.labor.filter((l) => laborRowTitle(l));
   const partLines = form.parts.filter((p) => p.description.trim());
 
   if (compact) {
@@ -600,8 +679,8 @@ export function CannedJobFormSummary({
                       <Wrench className="mr-1 inline size-3" aria-hidden />
                       Labor
                     </td>
-                    <td className="px-2 py-1" title={l.description}>
-                      <span className="line-clamp-2 break-words">{l.description}</span>
+                    <td className="px-2 py-1" title={laborRowPersistedDescription(l)}>
+                      <span className="line-clamp-2 break-words">{laborRowPersistedDescription(l)}</span>
                     </td>
                     <td className="shrink-0 px-2 py-1 text-right tabular-nums text-muted-foreground">
                       {formatHours(l.hours) || "0"}h
@@ -628,9 +707,11 @@ export function CannedJobFormSummary({
         )}
 
         <p className="mt-2 text-xs tabular-nums text-muted-foreground">
-          Labor {formatCents(summary.laborCostCents)} · Parts {formatCents(summary.partsCostCents)} ·{" "}
+          Labor {formatCents(summary.laborCostCents)} · Parts {formatCents(summary.partsCostCents)}
+          {summary.feeLineCount > 0 ? ` · Fees ${formatCents(summary.feesCostCents)}` : ""} ·{" "}
           <span className="font-semibold text-brand-navy">
-            Total {formatCents(summary.laborCostCents + summary.partsCostCents)}
+            Total{" "}
+            {formatCents(summary.laborCostCents + summary.partsCostCents + summary.feesCostCents)}
           </span>
         </p>
       </aside>
@@ -639,7 +720,7 @@ export function CannedJobFormSummary({
 
   return (
     <aside className={cn("rounded-lg border border-border bg-white p-4 text-sm", className)}>
-      <StripLabel>Live preview</StripLabel>
+      <FormStripLabel>Live preview</FormStripLabel>
       <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
         <p className="font-semibold text-foreground">{form.name.trim() || "Untitled job"}</p>
         {form.category ? (
@@ -662,8 +743,8 @@ export function CannedJobFormSummary({
                     <Wrench className="mr-1 inline size-3" aria-hidden />
                     Labor
                   </td>
-                  <td className="px-2 py-1" title={l.description}>
-                    <span className="line-clamp-2 break-words">{l.description}</span>
+                  <td className="px-2 py-1" title={laborRowPersistedDescription(l)}>
+                    <span className="line-clamp-2 break-words">{laborRowPersistedDescription(l)}</span>
                   </td>
                   <td className="shrink-0 px-2 py-1 text-right tabular-nums text-muted-foreground">
                     {formatHours(l.hours) || "0"}h
@@ -690,9 +771,11 @@ export function CannedJobFormSummary({
       )}
 
       <p className="mt-2 text-xs tabular-nums text-muted-foreground">
-        Labor {formatCents(summary.laborCostCents)} · Parts {formatCents(summary.partsCostCents)} ·{" "}
+        Labor {formatCents(summary.laborCostCents)} · Parts {formatCents(summary.partsCostCents)}
+        {summary.feeLineCount > 0 ? ` · Fees ${formatCents(summary.feesCostCents)}` : ""} ·{" "}
         <span className="font-semibold text-brand-navy">
-          Total {formatCents(summary.laborCostCents + summary.partsCostCents)}
+          Total{" "}
+          {formatCents(summary.laborCostCents + summary.partsCostCents + summary.feesCostCents)}
         </span>
       </p>
     </aside>
@@ -729,7 +812,7 @@ function QuickTemplateChips({
 }) {
   return (
     <div className="space-y-2">
-      <StripLabel>Quick start</StripLabel>
+      <FormStripLabel>Quick start</FormStripLabel>
       <div className="flex flex-wrap gap-1.5">
         {CANNED_JOB_QUICK_TEMPLATES.map((t) => {
           const Icon = t.icon;
@@ -762,14 +845,15 @@ function CannedJobReviewPanel({
   className?: string;
 }) {
   const summary = useCannedJobFormSummary(form, laborRateCents);
-  const laborLines = form.labor.filter((l) => l.description.trim());
+  const laborLines = form.labor.filter((l) => laborRowTitle(l));
   const partLines = form.parts.filter((p) => p.description.trim());
-  const totalCents = summary.laborCostCents + summary.partsCostCents;
+  const feeLines = form.fees.filter((f) => f.name.trim());
+  const totalCents = summary.laborCostCents + summary.partsCostCents + summary.feesCostCents;
 
   return (
     <div className={cn("grid gap-4 lg:grid-cols-2", className)}>
       <div className="space-y-3 rounded-lg border border-border p-4">
-        <StripLabel>Job details</StripLabel>
+        <FormStripLabel>Job details</FormStripLabel>
         <div>
           <p className="text-base font-semibold text-foreground">
             {form.name.trim() || "Untitled job"}
@@ -798,7 +882,7 @@ function CannedJobReviewPanel({
       <div className="space-y-3">
         <div className="overflow-hidden rounded-lg border border-border">
           <div className="flex items-center justify-between border-b border-border bg-muted/40 px-3 py-2">
-            <StripLabel className="mb-0">Labor</StripLabel>
+            <FormStripLabel className="mb-0">Labor</FormStripLabel>
             <span className="text-[11px] tabular-nums text-muted-foreground">
               {summary.laborLineCount} line{summary.laborLineCount === 1 ? "" : "s"} ·{" "}
               {summary.laborHours.toFixed(1)}h · {formatCents(summary.laborCostCents)}
@@ -811,7 +895,7 @@ function CannedJobReviewPanel({
               <tbody>
                 {laborLines.map((l, i) => (
                   <tr key={i} className="border-b border-border/60 last:border-0">
-                    <td className="px-3 py-2">{l.description}</td>
+                    <td className="px-3 py-2">{laborRowPersistedDescription(l)}</td>
                     <td className="px-3 py-2 text-right tabular-nums text-muted-foreground">
                       {formatHours(l.hours) || "0"}h
                     </td>
@@ -827,7 +911,7 @@ function CannedJobReviewPanel({
 
         <div className="overflow-hidden rounded-lg border border-border">
           <div className="flex items-center justify-between border-b border-border bg-muted/40 px-3 py-2">
-            <StripLabel className="mb-0">Parts</StripLabel>
+            <FormStripLabel className="mb-0">Parts</FormStripLabel>
             <span className="text-[11px] tabular-nums text-muted-foreground">
               {summary.partLineCount} line{summary.partLineCount === 1 ? "" : "s"} ·{" "}
               {formatCents(summary.partsCostCents)} at cost
@@ -887,6 +971,7 @@ export function CannedJobIntakeForm({
   hideInlineSummary = false,
   compact = false,
   dense = false,
+  builder = false,
 }: {
   form: CannedJobFormState;
   setForm: React.Dispatch<React.SetStateAction<CannedJobFormState>>;
@@ -901,6 +986,8 @@ export function CannedJobIntakeForm({
   compact?: boolean;
   /** Wizard dialog density — horizontal rows, compact chips, table sections. */
   dense?: boolean;
+  /** Wide floating builder — horizontal identity row, unified +Labor/+Part toolbar, one surface. */
+  builder?: boolean;
 }) {
   const [partsOpen, setPartsOpen] = useState(false);
   const categoryUi = deriveCategoryUi(form.category);
@@ -911,7 +998,7 @@ export function CannedJobIntakeForm({
   const addLabor = () =>
     setForm((f) => ({
       ...f,
-      labor: [...f.labor, { description: "", hours: 0, flatAmountCents: null }],
+      labor: [...f.labor, { name: "", description: "", hours: 0, flatAmountCents: null }],
     }));
 
   const addPart = () =>
@@ -927,7 +1014,7 @@ export function CannedJobIntakeForm({
   };
 
   const applyTemplate = (template: QuickTemplate) => {
-    setForm({ ...template.form, labor: [...template.form.labor], parts: [...template.form.parts] });
+    setForm({ ...template.form, labor: [...template.form.labor], parts: [...template.form.parts], fees: [...(template.form.fees ?? [])] });
   };
 
   const showBasics = step === "basics" || step === "all";
@@ -942,16 +1029,69 @@ export function CannedJobIntakeForm({
     );
   }
 
-  const useDenseLayout = dense || compact;
+  const useDenseLayout = dense || compact || builder;
 
-  const basicsSection = dense ? (
+  const builderBasicsSection = (
+    <section className="space-y-3">
+      {showQuickTemplates && showBasics ? (
+        <QuickTemplateChips onApply={applyTemplate} />
+      ) : null}
+
+      <FormStripLabel>Job details</FormStripLabel>
+
+      <div className="grid gap-3 lg:grid-cols-[minmax(0,1.4fr)_minmax(0,0.6fr)] lg:items-start">
+        <Field label="Job name" required htmlFor={`${idPrefix}-name`}>
+          <Input
+            id={`${idPrefix}-name`}
+            value={form.name}
+            onChange={(e) => setForm((f) => ({ ...f, name: e.target.value }))}
+            placeholder="Synthetic oil & filter change"
+            className={fieldClass}
+          />
+        </Field>
+        <Field label="Category" htmlFor={`${idPrefix}-category`}>
+          <CategorySelectField
+            category={form.category}
+            onCategoryChange={setCategory}
+            idPrefix={idPrefix}
+            variant="dense"
+          />
+        </Field>
+      </div>
+
+      <Field label="Description (optional)" htmlFor={`${idPrefix}-desc`}>
+        <Textarea
+          id={`${idPrefix}-desc`}
+          value={form.description}
+          onChange={(e) => setForm((f) => ({ ...f, description: e.target.value }))}
+          placeholder="Notes visible when applied to an estimate"
+          rows={2}
+          className={cn(fieldClass, "min-h-[4rem] resize-y py-2")}
+        />
+      </Field>
+    </section>
+  );
+
+  const builderToolbar = (
+    <div className="flex flex-wrap items-center justify-between gap-2 rounded-lg border border-brand-navy/15 bg-brand-navy/[0.03] px-3 py-2.5">
+      <FormStripLabel className="mb-0">Line items</FormStripLabel>
+      <div className="flex flex-wrap gap-2">
+        <AddLineButton label="Labor" onClick={addLabor} />
+        <AddLineButton label="Part" onClick={addPart} />
+      </div>
+    </div>
+  );
+
+  const basicsSection = builder ? (
+    builderBasicsSection
+  ) : dense ? (
     <section className="grid gap-4 lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)] lg:items-start">
       <div className="min-w-0 space-y-3">
         {showQuickTemplates && showBasics ? (
           <QuickTemplateChips onApply={applyTemplate} />
         ) : null}
 
-        <StripLabel>Job details</StripLabel>
+        <FormStripLabel>Job details</FormStripLabel>
 
         <div className="space-y-3">
           <Field label="Job name" required htmlFor={`${idPrefix}-name`}>
@@ -987,7 +1127,7 @@ export function CannedJobIntakeForm({
         </Field>
 
         <div className="rounded-lg border border-border bg-slate-50/80 p-3">
-          <StripLabel className="mb-1.5">Live preview</StripLabel>
+          <FormStripLabel className="mb-1.5">Live preview</FormStripLabel>
           <CannedJobFormSummary
             form={form}
             compact
@@ -1049,7 +1189,7 @@ export function CannedJobIntakeForm({
         <QuickTemplateChips onApply={applyTemplate} />
       ) : null}
 
-      <StripLabel>Job details</StripLabel>
+      <FormStripLabel>Job details</FormStripLabel>
 
       <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(0,1fr)]">
         <Field label="Job name" required htmlFor={`${idPrefix}-name`}>
@@ -1086,10 +1226,14 @@ export function CannedJobIntakeForm({
 
   const laborSection = (
     <section className={cn(useDenseLayout ? "space-y-2" : "space-y-3")}>
-      <div className="flex items-center justify-between gap-2">
-        <StripLabel className="mb-0">Labor</StripLabel>
-        <AddLineButton label="Add labor" onClick={addLabor} />
-      </div>
+      {!builder ? (
+        <div className="flex items-center justify-between gap-2">
+          <FormStripLabel className="mb-0">Labor</FormStripLabel>
+          <AddLineButton label="Add labor" onClick={addLabor} />
+        </div>
+      ) : (
+        <FormStripLabel>Labor</FormStripLabel>
+      )}
       <div className="overflow-hidden rounded-md border border-border">
         <table className="w-full table-fixed text-xs">
           <colgroup>
@@ -1118,12 +1262,12 @@ export function CannedJobIntakeForm({
                 <tr key={l.id ?? `labor-${i}`} className="border-b border-border/60 last:border-0">
                   <td className="px-1.5 py-1">
                     <Input
-                      value={l.description}
+                      value={l.name}
                       onChange={(e) =>
                         setForm((f) => ({
                           ...f,
                           labor: f.labor.map((r, j) =>
-                            j === i ? { ...r, description: e.target.value } : r,
+                            j === i ? { ...r, name: e.target.value } : r,
                           ),
                         }))
                       }
@@ -1372,13 +1516,28 @@ export function CannedJobIntakeForm({
     </Collapsible>
   ) : (
     <section className={cn(useDenseLayout ? "space-y-2" : "space-y-3")}>
-      <div className="flex items-center justify-between gap-2">
-        <StripLabel className="mb-0">Parts</StripLabel>
-        <AddLineButton label="Add part" onClick={addPart} />
-      </div>
+      {!builder ? (
+        <div className="flex items-center justify-between gap-2">
+          <FormStripLabel className="mb-0">Parts</FormStripLabel>
+          <AddLineButton label="Add part" onClick={addPart} />
+        </div>
+      ) : (
+        <FormStripLabel>Parts</FormStripLabel>
+      )}
       {partsTableBody}
     </section>
   );
+
+  if (builder) {
+    return (
+      <div className="min-w-0 space-y-4">
+        {showBasics ? builderBasicsSection : null}
+        {showLabor || showParts ? builderToolbar : null}
+        {showLabor ? laborSection : null}
+        {showParts ? partsSection : null}
+      </div>
+    );
+  }
 
   if (isStepped || hideInlineSummary) {
     return (

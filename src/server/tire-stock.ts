@@ -1,7 +1,7 @@
 import "server-only";
 
 import { prisma } from "@/db/client";
-import type { Prisma, TireCondition } from "@/generated/prisma";
+import type { Prisma, TireCondition, TireSeasonality } from "@/generated/prisma";
 
 export type TireStockRow = {
   id: string;
@@ -9,7 +9,11 @@ export type TireStockRow = {
   brand: string;
   model: string;
   size: string;
+  width: number | null;
+  aspectRatio: number | null;
+  rimDiameter: number | null;
   loadSpeed: string | null;
+  seasonality: TireSeasonality | null;
   condition: TireCondition;
   quantityOnHand: number;
   reorderPoint: number;
@@ -58,7 +62,11 @@ const rowSelectFields = {
   brand: true,
   model: true,
   size: true,
+  width: true,
+  aspectRatio: true,
+  rimDiameter: true,
   loadSpeed: true,
+  seasonality: true,
   condition: true,
   quantityOnHand: true,
   reorderPoint: true,
@@ -82,6 +90,7 @@ function tireSearchWhere(shopId: string, q: string): Prisma.TireStockWhereInput 
       { model: { contains: term, mode: "insensitive" } },
       { size: { contains: term, mode: "insensitive" } },
       { loadSpeed: { contains: term, mode: "insensitive" } },
+      { notes: { contains: term, mode: "insensitive" } },
       { binLocation: { contains: term, mode: "insensitive" } },
       { dotCode: { contains: term, mode: "insensitive" } },
     ],
@@ -197,7 +206,11 @@ export async function getTireStock(
     brand: tire.brand,
     model: tire.model,
     size: tire.size,
+    width: tire.width,
+    aspectRatio: tire.aspectRatio,
+    rimDiameter: tire.rimDiameter,
     loadSpeed: tire.loadSpeed,
+    seasonality: tire.seasonality,
     condition: tire.condition,
     quantityOnHand: tire.quantityOnHand,
     reorderPoint: tire.reorderPoint,

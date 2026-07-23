@@ -1,8 +1,14 @@
+import Link from "next/link";
+import { Plus } from "lucide-react";
+
 import {
-  TireStockModuleHeader,
-  TireStockStatsRow,
-} from "@/components/tires/tire-stock-stats";
+  CatalogListHeader,
+  CatalogListPage,
+  CatalogListStats,
+} from "@/components/catalog/catalog-list-chrome";
+import { TireStockStatsRow } from "@/components/tires/tire-stock-stats";
 import { TireStockTable } from "@/components/tires/tire-stock-table";
+import { Button } from "@/components/ui/button";
 import { getShopId } from "@/lib/shop";
 import { getTireStockList, getTireStockStats } from "@/server/tire-stock";
 import type { TireCondition } from "@/generated/prisma";
@@ -41,9 +47,22 @@ export default async function TiresPage({
   ]);
 
   return (
-    <div className="flex flex-col gap-6 workspace-surface">
-      <TireStockModuleHeader />
-      <TireStockStatsRow stats={stats} />
+    <CatalogListPage className="workspace-surface">
+      <CatalogListHeader
+        title="Tires"
+        description="Tires on hand — new and used. Track size, brand, bin location, and reorder levels."
+        action={
+          <Button asChild className="gap-1.5 bg-brand-navy hover:bg-brand-navy/90">
+            <Link href="/tires/new">
+              <Plus className="size-4" />
+              Tire
+            </Link>
+          </Button>
+        }
+      />
+      <CatalogListStats>
+        <TireStockStatsRow stats={stats} />
+      </CatalogListStats>
       <TireStockTable
         rows={rows}
         total={total}
@@ -53,6 +72,6 @@ export default async function TiresPage({
         conditionFilter={conditionFilter}
         lowStockFilter={lowStockFilter}
       />
-    </div>
+    </CatalogListPage>
   );
 }

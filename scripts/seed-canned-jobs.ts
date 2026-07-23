@@ -1,63 +1,40 @@
 /**
- * Idempotent seed for demo canned jobs on shop_demo.
- * Safe to run when tables exist but canned job rows are missing (post db push).
+ * Idempotent seed for demo canned jobs on shop_demo + shop_macuto.
+ * Safe to run when tables exist but canned job rows are missing or incomplete.
  */
 import { prisma } from "../src/db/client";
+import { CANNED_JOB_SEED_TEMPLATES } from "../src/lib/canned-jobs-seed-data";
 
-const dollars = (n: number) => Math.round(n * 100);
+const SHOP_IDS = ["shop_demo", "shop_macuto"] as const;
 
-async function main() {
-  const shopId = "shop_demo";
+async function seedShopCannedJobs(shopId: string, createdById: string | null) {
   const existing = await prisma.cannedJob.count({ where: { shopId } });
-  if (existing > 0) {
-    console.log(`shop_demo already has ${existing} canned job(s) — skipping.`);
-    return;
+  if (existing >= CANNED_JOB_SEED_TEMPLATES.length) {
+    console.log(`${shopId} already has ${existing} canned job(s) — skipping.`);
+    return existing;
   }
 
-  const owner = await prisma.user.findFirst({
-    where: { email: "david@inandout.test" },
-    select: { id: true },
-  });
+  if (existing > 0) {
+    console.log(`${shopId} has ${existing} canned job(s) — clearing for full reseed.`);
+    await prisma.cannedJobLaborLine.deleteMany({ where: { shopId } });
+    await prisma.cannedJobPartLine.deleteMany({ where: { shopId } });
+    await prisma.cannedJob.deleteMany({ where: { shopId } });
+  }
+
+  const now = Date.now();
 
   await prisma.cannedJob.createMany({
-    data: [
-      {
-        shopId,
-        name: "Synthetic oil & filter change",
-        category: "Maintenance",
-        description: "Full synthetic oil change with filter replacement",
-        sortOrder: 0,
-        usageCount: 12,
-        lastUsedAt: new Date(Date.now() - 2 * 24 * 3600 * 1000),
-        createdById: owner?.id ?? null,
-      },
-      {
-        shopId,
-        name: "Front brake pads & rotors",
-        category: "Brakes",
-        description: "Replace front brake pads and rotors",
-        sortOrder: 1,
-        usageCount: 5,
-        lastUsedAt: new Date(Date.now() - 7 * 24 * 3600 * 1000),
-        createdById: owner?.id ?? null,
-      },
-      {
-        shopId,
-        name: "NYS inspection",
-        category: "Inspection",
-        sortOrder: 2,
-        usageCount: 8,
-        createdById: owner?.id ?? null,
-      },
-      {
-        shopId,
-        name: "Coolant flush",
-        category: "Fluids",
-        sortOrder: 3,
-        usageCount: 2,
-        createdById: owner?.id ?? null,
-      },
-    ],
+    data: CANNED_JOB_SEED_TEMPLATES.map((t, i) => ({
+      shopId,
+      name: t.name,
+      category: t.category,
+      description: t.description ?? null,
+      sortOrder: i,
+      usageCount: t.usageCount ?? 0,
+      lastUsedAt:
+        t.lastUsedDaysAgo != null ? new Date(now - t.lastUsedDaysAgo * 24 * 3600 * 1000) : null,
+      createdById,
+    })),
   });
 
   const canned = await prisma.cannedJob.findMany({
@@ -65,26 +42,71 @@ async function main() {
     orderBy: { sortOrder: "asc" },
   });
 
-  await prisma.cannedJobLaborLine.createMany({
-    data: [
-      { shopId, cannedJobId: canned[0].id, description: "Full synthetic oil & filter change", hours: 0.5, sortOrder: 0 },
-      { shopId, cannedJobId: canned[1].id, description: "Replace front brake pads and rotors", hours: 2.0, sortOrder: 0 },
-      { shopId, cannedJobId: canned[2].id, description: "NYS safety & emissions inspection", hours: 0.5, sortOrder: 0 },
-      { shopId, cannedJobId: canned[3].id, description: "Drain, flush cooling system, refill coolant", hours: 1.2, sortOrder: 0 },
-    ],
+  const laborRows: {
+    shopId: string;
+    cannedJobId: string;
+    description: string;
+    hours: number;
+    flatAmountCents: number | null;
+    sortOrder: number;
+  }[] = [];
+
+  const partRows: {
+    shopId: string;
+    cannedJobId: string;
+    description: string;
+    brand: string | null;
+    partNumber: string | null;
+    costCents: number;
+    quantity: number;
+    sortOrder: number;
+  }[] = [];
+
+  canned.forEach((job, i) => {
+    const template = CANNED_JOB_SEED_TEMPLATES[i];
+    if (!template) return;
+    template.labor.forEach((l, li) => {
+      laborRows.push({
+        shopId,
+        cannedJobId: job.id,
+        description: l.description,
+        hours: l.hours,
+        flatAmountCents: l.flatAmountCents ?? null,
+        sortOrder: li,
+      });
+    });
+    template.parts.forEach((p, pi) => {
+      partRows.push({
+        shopId,
+        cannedJobId: job.id,
+        description: p.description,
+        brand: p.brand || null,
+        partNumber: p.partNumber || null,
+        costCents: p.costCents,
+        quantity: p.quantity,
+        sortOrder: pi,
+      });
+    });
   });
 
-  await prisma.cannedJobPartLine.createMany({
-    data: [
-      { shopId, cannedJobId: canned[0].id, description: "Oil filter", brand: "Motorcraft", partNumber: "OF-1240", costCents: dollars(7), quantity: 1, sortOrder: 0 },
-      { shopId, cannedJobId: canned[0].id, description: "5W-30 full synthetic (6 qt)", brand: "Mobil 1", partNumber: "OIL-530", costCents: dollars(28), quantity: 1, sortOrder: 1 },
-      { shopId, cannedJobId: canned[1].id, description: "Front brake pad set", brand: "Akebono", partNumber: "BP-4821", costCents: dollars(48), quantity: 1, sortOrder: 0 },
-      { shopId, cannedJobId: canned[1].id, description: "Front rotor", brand: "Bosch", partNumber: "RT-9920", costCents: dollars(95), quantity: 2, sortOrder: 1 },
-      { shopId, cannedJobId: canned[3].id, description: "Coolant concentrate (1 gal)", brand: "Prestone", partNumber: "AF-550", costCents: dollars(18), quantity: 1, sortOrder: 0 },
-    ],
-  });
+  if (laborRows.length) await prisma.cannedJobLaborLine.createMany({ data: laborRows });
+  if (partRows.length) await prisma.cannedJobPartLine.createMany({ data: partRows });
 
   console.log(`Seeded ${canned.length} canned jobs for ${shopId}.`);
+  return canned.length;
+}
+
+async function main() {
+  const owner = await prisma.user.findFirst({
+    where: { email: "david@inandout.test" },
+    select: { id: true },
+  });
+
+  let total = 0;
+  for (const shopId of SHOP_IDS) {
+    total += await seedShopCannedJobs(shopId, owner?.id ?? null);
+  }
+  console.log(`Done — ${total} canned jobs across ${SHOP_IDS.length} shops.`);
 }
 
 main()

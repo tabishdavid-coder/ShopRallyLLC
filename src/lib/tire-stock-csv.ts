@@ -2,6 +2,40 @@ import { z } from "zod";
 
 import { TIRE_STOCK_CSV_HEADERS } from "@/lib/tire-stock";
 
+const SeasonalitySchema = z
+  .enum([
+    "SUMMER",
+    "WINTER",
+    "ALL_SEASON",
+    "ALL_WEATHER",
+    "summer",
+    "winter",
+    "all_season",
+    "all season",
+    "all-season",
+    "all seasons",
+    "all_seasons",
+    "all weather",
+    "all-weather",
+    "All Season",
+    "All Seasons",
+    "All Weather",
+  ])
+  .transform((v) => {
+    const n = v.toLowerCase().replace(/[\s-]+/g, "_");
+    if (n === "summer") return "SUMMER" as const;
+    if (n === "winter") return "WINTER" as const;
+    if (n === "all_season" || n === "all_seasons") return "ALL_SEASON" as const;
+    if (n === "all_weather") return "ALL_WEATHER" as const;
+    return v.toUpperCase() as "SUMMER" | "WINTER" | "ALL_SEASON" | "ALL_WEATHER";
+  });
+
+function parseOptionalInt(v: string | undefined): number | undefined {
+  if (!v?.trim()) return undefined;
+  const n = parseInt(v, 10);
+  return Number.isFinite(n) && n > 0 ? n : undefined;
+}
+
 function parseCsvLine(line: string): string[] {
   const out: string[] = [];
   let cur = "";
@@ -42,7 +76,11 @@ const RowSchema = z.object({
   brand: z.string().trim().min(1, "brand is required").max(80),
   model: z.string().trim().min(1, "model is required").max(120),
   size: z.string().trim().min(1, "size is required").max(32),
+  width: z.coerce.number().int().min(1).max(999).optional(),
+  aspectRatio: z.coerce.number().int().min(1).max(99).optional(),
+  rimDiameter: z.coerce.number().int().min(1).max(99).optional(),
   loadSpeed: z.string().trim().max(16).optional(),
+  seasonality: SeasonalitySchema.optional(),
   condition: z
     .enum(["NEW", "USED", "new", "used", "New", "Used"])
     .transform((v) => v.toUpperCase() as "NEW" | "USED"),
@@ -115,7 +153,11 @@ export function parseTireStockCsv(text: string): TireStockCsvParseResult {
       brand: record.brand,
       model: record.model,
       size: record.size,
+      width: parseOptionalInt(record.width),
+      aspectRatio: parseOptionalInt(record.aspectRatio),
+      rimDiameter: parseOptionalInt(record.rimDiameter),
       loadSpeed: record.loadSpeed || undefined,
+      seasonality: record.seasonality || undefined,
       condition: record.condition || "NEW",
       quantityOnHand: record.quantityOnHand || "0",
       reorderPoint: record.reorderPoint || "0",
@@ -153,7 +195,11 @@ export function tireStockTemplateCsv(): string {
     "Michelin",
     "Defender T+H",
     "225/45R17",
+    "225",
+    "45",
+    "17",
     "91H",
+    "ALL_SEASON",
     "NEW",
     "8",
     "4",
@@ -163,7 +209,7 @@ export function tireStockTemplateCsv(): string {
     "T1-A3",
     "",
     "",
-    "All-season passenger",
+    "Passenger all-season",
   ]
     .map((v) => (/[",\n]/.test(v) ? `"${v.replace(/"/g, '""')}"` : v))
     .join(",");

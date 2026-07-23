@@ -17,6 +17,7 @@ const summarySelect = {
   sortOrder: true,
   laborLines: { select: { hours: true }, orderBy: { sortOrder: "asc" as const } },
   partLines: { select: { costCents: true, quantity: true }, orderBy: { sortOrder: "asc" as const } },
+  feeLines: { select: { id: true }, orderBy: { sortOrder: "asc" as const } },
 };
 
 function toSummary(row: {
@@ -31,6 +32,7 @@ function toSummary(row: {
   sortOrder: number;
   laborLines: { hours: number }[];
   partLines: { costCents: number; quantity: number }[];
+  feeLines: { id: string }[];
 }): CannedJobSummary {
   return {
     id: row.id,
@@ -44,6 +46,7 @@ function toSummary(row: {
     sortOrder: row.sortOrder,
     laborLineCount: row.laborLines.length,
     partLineCount: row.partLines.length,
+    feeLineCount: row.feeLines.length,
     laborHours: row.laborLines.reduce((s, l) => s + l.hours, 0),
     partsCostCents: row.partLines.reduce((s, p) => s + p.costCents * p.quantity, 0),
   };
@@ -124,11 +127,29 @@ export async function getCannedJob(shopId: string, id: string): Promise<CannedJo
         },
         orderBy: { sortOrder: "asc" },
       },
+      feeLines: {
+        select: {
+          id: true,
+          name: true,
+          method: true,
+          base: true,
+          amount: true,
+          capCents: true,
+          taxable: true,
+          sortOrder: true,
+        },
+        orderBy: { sortOrder: "asc" },
+      },
     },
   });
   if (!row) return null;
   const summary = toSummary(row);
-  return { ...summary, laborLines: row.laborLines, partLines: row.partLines };
+  return {
+    ...summary,
+    laborLines: row.laborLines,
+    partLines: row.partLines,
+    feeLines: row.feeLines,
+  };
 }
 
 /** Distinct categories in use for filter dropdowns. */

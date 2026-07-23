@@ -12,6 +12,12 @@ import {
   Plus,
 } from "lucide-react";
 
+import {
+  CRM_CHIP_ACTIVE,
+  CRM_CHIP_INACTIVE,
+  FormStripLabel,
+} from "@/components/crm/form-strip-label";
+import { PricingGpSummary } from "@/components/inventory/pricing-gp-summary";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -113,15 +119,6 @@ function toPayload(form: FormState): CreateInventoryPartInput {
 function parseNonNegInt(value: string): number {
   const n = parseInt(value, 10);
   return Number.isFinite(n) && n >= 0 ? n : 0;
-}
-
-/** Small uppercase strip label — no card chrome */
-function StripLabel({ children }: { children: ReactNode }) {
-  return (
-    <p className="mb-2 text-[10px] font-bold uppercase tracking-[0.12em] text-muted-foreground">
-      {children}
-    </p>
-  );
 }
 
 function Field({
@@ -273,9 +270,7 @@ function CategoryChips({
               onClick={() => onChange(active ? "" : cat)}
               className={cn(
                 "rounded px-2 py-1 text-[11px] font-semibold transition-[background-color,color,border-color]",
-                active
-                  ? "bg-brand-navy text-white"
-                  : "border border-border bg-white text-muted-foreground hover:border-brand-light hover:bg-brand-light/20 hover:text-brand-navy",
+                active ? CRM_CHIP_ACTIVE : CRM_CHIP_INACTIVE,
               )}
             >
               {cat}
@@ -339,9 +334,6 @@ export function InventoryPartForm({
 
   const costCents = dollarsToCents(form.cost);
   const retailCents = dollarsToCents(form.retail);
-  const marginCents = retailCents - costCents;
-  const marginPct =
-    retailCents > 0 ? Math.round((marginCents / retailCents) * 1000) / 10 : null;
 
   const actionBtnClass = "h-9 min-w-[7rem] px-3.5";
 
@@ -351,11 +343,12 @@ export function InventoryPartForm({
       className="relative z-0 mx-auto max-w-6xl overflow-visible rounded-lg border border-border bg-white shadow-sm shadow-brand-navy/5"
     >
       {/* Slim header */}
-      <div className="relative flex items-center gap-3 border-b border-border bg-gradient-to-r from-slate-50 via-white to-brand-light/10 px-4 py-3 sm:px-5">
+      <div className="relative flex items-center gap-3 border-b border-border bg-gradient-to-r from-slate-50 via-white to-brand-red/[0.04] px-4 py-3 sm:px-5">
         <div
           className="pointer-events-none absolute inset-y-0 left-0 w-1 bg-brand-navy"
           aria-hidden
         />
+        <div className="pointer-events-none absolute inset-y-2 left-0 w-0.5 bg-brand-red/50" aria-hidden />
         <span className="flex size-8 shrink-0 items-center justify-center rounded-md bg-brand-navy text-white">
           <Package className="size-4" aria-hidden />
         </span>
@@ -373,7 +366,7 @@ export function InventoryPartForm({
       <div className="grid lg:grid-cols-[minmax(0,1.15fr)_minmax(0,0.85fr)]">
         {/* ── Identity (left) ── */}
         <section className="space-y-3 border-b border-border p-4 sm:p-5 lg:border-b-0 lg:border-r">
-          <StripLabel>Identity</StripLabel>
+          <FormStripLabel>Identity</FormStripLabel>
 
           {/* Row: part # | name */}
           <div className="grid gap-3 sm:grid-cols-[minmax(0,12rem)_minmax(0,1fr)]">
@@ -449,7 +442,7 @@ export function InventoryPartForm({
         {/* ── Stock + Pricing (right) ── */}
         <section className="space-y-4 bg-slate-50/50 p-4 sm:p-5">
           <div>
-            <StripLabel>Stock</StripLabel>
+            <FormStripLabel>Stock</FormStripLabel>
             <div className="grid grid-cols-3 gap-3">
               {mode === "create" ? (
                 <QtyStepper
@@ -488,7 +481,7 @@ export function InventoryPartForm({
           </div>
 
           <div>
-            <StripLabel>Pricing</StripLabel>
+            <FormStripLabel>Pricing</FormStripLabel>
             <div className="grid grid-cols-3 gap-3">
               <MoneyInput
                 id="cost"
@@ -504,20 +497,8 @@ export function InventoryPartForm({
                 onChange={(v) => setField("retail", v)}
                 required
               />
-              <Field label="Margin">
-                <div
-                  className={cn(
-                    "flex h-9 items-center rounded-md border border-brand-light/60 bg-brand-light/20 px-2.5 text-sm font-semibold tabular-nums",
-                    marginCents < 0 ? "text-brand-red" : "text-brand-navy",
-                  )}
-                >
-                  ${(marginCents / 100).toFixed(2)}
-                  {marginPct != null ? (
-                    <span className="ml-1 text-[11px] font-medium text-muted-foreground">
-                      ({marginPct}%)
-                    </span>
-                  ) : null}
-                </div>
+              <Field label="Gross profit">
+                <PricingGpSummary costCents={costCents} retailCents={retailCents} />
               </Field>
             </div>
           </div>
@@ -527,9 +508,7 @@ export function InventoryPartForm({
       {/* Notes — short full-width strip */}
       <section className="border-t border-border px-4 py-3 sm:px-5">
         <div className="flex flex-col gap-1.5 sm:flex-row sm:items-center sm:gap-3">
-          <p className="shrink-0 text-[10px] font-bold uppercase tracking-[0.12em] text-muted-foreground sm:w-14">
-            Notes
-          </p>
+          <FormStripLabel className="mb-0 shrink-0 sm:w-[4.5rem]">Notes</FormStripLabel>
           <Textarea
             id="notes"
             rows={2}
@@ -570,7 +549,7 @@ export function InventoryPartForm({
             onClick={(e) => handleSubmit(e, true)}
             className={cn(
               actionBtnClass,
-              "border-brand-navy/25 text-brand-navy hover:bg-brand-light/20 hover:text-brand-navy",
+              "border-brand-red/35 text-brand-navy hover:border-brand-red/50 hover:bg-brand-red/5",
             )}
           >
             Save &amp; add another

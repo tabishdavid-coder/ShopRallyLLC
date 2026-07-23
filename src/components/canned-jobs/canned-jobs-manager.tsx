@@ -2,15 +2,64 @@
 
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Plus, Search, Pencil, Trash2, Star, RotateCcw, Copy } from "lucide-react";
+import {
+  ChevronLeft,
+  ChevronRight,
+  Copy,
+  MoreHorizontal,
+  Pencil,
+  Plus,
+  RotateCcw,
+  Search,
+  Star,
+  Trash2,
+} from "lucide-react";
 
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { formatCents } from "@/lib/format";
-import { fmtDate } from "@/lib/datetime";
-import { CANNED_JOB_CATEGORIES } from "@/lib/canned-job-schemas";
+import { CannedJobFormSheet } from "@/components/canned-jobs/canned-job-form-sheet";
 import { CategoryFilterChips } from "@/components/canned-jobs/category-filter-chips";
+import {
+  CatalogListBody,
+  CatalogListCard,
+  CatalogListCount,
+  CatalogListEmpty,
+  CatalogListError,
+  CatalogListFooter,
+  CatalogListHeader,
+  CatalogListPage,
+  CatalogListTableHeadRow,
+  CatalogListToolbar,
+  CatalogListToolbarRow,
+  catalogSearchInputClass,
+  catalogSelectTriggerClass,
+} from "@/components/catalog/catalog-list-chrome";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { CANNED_JOB_CATEGORIES } from "@/lib/canned-job-schemas";
+import type { CannedJobDetail, CannedJobSummary } from "@/lib/canned-job-types";
+import { formatCents } from "@/lib/format";
 import {
   activateCannedJob,
   deactivateCannedJob,
@@ -18,16 +67,31 @@ import {
   duplicateCannedJob,
   fetchCannedJobDetail,
 } from "@/server/actions/canned-jobs";
-import type { CannedJobDetail, CannedJobSummary } from "@/lib/canned-job-types";
-import { CannedJobFormSheet } from "@/components/canned-jobs/canned-job-form-sheet";
+import { cn } from "@/lib/utils";
 
-function formatLastUsed(d: Date | string | null): string {
-  if (!d) return "Never";
-  return fmtDate(d);
+type EditorMode = "none" | "create" | "edit";
+type StatusFilter = "all" | "active" | "inactive";
+
+const PER_PAGE = 25;
+
+function categoryTone(category: string | null): string {
+  if (!category) return "border-border bg-muted/40 text-muted-foreground";
+  const map: Record<string, string> = {
+    Brakes: "border-brand-red/25 bg-brand-red/8 text-brand-red",
+    Maintenance: "border-brand-navy/25 bg-brand-navy/8 text-brand-navy",
+    Inspection: "border-emerald-600/25 bg-emerald-600/8 text-emerald-800",
+    Fluids: "border-sky-600/25 bg-sky-600/8 text-sky-800",
+    Electrical: "border-amber-600/25 bg-amber-600/8 text-amber-900",
+    Engine: "border-violet-600/25 bg-violet-600/8 text-violet-900",
+    Suspension: "border-orange-600/25 bg-orange-600/8 text-orange-900",
+  };
+  return map[category] ?? "border-brand-light/40 bg-brand-light/15 text-brand-navy";
 }
 
-function formatUpdated(d: Date | string): string {
-  return fmtDate(d);
+function jobCostBasis(job: CannedJobSummary, laborRateCents: number) {
+  const laborCostCents = Math.round(job.laborHours * laborRateCents);
+  const totalCents = job.partsCostCents + laborCostCents;
+  return { laborCostCents, totalCents };
 }
 
 export function CannedJobsManager({
@@ -42,7 +106,9 @@ export function CannedJobsManager({
   const router = useRouter();
   const [q, setQ] = useState("");
   const [category, setCategory] = useState("");
-  const [dialogOpen, setDialogOpen] = useState(false);
+  const [statusFilter, setStatusFilter] = useState<StatusFilter>("all");
+  const [page, setPage] = useState(1);
+  const [editorMode, setEditorMode] = useState<EditorMode>("none");
   const [editJob, setEditJob] = useState<CannedJobDetail | null>(null);
   const [pending, start] = useTransition();
   const [error, setError] = useState<string | null>(null);
@@ -56,6 +122,8 @@ export function CannedJobsManager({
     const needle = q.trim().toLowerCase();
     return initialJobs.filter((j) => {
       if (category && j.category !== category) return false;
+      if (statusFilter === "active" && !j.isActive) return false;
+      if (statusFilter === "inactive" && j.isActive) return false;
       if (!needle) return true;
       return (
         j.name.toLowerCase().includes(needle) ||
@@ -63,21 +131,36 @@ export function CannedJobsManager({
         (j.description?.toLowerCase().includes(needle) ?? false)
       );
     });
-  }, [initialJobs, q, category]);
+  }, [initialJobs, q, category, statusFilter]);
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / PER_PAGE));
+  const safePage = Math.min(page, totalPages);
+  const pageRows = filtered.slice((safePage - 1) * PER_PAGE, safePage * PER_PAGE);
+
+  const dialogOpen = editorMode !== "none";
 
   function openCreate() {
+    setError(null);
     setEditJob(null);
-    setDialogOpen(true);
+    setEditorMode("create");
   }
 
-  function handleEditClick(id: string) {
+  function closeEditor() {
+    setEditorMode("none");
+    setEditJob(null);
+    setError(null);
+  }
+
+  function handleEdit(id: string) {
     setError(null);
     start(async () => {
       const res = await fetchCannedJobDetail(id);
       if (res.ok) {
         setEditJob(res.job);
-        setDialogOpen(true);
-      } else setError(res.error);
+        setEditorMode("edit");
+      } else {
+        setError(res.error);
+      }
     });
   }
 
@@ -109,155 +192,273 @@ export function CannedJobsManager({
     });
   }
 
+  function handleSaved() {
+    closeEditor();
+    router.refresh();
+  }
+
   return (
-    <div>
-      <div className="mb-6 flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold text-foreground">Canned Jobs</h1>
-          <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
-            Reusable job templates with labor and parts. Service writers apply them from the Estimate tab;
-            pricing uses your shop labor rate and markup matrices at apply time.
-          </p>
-        </div>
-        <Button onClick={openCreate} className="gap-1.5">
-          <Plus className="size-4" /> New Canned Job
-        </Button>
-      </div>
+    <CatalogListPage>
+      <CatalogListHeader
+        title="Canned Jobs"
+        description="Shop service templates — labor and parts apply from your rate and markup matrices on estimates."
+        action={
+          <Button
+            onClick={openCreate}
+            className="gap-1.5 bg-brand-navy hover:bg-brand-navy/90"
+          >
+            <Plus className="size-4" />
+            Canned job
+          </Button>
+        }
+      />
 
-      <div className="mb-4 space-y-3">
-        <div className="flex flex-wrap items-center gap-2">
-          <div className="relative min-w-0 flex-1 basis-56 sm:max-w-md">
-            <Search className="absolute left-2.5 top-2.5 size-4 text-muted-foreground" />
-            <Input
-              value={q}
-              onChange={(e) => setQ(e.target.value)}
-              placeholder="Search canned jobs…"
-              className="pl-8"
+      <CatalogListCard>
+        <CatalogListToolbar>
+          <CatalogListToolbarRow>
+            <div className="relative min-w-0 flex-1 basis-52">
+              <Search className="absolute left-2.5 top-2.5 size-4 text-muted-foreground" />
+              <Input
+                value={q}
+                onChange={(e) => {
+                  setQ(e.target.value);
+                  setPage(1);
+                }}
+                placeholder="Search canned jobs…"
+                className={catalogSearchInputClass}
+              />
+            </div>
+
+            <Select
+              value={statusFilter}
+              onValueChange={(v) => {
+                setStatusFilter(v as StatusFilter);
+                setPage(1);
+              }}
+            >
+              <SelectTrigger className={cn(catalogSelectTriggerClass, "w-[7.5rem]")}>
+                <SelectValue placeholder="Status" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All status</SelectItem>
+                <SelectItem value="active">Active</SelectItem>
+                <SelectItem value="inactive">Inactive</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <CatalogListCount count={filtered.length} label="job" />
+          </CatalogListToolbarRow>
+
+          <CategoryFilterChips
+            categories={filterCategories}
+            value={category}
+            onChange={(v) => {
+              setCategory(v);
+              setPage(1);
+            }}
+            className="scrollbar-thin overflow-x-auto overscroll-x-contain pb-0.5"
+          />
+        </CatalogListToolbar>
+
+        {error ? <CatalogListError message={error} /> : null}
+
+        <CatalogListBody>
+          {filtered.length === 0 ? (
+            <CatalogListEmpty
+              title="No canned jobs match"
+              description={
+                initialJobs.length === 0
+                  ? "Create your first template or save a job from an estimate."
+                  : "Try clearing filters or search terms."
+              }
+              action={
+                initialJobs.length === 0 ? (
+                  <Button
+                    onClick={openCreate}
+                    className="gap-1.5 bg-brand-navy hover:bg-brand-navy/90"
+                  >
+                    <Plus className="size-4" /> Create canned job
+                  </Button>
+                ) : undefined
+              }
             />
-          </div>
-          <span className="text-sm text-muted-foreground">
-            {filtered.length} job{filtered.length === 1 ? "" : "s"}
-          </span>
-        </div>
-        <CategoryFilterChips categories={filterCategories} value={category} onChange={setCategory} className="scrollbar-thin overflow-x-auto overscroll-x-contain" />
-      </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <CatalogListTableHeadRow>
+                  <TableHead className="min-w-[12rem] font-semibold">Name</TableHead>
+                  <TableHead className="w-[8rem] font-semibold">Tags</TableHead>
+                  <TableHead className="w-[4.5rem] text-right font-semibold">Items</TableHead>
+                  <TableHead className="w-[5.5rem] text-right font-semibold">Labor</TableHead>
+                  <TableHead className="w-[5.5rem] text-right font-semibold">Parts</TableHead>
+                  <TableHead className="w-[5.5rem] text-right font-semibold">Cost</TableHead>
+                  <TableHead className="w-[5.5rem] text-right font-semibold">Price</TableHead>
+                  <TableHead className="w-[5.5rem] font-semibold">Status</TableHead>
+                  <TableHead className="w-10" />
+                </CatalogListTableHeadRow>
+              </TableHeader>
+              <TableBody>
+                {pageRows.map((job) => {
+                  const itemCount = job.laborLineCount + job.partLineCount;
+                  const { laborCostCents, totalCents } = jobCostBasis(job, laborRateCents);
 
-      {error ? <p className="mb-3 text-sm text-destructive">{error}</p> : null}
+                  return (
+                    <TableRow
+                      key={job.id}
+                      className={cn(
+                        "cursor-pointer",
+                        !job.isActive && "opacity-70",
+                        pending && "pointer-events-none opacity-60",
+                      )}
+                      onClick={() => handleEdit(job.id)}
+                    >
+                      <TableCell className="py-2.5">
+                        <div className="min-w-0">
+                          <p className="truncate font-medium text-foreground">{job.name}</p>
+                          {job.description ? (
+                            <p className="truncate text-[11px] text-muted-foreground">
+                              {job.description}
+                            </p>
+                          ) : null}
+                        </div>
+                      </TableCell>
+                      <TableCell className="py-2.5">
+                        {job.category ? (
+                          <span
+                            className={cn(
+                              "inline-block max-w-full truncate rounded border px-1.5 py-px text-[10px] font-semibold uppercase tracking-wide",
+                              categoryTone(job.category),
+                            )}
+                          >
+                            {job.category}
+                          </span>
+                        ) : (
+                          <span className="text-xs text-muted-foreground">—</span>
+                        )}
+                      </TableCell>
+                      <TableCell className="py-2.5 text-right tabular-nums text-sm">
+                        {itemCount}
+                      </TableCell>
+                      <TableCell className="py-2.5 text-right tabular-nums text-sm text-muted-foreground">
+                        <span className="block">{job.laborHours.toFixed(1)}h</span>
+                        <span className="text-[11px]">{formatCents(laborCostCents)}</span>
+                      </TableCell>
+                      <TableCell className="py-2.5 text-right tabular-nums text-sm text-muted-foreground">
+                        {job.partLineCount > 0 ? formatCents(job.partsCostCents) : "—"}
+                      </TableCell>
+                      <TableCell className="py-2.5 text-right tabular-nums text-sm">
+                        {formatCents(totalCents)}
+                      </TableCell>
+                      <TableCell className="py-2.5 text-right tabular-nums text-sm font-semibold text-brand-navy">
+                        {formatCents(totalCents)}
+                      </TableCell>
+                      <TableCell className="py-2.5">
+                        {job.isActive ? (
+                          <Badge className="h-5 border-0 bg-emerald-600/12 px-1.5 text-[10px] font-semibold text-emerald-800 hover:bg-emerald-600/12">
+                            Active
+                          </Badge>
+                        ) : (
+                          <Badge variant="secondary" className="h-5 px-1.5 text-[10px]">
+                            Inactive
+                          </Badge>
+                        )}
+                      </TableCell>
+                      <TableCell className="py-2.5" onClick={(e) => e.stopPropagation()}>
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon-sm"
+                              className="size-8 text-muted-foreground"
+                              disabled={pending}
+                              aria-label={`Actions for ${job.name}`}
+                            >
+                              <MoreHorizontal className="size-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="w-40">
+                            <DropdownMenuItem onClick={() => handleEdit(job.id)}>
+                              <Pencil className="size-3.5" />
+                              Edit
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => duplicate(job.id)}>
+                              <Copy className="size-3.5" />
+                              Duplicate
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={() => toggleActive(job.id, job.isActive)}
+                            >
+                              {job.isActive ? (
+                                <>
+                                  <Star className="size-3.5" />
+                                  Deactivate
+                                </>
+                              ) : (
+                                <>
+                                  <RotateCcw className="size-3.5" />
+                                  Activate
+                                </>
+                              )}
+                            </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem
+                              variant="destructive"
+                              onClick={() => remove(job.id, job.name)}
+                            >
+                              <Trash2 className="size-3.5" />
+                              Delete
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          )}
+        </CatalogListBody>
 
-      <div className="overflow-hidden rounded-lg border border-border bg-card shadow-sm">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b border-border bg-muted/40 text-left text-[11px] font-semibold uppercase tracking-wide text-subtle-foreground">
-              <th className="px-4 py-2.5">Job</th>
-              <th className="px-4 py-2.5">Category</th>
-              <th className="px-4 py-2.5 text-right">Labor</th>
-              <th className="px-4 py-2.5 text-right">Parts</th>
-              <th className="px-4 py-2.5 text-right">Used</th>
-              <th className="px-4 py-2.5">Last used</th>
-              <th className="px-4 py-2.5">Updated</th>
-              <th className="px-4 py-2.5">Status</th>
-              <th className="px-4 py-2.5 w-32" />
-            </tr>
-          </thead>
-          <tbody>
-            {filtered.length === 0 ? (
-              <tr>
-                <td colSpan={9} className="px-4 py-10 text-center text-muted-foreground">
-                  No canned jobs yet. Create one or save a job from an estimate using the star icon.
-                </td>
-              </tr>
-            ) : (
-              filtered.map((j) => (
-                <tr key={j.id} className="border-b border-border last:border-0 hover:bg-muted/20">
-                  <td className="px-4 py-3">
-                    <div className="font-medium text-foreground">{j.name}</div>
-                    {j.description ? (
-                      <div className="mt-0.5 line-clamp-1 text-xs text-muted-foreground">{j.description}</div>
-                    ) : null}
-                  </td>
-                  <td className="px-4 py-3">
-                    {j.category ? (
-                      <Badge variant="outline" className="font-normal">
-                        {j.category}
-                      </Badge>
-                    ) : (
-                      <span className="text-muted-foreground">—</span>
-                    )}
-                  </td>
-                  <td className="px-4 py-3 text-right tabular-nums text-muted-foreground">
-                    {j.laborLineCount} / {j.laborHours.toFixed(1)}h
-                  </td>
-                  <td className="px-4 py-3 text-right tabular-nums text-muted-foreground">
-                    {j.partLineCount} / {formatCents(j.partsCostCents)}
-                  </td>
-                  <td className="px-4 py-3 text-right tabular-nums">{j.usageCount}</td>
-                  <td className="px-4 py-3 text-muted-foreground">{formatLastUsed(j.lastUsedAt)}</td>
-                  <td className="px-4 py-3 text-muted-foreground">{formatUpdated(j.updatedAt)}</td>
-                  <td className="px-4 py-3">
-                    {j.isActive ? (
-                      <Badge className="bg-emerald-600/10 text-emerald-700 hover:bg-emerald-600/10">Active</Badge>
-                    ) : (
-                      <Badge variant="secondary">Inactive</Badge>
-                    )}
-                  </td>
-                  <td className="px-4 py-3">
-                    <div className="flex items-center justify-end gap-1">
-                      <button
-                        type="button"
-                        onClick={() => handleEditClick(j.id)}
-                        disabled={pending}
-                        className="rounded p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground"
-                        title="Edit"
-                      >
-                        <Pencil className="size-4" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => duplicate(j.id)}
-                        disabled={pending}
-                        className="rounded p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground"
-                        title="Duplicate"
-                      >
-                        <Copy className="size-4" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => toggleActive(j.id, j.isActive)}
-                        disabled={pending}
-                        className="rounded p-1.5 text-muted-foreground hover:bg-accent hover:text-foreground"
-                        title={j.isActive ? "Deactivate" : "Activate"}
-                      >
-                        {j.isActive ? <Star className="size-4" /> : <RotateCcw className="size-4" />}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => remove(j.id, j.name)}
-                        disabled={pending}
-                        className="rounded p-1.5 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"
-                        title="Delete"
-                      >
-                        <Trash2 className="size-4" />
-                      </button>
-                    </div>
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-      </div>
+        {filtered.length > PER_PAGE ? (
+          <CatalogListFooter>
+            <p className="text-xs tabular-nums text-muted-foreground">
+              {(safePage - 1) * PER_PAGE + 1}–{Math.min(safePage * PER_PAGE, filtered.length)} of{" "}
+              {filtered.length}
+            </p>
+            <div className="flex items-center gap-1">
+              <Button
+                variant="outline"
+                size="icon-sm"
+                disabled={safePage <= 1}
+                onClick={() => setPage((p) => Math.max(1, p - 1))}
+                aria-label="Previous page"
+              >
+                <ChevronLeft className="size-4" />
+              </Button>
+              <Button
+                variant="outline"
+                size="icon-sm"
+                disabled={safePage >= totalPages}
+                onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+                aria-label="Next page"
+              >
+                <ChevronRight className="size-4" />
+              </Button>
+            </div>
+          </CatalogListFooter>
+        ) : null}
+      </CatalogListCard>
 
       <CannedJobFormSheet
         open={dialogOpen}
-        onOpenChange={(v) => {
-          setDialogOpen(v);
-          if (!v) setEditJob(null);
+        onOpenChange={(open) => {
+          if (!open) closeEditor();
         }}
-        job={editJob}
+        job={editorMode === "edit" ? editJob : null}
         categories={categories}
         laborRateCents={laborRateCents}
-        onSaved={() => router.refresh()}
+        onSaved={handleSaved}
       />
-    </div>
+    </CatalogListPage>
   );
 }

@@ -6,7 +6,6 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation";
 import {
   ChevronLeft,
   ChevronRight,
-  Disc3,
   Download,
   Loader2,
   MoreHorizontal,
@@ -17,7 +16,19 @@ import {
 } from "lucide-react";
 
 import { AdjustTireQuantityDialog } from "@/components/tires/adjust-tire-quantity-dialog";
+import { ConditionFilterChips } from "@/components/tires/condition-filter-chips";
 import { ImportTiresDialog } from "@/components/tires/import-tires-dialog";
+import {
+  CatalogListBody,
+  CatalogListCard,
+  CatalogListCount,
+  CatalogListEmpty,
+  CatalogListFooter,
+  CatalogListTableHeadRow,
+  CatalogListToolbar,
+  CatalogListToolbarRow,
+  catalogSearchInputClass,
+} from "@/components/catalog/catalog-list-chrome";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -80,8 +91,6 @@ export function TireStockTable({
   const [adjustTire, setAdjustTire] = useState<TireStockRow | null>(null);
   const [importOpen, setImportOpen] = useState(false);
 
-  const conditionLabel =
-    conditionFilter === "all" ? "All conditions" : TIRE_CONDITION_LABELS[conditionFilter];
   const isVirginEmpty =
     total === 0 && !query && conditionFilter === "all" && !lowStockFilter;
 
@@ -124,210 +133,256 @@ export function TireStockTable({
 
   return (
     <>
-      <div className="rounded-xl border bg-card shadow-sm">
-        <div className="flex flex-wrap items-center gap-2 border-b p-3">
-          <div className="relative min-w-56 flex-1">
-            <Search className="absolute left-2.5 top-2.5 size-4 text-muted-foreground" />
-            {isPending ? (
-              <Loader2 className="absolute right-2.5 top-2.5 size-4 animate-spin text-muted-foreground" />
-            ) : null}
-            <Input
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Search stock #, brand, model, size, bin, DOT"
-              className="pl-8"
-            />
-          </div>
-          <Select
+      <CatalogListCard>
+        <CatalogListToolbar>
+          <CatalogListToolbarRow>
+            <div className="relative min-w-0 flex-1 basis-52">
+              <Search className="absolute left-2.5 top-2.5 size-4 text-muted-foreground" />
+              {isPending ? (
+                <Loader2 className="absolute right-2.5 top-2.5 size-4 animate-spin text-muted-foreground" />
+              ) : null}
+              <Input
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                placeholder="Search stock #, brand, model, size, bin, DOT…"
+                className={catalogSearchInputClass}
+              />
+            </div>
+
+            <Button
+              variant={lowStockFilter ? "default" : "outline"}
+              size="sm"
+              className={cn(
+                "h-9 gap-1.5",
+                lowStockFilter && "bg-brand-red hover:bg-brand-red/90",
+              )}
+              onClick={() => setParams({ lowStock: !lowStockFilter, page: null })}
+            >
+              <SlidersHorizontal className="size-4" />
+              Low stock
+            </Button>
+
+            <Button
+              variant="outline"
+              size="sm"
+              className="h-9 gap-1.5"
+              onClick={() => setImportOpen(true)}
+            >
+              <Upload className="size-4" />
+              Import
+            </Button>
+            <Button variant="outline" size="sm" className="h-9 gap-1.5" asChild>
+              <a href="/api/tires/export">
+                <Download className="size-4" />
+                Export
+              </a>
+            </Button>
+
+            <CatalogListCount count={total} label="tire" />
+          </CatalogListToolbarRow>
+
+          <ConditionFilterChips
             value={conditionFilter}
-            onValueChange={(v) =>
-              setParams({ condition: v === "all" ? null : v, page: null })
-            }
-          >
-            <SelectTrigger className="w-40" aria-label="Filter by condition">
-              <SelectValue placeholder="Condition">{conditionLabel}</SelectValue>
-            </SelectTrigger>
-            <SelectContent position="popper">
-              <SelectItem value="all">All conditions</SelectItem>
-              <SelectItem value="NEW">New</SelectItem>
-              <SelectItem value="USED">Used</SelectItem>
-            </SelectContent>
-          </Select>
-          <Button
-            variant={lowStockFilter ? "default" : "outline"}
-            size="sm"
-            className={cn("gap-1.5", lowStockFilter && "bg-brand-red hover:bg-brand-red/90")}
-            onClick={() => setParams({ lowStock: !lowStockFilter, page: null })}
-          >
-            <SlidersHorizontal className="size-4" />
-            Low stock
-          </Button>
-          <Button variant="outline" size="sm" className="gap-1.5" onClick={() => setImportOpen(true)}>
-            <Upload className="size-4" />
-            Import CSV
-          </Button>
-          <Button variant="outline" size="sm" className="gap-1.5" asChild>
-            <a href="/api/tires/export">
-              <Download className="size-4" />
-              Export CSV
-            </a>
-          </Button>
-          <Button asChild size="sm" className="gap-1.5 bg-brand-navy">
-            <Link href="/tires/new">
-              <Plus className="size-4" />
-              Add tire
-            </Link>
-          </Button>
-        </div>
+            onChange={(v) => setParams({ condition: v === "all" ? null : v, page: null })}
+            className="scrollbar-thin overflow-x-auto overscroll-x-contain pb-0.5"
+          />
+        </CatalogListToolbar>
 
-        <Table>
-          <TableHeader>
-            <TableRow>
-              <TableHead className="w-10">
-                <Checkbox checked={allOnPageSelected} onCheckedChange={toggleAll} aria-label="Select all" />
-              </TableHead>
-              <TableHead>Stock #</TableHead>
-              <TableHead>Size</TableHead>
-              <TableHead>Brand / model</TableHead>
-              <TableHead>Condition</TableHead>
-              <TableHead className="text-right">QOH</TableHead>
-              <TableHead className="text-right">Reorder</TableHead>
-              <TableHead className="text-right">Cost</TableHead>
-              <TableHead className="text-right">Retail</TableHead>
-              <TableHead>Bin</TableHead>
-              <TableHead className="w-10" />
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {rows.length === 0 ? (
-              <TableRow>
-                <TableCell colSpan={11} className="py-12 text-center">
-                  {isVirginEmpty ? (
-                    <div className="flex flex-col items-center gap-3 px-4">
-                      <div className="flex size-14 items-center justify-center rounded-full bg-muted">
-                        <Disc3 className="size-7 text-muted-foreground" />
-                      </div>
-                      <div className="space-y-1">
-                        <p className="text-base font-medium">No tires in stock yet</p>
-                        <p className="mx-auto max-w-sm text-sm text-muted-foreground">
-                          Add new or used tires to track quantity on hand, bin locations, and reorder
-                          points. Import a CSV to bulk-load your rack inventory.
-                        </p>
-                      </div>
-                      <div className="flex flex-wrap justify-center gap-2">
-                        <Button asChild size="sm" className="bg-brand-navy">
-                          <Link href="/tires/new">
-                            <Plus className="size-4" />
-                            Add tire
-                          </Link>
-                        </Button>
-                        <Button variant="outline" size="sm" onClick={() => setImportOpen(true)}>
-                          Import CSV
-                        </Button>
-                      </div>
-                    </div>
-                  ) : (
-                    <p className="text-muted-foreground">No tires match your filters.</p>
-                  )}
-                </TableCell>
-              </TableRow>
-            ) : (
-              rows.map((row) => {
-                const isLow = row.reorderPoint > 0 && row.quantityOnHand <= row.reorderPoint;
-                return (
-                  <TableRow key={row.id} className={cn(isLow && "bg-brand-red/5")}>
-                    <TableCell>
-                      <Checkbox
-                        checked={selected.has(row.id)}
-                        onCheckedChange={() => toggleOne(row.id)}
-                        aria-label={`Select ${row.stockNumber}`}
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <Link href={`/tires/${row.id}`} className="font-medium text-brand-navy hover:underline">
-                        {row.stockNumber}
+        <CatalogListBody>
+          {rows.length === 0 ? (
+            <CatalogListEmpty
+              title={isVirginEmpty ? "No tires in stock yet" : "No tires match"}
+              description={
+                isVirginEmpty
+                  ? "Add new or used tires to track quantity on hand, bin locations, and reorder points. Import a CSV to bulk-load your rack inventory."
+                  : "Try clearing filters or search terms."
+              }
+              action={
+                isVirginEmpty ? (
+                  <div className="flex flex-wrap justify-center gap-2">
+                    <Button asChild className="gap-1.5 bg-brand-navy hover:bg-brand-navy/90">
+                      <Link href="/tires/new">
+                        <Plus className="size-4" />
+                        Add tire
                       </Link>
-                      {isLow ? (
-                        <Badge variant="outline" className="ml-2 border-brand-red/40 text-brand-red">
-                          Low
+                    </Button>
+                    <Button variant="outline" onClick={() => setImportOpen(true)}>
+                      Import CSV
+                    </Button>
+                  </div>
+                ) : undefined
+              }
+            />
+          ) : (
+            <Table>
+              <TableHeader>
+                <CatalogListTableHeadRow>
+                  <TableHead className="w-10">
+                    <Checkbox
+                      checked={allOnPageSelected}
+                      onCheckedChange={toggleAll}
+                      aria-label="Select all"
+                    />
+                  </TableHead>
+                  <TableHead className="min-w-[7rem] font-semibold">Stock #</TableHead>
+                  <TableHead className="w-[7rem] font-semibold">Size</TableHead>
+                  <TableHead className="min-w-[10rem] font-semibold">Brand / model</TableHead>
+                  <TableHead className="w-[5.5rem] font-semibold">Condition</TableHead>
+                  <TableHead className="w-[4.5rem] text-right font-semibold">QOH</TableHead>
+                  <TableHead className="w-[5rem] text-right font-semibold">Reorder</TableHead>
+                  <TableHead className="w-[5.5rem] text-right font-semibold">Cost</TableHead>
+                  <TableHead className="w-[5.5rem] text-right font-semibold">Retail</TableHead>
+                  <TableHead className="w-[5rem] font-semibold">Bin</TableHead>
+                  <TableHead className="w-10" />
+                </CatalogListTableHeadRow>
+              </TableHeader>
+              <TableBody>
+                {rows.map((row) => {
+                  const isLow = row.reorderPoint > 0 && row.quantityOnHand <= row.reorderPoint;
+                  return (
+                    <TableRow
+                      key={row.id}
+                      className={cn(isLow && "bg-brand-red/5", isPending && "opacity-60")}
+                    >
+                      <TableCell className="py-2.5">
+                        <Checkbox
+                          checked={selected.has(row.id)}
+                          onCheckedChange={() => toggleOne(row.id)}
+                          aria-label={`Select ${row.stockNumber}`}
+                        />
+                      </TableCell>
+                      <TableCell className="py-2.5">
+                        <div className="min-w-0">
+                          <Link
+                            href={`/tires/${row.id}`}
+                            className="truncate font-medium text-foreground hover:text-brand-navy hover:underline"
+                          >
+                            {row.stockNumber}
+                          </Link>
+                          {isLow ? (
+                            <Badge className="ml-1.5 h-5 border-0 bg-brand-red/12 px-1.5 text-[10px] font-semibold text-brand-red hover:bg-brand-red/12">
+                              Low
+                            </Badge>
+                          ) : null}
+                        </div>
+                      </TableCell>
+                      <TableCell className="py-2.5 text-sm font-medium">{row.size}</TableCell>
+                      <TableCell className="max-w-48 truncate py-2.5 text-sm">
+                        {row.brand} {row.model}
+                        {row.loadSpeed ? (
+                          <span className="text-muted-foreground"> · {row.loadSpeed}</span>
+                        ) : null}
+                      </TableCell>
+                      <TableCell className="py-2.5">
+                        <Badge
+                          variant="secondary"
+                          className={cn(
+                            "h-5 px-1.5 text-[10px] font-semibold",
+                            TIRE_CONDITION_COLORS[row.condition],
+                          )}
+                        >
+                          {TIRE_CONDITION_LABELS[row.condition]}
                         </Badge>
-                      ) : null}
-                    </TableCell>
-                    <TableCell className="font-medium">{row.size}</TableCell>
-                    <TableCell className="max-w-48 truncate">
-                      {row.brand} {row.model}
-                      {row.loadSpeed ? (
-                        <span className="text-muted-foreground"> · {row.loadSpeed}</span>
-                      ) : null}
-                    </TableCell>
-                    <TableCell>
-                      <Badge variant="secondary" className={TIRE_CONDITION_COLORS[row.condition]}>
-                        {TIRE_CONDITION_LABELS[row.condition]}
-                      </Badge>
-                    </TableCell>
-                    <TableCell className={cn("text-right font-medium", isLow && "text-brand-red")}>
-                      {row.quantityOnHand}
-                    </TableCell>
-                    <TableCell className="text-right text-muted-foreground">
-                      {row.reorderPoint || "—"}
-                    </TableCell>
-                    <TableCell className="text-right">{formatCents(row.costCents)}</TableCell>
-                    <TableCell className="text-right">{formatCents(row.retailCents)}</TableCell>
-                    <TableCell className="text-muted-foreground">{row.binLocation ?? "—"}</TableCell>
-                    <TableCell>
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button variant="ghost" size="icon" className="size-8">
-                            <MoreHorizontal className="size-4" />
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuItem asChild>
-                            <Link href={`/tires/${row.id}`}>View details</Link>
-                          </DropdownMenuItem>
-                          <DropdownMenuItem asChild>
-                            <Link href={`/tires/${row.id}?edit=1`}>Edit tire</Link>
-                          </DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => setAdjustTire(row)}>Adjust quantity</DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
-                  </TableRow>
-                );
-              })
-            )}
-          </TableBody>
-        </Table>
+                      </TableCell>
+                      <TableCell
+                        className={cn(
+                          "py-2.5 text-right tabular-nums text-sm font-medium",
+                          isLow && "text-brand-red",
+                        )}
+                      >
+                        {row.quantityOnHand}
+                      </TableCell>
+                      <TableCell className="py-2.5 text-right tabular-nums text-sm text-muted-foreground">
+                        {row.reorderPoint || "—"}
+                      </TableCell>
+                      <TableCell className="py-2.5 text-right tabular-nums text-sm">
+                        {formatCents(row.costCents)}
+                      </TableCell>
+                      <TableCell className="py-2.5 text-right tabular-nums text-sm font-semibold text-brand-navy">
+                        {formatCents(row.retailCents)}
+                      </TableCell>
+                      <TableCell className="py-2.5 text-sm text-muted-foreground">
+                        {row.binLocation ?? "—"}
+                      </TableCell>
+                      <TableCell className="py-2.5">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon-sm"
+                              className="size-8 text-muted-foreground"
+                              aria-label={`Actions for ${row.stockNumber}`}
+                            >
+                              <MoreHorizontal className="size-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end" className="w-40">
+                            <DropdownMenuItem asChild>
+                              <Link href={`/tires/${row.id}`}>View details</Link>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem asChild>
+                              <Link href={`/tires/${row.id}?edit=1`}>Edit tire</Link>
+                            </DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => setAdjustTire(row)}>
+                              Adjust quantity
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
+              </TableBody>
+            </Table>
+          )}
+        </CatalogListBody>
 
-        <div className="flex flex-wrap items-center justify-between gap-3 border-t px-3 py-2 text-sm text-muted-foreground">
-          <div className="flex items-center gap-2">
-            <span>Rows per page</span>
-            <Select value={String(perPage)} onValueChange={(v) => setParams({ perPage: v, page: null })}>
-              <SelectTrigger className="h-8 w-16">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                {PER_PAGE_OPTIONS.map((n) => (
-                  <SelectItem key={n} value={String(n)}>
-                    {n}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div className="flex items-center gap-2">
-            <span>
-              {from}–{to} of {total}
-            </span>
-            <Button variant="outline" size="icon" className="size-8" disabled={page <= 1} onClick={() => setParams({ page: page - 1 })}>
-              <ChevronLeft className="size-4" />
-            </Button>
-            <Button variant="outline" size="icon" className="size-8" disabled={page >= lastPage} onClick={() => setParams({ page: page + 1 })}>
-              <ChevronRight className="size-4" />
-            </Button>
-          </div>
-        </div>
-      </div>
+        {total > 0 ? (
+          <CatalogListFooter>
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <span>Rows per page</span>
+              <Select
+                value={String(perPage)}
+                onValueChange={(v) => setParams({ perPage: v, page: null })}
+              >
+                <SelectTrigger className="h-8 w-16 bg-white">
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  {PER_PAGE_OPTIONS.map((n) => (
+                    <SelectItem key={n} value={String(n)}>
+                      {n}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="flex items-center gap-1">
+              <p className="mr-2 text-xs tabular-nums text-muted-foreground">
+                {from}–{to} of {total}
+              </p>
+              <Button
+                variant="outline"
+                size="icon-sm"
+                disabled={page <= 1}
+                onClick={() => setParams({ page: page - 1 })}
+                aria-label="Previous page"
+              >
+                <ChevronLeft className="size-4" />
+              </Button>
+              <Button
+                variant="outline"
+                size="icon-sm"
+                disabled={page >= lastPage}
+                onClick={() => setParams({ page: page + 1 })}
+                aria-label="Next page"
+              >
+                <ChevronRight className="size-4" />
+              </Button>
+            </div>
+          </CatalogListFooter>
+        ) : null}
+      </CatalogListCard>
 
       {adjustTire ? (
         <AdjustTireQuantityDialog

@@ -52,6 +52,7 @@ export async function saveCannedJob(raw: unknown): Promise<CannedJobResult> {
 
   const keepLabor = d.laborLines.filter((l) => l.id).map((l) => l.id!) as string[];
   const keepParts = d.partLines.filter((p) => p.id).map((p) => p.id!) as string[];
+  const keepFees = d.feeLines.filter((f) => f.id).map((f) => f.id!) as string[];
 
   if (d.id) {
     const existing = await prisma.cannedJob.findFirst({ where: { id: d.id, shopId }, select: { id: true } });
@@ -72,6 +73,9 @@ export async function saveCannedJob(raw: unknown): Promise<CannedJobResult> {
       }),
       prisma.cannedJobPartLine.deleteMany({
         where: { cannedJobId: d.id, id: { notIn: keepParts.length ? keepParts : ["_none_"] } },
+      }),
+      prisma.cannedJobFeeLine.deleteMany({
+        where: { cannedJobId: d.id, id: { notIn: keepFees.length ? keepFees : ["_none_"] } },
       }),
       ...d.laborLines.map((l, i) =>
         l.id
@@ -121,6 +125,34 @@ export async function saveCannedJob(raw: unknown): Promise<CannedJobResult> {
               },
             }),
       ),
+      ...d.feeLines.map((f, i) =>
+        f.id
+          ? prisma.cannedJobFeeLine.updateMany({
+              where: { id: f.id, cannedJobId: d.id, shopId },
+              data: {
+                name: f.name,
+                method: f.method,
+                base: f.base,
+                amount: f.amount,
+                capCents: f.capCents ?? null,
+                taxable: f.taxable,
+                sortOrder: i,
+              },
+            })
+          : prisma.cannedJobFeeLine.create({
+              data: {
+                shopId,
+                cannedJobId: d.id!,
+                name: f.name,
+                method: f.method,
+                base: f.base,
+                amount: f.amount,
+                capCents: f.capCents ?? null,
+                taxable: f.taxable,
+                sortOrder: i,
+              },
+            }),
+      ),
     ]);
     revalidateCannedJobs();
     return { ok: true, id: d.id };
@@ -157,6 +189,18 @@ export async function saveCannedJob(raw: unknown): Promise<CannedJobResult> {
           partNumber: p.partNumber ?? null,
           costCents: p.costCents,
           quantity: p.quantity,
+          sortOrder: i,
+        })),
+      },
+      feeLines: {
+        create: d.feeLines.map((f, i) => ({
+          shopId,
+          name: f.name,
+          method: f.method,
+          base: f.base,
+          amount: f.amount,
+          capCents: f.capCents ?? null,
+          taxable: f.taxable,
           sortOrder: i,
         })),
       },
@@ -213,6 +257,42 @@ export async function fetchCannedJobsForPicker(opts?: { q?: string; category?: s
   return listCannedJobsForPicker(shopId, opts);
 }
 
+export type ShopFeeTemplateRow = {
+  name: string;
+  method: "PERCENT" | "FIXED";
+  base: "LABOR" | "PARTS" | "LABOR_PARTS";
+  amount: number;
+  capCents: number | null;
+  taxable: boolean;
+};
+
+export type ShopFeeTemplatesResult =
+  | { ok: true; templates: ShopFeeTemplateRow[] }
+  | { ok: false; error: string };
+
+/** Shop fee templates for canned job builder fee-line picker. */
+export async function fetchShopFeeTemplatesForPicker(): Promise<ShopFeeTemplatesResult> {
+  try {
+    const shopId = await getShopId();
+    const rows = await prisma.shopFeeTemplate.findMany({
+      where: { shopId },
+      orderBy: { sortOrder: "asc" },
+      select: {
+        name: true,
+        method: true,
+        base: true,
+        amount: true,
+        capCents: true,
+        taxable: true,
+      },
+    });
+    return { ok: true, templates: rows };
+  } catch (err) {
+    console.error("[fetchShopFeeTemplatesForPicker]", err);
+    return { ok: false, error: "Could not load shop fee templates." };
+  }
+}
+
 /** Duplicate a canned job template (library management). */
 export async function duplicateCannedJob(id: string): Promise<CannedJobResult> {
   const shopId = await getShopId();
@@ -258,6 +338,18 @@ export async function duplicateCannedJob(id: string): Promise<CannedJobResult> {
           sortOrder: i,
         })),
       },
+      feeLines: {
+        create: source.feeLines.map((f, i) => ({
+          shopId,
+          name: f.name,
+          method: f.method,
+          base: f.base,
+          amount: f.amount,
+          capCents: f.capCents,
+          taxable: f.taxable,
+          sortOrder: i,
+        })),
+      },
     },
     select: { id: true },
   });
@@ -293,6 +385,7 @@ export async function addCannedJobToRepairOrder(
       include: {
         laborLines: { orderBy: { sortOrder: "asc" } },
         partLines: { orderBy: { sortOrder: "asc" } },
+        feeLines: { orderBy: { sortOrder: "asc" } },
       },
     }),
   ]);
@@ -348,6 +441,19 @@ export async function addCannedJobToRepairOrder(
               totalCents: retailCents * p.quantity,
             };
           }),
+        },
+        fees: {
+          create: template.feeLines.map((f, i) => ({
+            shopId,
+            repairOrderId,
+            name: f.name,
+            method: f.method,
+            base: f.base,
+            amount: f.amount,
+            capCents: f.capCents,
+            taxable: f.taxable,
+            sortOrder: i,
+          })),
         },
       },
     });

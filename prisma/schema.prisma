@@ -134,6 +134,13 @@ enum TireCondition {
   USED
 }
 
+enum TireSeasonality {
+  SUMMER
+  WINTER
+  ALL_SEASON
+  ALL_WEATHER
+}
+
 enum PartSource {
   MANUAL
   PARTSTECH
@@ -701,6 +708,7 @@ model Shop {
   partMatrix   PartMatrixTier[]
   laborMatrix  LaborMatrixTier[]
   laborRates        LaborRate[]
+  shopLaborItems    ShopLaborItem[]
   feeTemplates      ShopFeeTemplate[]
   discountTemplates ShopDiscountTemplate[]
   leadSources       LeadSource[]
@@ -949,6 +957,7 @@ model CannedJob {
   shop       Shop                  @relation(fields: [shopId], references: [id], onDelete: Cascade)
   laborLines CannedJobLaborLine[]
   partLines  CannedJobPartLine[]
+  feeLines   CannedJobFeeLine[]
   maintenanceProgramServices MaintenanceProgramService[]
 
   @@index([shopId])
@@ -981,6 +990,23 @@ model CannedJobPartLine {
   costCents   Int     @default(0)
   quantity    Int     @default(1)
   sortOrder   Int     @default(0)
+
+  cannedJob CannedJob @relation(fields: [cannedJobId], references: [id], onDelete: Cascade)
+
+  @@index([cannedJobId])
+}
+
+model CannedJobFeeLine {
+  id          String       @id @default(cuid())
+  shopId      String
+  cannedJobId String
+  name        String
+  method      AdjustMethod @default(FIXED)
+  base        AdjustBase   @default(LABOR_PARTS)
+  amount      Int          @default(0) // bps if PERCENT, cents if FIXED
+  capCents    Int?
+  taxable     Boolean      @default(false)
+  sortOrder   Int          @default(0)
 
   cannedJob CannedJob @relation(fields: [cannedJobId], references: [id], onDelete: Cascade)
 
@@ -1026,6 +1052,28 @@ model LaborRate {
   shop Shop @relation(fields: [shopId], references: [id], onDelete: Cascade)
 
   @@index([shopId])
+}
+
+// Catalog → Labor. Shop-scoped labor line templates (Maintenance Labor, Inspection Labor, etc.)
+// picked when building canned jobs and estimate labor rows — not the platform Labor Guide corpus.
+model ShopLaborItem {
+  id            String   @id @default(cuid())
+  shopId        String
+  name          String
+  description   String?
+  rateCents     Int      @default(0)
+  defaultHours  Float    @default(1)
+  costCents     Int      @default(0)
+  taxable       Boolean  @default(true)
+  isActive      Boolean  @default(true)
+  sortOrder     Int      @default(0)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  shop Shop @relation(fields: [shopId], references: [id], onDelete: Cascade)
+
+  @@index([shopId])
+  @@index([shopId, isActive])
 }
 
 // RO Settings → Shop Fees. Reusable fee templates; `autoApply` ones are copied
@@ -1589,7 +1637,11 @@ model TireStock {
   brand           String
   model           String
   size            String
+  width           Int?
+  aspectRatio     Int?
+  rimDiameter     Int?
   loadSpeed       String?
+  seasonality     TireSeasonality?
   condition       TireCondition @default(NEW)
   quantityOnHand  Int           @default(0)
   reorderPoint    Int           @default(0)

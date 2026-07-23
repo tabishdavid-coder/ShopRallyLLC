@@ -22,6 +22,8 @@ import { formatCents } from "@/lib/format";
 import {
   TIRE_CONDITION_COLORS,
   TIRE_CONDITION_LABELS,
+  TIRE_SEASONALITY_COLORS,
+  TIRE_SEASONALITY_LABELS,
   tireStockLabel,
 } from "@/lib/tire-stock";
 import { cn } from "@/lib/utils";
@@ -95,6 +97,11 @@ export function TireStockDetailView({
               <Badge variant="secondary" className={TIRE_CONDITION_COLORS[tire.condition]}>
                 {TIRE_CONDITION_LABELS[tire.condition]}
               </Badge>
+              {tire.seasonality ? (
+                <Badge variant="secondary" className={TIRE_SEASONALITY_COLORS[tire.seasonality]}>
+                  {TIRE_SEASONALITY_LABELS[tire.seasonality]}
+                </Badge>
+              ) : null}
               {isLow ? (
                 <Badge variant="outline" className="border-brand-red/40 text-brand-red">
                   Low stock
@@ -134,6 +141,16 @@ export function TireStockDetailView({
         <DetailCard label="Reorder qty" value={String(tire.reorderQty)} />
         <DetailCard label="Bin" value={tire.binLocation ?? "—"} />
         <DetailCard label="Size" value={tire.size} />
+        {tire.width && tire.aspectRatio && tire.rimDiameter ? (
+          <DetailCard
+            label="Structured size"
+            value={`${tire.width} / ${tire.aspectRatio} / R${tire.rimDiameter}`}
+          />
+        ) : null}
+        <DetailCard
+          label="Seasonality"
+          value={tire.seasonality ? TIRE_SEASONALITY_LABELS[tire.seasonality] : "—"}
+        />
         <DetailCard label="Load / speed" value={tire.loadSpeed ?? "—"} />
         <DetailCard label="Cost" value={formatCents(tire.costCents)} />
         <DetailCard label="Retail" value={formatCents(tire.retailCents)} />
