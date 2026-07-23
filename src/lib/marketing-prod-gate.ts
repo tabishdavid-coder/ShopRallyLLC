@@ -18,6 +18,8 @@
 export const MARKETING_PUBLIC_PREFIXES = [
   "/",
   "/pricing",
+  /** Legacy preview URL — next.config 301 → /pricing; keep public so gate never blocks first. */
+  "/pricing-preview",
   "/features",
   "/integrations",
   "/compare",
