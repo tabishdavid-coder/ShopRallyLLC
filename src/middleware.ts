@@ -50,6 +50,8 @@ const isPublicRoute = createRouteMatcher([
   "/sites(.*)",
   "/api/webhooks(.*)",
   "/api/sites(.*)",
+  // Static lab prototypes (no CRM shell / Clerk) — e.g. taxonomy fitment mockup
+  "/lab(.*)",
 ]);
 
 function isCrmRoute(pathname: string): boolean {

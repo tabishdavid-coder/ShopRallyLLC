@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>ShopRally — Proprietary taxonomy &amp; fitment mockup</title>
+  <style>
+    :root {
+      --navy: #16588E;
+      --navy-deep: #0f3d63;
+      --light: #81C4FF;
+      --red: #E7222E;
+      --bg: #eef3f8;
+      --card: #ffffff;
+      --muted: #64748b;
+      --border: #d7e2ec;
+      --emerald: #059669;
+      --amber: #d97706;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: "Segoe UI", ui-sans-serif, system-ui, sans-serif;
+      background:
+        radial-gradient(1200px 500px at 10% -10%, rgba(129,196,255,0.35), transparent 55%),
+        radial-gradient(900px 400px at 90% 0%, rgba(22,88,142,0.12), transparent 50%),
+        var(--bg);
+      color: #0f172a;
+      min-height: 100vh;
+    }
+    .wrap { max-width: 1280px; margin: 0 auto; padding: 20px 16px 48px; }
+    .top {
+      display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-start;
+      justify-content: space-between; margin-bottom: 16px;
+    }
+    h1 { margin: 0; font-size: 22px; color: var(--navy); letter-spacing: -0.02em; }
+    .sub { margin: 4px 0 0; color: var(--muted); font-size: 13px; max-width: 720px; line-height: 1.45; }
+    .pill {
+      display: inline-flex; align-items: center; gap: 6px;
+      border: 1px solid rgba(22,88,142,0.25); background: rgba(129,196,255,0.15);
+      color: var(--navy); border-radius: 999px; padding: 4px 10px; font-size: 11px; font-weight: 700;
+    }
+    .scenarios { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0 16px; }
+    .scenario {
+      border: 1px solid var(--border); background: var(--card); border-radius: 10px;
+      padding: 10px 12px; text-align: left; cursor: pointer; min-width: 200px;
+    }
+    .scenario.active { background: var(--navy); border-color: var(--navy); color: #fff; }
+    .scenario strong { display: block; font-size: 12px; }
+    .scenario span { display: block; margin-top: 3px; font-size: 11px; opacity: 0.8; }
+    .grid {
+      display: grid; gap: 14px;
+      grid-template-columns: 1fr;
+    }
+    @media (min-width: 1100px) {
+      .grid { grid-template-columns: 1.05fr 1fr 1.1fr; }
+    }
+    .card {
+      background: var(--card); border: 1px solid var(--border); border-radius: 14px;
+      overflow: hidden; box-shadow: 0 8px 24px rgba(15, 61, 99, 0.06);
+    }
+    .hd {
+      display: flex; align-items: center; gap: 8px;
+      padding: 10px 14px; color: #fff; background: var(--navy);
+    }
+    .hd.slate { background: #1e293b; }
+    .hd.green { background: #047857; }
+    .hd h2 { margin: 0; font-size: 14px; }
+    .hd p { margin: 2px 0 0; font-size: 11px; opacity: 0.8; }
+    .body { padding: 14px; display: flex; flex-direction: column; gap: 12px; }
+    textarea {
+      width: 100%; min-height: 140px; resize: vertical;
+      border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px;
+      font: 12px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+      background: #f8fafc;
+    }
+    .note {
+      border: 1px dashed rgba(129,196,255,0.8); background: rgba(129,196,255,0.12);
+      border-radius: 10px; padding: 10px 12px; font-size: 11px; color: var(--navy);
+    }
+    button.primary {
+      border: 0; border-radius: 10px; background: var(--navy); color: #fff;
+      font-weight: 700; font-size: 13px; padding: 10px 14px; cursor: pointer;
+    }
+    button.primary:hover { background: var(--navy-deep); }
+    .box {
+      border: 1px solid var(--border); background: #f8fafc; border-radius: 10px; padding: 10px 12px;
+    }
+    .box .lbl {
+      font-size: 10px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted);
+    }
+    .box .val { margin-top: 4px; font-size: 14px; font-weight: 700; color: var(--navy); }
+    .box .meta { margin-top: 2px; font-size: 12px; color: var(--muted); }
+    .flags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+    .flag {
+      border: 1px solid rgba(22,88,142,0.25); background: rgba(22,88,142,0.06);
+      color: var(--navy); border-radius: 999px; padding: 3px 8px; font: 10px/1 ui-monospace, monospace; font-weight: 700;
+    }
+    .flag.red {
+      border-color: rgba(231,34,46,0.35); background: rgba(231,34,46,0.06); color: var(--red);
+    }
+    pre {
+      margin: 0; max-height: 180px; overflow: auto; border-radius: 10px;
+      background: #020617; color: #6ee7b7; padding: 12px;
+      font: 10px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    }
+    .steps { display: flex; flex-direction: column; gap: 8px; }
+    .step { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+    .badge {
+      width: 28px; height: 28px; border-radius: 8px; display: grid; place-items: center;
+      font-size: 10px; font-weight: 800; background: #e2e8f0; color: var(--muted);
+    }
+    .step.pass .badge { background: var(--emerald); color: #fff; }
+    .step.fail .badge { background: #cbd5e1; color: #64748b; text-decoration: line-through; }
+    .step.active .badge { background: var(--red); color: #fff; }
+    .step.pass .txt { color: #065f46; font-weight: 600; }
+    .step.active .txt { color: var(--red); font-weight: 600; }
+    .step.fail .txt, .step.skip .txt { color: var(--muted); }
+    .money {
+      display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; text-align: center;
+    }
+    .money > div { background: #f1f5f9; border-radius: 10px; padding: 12px 8px; }
+    .money .total { background: var(--navy); color: #fff; }
+    .money .k { font-size: 10px; font-weight: 800; text-transform: uppercase; opacity: 0.75; }
+    .money .v { margin-top: 4px; font: 700 18px/1.1 ui-monospace, monospace; }
+    .status {
+      margin-left: auto; border-radius: 999px; padding: 3px 8px; font-size: 10px; font-weight: 800;
+      background: rgba(255,255,255,0.18);
+    }
+    .warn {
+      border: 1px solid rgba(231,34,46,0.3); background: rgba(231,34,46,0.06);
+      color: var(--red); border-radius: 10px; padding: 10px; font-size: 12px;
+    }
+    .ok { color: #065f46; font-size: 13px; }
+    .amber { color: #92400e; font-size: 13px; }
+    code.cat {
+      display: block; margin-top: 8px; background: #f1f5f9; border-radius: 8px;
+      padding: 8px 10px; font: 11px ui-monospace, monospace;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="top">
+      <div>
+        <span class="pill">Standalone lab · no CRM login</span>
+        <h1>Self-generating taxonomy &amp; fitment</h1>
+        <p class="sub">
+          Intent parse → labor fallback (L0–L2) → parts placeholder → Texarkana rate billing.
+          Open this file via <strong>/lab/proprietary-taxonomy.html</strong> — no Clerk / shop shell required.
+        </p>
+      </div>
+    </div>
+
+    <div class="scenarios" id="scenarios"></div>
+
+    <div class="grid">
+      <section class="card">
+        <div class="hd">
+          <div>
+            <h2>Technician notes</h2>
+            <p>Unstructured input → intent only</p>
+          </div>
+        </div>
+        <div class="body">
+          <textarea id="notes"></textarea>
+          <div class="note">
+            <strong>Trust boundary:</strong> parser may emit vehicle + allow-listed operation keys + variant flags.
+            It cannot set hours, rates, or invoice totals.
+          </div>
+          <button class="primary" id="resolveBtn" type="button">Parse intent &amp; resolve quote</button>
+        </div>
+      </section>
+
+      <section class="card">
+        <div class="hd slate">
+          <div>
+            <h2>Intent middleware output</h2>
+            <p id="confidenceLine">Structured JSON only</p>
+          </div>
+        </div>
+        <div class="body">
+          <div class="box">
+            <div class="lbl">Vehicle</div>
+            <div class="val" id="vehicleTitle">—</div>
+            <div class="meta" id="vehicleMeta">—</div>
+          </div>
+          <div class="box">
+            <div class="lbl">Target operations</div>
+            <div class="meta" id="opsList" style="font-family:ui-monospace,monospace;color:#0f172a"></div>
+            <div id="rejected" style="margin-top:6px;color:var(--red);font-size:11px"></div>
+          </div>
+          <div class="box">
+            <div class="lbl">Variant / position flags</div>
+            <div class="flags" id="flags"></div>
+          </div>
+          <pre id="jsonOut">{}</pre>
+        </div>
+      </section>
+
+      <section style="display:flex;flex-direction:column;gap:14px">
+        <div class="card">
+          <div class="hd">
+            <div>
+              <h2>Dynamic resolution</h2>
+              <p>Lookup chain provenance</p>
+            </div>
+            <span class="status" id="pathBadge">—</span>
+          </div>
+          <div class="body">
+            <div class="steps" id="steps"></div>
+            <div class="meta" id="seedLine" style="font-size:12px;color:var(--muted)"></div>
+            <div id="pendingWarn" class="warn" style="display:none"></div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="hd green">
+            <div>
+              <h2>Unalterable labor total</h2>
+              <p>texarkana · $135.00/hr (13500¢)</p>
+            </div>
+          </div>
+          <div class="body">
+            <div class="money" id="money">
+              <div><div class="k">Hours</div><div class="v" id="mHours">—</div></div>
+              <div><div class="k">Rate</div><div class="v" id="mRate">—</div></div>
+              <div class="total"><div class="k">Total</div><div class="v" id="mTotal">—</div></div>
+            </div>
+            <div style="font-size:11px;color:var(--muted)">Hours from labor_time_matrix · rate from shop preset · never from LLM</div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="hd" style="background:#fff;color:var(--navy);border-bottom:1px solid var(--border)">
+            <div>
+              <h2>Parts fitment</h2>
+              <p style="color:var(--muted)">P0 hit → P1 placeholder → scrape</p>
+            </div>
+            <span class="status" id="partsBadge" style="background:rgba(22,88,142,0.1);color:var(--navy)">—</span>
+          </div>
+          <div class="body">
+            <div id="partsBody"></div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <script>
+    const ALLOW = [
+      "BRAKES.FRONT.PADS.R_AND_R",
+      "BRAKES.FRONT.ROTORS.R_AND_R",
+      "BRAKES.REAR.PADS.R_AND_R",
+      "ENGINE.OIL.FILTER.REPLACE",
+    ];
+
+    const MULTIPLIERS = {
+      INLINE_4_OPEN: {
+        INLINE_4_OPEN: 1,
+        INLINE_4_PACKED: 1.1,
+        V6_MODERATE: 1.15,
+        V6_TIGHT: 1.28,
+        EV_SKATEBOARD: 1.4,
+      },
+    };
+
+    const SCENARIOS = [
+      {
+        id: "accord-pads-miss",
+        label: "Accord pads — L2 inherit",
+        blurb: "Cold fitment + chassis scale (I4 open → packed ×1.10)",
+        notes: "swapped out front pads on a 15 accord 2.4 and check if he needs the premium variant",
+        intent: {
+          vehicle: { year: 2015, make: "Honda", model: "Accord", engine_configuration: "2.4L", trim: null, drive_type: null },
+          target_operation_keys: ["BRAKES.FRONT.PADS.R_AND_R"],
+          parts_variant_flags: ["premium"],
+          position_hints: ["FRONT"],
+          confidence: 0.91,
+          unresolved_tokens: [],
+        },
+        chassis: "INLINE_4_PACKED",
+        seed: { label: "2012 Honda Civic 1.8L I4 (seed)", chassis: "INLINE_4_OPEN", factoryHours: 1.0 },
+      },
+      {
+        id: "civic-exact",
+        label: "Civic pads — L0 exact",
+        blurb: "Historical matrix hit; no interpolation",
+        notes: "front brake pads r&r on 2012 civic 1.8",
+        intent: {
+          vehicle: { year: 2012, make: "Honda", model: "Civic", engine_configuration: "1.8L I4", trim: null, drive_type: "FWD" },
+          target_operation_keys: ["BRAKES.FRONT.PADS.R_AND_R"],
+          parts_variant_flags: ["ceramic"],
+          position_hints: ["FRONT"],
+          confidence: 0.96,
+          unresolved_tokens: [],
+        },
+        chassis: "INLINE_4_OPEN",
+        exactHit: { factoryHours: 1.0 },
+      },
+      {
+        id: "cold-pending",
+        label: "Unknown config — L4 pending",
+        blurb: "No seed neighbor → human/catalog queue",
+        notes: "rear pads on a 2024 rivian r1t dual motor — need premium ceramic",
+        intent: {
+          vehicle: { year: 2024, make: "Rivian", model: "R1T", engine_configuration: "Dual Motor", trim: null, drive_type: "AWD" },
+          target_operation_keys: ["BRAKES.REAR.PADS.R_AND_R", "FAKE.OP.FROM.MODEL"],
+          parts_variant_flags: ["premium", "ceramic"],
+          position_hints: ["REAR"],
+          confidence: 0.62,
+          unresolved_tokens: [],
+        },
+        chassis: "EV_SKATEBOARD",
+      },
+    ];
+
+    let activeId = SCENARIOS[0].id;
+
+    function money(cents) {
+      return "$" + (cents / 100).toFixed(2);
+    }
+
+    function partsCategory(opKey, flags, positions) {
+      const pos = (positions.find((p) => ["FRONT", "REAR"].includes(p)) || "ALL");
+      const material = flags.includes("ceramic") ? "CERAMIC" : "STANDARD";
+      const tier = flags.includes("premium") ? "PREMIUM" : flags.includes("economy") ? "ECONOMY" : "STANDARD";
+      if (opKey.endsWith(".PADS.R_AND_R")) return `BRAKE_PAD_${pos}_${material}_${tier}`;
+      if (opKey.endsWith(".ROTORS.R_AND_R")) return `BRAKE_ROTOR_${pos}_${tier}`;
+      return null;
+    }
+
+    function resolve(scenario) {
+      const intent = structuredClone(scenario.intent);
+      const kept = [];
+      const rejected = [];
+      for (const k of intent.target_operation_keys) {
+        (ALLOW.includes(k) ? kept : rejected).push(k);
+      }
+      intent.target_operation_keys = kept;
+      intent.unresolved_tokens = [...intent.unresolved_tokens, ...rejected];
+
+      const steps = [
+        { id: "L0", label: "L0 Exact matrix", state: "skip" },
+        { id: "L1", label: "L1 Vector neighbor", state: "skip" },
+        { id: "L2", label: "L2 Chassis scale", state: "skip" },
+        { id: "L4", label: "L4 Pending review", state: "skip" },
+      ];
+
+      let path = "L4_PENDING";
+      let hours = null;
+      let multiplier = null;
+      let seedLabel = null;
+
+      if (scenario.exactHit) {
+        steps[0].state = "pass";
+        path = "L0_EXACT";
+        hours = scenario.exactHit.factoryHours;
+        multiplier = 1;
+        seedLabel = `${intent.vehicle.year} ${intent.vehicle.make} ${intent.vehicle.model}`;
+      } else if (scenario.seed) {
+        steps[0].state = "fail";
+        steps[1].state = "fail";
+        const m = MULTIPLIERS[scenario.seed.chassis]?.[scenario.chassis];
+        if (m != null) {
+          steps[2].state = "pass";
+          path = "L2_CHASSIS";
+          multiplier = m;
+          hours = Math.round(scenario.seed.factoryHours * m * 1000) / 1000;
+          seedLabel = scenario.seed.label;
+        } else {
+          steps[2].state = "fail";
+          steps[3].state = "active";
+        }
+      } else {
+        steps[0].state = "fail";
+        steps[1].state = "fail";
+        steps[2].state = "fail";
+        steps[3].state = "active";
+      }
+
+      const rateCents = 13500;
+      const laborTotalCents = hours == null ? null : Math.round(hours * rateCents);
+      const opKey = kept[0] || "";
+      const cat = opKey ? partsCategory(opKey, intent.parts_variant_flags, intent.position_hints) : null;
+      let partsStatus = "PENDING_REVIEW";
+      if (scenario.id === "civic-exact") partsStatus = "HIT";
+      else if (cat && path !== "L4_PENDING") partsStatus = "PLACEHOLDER_ENQUEUED";
+
+      return { intent, rejected, steps, path, hours, multiplier, seedLabel, rateCents, laborTotalCents, cat, partsStatus };
+    }
+
+    function renderScenarios() {
+      const root = document.getElementById("scenarios");
+      root.innerHTML = "";
+      for (const s of SCENARIOS) {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "scenario" + (s.id === activeId ? " active" : "");
+        btn.innerHTML = `<strong>${s.label}</strong><span>${s.blurb}</span>`;
+        btn.onclick = () => {
+          activeId = s.id;
+          document.getElementById("notes").value = s.notes;
+          renderScenarios();
+          paint(resolve(s));
+        };
+        root.appendChild(btn);
+      }
+    }
+
+    function paint(r) {
+      const v = r.intent.vehicle;
+      document.getElementById("confidenceLine").textContent =
+        `Structured JSON only — confidence ${Math.round(r.intent.confidence * 100)}%`;
+      document.getElementById("vehicleTitle").textContent = `${v.year} ${v.make} ${v.model}`;
+      const scenario = SCENARIOS.find((s) => s.id === activeId);
+      document.getElementById("vehicleMeta").textContent =
+        `${v.engine_configuration || "—"} · chassis ${scenario.chassis}`;
+      document.getElementById("opsList").innerHTML =
+        r.intent.target_operation_keys.map((k) => `<div>${k}</div>`).join("") || "None after allow-list gate";
+      document.getElementById("rejected").textContent =
+        r.rejected.length ? `Rejected: ${r.rejected.join(", ")}` : "";
+      const flags = document.getElementById("flags");
+      flags.innerHTML = "";
+      for (const f of r.intent.parts_variant_flags) {
+        const el = document.createElement("span");
+        el.className = "flag";
+        el.textContent = f;
+        flags.appendChild(el);
+      }
+      for (const p of r.intent.position_hints) {
+        const el = document.createElement("span");
+        el.className = "flag red";
+        el.textContent = p;
+        flags.appendChild(el);
+      }
+      document.getElementById("jsonOut").textContent = JSON.stringify(r.intent, null, 2);
+
+      document.getElementById("pathBadge").textContent = r.path;
+      document.getElementById("steps").innerHTML = r.steps.map((s) =>
+        `<div class="step ${s.state}"><div class="badge">${s.id}</div><div class="txt">${s.label}</div></div>`
+      ).join("");
+
+      const seedLine = document.getElementById("seedLine");
+      if (r.seedLabel) {
+        seedLine.textContent = r.multiplier && r.multiplier !== 1
+          ? `Seed: ${r.seedLabel} → ×${r.multiplier.toFixed(2)} → ${r.hours.toFixed(3)} hr`
+          : `Seed: ${r.seedLabel}`;
+      } else seedLine.textContent = "";
+
+      const warn = document.getElementById("pendingWarn");
+      if (r.path === "L4_PENDING") {
+        warn.style.display = "block";
+        warn.textContent = "No vector neighbor or chassis multiplier seed — queued for catalog curation. Billing blocked.";
+      } else warn.style.display = "none";
+
+      document.getElementById("mHours").textContent = r.hours == null ? "—" : r.hours.toFixed(2);
+      document.getElementById("mRate").textContent = money(r.rateCents);
+      document.getElementById("mTotal").textContent = r.laborTotalCents == null ? "—" : money(r.laborTotalCents);
+
+      document.getElementById("partsBadge").textContent = r.partsStatus;
+      const pb = document.getElementById("partsBody");
+      if (r.partsStatus === "HIT") {
+        pb.innerHTML = `<div class="ok">✓ Cached SKU on vehicle_part_fitment (demo axle set)</div>`;
+      } else if (r.partsStatus === "PLACEHOLDER_ENQUEUED") {
+        pb.innerHTML = `<div class="amber">No fitment row — enqueued low-cost supplier sweep</div><code class="cat">${r.cat}</code>`;
+      } else {
+        pb.innerHTML = `<div style="color:var(--muted);font-size:13px">Parts resolution held until labor seed exists or curator maps category.</div>`;
+      }
+    }
+
+    const first = SCENARIOS[0];
+    document.getElementById("notes").value = first.notes;
+    renderScenarios();
+    paint(resolve(first));
+
+    document.getElementById("resolveBtn").onclick = () => {
+      const scenario = SCENARIOS.find((s) => s.id === activeId);
+      paint(resolve(scenario));
+    };
+  </script>
+</body>
+</html>

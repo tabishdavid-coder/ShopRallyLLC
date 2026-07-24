@@ -14,7 +14,8 @@
 | Labor resolve L0→L1→L2→L4 | `src/server/services/proprietary-taxonomy/labor-resolver.ts` |
 | Quote pipeline (intent → labor + parts + bill) | `src/server/services/proprietary-taxonomy/quote-pipeline.ts` |
 | Smoke test | `npm run test:proprietary-taxonomy` |
-| Design-review mockup | `/design-review/proprietary-taxonomy` |
+| Standalone lab mockup (no login) | `/lab/proprietary-taxonomy.html` |
+| Design-review iframe shell | `/design-review/proprietary-taxonomy` |
 
 ## Not yet (next expand-only slice)
 

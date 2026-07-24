@@ -4,7 +4,8 @@ Production blueprint for a **self-generating**, commercial-API-independent autom
 
 Start here: **[ARCHITECTURE.md](./ARCHITECTURE.md)** · implementation status: **[IMPLEMENTATION.md](./IMPLEMENTATION.md)**
 
-**UI mockup (review):** `/design-review/proprietary-taxonomy` on Dev 3031
+**UI mockup (review — no login):** `/lab/proprietary-taxonomy.html`  
+CRM shell iframe (optional): `/design-review/proprietary-taxonomy`
 
 | Deliverable | Location |
 |-------------|----------|

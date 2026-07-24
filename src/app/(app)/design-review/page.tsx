@@ -66,10 +66,10 @@ const TASKS: {
   },
   {
     title: "Proprietary taxonomy & fitment",
-    href: "/design-review/proprietary-taxonomy",
+    href: "/lab/proprietary-taxonomy.html",
     status: "review" as const,
     description:
-      "Intent → L0/L1/L2 labor resolve → parts placeholder → Texarkana rate billing (mock).",
+      "Standalone lab (no login) — intent → L0/L2 resolve → parts placeholder → Texarkana billing.",
   },
 ];
 
