@@ -182,18 +182,41 @@ def scrape_toyota(year: int, model: str, engine: str | None, limiter: RateLimite
 
 
 def _synthetic_brake_engine_tree(make: str) -> tuple[list[list[str]], list[dict[str, str]]]:
+    """Broad demo hierarchy when fixtures / live scrape are unavailable."""
     paths = [
         ["Brakes", "Front", "Pads", "Remove & Replace"],
         ["Brakes", "Front", "Rotors", "Remove & Replace"],
+        ["Brakes", "Front", "Caliper", "Remove & Replace"],
         ["Brakes", "Rear", "Pads", "Remove & Replace"],
+        ["Brakes", "Hydraulic", "Brake Fluid", "Flush"],
         ["Engine", "Lubrication", "Oil Filter", "Replace"],
+        ["Engine", "Cooling", "Thermostat", "Remove & Replace"],
+        ["Engine", "Cooling", "Water Pump", "Remove & Replace"],
+        ["Engine", "Ignition", "Spark Plugs", "Replace"],
+        ["Engine", "Timing", "Timing Belt", "Remove & Replace"],
         ["Suspension", "Front", "Strut", "Remove & Replace"],
+        ["Suspension", "Front", "Control Arm", "Remove & Replace"],
+        ["Suspension", "Front", "Ball Joint", "Remove & Replace"],
+        ["Suspension", "Rear", "Shock", "Remove & Replace"],
+        ["Steering", "Linkage", "Outer Tie Rod", "Remove & Replace"],
+        ["Steering", "Power Assist", "Rack & Pinion", "Remove & Replace"],
+        ["Drivetrain", "Transmission", "ATF Fluid", "Flush"],
+        ["Drivetrain", "Axle", "CV Axle", "Remove & Replace"],
+        ["Electrical", "Charging", "Alternator", "Remove & Replace"],
+        ["Electrical", "Charging", "Battery", "Replace"],
+        ["Electrical", "Starting", "Starter", "Remove & Replace"],
+        ["HVAC", "A/C", "Compressor", "Remove & Replace"],
+        ["HVAC", "Heating", "Heater Core", "Remove & Replace"],
+        ["Exhaust", "System", "Catalytic Converter", "Remove & Replace"],
+        ["Exhaust", "System", "O2 Sensor", "Remove & Replace"],
     ]
     prefix = "HON" if make.lower() == "honda" else "TOY"
     parts = [
         {"part_number": f"{prefix}-PAD-F-45022", "description": "Front brake pad set"},
         {"part_number": f"{prefix}-ROT-F-45251", "description": "Front rotor"},
         {"part_number": f"{prefix}-OIL-FLTR", "description": "Oil filter"},
+        {"part_number": f"{prefix}-ALT-31100", "description": "Alternator"},
+        {"part_number": f"{prefix}-CV-AXLE", "description": "CV axle"},
     ]
     return paths, parts
 

@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>ShopRally Lab — Proprietary Labor Guide (standalone)</title>
+  <title>Tabish Friday Labor — Proprietary Labor Guide</title>
   <style>
     :root {
       --navy: #16588E;
@@ -204,10 +204,10 @@
 </head>
 <body>
   <div class="test-bar">
-    <strong>STANDALONE LAB</strong>
+    <strong>TABISH FRIDAY LABOR</strong>
     <span class="sep">|</span>
-    <span>Proprietary Labor Guide mock — not wired to live CRM / MOTOR / Prisma</span>
-    <span class="note">Fixture data only · Texarkana rate $135/hr demo</span>
+    <span>Self-correcting Labor Guide — standalone lab (not wired to ShopRally CRM / MOTOR)</span>
+    <span class="note">Fixture data · Albany/Capital Region $145/hr</span>
   </div>
 
   <div class="shell">
@@ -217,12 +217,12 @@
           <div class="vehicle">
             <span id="vehicleLabel">2015 Honda Accord · 2.4L</span>
             <select id="vehicleSelect" aria-label="Demo vehicle">
-              <option value="accord">2015 Honda Accord · 2.4L (INLINE_4_PACKED)</option>
-              <option value="civic">2012 Honda Civic · 1.8L I4 (INLINE_4_OPEN)</option>
-              <option value="rivian">2024 Rivian R1T · Dual Motor (EV_SKATEBOARD)</option>
+              <option value="accord">2015 Honda Accord · 2.4L (tier 2)</option>
+              <option value="civic">2012 Honda Civic · 1.8L I4 (tier 1)</option>
+              <option value="rivian">2024 Rivian R1T · Dual Motor (tier 5)</option>
             </select>
           </div>
-          <div class="meta" id="chassisMeta">Chassis tier: INLINE_4_PACKED · shop rate Texarkana $135.00/hr</div>
+          <div class="meta" id="chassisMeta">Chassis tier: 2 · shop rate Albany/Capital Region $145.00/hr</div>
         </div>
         <div class="meta">Proprietary taxonomy browse · clicks <span id="clicks">0</span></div>
       </div>
@@ -264,7 +264,7 @@
             </div>
             <div>
               <div class="lbl">Rate</div>
-              <div class="num">$135</div>
+              <div class="num">$145</div>
             </div>
             <div class="big">
               <div class="lbl">Labor total</div>
@@ -272,48 +272,47 @@
             </div>
           </div>
           <button class="primary" id="addEstimate" type="button" disabled>Add to estimate (mock)</button>
-          <div class="trust">Billing math is local to this HTML file. No CRM write path. Hours come from fixture matrix / chassis scale — never from a live model API.</div>
+          <div class="trust">Tabish Friday Labor — billing math is local to this lab. No CRM write path. Hours from fixture matrix / chassis scale — never from MOTOR/ALLDATA or LLM.</div>
         </div>
       </aside>
     </div>
   </div>
 
   <script>
-    const RATE_CENTS = 13500;
+    const RATE_CENTS = 14500; // Albany/Capital Region $145.00
 
     const VEHICLES = {
       accord: {
         label: "2015 Honda Accord · 2.4L",
-        chassis: "INLINE_4_PACKED",
-        seedChassis: "INLINE_4_OPEN",
+        chassis: "2",
+        seedChassis: "1",
         seedHours: 1.0,
         mode: "L2", // miss exact → chassis scale
       },
       civic: {
         label: "2012 Honda Civic · 1.8L I4",
-        chassis: "INLINE_4_OPEN",
-        seedChassis: "INLINE_4_OPEN",
+        chassis: "1",
+        seedChassis: "1",
         seedHours: 1.0,
         mode: "L0",
       },
       rivian: {
         label: "2024 Rivian R1T · Dual Motor",
-        chassis: "EV_SKATEBOARD",
-        seedChassis: "INLINE_4_OPEN",
+        chassis: "5",
+        seedChassis: "1",
         seedHours: 1.0,
-        mode: "L4", // no multiplier row in demo → pending
+        mode: "L2", // 1→5 multiplier 1.45
       },
     };
 
+    // Matches sql/schema.sql chassis_multipliers seed (from tier 1)
     const MULTIPLIERS = {
-      INLINE_4_OPEN: {
-        INLINE_4_OPEN: 1,
-        INLINE_4_PACKED: 1.1,
-        V6_TIGHT: 1.28,
-        EV_SKATEBOARD: 1.4,
-      },
+      "1": { "1": 1, "2": 1.05, "3": 1.18, "4": 1.3, "5": 1.45 },
+      "2": { "1": 0.95, "2": 1, "3": 1.12, "4": 1.22, "5": 1.35 },
     };
 
+    // Full demo taxonomy: Main System → Sub-System → Component
+    // (Action selected via pills: R&R / Replace / Inspect / Flush / Diagnose)
     const TREE = [
       {
         id: "BRAKES",
@@ -325,6 +324,7 @@
             comps: [
               { id: "BRAKES.FRONT.PADS", label: "Pads" },
               { id: "BRAKES.FRONT.ROTORS", label: "Rotors" },
+              { id: "BRAKES.FRONT.CALIPER", label: "Caliper" },
             ],
           },
           {
@@ -333,6 +333,15 @@
             comps: [
               { id: "BRAKES.REAR.PADS", label: "Pads" },
               { id: "BRAKES.REAR.ROTORS", label: "Rotors" },
+              { id: "BRAKES.REAR.SHOES", label: "Shoes / drums" },
+            ],
+          },
+          {
+            id: "BRAKES.HYDRAULIC",
+            label: "Hydraulic",
+            comps: [
+              { id: "BRAKES.HYDRAULIC.FLUID", label: "Brake fluid" },
+              { id: "BRAKES.HYDRAULIC.MASTER", label: "Master cylinder" },
             ],
           },
         ],
@@ -342,9 +351,171 @@
         label: "Engine",
         subs: [
           {
-            id: "ENGINE.OIL",
-            label: "Oil service",
-            comps: [{ id: "ENGINE.OIL.FILTER", label: "Oil & filter" }],
+            id: "ENGINE.LUBE",
+            label: "Lubrication",
+            comps: [
+              { id: "ENGINE.LUBE.OIL_FILTER", label: "Oil & filter" },
+              { id: "ENGINE.LUBE.PAN_GASKET", label: "Oil pan gasket" },
+            ],
+          },
+          {
+            id: "ENGINE.COOLING",
+            label: "Cooling",
+            comps: [
+              { id: "ENGINE.COOLING.THERMOSTAT", label: "Thermostat" },
+              { id: "ENGINE.COOLING.WATER_PUMP", label: "Water pump" },
+              { id: "ENGINE.COOLING.RADIATOR", label: "Radiator" },
+            ],
+          },
+          {
+            id: "ENGINE.IGNITION",
+            label: "Ignition",
+            comps: [
+              { id: "ENGINE.IGNITION.SPARK_PLUGS", label: "Spark plugs" },
+              { id: "ENGINE.IGNITION.COILS", label: "Ignition coils" },
+            ],
+          },
+          {
+            id: "ENGINE.TIMING",
+            label: "Timing",
+            comps: [
+              { id: "ENGINE.TIMING.BELT", label: "Timing belt" },
+              { id: "ENGINE.TIMING.CHAIN", label: "Timing chain" },
+            ],
+          },
+        ],
+      },
+      {
+        id: "SUSPENSION",
+        label: "Suspension",
+        subs: [
+          {
+            id: "SUSPENSION.FRONT",
+            label: "Front",
+            comps: [
+              { id: "SUSPENSION.FRONT.STRUT", label: "Strut / assembly" },
+              { id: "SUSPENSION.FRONT.CONTROL_ARM", label: "Control arm" },
+              { id: "SUSPENSION.FRONT.BALL_JOINT", label: "Ball joint" },
+              { id: "SUSPENSION.FRONT.SWAY_LINK", label: "Sway bar link" },
+            ],
+          },
+          {
+            id: "SUSPENSION.REAR",
+            label: "Rear",
+            comps: [
+              { id: "SUSPENSION.REAR.SHOCK", label: "Shock" },
+              { id: "SUSPENSION.REAR.SPRING", label: "Spring" },
+            ],
+          },
+        ],
+      },
+      {
+        id: "STEERING",
+        label: "Steering",
+        subs: [
+          {
+            id: "STEERING.LINKAGE",
+            label: "Linkage",
+            comps: [
+              { id: "STEERING.LINKAGE.TIE_ROD", label: "Outer tie rod" },
+              { id: "STEERING.LINKAGE.INNER_TIE_ROD", label: "Inner tie rod" },
+            ],
+          },
+          {
+            id: "STEERING.POWER",
+            label: "Power assist",
+            comps: [
+              { id: "STEERING.POWER.RACK", label: "Rack & pinion" },
+              { id: "STEERING.POWER.PUMP", label: "Power steering pump" },
+            ],
+          },
+        ],
+      },
+      {
+        id: "DRIVETRAIN",
+        label: "Drivetrain",
+        subs: [
+          {
+            id: "DRIVETRAIN.TRANSMISSION",
+            label: "Transmission",
+            comps: [
+              { id: "DRIVETRAIN.TRANSMISSION.FLUID", label: "ATF / fluid service" },
+              { id: "DRIVETRAIN.TRANSMISSION.FILTER", label: "Trans filter" },
+              { id: "DRIVETRAIN.TRANSMISSION.MOUNT", label: "Trans mount" },
+            ],
+          },
+          {
+            id: "DRIVETRAIN.AXLE",
+            label: "Axle",
+            comps: [
+              { id: "DRIVETRAIN.AXLE.CV_AXLE", label: "CV axle" },
+              { id: "DRIVETRAIN.AXLE.WHEEL_BEARING", label: "Wheel bearing" },
+            ],
+          },
+        ],
+      },
+      {
+        id: "ELECTRICAL",
+        label: "Electrical",
+        subs: [
+          {
+            id: "ELECTRICAL.CHARGING",
+            label: "Charging",
+            comps: [
+              { id: "ELECTRICAL.CHARGING.ALTERNATOR", label: "Alternator" },
+              { id: "ELECTRICAL.CHARGING.BATTERY", label: "Battery" },
+            ],
+          },
+          {
+            id: "ELECTRICAL.STARTING",
+            label: "Starting",
+            comps: [{ id: "ELECTRICAL.STARTING.STARTER", label: "Starter" }],
+          },
+          {
+            id: "ELECTRICAL.LIGHTING",
+            label: "Lighting",
+            comps: [
+              { id: "ELECTRICAL.LIGHTING.HEADLAMP", label: "Headlamp bulb" },
+              { id: "ELECTRICAL.LIGHTING.TAIL_LAMP", label: "Tail lamp" },
+            ],
+          },
+        ],
+      },
+      {
+        id: "HVAC",
+        label: "HVAC",
+        subs: [
+          {
+            id: "HVAC.AC",
+            label: "A/C",
+            comps: [
+              { id: "HVAC.AC.COMPRESSOR", label: "Compressor" },
+              { id: "HVAC.AC.CONDENSER", label: "Condenser" },
+              { id: "HVAC.AC.RECHARGE", label: "Recharge / performance" },
+            ],
+          },
+          {
+            id: "HVAC.HEATING",
+            label: "Heating",
+            comps: [
+              { id: "HVAC.HEATING.HEATER_CORE", label: "Heater core" },
+              { id: "HVAC.HEATING.BLOWER", label: "Blower motor" },
+            ],
+          },
+        ],
+      },
+      {
+        id: "EXHAUST",
+        label: "Exhaust",
+        subs: [
+          {
+            id: "EXHAUST.SYSTEM",
+            label: "System",
+            comps: [
+              { id: "EXHAUST.SYSTEM.CATALYST", label: "Catalytic converter" },
+              { id: "EXHAUST.SYSTEM.MUFFLER", label: "Muffler" },
+              { id: "EXHAUST.SYSTEM.O2_SENSOR", label: "O2 sensor" },
+            ],
           },
         ],
       },
@@ -354,22 +525,76 @@
       { id: "R_AND_R", label: "R&R" },
       { id: "REPLACE", label: "Replace" },
       { id: "INSPECT", label: "Inspect" },
+      { id: "FLUSH", label: "Flush" },
+      { id: "DIAGNOSE", label: "Diagnose" },
     ];
 
     const JOB_DEFS = [
+      // Brakes
       { comp: "BRAKES.FRONT.PADS", action: "R_AND_R", name: "Brake Pads — Remove & Replace", pos: "FRONT", base: 1.0, flags: ["premium"] },
       { comp: "BRAKES.FRONT.PADS", action: "INSPECT", name: "Brake Pads — Inspect", pos: "FRONT", base: 0.3, flags: [] },
       { comp: "BRAKES.FRONT.ROTORS", action: "R_AND_R", name: "Brake Rotors — Remove & Replace", pos: "FRONT", base: 1.4, flags: ["coated"] },
+      { comp: "BRAKES.FRONT.CALIPER", action: "R_AND_R", name: "Brake Caliper — Remove & Replace", pos: "FRONT", base: 1.6, flags: [] },
       { comp: "BRAKES.REAR.PADS", action: "R_AND_R", name: "Brake Pads — Remove & Replace", pos: "REAR", base: 1.1, flags: ["ceramic", "premium"] },
       { comp: "BRAKES.REAR.ROTORS", action: "R_AND_R", name: "Brake Rotors — Remove & Replace", pos: "REAR", base: 1.5, flags: [] },
-      { comp: "ENGINE.OIL.FILTER", action: "REPLACE", name: "Engine Oil & Filter — Replace", pos: "ALL", base: 0.5, flags: ["oem"] },
+      { comp: "BRAKES.REAR.SHOES", action: "R_AND_R", name: "Brake Shoes — Remove & Replace", pos: "REAR", base: 1.8, flags: [] },
+      { comp: "BRAKES.HYDRAULIC.FLUID", action: "FLUSH", name: "Brake Fluid — Flush & Bleed", pos: "ALL", base: 0.8, flags: [] },
+      { comp: "BRAKES.HYDRAULIC.MASTER", action: "R_AND_R", name: "Master Cylinder — Remove & Replace", pos: "ALL", base: 2.2, flags: [] },
+      // Engine
+      { comp: "ENGINE.LUBE.OIL_FILTER", action: "REPLACE", name: "Engine Oil & Filter — Replace", pos: "ALL", base: 0.5, flags: ["oem"] },
+      { comp: "ENGINE.LUBE.PAN_GASKET", action: "R_AND_R", name: "Oil Pan Gasket — Remove & Replace", pos: "ALL", base: 3.5, flags: [] },
+      { comp: "ENGINE.COOLING.THERMOSTAT", action: "R_AND_R", name: "Thermostat — Remove & Replace", pos: "ALL", base: 1.2, flags: [] },
+      { comp: "ENGINE.COOLING.WATER_PUMP", action: "R_AND_R", name: "Water Pump — Remove & Replace", pos: "ALL", base: 2.8, flags: [] },
+      { comp: "ENGINE.COOLING.RADIATOR", action: "R_AND_R", name: "Radiator — Remove & Replace", pos: "ALL", base: 2.4, flags: [] },
+      { comp: "ENGINE.IGNITION.SPARK_PLUGS", action: "REPLACE", name: "Spark Plugs — Replace", pos: "ALL", base: 1.0, flags: ["iridium"] },
+      { comp: "ENGINE.IGNITION.COILS", action: "R_AND_R", name: "Ignition Coil — Remove & Replace", pos: "ALL", base: 0.7, flags: [] },
+      { comp: "ENGINE.TIMING.BELT", action: "R_AND_R", name: "Timing Belt — Remove & Replace", pos: "ALL", base: 4.5, flags: [] },
+      { comp: "ENGINE.TIMING.CHAIN", action: "R_AND_R", name: "Timing Chain — Remove & Replace", pos: "ALL", base: 8.0, flags: [] },
+      // Suspension
+      { comp: "SUSPENSION.FRONT.STRUT", action: "R_AND_R", name: "Front Strut Assembly — Remove & Replace", pos: "FRONT", base: 1.8, flags: [] },
+      { comp: "SUSPENSION.FRONT.CONTROL_ARM", action: "R_AND_R", name: "Control Arm — Remove & Replace", pos: "FRONT", base: 1.5, flags: [] },
+      { comp: "SUSPENSION.FRONT.BALL_JOINT", action: "R_AND_R", name: "Ball Joint — Remove & Replace", pos: "FRONT", base: 1.3, flags: [] },
+      { comp: "SUSPENSION.FRONT.SWAY_LINK", action: "R_AND_R", name: "Sway Bar Link — Remove & Replace", pos: "FRONT", base: 0.6, flags: [] },
+      { comp: "SUSPENSION.REAR.SHOCK", action: "R_AND_R", name: "Rear Shock — Remove & Replace", pos: "REAR", base: 1.0, flags: [] },
+      { comp: "SUSPENSION.REAR.SPRING", action: "R_AND_R", name: "Rear Spring — Remove & Replace", pos: "REAR", base: 1.4, flags: [] },
+      // Steering
+      { comp: "STEERING.LINKAGE.TIE_ROD", action: "R_AND_R", name: "Outer Tie Rod — Remove & Replace", pos: "FRONT", base: 0.8, flags: [] },
+      { comp: "STEERING.LINKAGE.INNER_TIE_ROD", action: "R_AND_R", name: "Inner Tie Rod — Remove & Replace", pos: "FRONT", base: 1.6, flags: [] },
+      { comp: "STEERING.POWER.RACK", action: "R_AND_R", name: "Steering Rack — Remove & Replace", pos: "ALL", base: 3.8, flags: [] },
+      { comp: "STEERING.POWER.PUMP", action: "R_AND_R", name: "Power Steering Pump — Remove & Replace", pos: "ALL", base: 1.9, flags: [] },
+      // Drivetrain
+      { comp: "DRIVETRAIN.TRANSMISSION.FLUID", action: "FLUSH", name: "Transmission Fluid — Service / Flush", pos: "ALL", base: 1.2, flags: [] },
+      { comp: "DRIVETRAIN.TRANSMISSION.FILTER", action: "REPLACE", name: "Transmission Filter — Replace", pos: "ALL", base: 1.8, flags: [] },
+      { comp: "DRIVETRAIN.TRANSMISSION.MOUNT", action: "R_AND_R", name: "Transmission Mount — Remove & Replace", pos: "ALL", base: 1.5, flags: [] },
+      { comp: "DRIVETRAIN.AXLE.CV_AXLE", action: "R_AND_R", name: "CV Axle — Remove & Replace", pos: "FRONT", base: 1.7, flags: [] },
+      { comp: "DRIVETRAIN.AXLE.WHEEL_BEARING", action: "R_AND_R", name: "Wheel Bearing / Hub — Remove & Replace", pos: "FRONT", base: 1.9, flags: [] },
+      // Electrical
+      { comp: "ELECTRICAL.CHARGING.ALTERNATOR", action: "R_AND_R", name: "Alternator — Remove & Replace", pos: "ALL", base: 1.6, flags: [] },
+      { comp: "ELECTRICAL.CHARGING.BATTERY", action: "REPLACE", name: "Battery — Replace & Register", pos: "ALL", base: 0.4, flags: [] },
+      { comp: "ELECTRICAL.STARTING.STARTER", action: "R_AND_R", name: "Starter — Remove & Replace", pos: "ALL", base: 2.0, flags: [] },
+      { comp: "ELECTRICAL.LIGHTING.HEADLAMP", action: "REPLACE", name: "Headlamp Bulb — Replace", pos: "FRONT", base: 0.5, flags: [] },
+      { comp: "ELECTRICAL.LIGHTING.TAIL_LAMP", action: "REPLACE", name: "Tail Lamp Bulb — Replace", pos: "REAR", base: 0.3, flags: [] },
+      // HVAC
+      { comp: "HVAC.AC.COMPRESSOR", action: "R_AND_R", name: "A/C Compressor — Remove & Replace", pos: "ALL", base: 3.2, flags: [] },
+      { comp: "HVAC.AC.CONDENSER", action: "R_AND_R", name: "A/C Condenser — Remove & Replace", pos: "ALL", base: 2.1, flags: [] },
+      { comp: "HVAC.AC.RECHARGE", action: "DIAGNOSE", name: "A/C Performance Test & Recharge", pos: "ALL", base: 1.0, flags: [] },
+      { comp: "HVAC.HEATING.HEATER_CORE", action: "R_AND_R", name: "Heater Core — Remove & Replace", pos: "ALL", base: 6.5, flags: ["with_ac"] },
+      { comp: "HVAC.HEATING.BLOWER", action: "R_AND_R", name: "Blower Motor — Remove & Replace", pos: "ALL", base: 1.4, flags: [] },
+      // Exhaust
+      { comp: "EXHAUST.SYSTEM.CATALYST", action: "R_AND_R", name: "Catalytic Converter — Remove & Replace", pos: "ALL", base: 2.5, flags: [] },
+      { comp: "EXHAUST.SYSTEM.MUFFLER", action: "R_AND_R", name: "Muffler — Remove & Replace", pos: "ALL", base: 1.2, flags: [] },
+      { comp: "EXHAUST.SYSTEM.O2_SENSOR", action: "R_AND_R", name: "Oxygen Sensor — Remove & Replace", pos: "ALL", base: 0.7, flags: [] },
     ];
 
     const CHIPS = [
       { label: "Front pads", comp: "BRAKES.FRONT.PADS", action: "R_AND_R" },
-      { label: "Front rotors", comp: "BRAKES.FRONT.ROTORS", action: "R_AND_R" },
-      { label: "Rear pads", comp: "BRAKES.REAR.PADS", action: "R_AND_R" },
-      { label: "Oil & filter", comp: "ENGINE.OIL.FILTER", action: "REPLACE" },
+      { label: "Front struts", comp: "SUSPENSION.FRONT.STRUT", action: "R_AND_R" },
+      { label: "Oil & filter", comp: "ENGINE.LUBE.OIL_FILTER", action: "REPLACE" },
+      { label: "Spark plugs", comp: "ENGINE.IGNITION.SPARK_PLUGS", action: "REPLACE" },
+      { label: "Alternator", comp: "ELECTRICAL.CHARGING.ALTERNATOR", action: "R_AND_R" },
+      { label: "A/C recharge", comp: "HVAC.AC.RECHARGE", action: "DIAGNOSE" },
+      { label: "CV axle", comp: "DRIVETRAIN.AXLE.CV_AXLE", action: "R_AND_R" },
+      { label: "Heater core", comp: "HVAC.HEATING.HEATER_CORE", action: "R_AND_R" },
     ];
 
     const state = {
@@ -416,8 +641,24 @@
         return `BRAKE_PAD_${job.pos}_${material}_${tier}`;
       }
       if (job.comp.includes(".ROTORS")) return `BRAKE_ROTOR_${job.pos}_STANDARD`;
-      if (job.comp.includes("OIL.FILTER")) return "OIL_FILTER_OEM";
-      return "GENERIC_PART";
+      if (job.comp.includes("OIL_FILTER") || job.comp.includes("OIL.FILTER")) return "OIL_FILTER_OEM";
+      if (job.comp.includes("SPARK_PLUGS")) return "SPARK_PLUG_SET";
+      if (job.comp.includes("ALTERNATOR")) return "ALTERNATOR_OEM";
+      if (job.comp.includes("CV_AXLE")) return "CV_AXLE_" + job.pos;
+      if (job.comp.includes("HEATER_CORE")) return "HEATER_CORE_ASSEMBLY";
+      return job.comp.split(".").slice(-2).join("_") + "_OEM";
+    }
+
+    function defaultActionForComp(compId) {
+      const available = ACTIONS.filter((a) =>
+        JOB_DEFS.some((j) => j.comp === compId && j.action === a.id),
+      );
+      if (!available.length) return "R_AND_R";
+      const preferred = ["R_AND_R", "REPLACE", "FLUSH", "DIAGNOSE", "INSPECT"];
+      for (const p of preferred) {
+        if (available.some((a) => a.id === p)) return p;
+      }
+      return available[0].id;
     }
 
     function jobsForView() {
@@ -513,8 +754,7 @@
               state.systemId = sys.id;
               state.subId = sub.id;
               state.compId = sub.comps[0]?.id ?? null;
-              state.actionId = "R_AND_R";
-              if (state.compId === "ENGINE.OIL.FILTER") state.actionId = "REPLACE";
+              state.actionId = defaultActionForComp(state.compId);
               state.search = "";
               document.getElementById("search").value = "";
               state.selectedJobId = null;
@@ -533,6 +773,7 @@
                 cBtn.textContent = comp.label;
                 cBtn.onclick = () => {
                   state.compId = comp.id;
+                  state.actionId = defaultActionForComp(comp.id);
                   state.selectedJobId = null;
                   bump();
                   paint();
@@ -689,7 +930,7 @@
         <div style="margin-top:6px;color:var(--muted)">${row.note}</div>
         <div style="margin-top:10px" class="k">Factory / scaled hours</div>
         <div class="v mono">${row.hours == null ? "—" : row.hours.toFixed(3) + " hr"}</div>
-        <div style="margin-top:10px" class="k">Labor @ Texarkana</div>
+        <div style="margin-top:10px" class="k">Labor @ Albany/Capital Region</div>
         <div class="v mono">${lineCents == null ? "—" : money(lineCents)}</div>
         <div style="margin-top:10px" class="k">Parts fitment</div>
         <div class="v" style="font-size:12px">${partsStatus}</div>
@@ -724,7 +965,7 @@
       const v = VEHICLES[state.vehicleId];
       document.getElementById("vehicleLabel").textContent = v.label;
       document.getElementById("chassisMeta").textContent =
-        `Chassis tier: ${v.chassis} · shop rate Texarkana $135.00/hr · standalone fixtures`;
+        `Chassis tier: ${v.chassis} · shop rate Albany/Capital Region $145.00/hr · Tabish Friday Labor fixtures`;
       renderChips();
       renderSystems();
       renderCrumb();

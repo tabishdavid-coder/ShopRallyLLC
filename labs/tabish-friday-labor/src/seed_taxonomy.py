@@ -34,9 +34,11 @@ LEVEL1 = [
     ("BRAKES", "Brakes"),
     ("ENGINE", "Engine"),
     ("SUSPENSION", "Suspension"),
+    ("STEERING", "Steering"),
+    ("DRIVETRAIN", "Drivetrain"),
     ("ELECTRICAL", "Electrical"),
     ("HVAC", "HVAC"),
-    ("DRIVETRAIN", "Drivetrain"),
+    ("EXHAUST", "Exhaust"),
 ]
 
 SEED_VEHICLES = [
