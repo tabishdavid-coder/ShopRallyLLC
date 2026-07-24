@@ -4,6 +4,8 @@ Production blueprint for a **self-generating**, commercial-API-independent autom
 
 Start here: **[ARCHITECTURE.md](./ARCHITECTURE.md)** · implementation status: **[IMPLEMENTATION.md](./IMPLEMENTATION.md)**
 
+**UI mockup (review):** `/design-review/proprietary-taxonomy` on Dev 3031
+
 | Deliverable | Location |
 |-------------|----------|
 | 1. PostgreSQL DDL | [`sql/001_vehicle_taxonomy_fitment_schema.sql`](./sql/001_vehicle_taxonomy_fitment_schema.sql) |
