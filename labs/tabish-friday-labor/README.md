@@ -90,8 +90,10 @@ python -m api.main                  # or: python -m src.labor_guide_api
   - `GET /vehicles/{id}/operations/{op}/diagrams`
   - `GET /vehicles/{id}/operations/{op}/procedures`
   - `POST /procedures/submit` · `POST /procedures/{id}/vote`
-- UI tabs (guideline in `_ui` payloads): **Labor | Add-ons | Diagrams | Procedures**
-- Lazy-load diagrams when multiple; prefer `local_path` over remote `image_url`
+- Lab UI tabs: **Labor | Fluid Specs | Combined Jobs | Diagrams | Procedures**
+  (`static/index.html` → mirrored to `public/lab/tabish-friday-labor.html`)
+- On Labor: **Frequently Combined Jobs** sit under the ops table (middle column), not the right rail
+- Diagrams lazy-load; Procedures show ranked steps + upvote (fixture demo)
 
 ### Offline smoke (no Postgres / no OpenAI)
 
