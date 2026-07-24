@@ -39,6 +39,7 @@
     "print:motor-taxonomy": "tsx --tsconfig ./tsconfig.scripts.json scripts/print-motor-taxonomy-tree.ts",
     "sync:motor-applications": "tsx --tsconfig ./tsconfig.scripts.json scripts/sync-motor-applications.ts",
     "test:labor-paths": "tsx --tsconfig ./tsconfig.scripts.json scripts/test-labor-paths.ts",
+    "test:proprietary-taxonomy": "tsx --tsconfig ./tsconfig.scripts.json scripts/test-proprietary-taxonomy-resolver.ts",
     "test:google-reviews-scale": "tsx --tsconfig ./tsconfig.scripts.json scripts/test-google-reviews-scale.ts",
     "smoke:permissions": "tsx --tsconfig ./tsconfig.scripts.json scripts/smoke-permission-gates.ts",
     "db:link-clerk-org": "tsx --tsconfig ./tsconfig.scripts.json scripts/link-demo-clerk-org.ts",

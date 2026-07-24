@@ -1,10 +1,11 @@
 # Proprietary Repair Taxonomy & Dynamic Parts Fitment — Architecture
 
-**Status:** Blueprint (design artifact — not applied to live Prisma migrations)  
+**Status:** Blueprint + application engine (TS resolver/pipeline). Prisma migration not applied.  
 **Scope:** Self-generating automotive repair taxonomy + fitment, independent of commercial catalog APIs (MOTOR / Mitchell / ALLDATA / ACES subscriptions)  
 **Related DDL:** [`sql/001_vehicle_taxonomy_fitment_schema.sql`](./sql/001_vehicle_taxonomy_fitment_schema.sql)  
 **Intent middleware:** [`middleware/intent_fitment_parser.py`](./middleware/intent_fitment_parser.py)  
-**Billing snippet:** [`snippets/secure_invoice_labor_total.ts`](./snippets/secure_invoice_labor_total.ts)
+**App engine:** `src/lib/proprietary-taxonomy/` · `src/server/services/proprietary-taxonomy/`  
+**Implementation tracker:** [`IMPLEMENTATION.md`](./IMPLEMENTATION.md)
 
 ---
 
@@ -277,5 +278,9 @@ sequenceDiagram
 |-------------|------|
 | PostgreSQL DDL | `sql/001_vehicle_taxonomy_fitment_schema.sql` |
 | LLM intent parser | `middleware/intent_fitment_parser.py` |
-| Billing SoC snippet | `snippets/secure_invoice_labor_total.ts` |
+| Billing SoC (canonical) | `src/lib/proprietary-taxonomy/billing.ts` |
+| Labor resolver L0–L2 | `src/server/services/proprietary-taxonomy/labor-resolver.ts` |
+| Quote pipeline | `src/server/services/proprietary-taxonomy/quote-pipeline.ts` |
+| Smoke test | `npm run test:proprietary-taxonomy` |
+| Implementation tracker | `IMPLEMENTATION.md` |
 | This architecture | `ARCHITECTURE.md` |
