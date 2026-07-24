@@ -3,279 +3,325 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Tabish Friday Labor — Proprietary Labor Guide</title>
+  <title>Tabish Friday Labor — Estimated Work Times</title>
   <style>
     :root {
-      --navy: #16588E;
-      --navy-deep: #0f3d63;
-      --light: #81C4FF;
-      --red: #E7222E;
-      --orange: #e85d04;
-      --bg: #f1f5f9;
-      --card: #fff;
-      --muted: #64748b;
-      --border: rgba(22, 88, 142, 0.14);
-      --emerald: #059669;
+      --motor-navy: #0b3d5c;
+      --motor-navy-2: #0e4a6e;
+      --motor-teal: #0d7377;
+      --motor-teal-soft: #e6f3f3;
+      --motor-row: #f4f7f9;
+      --motor-line: #c5d4de;
+      --motor-amber: #c45c26;
+      --motor-green: #1f7a4c;
+      --motor-bg: #dce3e8;
+      --text: #1a2430;
+      --muted: #5b6b78;
+      --white: #fff;
     }
     * { box-sizing: border-box; }
     html, body { height: 100%; margin: 0; }
     body {
-      font-family: "Segoe UI", ui-sans-serif, system-ui, sans-serif;
-      background: var(--bg);
-      color: #0f172a;
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      background: var(--motor-bg);
+      color: var(--text);
       display: flex;
       flex-direction: column;
       overflow: hidden;
     }
 
-    .test-bar {
+    /* Top product chrome — MOTOR EWT style */
+    .appbar {
       flex: 0 0 auto;
-      display: flex; flex-wrap: wrap; align-items: center; gap: 10px;
-      padding: 8px 14px;
-      background: linear-gradient(90deg, var(--navy-deep), var(--navy));
+      display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+      padding: 0 14px; height: 42px;
+      background: linear-gradient(180deg, #0a334d, var(--motor-navy));
       color: #fff; font-size: 12px;
+      border-bottom: 2px solid var(--motor-teal);
     }
-    .test-bar strong { color: var(--light); }
-    .test-bar .sep { opacity: 0.4; }
-    .test-bar .note { margin-left: auto; opacity: 0.85; font-size: 11px; }
+    .brand {
+      display: flex; align-items: center; gap: 8px; font-weight: 800; letter-spacing: 0.02em;
+    }
+    .brand .mark {
+      width: 22px; height: 22px; border-radius: 3px;
+      background: var(--motor-teal); display: grid; place-items: center;
+      font-size: 10px; font-weight: 900;
+    }
+    .appbar .tab {
+      padding: 8px 12px; border-bottom: 2px solid transparent; opacity: 0.8; cursor: default;
+    }
+    .appbar .tab.on { border-bottom-color: #7fd3d6; opacity: 1; font-weight: 700; }
+    .appbar .right { margin-left: auto; opacity: 0.85; font-size: 11px; }
 
-    .shell {
+    .workspace {
       flex: 1; min-height: 0;
+      margin: 10px;
       display: flex; flex-direction: column;
-      margin: 10px; border: 1px solid var(--border);
-      border-radius: 12px; background: var(--card);
-      box-shadow: 0 10px 30px rgba(15, 61, 99, 0.08);
+      background: var(--white);
+      border: 1px solid #9fb4c3;
+      box-shadow: 0 2px 10px rgba(11,61,92,0.12);
       overflow: hidden;
     }
 
-    .header {
-      padding: 12px 16px;
-      border-bottom: 1px solid var(--border);
-      background: rgba(22, 88, 142, 0.03);
+    /* Vehicle / application header */
+    .veh-head {
+      background: linear-gradient(180deg, #f7fafc, #eef3f6);
+      border-bottom: 1px solid var(--motor-line);
+      padding: 10px 14px 12px;
     }
-    .header-row {
-      display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px;
-      margin-bottom: 8px;
+    .veh-top { display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-start; justify-content: space-between; }
+    .veh-title { font-size: 16px; font-weight: 800; color: var(--motor-navy); }
+    .veh-title select {
+      margin-left: 8px; font-size: 12px; padding: 3px 8px;
+      border: 1px solid var(--motor-line); background: #fff; color: var(--motor-navy);
     }
-    .vehicle {
-      font-size: 14px; font-weight: 700; color: var(--navy);
+    .badge-ewt {
+      font-size: 10px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase;
+      background: var(--motor-teal); color: #fff; padding: 4px 8px; border-radius: 2px;
     }
-    .vehicle select {
-      margin-left: 8px; border: 1px solid var(--border); border-radius: 8px;
-      padding: 4px 8px; font-size: 12px; color: var(--navy); background: #fff;
+    .spec-strip {
+      margin-top: 8px; display: flex; flex-wrap: wrap; gap: 6px 14px;
+      font-size: 11px; color: var(--muted);
     }
-    .meta { font-size: 11px; color: var(--muted); }
-    .search-wrap { position: relative; }
-    .search-wrap input {
-      width: 100%; height: 34px; border: 1px solid var(--border); border-radius: 8px;
-      padding: 0 12px 0 32px; font-size: 13px; background: #fff;
+    .spec-strip b { color: var(--motor-navy); font-weight: 700; }
+    .config-band {
+      margin-top: 8px; padding: 6px 10px;
+      background: var(--motor-teal-soft); border: 1px solid #b7d8d9;
+      font-size: 11px; color: var(--motor-navy);
     }
-    .search-wrap .ico {
-      position: absolute; left: 10px; top: 50%; transform: translateY(-50%);
-      color: var(--muted); font-size: 13px;
+    .search-row { margin-top: 10px; display: flex; gap: 8px; align-items: center; }
+    .search-row input {
+      flex: 1; height: 34px; border: 1px solid #8fa8b8; padding: 0 12px 0 30px;
+      font-size: 13px; background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%235b6b78' stroke-width='2'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='M20 20l-3-3'/%3E%3C/svg%3E") 10px center no-repeat;
     }
-    .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+    .chips { margin-top: 8px; display: flex; flex-wrap: wrap; gap: 6px; }
     .chip {
-      border: 1px solid var(--border); background: #fff; color: var(--navy);
-      border-radius: 999px; padding: 3px 10px; font-size: 11px; cursor: pointer;
+      border: 1px solid #9fb4c3; background: #fff; color: var(--motor-navy);
+      padding: 3px 10px; font-size: 11px; cursor: pointer; border-radius: 2px;
     }
-    .chip:hover, .chip.active { border-color: var(--orange); background: rgba(232, 93, 4, 0.08); }
+    .chip:hover, .chip.on { background: var(--motor-navy); color: #fff; border-color: var(--motor-navy); }
 
     .crumb {
       display: flex; flex-wrap: wrap; align-items: center; gap: 4px;
-      padding: 8px 16px; border-bottom: 1px solid var(--border); font-size: 12px;
+      padding: 7px 14px; border-bottom: 1px solid var(--motor-line);
+      background: #f0f4f7; font-size: 12px;
     }
     .crumb button {
-      border: 0; background: transparent; color: var(--muted); cursor: pointer; padding: 2px 4px;
+      border: 0; background: transparent; color: var(--motor-teal); cursor: pointer; padding: 2px 4px;
+      font-weight: 600;
     }
-    .crumb button:hover { color: var(--navy); text-decoration: underline; }
-    .crumb button.here { color: var(--navy); font-weight: 700; }
-    .crumb .chev { color: rgba(22,88,142,0.3); font-size: 11px; }
+    .crumb button:hover { text-decoration: underline; }
+    .crumb button.here { color: var(--text); font-weight: 800; cursor: default; text-decoration: none; }
+    .crumb .sep { color: #90a4b2; }
 
     .toast {
-      display: none; padding: 6px 16px; font-size: 12px;
-      background: #ecfdf5; color: #065f46; border-bottom: 1px solid #a7f3d0;
+      display: none; padding: 6px 14px; font-size: 12px;
+      background: #e8f6ee; color: var(--motor-green); border-bottom: 1px solid #b9e0c8;
     }
     .toast.show { display: block; }
 
     .body { flex: 1; min-height: 0; display: flex; }
 
-    .systems {
-      width: 230px; flex: 0 0 auto; overflow: auto;
-      border-right: 1px solid var(--border);
-      background: rgba(22, 88, 142, 0.02); padding: 8px;
+    /* Left MOTOR taxonomy */
+    .tax {
+      width: 240px; flex: 0 0 auto; overflow: auto;
+      border-right: 1px solid var(--motor-line);
+      background: #f7fafc;
     }
-    .systems .lbl {
-      padding: 4px 6px; font-size: 10px; font-weight: 800; letter-spacing: 0.06em;
-      text-transform: uppercase; color: rgba(22,88,142,0.55); margin-bottom: 4px;
+    .tax-h {
+      position: sticky; top: 0; z-index: 1;
+      padding: 8px 10px; font-size: 10px; font-weight: 800; letter-spacing: 0.08em;
+      text-transform: uppercase; color: #fff;
+      background: var(--motor-navy-2);
     }
-    .sys-btn, .sub-btn, .comp-btn {
+    .sys {
+      border-bottom: 1px solid #e2e9ef;
+    }
+    .sys > button {
+      width: 100%; border: 0; background: #eef3f6; text-align: left;
+      padding: 8px 10px; font-size: 12px; font-weight: 700; color: var(--motor-navy);
+      cursor: pointer; display: flex; gap: 6px; align-items: center;
+    }
+    .sys > button:hover { background: #e4edf3; }
+    .sys.open > button { background: var(--motor-navy); color: #fff; }
+    .group { padding: 2px 0 6px; }
+    .group-l {
+      padding: 4px 10px 2px 22px; font-size: 10px; font-weight: 800;
+      text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted);
+    }
+    .leaf {
       width: 100%; border: 0; background: transparent; text-align: left; cursor: pointer;
-      border-radius: 6px; color: var(--navy);
+      padding: 5px 10px 5px 28px; font-size: 12px; color: #334555;
     }
-    .sys-btn {
-      display: flex; align-items: center; gap: 4px;
-      padding: 6px 6px; font-size: 12px; font-weight: 600;
-    }
-    .sys-btn:hover, .sub-btn:hover, .comp-btn:hover { background: rgba(22,88,142,0.06); }
-    .subs { margin: 0 0 4px 10px; padding-left: 8px; border-left: 1px solid var(--border); }
-    .sub-btn { padding: 5px 8px; font-size: 11px; color: var(--muted); font-weight: 600; }
-    .comps { margin-left: 8px; }
-    .comp-btn { padding: 4px 8px; font-size: 11px; color: var(--muted); }
-    .comp-btn.active {
-      background: var(--orange); color: #fff; font-weight: 700;
+    .leaf:hover { background: #e7f1f2; color: var(--motor-teal); }
+    .leaf.on {
+      background: var(--motor-teal); color: #fff; font-weight: 700;
+      box-shadow: inset 3px 0 0 var(--motor-amber);
     }
 
-    .main {
-      flex: 1; min-width: 0; display: flex; flex-direction: column; padding: 12px;
+    /* Center results */
+    .main { flex: 1; min-width: 0; display: flex; flex-direction: column; background: #fff; }
+    .filters {
+      padding: 8px 12px; border-bottom: 1px solid var(--motor-line);
+      display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center;
+      background: #fafcfd; font-size: 11px;
     }
-    .ops { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
-    .op-pill {
-      border: 1px solid var(--border); border-radius: 999px; background: #fff;
-      padding: 3px 10px; font-size: 11px; color: var(--navy); cursor: pointer;
+    .filters .lbl { font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
+    .pill {
+      border: 1px solid #9fb4c3; background: #fff; color: var(--motor-navy);
+      padding: 3px 10px; font-size: 11px; cursor: pointer; border-radius: 999px;
     }
-    .op-pill.active { background: rgba(22,88,142,0.1); border-color: var(--navy); font-weight: 700; }
-    .empty {
-      margin: auto; color: var(--muted); font-size: 13px; text-align: center; padding: 24px;
-    }
-    .table-wrap {
-      flex: 1; min-height: 0; overflow: auto;
-      border: 1px solid var(--border); border-radius: 10px;
-    }
+    .pill.on { background: var(--motor-navy); color: #fff; border-color: var(--motor-navy); }
+    .table-wrap { flex: 1; min-height: 0; overflow: auto; }
     table { width: 100%; border-collapse: collapse; font-size: 12px; }
     thead th {
-      position: sticky; top: 0; background: rgba(22,88,142,0.05);
-      text-align: left; padding: 8px 10px; font-size: 10px; text-transform: uppercase;
-      letter-spacing: 0.04em; color: rgba(22,88,142,0.7); border-bottom: 1px solid var(--border);
+      position: sticky; top: 0; z-index: 1;
+      background: #d9e4ec; color: var(--motor-navy);
+      text-align: left; padding: 8px 10px; font-size: 10px;
+      text-transform: uppercase; letter-spacing: 0.05em;
+      border-bottom: 1px solid #adc0ce;
     }
-    tbody td { padding: 8px 10px; border-bottom: 1px solid rgba(22,88,142,0.08); vertical-align: middle; }
+    tbody td { padding: 8px 10px; border-bottom: 1px solid #e6edf2; vertical-align: middle; }
     tbody tr { cursor: pointer; }
-    tbody tr:hover { background: rgba(129,196,255,0.12); }
-    tbody tr.selected { background: rgba(22,88,142,0.08); }
-    .path {
-      display: inline-block; border-radius: 999px; padding: 2px 7px;
-      font-size: 10px; font-weight: 800; letter-spacing: 0.02em;
+    tbody tr:nth-child(even) { background: var(--motor-row); }
+    tbody tr:hover { background: #e7f4f4; }
+    tbody tr.selected { background: #d8efef; outline: 1px solid #9ec9cb; }
+    .lit { font-weight: 700; color: var(--motor-navy); }
+    .code { font-size: 10px; color: var(--muted); margin-top: 2px; font-family: Consolas, monospace; }
+    .pos { color: var(--muted); font-weight: 600; }
+    .hrs { font-family: Consolas, monospace; font-weight: 800; text-align: right; color: var(--motor-green); }
+    .status {
+      display: inline-block; font-size: 9px; font-weight: 800; padding: 2px 6px;
+      border-radius: 2px; letter-spacing: 0.03em;
     }
-    .path.L0_EXACT { background: #d1fae5; color: #065f46; }
-    .path.L2_CHASSIS { background: #ffedd5; color: #9a3412; }
-    .path.L4_PENDING { background: #fee2e2; color: #991b1b; }
-    .hrs { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-weight: 700; text-align: right; }
-    .add {
-      border: 1px solid var(--border); background: #fff; color: var(--navy);
-      border-radius: 8px; width: 28px; height: 28px; cursor: pointer; font-weight: 800;
+    .status.L0_EXACT { background: #d9f0e3; color: #166534; }
+    .status.L2_CHASSIS, .status.L1_VECTOR { background: #ffe8d5; color: #9a3412; }
+    .status.L4_PENDING { background: #fde2e2; color: #991b1b; }
+    .addbtn {
+      width: 26px; height: 26px; border: 1px solid #8fa8b8; background: #fff;
+      color: var(--motor-navy); font-weight: 900; cursor: pointer;
     }
-    .add:hover { background: var(--navy); color: #fff; }
-    .add:disabled { opacity: 0.35; cursor: not-allowed; }
+    .addbtn:hover { background: var(--motor-teal); color: #fff; border-color: var(--motor-teal); }
+    .addbtn:disabled { opacity: 0.35; cursor: not-allowed; }
+    .empty {
+      margin: 48px auto; text-align: center; color: var(--muted); font-size: 13px; max-width: 320px;
+    }
 
-    .rail {
-      width: 280px; flex: 0 0 auto; border-left: 1px solid var(--border);
-      display: flex; flex-direction: column; background: #fafcff;
+    /* Right detail */
+    .detail {
+      width: 260px; flex: 0 0 auto; border-left: 1px solid var(--motor-line);
+      background: #f7fafc; display: flex; flex-direction: column; overflow: auto;
     }
-    .rail h3 {
-      margin: 0; padding: 10px 12px; font-size: 12px; color: var(--navy);
-      border-bottom: 1px solid var(--border); background: rgba(22,88,142,0.04);
+    .detail-h {
+      padding: 8px 12px; font-size: 10px; font-weight: 800; letter-spacing: 0.08em;
+      text-transform: uppercase; color: #fff; background: var(--motor-navy-2);
     }
-    .rail .panel { padding: 12px; border-bottom: 1px solid var(--border); font-size: 12px; }
-    .rail .k { font-size: 10px; font-weight: 800; text-transform: uppercase; color: var(--muted); }
-    .rail .v { margin-top: 3px; font-weight: 700; color: var(--navy); }
-    .rail .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; }
-    .cart { flex: 1; min-height: 0; overflow: auto; padding: 10px 12px; }
-    .cart-item {
-      display: flex; justify-content: space-between; gap: 8px;
-      padding: 8px 0; border-bottom: 1px solid rgba(22,88,142,0.08); font-size: 11px;
+    .detail-b { padding: 12px; font-size: 12px; }
+    .detail-b h3 { margin: 0 0 6px; font-size: 14px; color: var(--motor-navy); }
+    .kv { margin: 10px 0; }
+    .kv .k { font-size: 10px; font-weight: 800; text-transform: uppercase; color: var(--muted); }
+    .kv .v { margin-top: 2px; font-weight: 700; color: var(--text); }
+    .kv .mono { font-family: Consolas, monospace; font-size: 11px; }
+    .btn-add {
+      width: 100%; margin-top: 12px; border: 0; cursor: pointer;
+      background: var(--motor-amber); color: #fff; font-weight: 800;
+      padding: 9px 12px; font-size: 12px;
     }
-    .cart-foot {
-      padding: 12px; border-top: 1px solid var(--border); background: #fff;
+    .btn-add:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    /* Bottom staging dock */
+    .dock {
+      flex: 0 0 auto;
+      display: flex; flex-wrap: wrap; align-items: center; gap: 10px;
+      padding: 8px 12px; border-top: 2px solid var(--motor-navy);
+      background: linear-gradient(180deg, #eef3f6, #e4ebf0);
+      font-size: 12px;
     }
-    .totals { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
-    .totals > div { background: #f1f5f9; border-radius: 8px; padding: 8px; text-align: center; }
-    .totals .big { background: var(--navy); color: #fff; grid-column: 1 / -1; }
-    .totals .lbl { font-size: 10px; opacity: 0.75; text-transform: uppercase; font-weight: 800; }
-    .totals .num { margin-top: 2px; font: 700 16px/1.1 ui-monospace, monospace; }
-    .primary {
-      width: 100%; border: 0; border-radius: 10px; background: var(--navy); color: #fff;
-      font-weight: 700; font-size: 13px; padding: 10px; cursor: pointer;
+    .dock strong { color: var(--motor-navy); }
+    .dock-chips { display: flex; flex-wrap: wrap; gap: 6px; flex: 1; }
+    .dock-chip {
+      background: #fff; border: 1px solid #9fb4c3; padding: 3px 8px; font-size: 11px;
+      display: inline-flex; gap: 6px; align-items: center;
     }
-    .primary:disabled { opacity: 0.4; cursor: not-allowed; }
-    .trust {
-      margin-top: 8px; font-size: 10px; color: var(--muted); line-height: 1.35;
+    .dock-chip button {
+      border: 0; background: transparent; color: #991b1b; cursor: pointer; font-weight: 800;
+    }
+    .dock .totals { font-family: Consolas, monospace; font-weight: 800; color: var(--motor-green); }
+    .dock .go {
+      border: 0; background: var(--motor-navy); color: #fff; font-weight: 800;
+      padding: 8px 14px; cursor: pointer; font-size: 12px;
+    }
+    .dock .go:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    @media (max-width: 1100px) {
+      .detail { display: none; }
+      .tax { width: 200px; }
     }
   </style>
 </head>
 <body>
-  <div class="test-bar">
-    <strong>TABISH FRIDAY LABOR</strong>
-    <span class="sep">|</span>
-    <span>Self-correcting Labor Guide — standalone lab (not wired to ShopRally CRM / MOTOR)</span>
-    <span class="note">Fixture data · Albany/Capital Region $145/hr</span>
-  </div>
+  <header class="appbar">
+    <div class="brand"><span class="mark">TFL</span> TABISH FRIDAY LABOR</div>
+    <div class="tab on">Estimated Work Times</div>
+    <div class="tab">Parts Fitment</div>
+    <div class="tab">Telemetry</div>
+    <div class="right">Standalone lab · not MOTOR-licensed data · Albany $145/hr</div>
+  </header>
 
-  <div class="shell">
-    <div class="header">
-      <div class="header-row">
+  <div class="workspace">
+    <section class="veh-head">
+      <div class="veh-top">
         <div>
-          <div class="vehicle">
+          <div class="veh-title">
             <span id="vehicleLabel">2015 Honda Accord · 2.4L</span>
-            <select id="vehicleSelect" aria-label="Demo vehicle">
+            <select id="vehicleSelect" aria-label="Vehicle">
               <option value="accord">2015 Honda Accord · 2.4L (tier 2)</option>
               <option value="civic">2012 Honda Civic · 1.8L I4 (tier 1)</option>
               <option value="rivian">2024 Rivian R1T · Dual Motor (tier 5)</option>
             </select>
           </div>
-          <div class="meta" id="chassisMeta">Chassis tier: 2 · shop rate Albany/Capital Region $145.00/hr</div>
+          <div class="spec-strip" id="specStrip"></div>
         </div>
-        <div class="meta">Proprietary taxonomy browse · clicks <span id="clicks">0</span></div>
+        <span class="badge-ewt">EWT Browser</span>
       </div>
-      <div class="search-wrap">
-        <span class="ico">⌕</span>
-        <input id="search" placeholder="Search proprietary labor guide…" />
+      <div class="config-band" id="configBand">Application config · chassis scaling enabled</div>
+      <div class="search-row">
+        <input id="search" placeholder="Search Estimated Work Times…" />
       </div>
       <div class="chips" id="chips"></div>
-    </div>
+    </section>
 
     <nav class="crumb" id="crumb"></nav>
     <div class="toast" id="toast"></div>
 
     <div class="body">
-      <aside class="systems" id="systems"></aside>
+      <aside class="tax">
+        <div class="tax-h">Taxonomy · System / Group / Component</div>
+        <div id="systems"></div>
+      </aside>
 
       <main class="main">
-        <div class="ops" id="ops"></div>
+        <div class="filters" id="filters"></div>
         <div class="table-wrap" id="tableHost">
-          <div class="empty" id="empty">Pick a system component or search above.</div>
+          <div class="empty">Select a component in the taxonomy, or search above.</div>
         </div>
       </main>
 
-      <aside class="rail">
-        <h3>Selected operation</h3>
-        <div class="panel" id="detail">
-          <div class="k">Nothing selected</div>
-          <div class="v" style="font-weight:500;color:var(--muted);margin-top:6px">
-            Choose a row to inspect resolve path, factory hours, and parts placeholder.
-          </div>
-        </div>
-        <h3>Estimate cart (mock)</h3>
-        <div class="cart" id="cart"></div>
-        <div class="cart-foot">
-          <div class="totals">
-            <div>
-              <div class="lbl">Hours</div>
-              <div class="num" id="totHours">0.00</div>
-            </div>
-            <div>
-              <div class="lbl">Rate</div>
-              <div class="num">$145</div>
-            </div>
-            <div class="big">
-              <div class="lbl">Labor total</div>
-              <div class="num" id="totMoney">$0.00</div>
-            </div>
-          </div>
-          <button class="primary" id="addEstimate" type="button" disabled>Add to estimate (mock)</button>
-          <div class="trust">Tabish Friday Labor — billing math is local to this lab. No CRM write path. Hours from fixture matrix / chassis scale — never from MOTOR/ALLDATA or LLM.</div>
+      <aside class="detail">
+        <div class="detail-h">Application detail</div>
+        <div class="detail-b" id="detail">
+          <div style="color:var(--muted)">Select an operation row to view base time, resolve path, and fitment placeholder.</div>
         </div>
       </aside>
     </div>
+
+    <footer class="dock">
+      <strong>Staging</strong>
+      <span id="dockCount">(0)</span>
+      <div class="dock-chips" id="dockChips"></div>
+      <span class="totals" id="dockTotals">0.00 hr · $0.00</span>
+      <button class="go" id="addEstimate" type="button" disabled>Add to estimate →</button>
+    </footer>
   </div>
 
   <script>
@@ -597,6 +643,7 @@
       { label: "Heater core", comp: "HVAC.HEATING.HEATER_CORE", action: "R_AND_R" },
     ];
 
+
     const state = {
       vehicleId: "accord",
       expanded: new Set(["BRAKES"]),
@@ -604,6 +651,7 @@
       subId: "BRAKES.FRONT",
       compId: "BRAKES.FRONT.PADS",
       actionId: "R_AND_R",
+      posFilter: "ALL",
       search: "",
       selectedJobId: null,
       cart: [],
@@ -611,15 +659,12 @@
     };
 
     function money(cents) { return "$" + (cents / 100).toFixed(2); }
-    function bump() {
-      state.clicks += 1;
-      document.getElementById("clicks").textContent = String(state.clicks);
-    }
+    function bump() { state.clicks += 1; }
 
     function resolveHours(base) {
       const v = VEHICLES[state.vehicleId];
       if (v.mode === "L0") {
-        return { path: "L0_EXACT", hours: base, multiplier: 1, note: "Exact matrix hit for this vehicle" };
+        return { path: "L0_EXACT", hours: base, multiplier: 1, note: "Exact matrix / book time for this vehicle", skill: "B" };
       }
       if (v.mode === "L2") {
         const m = MULTIPLIERS[v.seedChassis][v.chassis];
@@ -628,10 +673,11 @@
           path: "L2_CHASSIS",
           hours,
           multiplier: m,
-          note: `Inherited from ${v.seedChassis} seed × ${m.toFixed(2)}`,
+          note: `Inherited from tier ${v.seedChassis} seed × ${m.toFixed(2)} (chassis interpolation)`,
+          skill: "B",
         };
       }
-      return { path: "L4_PENDING", hours: null, multiplier: null, note: "No seed / multiplier — pending curation" };
+      return { path: "L4_PENDING", hours: null, multiplier: null, note: "No seed / multiplier — pending curation", skill: "—" };
     }
 
     function partsCategory(job) {
@@ -641,7 +687,7 @@
         return `BRAKE_PAD_${job.pos}_${material}_${tier}`;
       }
       if (job.comp.includes(".ROTORS")) return `BRAKE_ROTOR_${job.pos}_STANDARD`;
-      if (job.comp.includes("OIL_FILTER") || job.comp.includes("OIL.FILTER")) return "OIL_FILTER_OEM";
+      if (job.comp.includes("OIL_FILTER")) return "OIL_FILTER_OEM";
       if (job.comp.includes("SPARK_PLUGS")) return "SPARK_PLUG_SET";
       if (job.comp.includes("ALTERNATOR")) return "ALTERNATOR_OEM";
       if (job.comp.includes("CV_AXLE")) return "CV_AXLE_" + job.pos;
@@ -650,12 +696,9 @@
     }
 
     function defaultActionForComp(compId) {
-      const available = ACTIONS.filter((a) =>
-        JOB_DEFS.some((j) => j.comp === compId && j.action === a.id),
-      );
+      const available = ACTIONS.filter((a) => JOB_DEFS.some((j) => j.comp === compId && j.action === a.id));
       if (!available.length) return "R_AND_R";
-      const preferred = ["R_AND_R", "REPLACE", "FLUSH", "DIAGNOSE", "INSPECT"];
-      for (const p of preferred) {
+      for (const p of ["R_AND_R", "REPLACE", "FLUSH", "DIAGNOSE", "INSPECT"]) {
         if (available.some((a) => a.id === p)) return p;
       }
       return available[0].id;
@@ -665,35 +708,32 @@
       const q = state.search.trim().toLowerCase();
       let rows = JOB_DEFS.map((d) => {
         const resolved = resolveHours(d.base);
-        return {
-          id: `${d.comp}.${d.action}`,
-          ...d,
-          key: `${d.comp}.${d.action}`,
-          ...resolved,
-        };
+        return { id: `${d.comp}.${d.action}`, key: `${d.comp}.${d.action}`, ...d, ...resolved };
       });
       if (q) {
         rows = rows.filter((r) =>
-          r.name.toLowerCase().includes(q) ||
-          r.key.toLowerCase().includes(q) ||
-          r.pos.toLowerCase().includes(q)
+          r.name.toLowerCase().includes(q) || r.key.toLowerCase().includes(q) || r.pos.toLowerCase().includes(q)
         );
       } else if (state.compId) {
-        rows = rows.filter((r) => r.comp === state.compId && r.action === state.actionId);
+        rows = rows.filter((r) => r.comp === state.compId);
+        if (state.actionId) rows = rows.filter((r) => r.action === state.actionId);
       } else {
         rows = [];
+      }
+      if (state.posFilter !== "ALL") {
+        rows = rows.filter((r) => r.pos === state.posFilter || r.pos === "ALL");
       }
       return rows;
     }
 
-    function findNodeLabels() {
+    function findLabels() {
       const sys = TREE.find((t) => t.id === state.systemId);
       const sub = sys?.subs.find((s) => s.id === state.subId);
       const comp = sub?.comps.find((c) => c.id === state.compId);
       return {
         system: sys?.label,
-        sub: sub?.label,
-        comp: comp?.label,
+        group: sub?.label,
+        component: comp?.label,
         action: ACTIONS.find((a) => a.id === state.actionId)?.label,
       };
     }
@@ -704,11 +744,9 @@
       for (const c of CHIPS) {
         const btn = document.createElement("button");
         btn.type = "button";
-        btn.className = "chip" + (state.compId === c.comp && state.actionId === c.action && !state.search ? " active" : "");
+        btn.className = "chip" + (state.compId === c.comp && state.actionId === c.action && !state.search ? " on" : "");
         btn.textContent = c.label;
         btn.onclick = () => {
-          const [sys, sub] = c.comp.split(".").slice(0, 2);
-          // BRAKES.FRONT.PADS → system BRAKES, sub BRAKES.FRONT
           const parts = c.comp.split(".");
           state.systemId = parts[0];
           state.subId = parts.slice(0, 2).join(".");
@@ -727,12 +765,13 @@
 
     function renderSystems() {
       const root = document.getElementById("systems");
-      root.innerHTML = `<div class="lbl">Systems</div>`;
+      root.innerHTML = "";
       for (const sys of TREE) {
         const open = state.expanded.has(sys.id);
+        const box = document.createElement("div");
+        box.className = "sys" + (open ? " open" : "");
         const sysBtn = document.createElement("button");
         sysBtn.type = "button";
-        sysBtn.className = "sys-btn";
         sysBtn.innerHTML = `<span>${open ? "▾" : "▸"}</span><span>${sys.label}</span>`;
         sysBtn.onclick = () => {
           state.expanded = open ? new Set() : new Set([sys.id]);
@@ -740,84 +779,61 @@
           bump();
           paint();
         };
-        root.appendChild(sysBtn);
-
+        box.appendChild(sysBtn);
         if (open) {
-          const wrap = document.createElement("div");
-          wrap.className = "subs";
           for (const sub of sys.subs) {
-            const subBtn = document.createElement("button");
-            subBtn.type = "button";
-            subBtn.className = "sub-btn";
-            subBtn.textContent = sub.label;
-            subBtn.onclick = () => {
-              state.systemId = sys.id;
-              state.subId = sub.id;
-              state.compId = sub.comps[0]?.id ?? null;
-              state.actionId = defaultActionForComp(state.compId);
-              state.search = "";
-              document.getElementById("search").value = "";
-              state.selectedJobId = null;
-              bump();
-              paint();
-            };
-            wrap.appendChild(subBtn);
-
-            if (state.subId === sub.id) {
-              const comps = document.createElement("div");
-              comps.className = "comps";
-              for (const comp of sub.comps) {
-                const cBtn = document.createElement("button");
-                cBtn.type = "button";
-                cBtn.className = "comp-btn" + (state.compId === comp.id && !state.search ? " active" : "");
-                cBtn.textContent = comp.label;
-                cBtn.onclick = () => {
-                  state.compId = comp.id;
-                  state.actionId = defaultActionForComp(comp.id);
-                  state.selectedJobId = null;
-                  bump();
-                  paint();
-                };
-                comps.appendChild(cBtn);
-              }
-              wrap.appendChild(comps);
+            const g = document.createElement("div");
+            g.className = "group";
+            g.innerHTML = `<div class="group-l">${sub.label}</div>`;
+            for (const comp of sub.comps) {
+              const leaf = document.createElement("button");
+              leaf.type = "button";
+              leaf.className = "leaf" + (state.compId === comp.id && !state.search ? " on" : "");
+              leaf.textContent = comp.label;
+              leaf.onclick = () => {
+                state.systemId = sys.id;
+                state.subId = sub.id;
+                state.compId = comp.id;
+                state.actionId = defaultActionForComp(comp.id);
+                state.search = "";
+                document.getElementById("search").value = "";
+                state.selectedJobId = null;
+                bump();
+                paint();
+              };
+              g.appendChild(leaf);
             }
+            box.appendChild(g);
           }
-          root.appendChild(wrap);
         }
+        root.appendChild(box);
       }
     }
 
     function renderCrumb() {
       const root = document.getElementById("crumb");
       const v = VEHICLES[state.vehicleId];
-      const labels = findNodeLabels();
-      const parts = [v.label];
+      const L = findLabels();
+      const parts = [{ t: v.label, i: -1 }];
       if (!state.search) {
-        if (labels.system) parts.push(labels.system);
-        if (labels.sub) parts.push(labels.sub);
-        if (labels.comp) parts.push(labels.comp);
-        if (labels.action && state.compId) parts.push(labels.action);
+        if (L.system) parts.push({ t: L.system, i: 0 });
+        if (L.group) parts.push({ t: L.group, i: 1 });
+        if (L.component) parts.push({ t: L.component, i: 2 });
+        if (L.action && state.compId) parts.push({ t: L.action, i: 3 });
       } else {
-        parts.push(`Search “${state.search.trim()}”`);
+        parts.push({ t: `Search “${state.search.trim()}”`, i: 99 });
       }
-      root.innerHTML = parts.map((p, i) => {
-        const here = i === parts.length - 1 ? " here" : "";
-        const chev = i > 0 ? `<span class="chev">›</span>` : "";
-        return `${chev}<button type="button" class="${here}" data-i="${i}">${p}</button>`;
+      root.innerHTML = parts.map((p, idx) => {
+        const sep = idx ? `<span class="sep">›</span>` : "";
+        const cls = idx === parts.length - 1 ? "here" : "";
+        return `${sep}<button type="button" class="${cls}" data-i="${p.i}">${p.t}</button>`;
       }).join("");
       root.querySelectorAll("button").forEach((btn) => {
         btn.onclick = () => {
           const i = Number(btn.dataset.i);
-          if (i <= 0) {
-            state.compId = null;
-            state.subId = null;
-          } else if (i === 1) {
-            state.subId = null;
-            state.compId = null;
-          } else if (i === 2) {
-            state.compId = null;
-          }
+          if (i < 0) { state.compId = null; state.subId = null; }
+          else if (i === 0) { state.subId = null; state.compId = null; }
+          else if (i === 1) { state.compId = null; }
           state.search = "";
           document.getElementById("search").value = "";
           bump();
@@ -826,81 +842,58 @@
       });
     }
 
-    function renderOps() {
-      const root = document.getElementById("ops");
-      root.innerHTML = "";
-      if (state.search || !state.compId) return;
-      const available = ACTIONS.filter((a) => JOB_DEFS.some((j) => j.comp === state.compId && j.action === a.id));
-      for (const a of available) {
-        const b = document.createElement("button");
-        b.type = "button";
-        b.className = "op-pill" + (state.actionId === a.id ? " active" : "");
-        b.textContent = a.label;
-        b.onclick = () => {
-          state.actionId = a.id;
-          state.selectedJobId = null;
-          bump();
-          paint();
-        };
-        root.appendChild(b);
+    function renderFilters() {
+      const root = document.getElementById("filters");
+      if (state.search || !state.compId) {
+        root.innerHTML = `<span class="lbl">Scope</span><span style="color:var(--muted)">${state.search ? "Search results" : "Select taxonomy component"}</span>`;
+        return;
       }
+      const ops = ACTIONS.filter((a) => JOB_DEFS.some((j) => j.comp === state.compId && j.action === a.id));
+      const positions = ["ALL", ...new Set(JOB_DEFS.filter((j) => j.comp === state.compId).map((j) => j.pos))];
+      root.innerHTML = `
+        <span class="lbl">Position</span>
+        ${positions.map((p) => `<button type="button" class="pill ${state.posFilter===p?"on":""}" data-pos="${p}">${p === "ALL" ? "All" : p}</button>`).join("")}
+        <span class="lbl">Operation</span>
+        ${ops.map((a) => `<button type="button" class="pill ${state.actionId===a.id?"on":""}" data-act="${a.id}">${a.label}</button>`).join("")}
+      `;
+      root.querySelectorAll("[data-pos]").forEach((b) => b.onclick = () => { state.posFilter = b.dataset.pos; bump(); paint(); });
+      root.querySelectorAll("[data-act]").forEach((b) => b.onclick = () => { state.actionId = b.dataset.act; state.selectedJobId = null; bump(); paint(); });
     }
 
     function renderTable() {
       const host = document.getElementById("tableHost");
       const rows = jobsForView();
       if (!rows.length) {
-        host.innerHTML = `<div class="empty" id="empty">${
-          state.search || state.compId
-            ? "No operations for this filter."
-            : "Pick a system component or search above."
-        }</div>`;
+        host.innerHTML = `<div class="empty">${state.search || state.compId ? "No applications for this filter." : "Select a component in the taxonomy, or search above."}</div>`;
         return;
       }
-      host.innerHTML = `
-        <table>
-          <thead>
-            <tr>
-              <th>Operation</th>
-              <th>Pos</th>
-              <th>Resolve</th>
-              <th style="text-align:right">Hrs</th>
-              <th style="text-align:center">+</th>
-            </tr>
-          </thead>
-          <tbody id="tbody"></tbody>
-        </table>`;
+      if (!state.selectedJobId) state.selectedJobId = rows[0].id;
+      host.innerHTML = `<table>
+        <thead><tr>
+          <th>Literal / Operation</th><th>Position</th><th>Resolve</th><th>Skill</th><th style="text-align:right">Base time</th><th style="text-align:center">Add</th>
+        </tr></thead>
+        <tbody id="tbody"></tbody>
+      </table>`;
       const tbody = host.querySelector("#tbody");
       for (const row of rows) {
         const tr = document.createElement("tr");
         if (state.selectedJobId === row.id) tr.classList.add("selected");
-        const hrs = row.hours == null ? "—" : row.hours.toFixed(2);
         tr.innerHTML = `
-          <td>
-            <div style="font-weight:600;color:var(--navy)">${row.name}</div>
-            <div class="mono" style="color:var(--muted);font-size:10px;margin-top:2px">${row.key}</div>
-          </td>
-          <td>${row.pos}</td>
-          <td><span class="path ${row.path}">${row.path}</span></td>
-          <td class="hrs">${hrs}</td>
-          <td style="text-align:center">
-            <button class="add" ${row.hours == null ? "disabled" : ""} title="Add to cart">+</button>
-          </td>`;
+          <td><div class="lit">${row.name}</div><div class="code">${row.key}</div></td>
+          <td class="pos">${row.pos}</td>
+          <td><span class="status ${row.path}">${row.path}</span></td>
+          <td>${row.skill || "B"}</td>
+          <td class="hrs">${row.hours == null ? "—" : row.hours.toFixed(2)}</td>
+          <td style="text-align:center"><button class="addbtn" ${row.hours==null?"disabled":""}>+</button></td>`;
         tr.onclick = (e) => {
-          if (e.target.closest(".add")) return;
-          state.selectedJobId = row.id;
-          bump();
-          paint();
+          if (e.target.closest(".addbtn")) return;
+          state.selectedJobId = row.id; bump(); paint();
         };
-        tr.querySelector(".add").onclick = (e) => {
+        tr.querySelector(".addbtn").onclick = (e) => {
           e.stopPropagation();
           if (row.hours == null) return;
-          if (!state.cart.some((c) => c.id === row.id)) {
-            state.cart.push(row);
-          }
-          state.selectedJobId = row.id;
-          bump();
-          paint();
+          if (!state.cart.some((c) => c.id === row.id)) state.cart.push(row);
+          state.selectedJobId = row.id; bump(); paint();
         };
         tbody.appendChild(tr);
       }
@@ -911,98 +904,86 @@
       const rows = jobsForView();
       const row = rows.find((r) => r.id === state.selectedJobId) || rows[0];
       if (!row) {
-        root.innerHTML = `<div class="k">Nothing selected</div>
-          <div class="v" style="font-weight:500;color:var(--muted);margin-top:6px">
-            Choose a row to inspect resolve path, factory hours, and parts placeholder.
-          </div>`;
+        root.innerHTML = `<div style="color:var(--muted)">Select an operation row to view base time, resolve path, and fitment placeholder.</div>`;
         return;
       }
-      if (!state.selectedJobId) state.selectedJobId = row.id;
+      const cents = row.hours == null ? null : Math.round(row.hours * RATE_CENTS);
       const partsStatus = row.path === "L4_PENDING" ? "PENDING_REVIEW" : "PLACEHOLDER_ENQUEUED";
-      const cat = partsCategory(row);
-      const lineCents = row.hours == null ? null : Math.round(row.hours * RATE_CENTS);
       root.innerHTML = `
-        <div class="k">Operation</div>
-        <div class="v">${row.name}</div>
-        <div class="mono" style="color:var(--muted);margin-top:4px">${row.key}</div>
-        <div style="margin-top:10px" class="k">Resolve path</div>
-        <div style="margin-top:4px"><span class="path ${row.path}">${row.path}</span></div>
-        <div style="margin-top:6px;color:var(--muted)">${row.note}</div>
-        <div style="margin-top:10px" class="k">Factory / scaled hours</div>
-        <div class="v mono">${row.hours == null ? "—" : row.hours.toFixed(3) + " hr"}</div>
-        <div style="margin-top:10px" class="k">Labor @ Albany/Capital Region</div>
-        <div class="v mono">${lineCents == null ? "—" : money(lineCents)}</div>
-        <div style="margin-top:10px" class="k">Parts fitment</div>
-        <div class="v" style="font-size:12px">${partsStatus}</div>
-        <div class="mono" style="margin-top:4px;background:#f1f5f9;padding:6px 8px;border-radius:8px">${cat}</div>
-        <div style="margin-top:8px;color:var(--muted);font-size:11px">
-          Variant flags: ${row.flags.length ? row.flags.join(", ") : "none"}
-        </div>`;
+        <h3>${row.name}</h3>
+        <div class="code">${row.key}</div>
+        <div class="kv"><div class="k">Position / qualifier</div><div class="v">${row.pos}</div></div>
+        <div class="kv"><div class="k">Base / scaled time</div><div class="v mono">${row.hours == null ? "—" : row.hours.toFixed(3) + " hr"} · Skill ${row.skill || "B"}</div></div>
+        <div class="kv"><div class="k">Resolve path</div><div class="v"><span class="status ${row.path}">${row.path}</span><div style="margin-top:4px;font-weight:500;color:var(--muted)">${row.note}</div></div></div>
+        <div class="kv"><div class="k">Labor @ Albany/Capital Region</div><div class="v mono">${cents == null ? "—" : money(cents)}</div></div>
+        <div class="kv"><div class="k">Parts fitment</div><div class="v">${partsStatus}<div class="mono" style="margin-top:4px;background:#fff;border:1px solid var(--motor-line);padding:6px">${partsCategory(row)}</div></div></div>
+        <button class="btn-add" id="detailAdd" ${row.hours==null?"disabled":""}>Add application to staging</button>
+      `;
+      const btn = document.getElementById("detailAdd");
+      if (btn) btn.onclick = () => {
+        if (row.hours == null) return;
+        if (!state.cart.some((c) => c.id === row.id)) state.cart.push(row);
+        bump(); paint();
+      };
     }
 
-    function renderCart() {
-      const root = document.getElementById("cart");
-      if (!state.cart.length) {
-        root.innerHTML = `<div style="color:var(--muted);font-size:12px;padding:8px 0">Cart empty — use + on a billable row.</div>`;
-      } else {
-        root.innerHTML = state.cart.map((c) => `
-          <div class="cart-item">
-            <div>
-              <div style="font-weight:600;color:var(--navy)">${c.name}</div>
-              <div style="color:var(--muted)">${c.path} · ${c.hours.toFixed(2)} hr</div>
-            </div>
-            <div class="mono">${money(Math.round(c.hours * RATE_CENTS))}</div>
-          </div>`).join("");
-      }
+    function renderDock() {
+      document.getElementById("dockCount").textContent = `(${state.cart.length})`;
+      const chips = document.getElementById("dockChips");
+      chips.innerHTML = state.cart.map((c, idx) =>
+        `<span class="dock-chip">${c.name.split("—")[0].trim()} ${c.hours.toFixed(1)}h <button type="button" data-x="${idx}">×</button></span>`
+      ).join("");
+      chips.querySelectorAll("button").forEach((b) => {
+        b.onclick = () => { state.cart.splice(Number(b.dataset.x), 1); bump(); paint(); };
+      });
       const hours = state.cart.reduce((s, c) => s + c.hours, 0);
       const cents = Math.round(hours * RATE_CENTS);
-      document.getElementById("totHours").textContent = hours.toFixed(2);
-      document.getElementById("totMoney").textContent = money(cents);
+      document.getElementById("dockTotals").textContent = `${hours.toFixed(2)} hr · ${money(cents)}`;
       document.getElementById("addEstimate").disabled = state.cart.length === 0;
     }
 
     function paint() {
       const v = VEHICLES[state.vehicleId];
       document.getElementById("vehicleLabel").textContent = v.label;
-      document.getElementById("chassisMeta").textContent =
-        `Chassis tier: ${v.chassis} · shop rate Albany/Capital Region $145.00/hr · Tabish Friday Labor fixtures`;
+      document.getElementById("specStrip").innerHTML = `
+        <span><b>Year/Make/Model</b> ${v.label}</span>
+        <span><b>Chassis tier</b> ${v.chassis}</span>
+        <span><b>Drive</b> FWD/AWD demo</span>
+        <span><b>Clicks</b> ${state.clicks}</span>`;
+      document.getElementById("configBand").textContent =
+        `Application config · chassis tier ${v.chassis} · shop rate Albany/Capital Region $145.00/hr · proprietary taxonomy (not MOTOR-licensed content)`;
       renderChips();
       renderSystems();
       renderCrumb();
-      renderOps();
+      renderFilters();
       renderTable();
       renderDetail();
-      renderCart();
+      renderDock();
     }
 
     document.getElementById("vehicleSelect").onchange = (e) => {
       state.vehicleId = e.target.value;
       state.cart = [];
       state.selectedJobId = null;
-      bump();
-      paint();
+      bump(); paint();
     };
-
     document.getElementById("search").oninput = (e) => {
       state.search = e.target.value;
       state.selectedJobId = null;
       if (state.search.trim()) bump();
       paint();
     };
-
     document.getElementById("addEstimate").onclick = () => {
       if (!state.cart.length) return;
       const hrs = state.cart.reduce((s, c) => s + c.hours, 0);
       const toast = document.getElementById("toast");
-      toast.textContent = `Mock only — would add ${state.cart.length} line(s) (${hrs.toFixed(2)} hr / ${money(Math.round(hrs * RATE_CENTS))}). No CRM write.`;
+      toast.textContent = `Lab only — staged ${state.cart.length} application(s), ${hrs.toFixed(2)} hr / ${money(Math.round(hrs * RATE_CENTS))}. No CRM write.`;
       toast.classList.add("show");
       state.cart = [];
-      bump();
-      paint();
+      bump(); paint();
       setTimeout(() => toast.classList.remove("show"), 3200);
     };
 
-    // Default into Front Pads R&R so the preview is immediately useful
     paint();
   </script>
 </body>
