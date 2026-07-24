@@ -129,7 +129,15 @@ def main() -> None:
     log.info("Level-1 categories: %s", n)
     summaries = seed_from_scrape()
     ensure_verified_seed_for_civic_pads()
-    print(json.dumps({"ok": True, "vehicles": summaries}, indent=2))
+    assoc_summary: dict = {}
+    try:
+        from services.job_association_seeder import seed_common_associations
+
+        assoc_summary = seed_common_associations()
+        log.info("Job associations: %s", assoc_summary.get("associations_upserted"))
+    except Exception as exc:  # noqa: BLE001
+        log.warning("Association seed skipped (apply schema_associations.sql?): %s", exc)
+    print(json.dumps({"ok": True, "vehicles": summaries, "associations": assoc_summary}, indent=2))
 
 
 if __name__ == "__main__":

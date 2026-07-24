@@ -46,3 +46,20 @@ Cross-validating OEM manual Capacities/Specifications against fluidcapacity.com 
 
 - Recurring fluid-data API fees (Auto.dev enrich, commercial fluid DaaS, etc.)
 - Per-VIN fluid lookup charges at estimate/specs open time once seeded
+
+---
+
+## Dynamic job associations (frequently combined)
+
+| Layer | Cost model | Notes |
+|-------|------------|-------|
+| Add-on suggestions (`/operations/{id}/addons`) | **$0** | Pure SQL on `operation_associations` + `labor_time_matrix`. |
+| Association learning | **$0** | Batch SQL over `repair_order_lines` — no external MOTOR/ProDemand APIs. |
+| Bulk overlap estimate | **$0** | In-process: learned `avg_combined_labor` or sum − `overlap_discount`. |
+
+Industry seed pairs bootstrap the UI (pads→rotors, timing belt→water pump, etc.). Every closed repair order refreshes `frequency_score`, `avg_combined_labor`, and `overlap_discount` from **this shop’s** clocked times — accuracy improves with use instead of accruing catalog license fees.
+
+### What you do **not** pay
+
+- MOTOR / ProDemand add-on / “jobs often performed together” subscription fees  
+- Per-search commercial association APIs

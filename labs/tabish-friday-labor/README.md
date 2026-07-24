@@ -64,6 +64,13 @@ python -m api.main                  # or: python -m src.labor_guide_api
 - Technician conflicts: `POST /fluids/discrepancy`
 - Lookups are pure SQL ($0); see [COST.md](./COST.md)
 
+### Dynamic job associations (frequently combined)
+
+- Seed: `python -m services.job_association_seeder` (or via `seed_taxonomy`)
+- Learn: `POST /associations/learn` or `POST /repair-orders/{id}/close`
+- UI API: `GET /vehicles/{id}/operations/{op}/addons` + `POST .../labor/bulk-estimate`
+- Collapsible **Frequently Combined Jobs** uses the addons payload (checkboxes + `additional_hours`)
+
 ### Offline smoke (no Postgres / no OpenAI)
 
 ```bash

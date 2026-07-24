@@ -13,10 +13,12 @@ sys.path.insert(0, str(ROOT))
 from src.llm_parser import parse_technician_intent_offline_demo  # noqa: E402
 from src.oem_scraper import scrape_vehicle  # noqa: E402
 from src.taxonomy_keys import path_to_keys  # noqa: E402
+from services.association_hours import compute_addon_hours  # noqa: E402
 from services.fluid_harvest.fluid_extractor import extract_fluids_from_pdf  # noqa: E402
 from services.fluid_harvest.fluid_normalizer import merge_fluid_sources  # noqa: E402
 from services.fluid_harvest.fluidcapacity_scraper import scrape_fluidcapacity  # noqa: E402
 from services.fluid_harvest.owner_manual_scraper import generate_pdf_urls  # noqa: E402
+from services.job_association_seeder import COMMON_ASSOCIATIONS  # noqa: E402
 
 
 def main() -> None:
@@ -65,7 +67,25 @@ def main() -> None:
     assert oil.confidence == 100, oil
     assert abs(oil.capacity - 4.5) <= 0.15, oil
 
-    print("OK — Tabish Friday Labor offline smoke passed (labor + fluids)")
+    # Job association hour math (pads → rotors industry seed)
+    pads_rotors = next(
+        a
+        for a in COMMON_ASSOCIATIONS
+        if a[0] == "BRAKES.FRONT.PADS.R_AND_R" and a[1] == "BRAKES.FRONT.ROTORS.R_AND_R"
+    )
+    _primary, _assoc, overlap, assoc_hrs, primary_hrs = pads_rotors
+    avg_combined = primary_hrs + assoc_hrs - overlap
+    additional, combined = compute_addon_hours(
+        primary_hours=primary_hrs,
+        associated_standalone=assoc_hrs,
+        avg_combined_labor=avg_combined,
+        overlap_discount=overlap,
+    )
+    assert abs(additional - (avg_combined - primary_hrs)) < 0.01
+    assert abs(combined - avg_combined) < 0.01
+    assert len(COMMON_ASSOCIATIONS) >= 20
+
+    print("OK — Tabish Friday Labor offline smoke passed (labor + fluids + associations)")
     print(
         json.dumps(
             {
@@ -73,6 +93,11 @@ def main() -> None:
                 "scrape_source": scraped.source,
                 "demo_total": total,
                 "fluid_oil": {"capacity": oil.capacity, "confidence": oil.confidence, "source": oil.source},
+                "addon_pads_rotors": {
+                    "additional_hours": additional,
+                    "combined_total_hours": combined,
+                    "overlap_discount": overlap,
+                },
             },
             indent=2,
         )
