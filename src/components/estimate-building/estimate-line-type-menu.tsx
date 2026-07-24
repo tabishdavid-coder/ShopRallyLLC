@@ -1,6 +1,6 @@
 "use client";
 
-import { BookOpen, ChevronDown, ListTree, Package, Sparkles, Wrench } from "lucide-react";
+import { BookOpen, ChevronDown, ListTree, Package, PenLine, Search, Sparkles, Wrench } from "lucide-react";
 
 import {
   DropdownMenu,
@@ -11,6 +11,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { LAB_INPUT_FLAT } from "@/components/estimate-building/estimate-lab-job-card-shell";
+import { TABISH_FRIDAY_LABOR_TITLE } from "@/lib/tabish-friday-labor";
 import { useMotorLaborUiEnabled, usePartsTechUiEnabled } from "@/lib/shop-capabilities";
 import { cn } from "@/lib/utils";
 
@@ -69,6 +70,10 @@ export type EstimateLineTypeMenuHandlers = {
   onPartFromGuide?: () => void;
   onCustomLabor?: () => void;
   onCustomPart?: () => void;
+  /** Pick tire from shop stock inventory. */
+  onTireFromStock?: () => void;
+  /** Blank editable tire line without stock link. */
+  onCustomTire?: () => void;
   /** Tekmetric parity — opens labor guide browse (same dialog as guide search). */
   onLaborFromCatalog?: () => void;
 };
@@ -137,8 +142,12 @@ export function EstimateLineTypeMenu({
   const showLaborCustom = Boolean(h.onCustomLabor);
   const showPartGuide = partsTechOk && Boolean(h.onPartFromGuide);
   const showPartCustom = Boolean(h.onCustomPart);
+  const showTireStock = Boolean(h.onTireFromStock);
+  const showTireCustom = Boolean(h.onCustomTire);
 
-  const hasGuideMenu = Boolean(showLaborGuide || showLaborCustom || showPartGuide || showPartCustom);
+  const hasGuideMenu = Boolean(
+    showLaborGuide || showLaborCustom || showPartGuide || showPartCustom || showTireStock || showTireCustom,
+  );
 
   const resolvedTypeOptions: InlineLineType[] =
     typeOptions ??
@@ -230,11 +239,7 @@ export function EstimateLineTypeMenu({
                 <>
                   <DropdownMenuItem className="gap-2 text-xs" onSelect={openLaborGuide}>
                     <ListTree className="size-3.5 shrink-0 text-brand-navy" aria-hidden />
-                    Add labor from catalog
-                  </DropdownMenuItem>
-                  <DropdownMenuItem className="gap-2 text-xs" onSelect={openLaborGuide}>
-                    <ListTree className="size-3.5 shrink-0 text-brand-navy" aria-hidden />
-                    Add labor from Labor Book
+                    Add labor from {TABISH_FRIDAY_LABOR_TITLE}
                   </DropdownMenuItem>
                 </>
               ) : null}
@@ -276,6 +281,27 @@ export function EstimateLineTypeMenu({
                 <p className="px-2 py-1 text-[9px] leading-snug text-muted-foreground">
                   Part lines use catalog lookup until MOTOR parts bridge ships.
                 </p>
+              ) : null}
+            </>
+          ) : null}
+
+          {showTireStock || showTireCustom ? (
+            <>
+              <DropdownMenuSeparator />
+              <DropdownMenuLabel className="text-[10px] font-normal text-muted-foreground">
+                Tires
+              </DropdownMenuLabel>
+              {showTireStock ? (
+                <DropdownMenuItem className="gap-2 text-xs" onSelect={h.onTireFromStock}>
+                  <Search className="size-3.5 shrink-0 text-brand-navy" aria-hidden />
+                  From tire inventory
+                </DropdownMenuItem>
+              ) : null}
+              {showTireCustom ? (
+                <DropdownMenuItem className="gap-2 text-xs" onSelect={h.onCustomTire}>
+                  <PenLine className="size-3.5 shrink-0 text-brand-navy" aria-hidden />
+                  Manual tire
+                </DropdownMenuItem>
               ) : null}
             </>
           ) : null}

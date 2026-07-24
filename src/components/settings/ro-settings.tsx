@@ -1,5 +1,9 @@
 "use client";
 
+import {
+  ShopLaborRatesEditor,
+  type ShopLaborRateEditorRow,
+} from "@/components/settings/shop-labor-rates-editor";
 import { useState, useTransition } from "react";
 import {
   Timer,
@@ -55,7 +59,7 @@ import type { EstimateJobsLayout } from "@/generated/prisma";
 type Method = "PERCENT" | "FIXED";
 type Base = "LABOR" | "PARTS" | "LABOR_PARTS";
 
-type LaborRateRow = { name: string; rate: number; isDefault: boolean };
+type LaborRateRow = ShopLaborRateEditorRow;
 type FeeRow = {
   name: string;
   autoApply: boolean;
@@ -120,6 +124,7 @@ export function RoSettings(props: {
     updatedAt: Date | null;
   };
   estimateJobsLayout: EstimateJobsLayout;
+  shopDefaultRateCents: number;
   initialSection?: string;
 }) {
   const [section, setSection] = useState<SectionKey>(() => resolveInitialSection(props.initialSection));
@@ -138,7 +143,9 @@ export function RoSettings(props: {
         onSelect={(id) => setSection(id as SectionKey)}
         contentCard
       >
-        {section === "labor" ? <LaborRatesSection rows={props.laborRates} /> : null}
+        {section === "labor" ? (
+          <LaborRatesSection rows={props.laborRates} shopDefaultRateCents={props.shopDefaultRateCents} />
+        ) : null}
         {section === "fees" ? <FeesSection rows={props.fees} /> : null}
         {section === "discounts" ? <DiscountsSection rows={props.discounts} /> : null}
         {section === "taxes" ? <TaxesSection initial={props.taxes} zip={props.zip} /> : null}
@@ -291,64 +298,31 @@ function BaseSelect({ value, onChange }: { value: Base; onChange: (b: Base) => v
 
 /* ───────────────────────── Labor Rates ───────────────────────── */
 
-function LaborRatesSection({ rows: initial }: { rows: LaborRateRow[] }) {
-  const [rows, setRows] = useState<LaborRateRow[]>(initial);
-  const { saved, error, pending, run } = useSaver();
-
-  const set = (i: number, patch: Partial<LaborRateRow>) =>
-    setRows((rs) => rs.map((r, idx) => (idx === i ? { ...r, ...patch } : r)));
-  const setDefault = (i: number) => setRows((rs) => rs.map((r, idx) => ({ ...r, isDefault: idx === i })));
-  const add = () => setRows((rs) => [...rs, { name: "", rate: 0, isDefault: rs.length === 0 }]);
-  const remove = (i: number) => setRows((rs) => rs.filter((_, idx) => idx !== i));
-
+function LaborRatesSection({
+  rows: initial,
+  shopDefaultRateCents,
+}: {
+  rows: LaborRateRow[];
+  shopDefaultRateCents: number;
+}) {
   return (
     <div>
       <SectionHeader
         icon={Timer}
         title="Labor Rates"
-        desc="The shop labor rate is the hourly rate you charge your customers. Customers will never see this rate, and you can enter multiple rates for different kinds of customers."
+        desc="One shared list for RO pricing and canned-job labor pickers. The default rate applies to new repair orders; each row can set default hours for canned jobs."
       />
-      <div className="overflow-hidden rounded-lg border">
-        <table className="w-full text-sm">
-          <thead>
-            <tr className="border-b bg-muted/40 text-left text-xs font-semibold uppercase tracking-wide text-subtle-foreground">
-              <th className="w-16 px-4 py-2.5 font-medium">Default</th>
-              <th className="py-2.5 font-medium">Labor Rate Name</th>
-              <th className="w-40 py-2.5 text-right font-medium">Labor Rate</th>
-              <th className="w-10 px-3" />
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((r, i) => (
-              <tr key={i} className="border-b last:border-0">
-                <td className="px-4 py-2">
-                  <input type="radio" name="default-rate" checked={r.isDefault} onChange={() => setDefault(i)} className="size-4 accent-primary" />
-                </td>
-                <td className="py-2 pr-2">
-                  <input className={cn(input, "w-full")} value={r.name} onChange={(e) => set(i, { name: e.target.value })} placeholder="Labor rate name" />
-                </td>
-                <td className="py-2">
-                  <div className="flex items-center justify-end gap-1">
-                    <span className="text-muted-foreground">$</span>
-                    <input
-                      type="number" min={0} step="0.01"
-                      className={cn(input, "w-28 text-right")}
-                      value={r.rate}
-                      onChange={(e) => set(i, { rate: Number(e.target.value) })}
-                    />
-                  </div>
-                </td>
-                <td className="px-3 py-2 text-right">
-                  {rows.length > 1 ? (
-                    <button onClick={() => remove(i)} aria-label="Remove" className="rounded p-1 text-muted-foreground hover:bg-destructive/10 hover:text-destructive"><X className="size-4" /></button>
-                  ) : null}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-      <SaveBar label="Save Labor Rates" onSave={() => run(() => saveLaborRates(rows))} saved={saved} error={error} pending={pending} onAdd={add} addLabel="Add Labor Rate" />
+      <p className="mb-4 rounded-md border border-brand-light/40 bg-brand-light/10 px-3 py-2 text-xs leading-relaxed text-muted-foreground">
+        Changes here appear immediately in the labor catalog when building canned jobs — and edits in the
+        catalog update this list. Only active rows show in labor pickers.
+      </p>
+      <ShopLaborRatesEditor
+        initialRows={initial}
+        shopDefaultRateCents={shopDefaultRateCents}
+        onSave={saveLaborRates}
+        saveLabel="Save Labor Rates"
+        addLabel="Add Labor Rate"
+      />
     </div>
   );
 }

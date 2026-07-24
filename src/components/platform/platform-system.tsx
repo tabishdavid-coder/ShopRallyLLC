@@ -105,12 +105,14 @@ export function PlatformSystem() {
             <Server className="size-5 text-brand-navy" />
           </div>
           <div className="flex-1">
-            <h3 className="font-semibold text-brand-navy">Maintenance tools (coming soon)</h3>
+            <h3 className="font-semibold text-brand-navy">Maintenance tools</h3>
             <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
-              Cache flush, seed re-run guards, and broadcast banners will live here. Per-shop{" "}
+              <strong className="font-medium text-foreground">OEM data health & automation</strong>{" "}
+              (scraper sources, health alerts, job audit) lives below on this page. Per-shop{" "}
               <strong className="font-medium text-foreground">release flags</strong> are on each
               shop detail page (Platform → Shops → shop). See{" "}
-              <code className="text-xs">docs/PHASED-ROLLOUT.md</code>.
+              <code className="text-xs">docs/PHASED-ROLLOUT.md</code> and{" "}
+              <code className="text-xs">services/oem-automation/README.md</code>.
             </p>
             <div className="mt-4 flex flex-wrap gap-2">
               <Button asChild variant="outline" size="sm">

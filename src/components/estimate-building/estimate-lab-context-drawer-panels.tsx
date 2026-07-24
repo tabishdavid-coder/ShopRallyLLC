@@ -1,45 +1,68 @@
 "use client";
 
-import { useEffect, useRef, useState, useTransition } from "react";
+import { useEffect, useMemo, useState, useTransition } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import {
-  Calendar,
+  Building2,
   CalendarDays,
   Car,
   ChevronDown,
   ChevronRight,
+  ClipboardList,
   Copy,
   ExternalLink,
+  FileText,
   History,
   Loader2,
+  Mail,
+  MapPin,
+  Palette,
+  Phone,
   Plus,
   Receipt,
+  Save,
   Search,
   Shield,
   Tag,
+  User,
+  Users,
 } from "lucide-react";
 
 import { CustomerConsentCheckboxes } from "@/components/customers/customer-consent-checkboxes";
-import { DrawerCustomerInsightsCard } from "@/components/customers/drawer-customer-insights";
 import {
   CustomerTagPicker,
-  PersonBusinessToggle,
   validateCustomerForm,
   type CustomerFormType,
   type EditableCustomerRecord,
 } from "@/components/customers/customer-form-shared";
-import { CrmFormField } from "@/components/crm/crm-form-field";
+import {
+  CUSTOMER_INTAKE_FIELD,
+  CustomerIntakeFieldLabel,
+  CustomerIntakeFormSection,
+  CustomerIntakeIconInput,
+  CustomerIntakeIconSelect,
+  CustomerIntakeTypeTabs,
+} from "@/components/customers/customer-intake-form-chrome";
 import { AddVehicleDialog } from "@/components/vehicles/add-vehicle-dialog";
 import {
+  DRIVETRAIN_OPTIONS,
+  TRANSMISSION_OPTIONS,
   US_STATE_CODES,
   US_STATE_NAMES,
+  VEHICLE_COLORS,
+  VEHICLE_NOTES_MAX,
 } from "@/components/vehicles/create-vehicle-form";
+import {
+  VEHICLE_INTAKE_BTN_PRIMARY,
+  VEHICLE_INTAKE_FIELD,
+  VehicleIntakeFieldLabel,
+  VehicleIntakeFormSection,
+} from "@/components/vehicles/vehicle-intake-form-chrome";
+import { US_STATES } from "@/lib/platform-shop-form";
 import {
   usePlateVinLookup,
   type VehicleLookupFields,
 } from "@/components/vehicles/use-plate-vin-lookup";
-import { NewAppointmentDialog } from "@/components/appointments/new-appointment-dialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -51,75 +74,92 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { SharePlansLinkButton } from "@/components/maintenance/share-plans-link-button";
 import type { ContextDrawerTab } from "@/components/estimate-building/estimate-lab-context-drawer";
 import { fetchCustomerCarePlans } from "@/server/actions/customer-care-plans";
 import { fetchCustomerPaymentHistory } from "@/server/actions/customer-payment-history";
-import { EstimateLabVehicleSpecsSection } from "@/components/estimate-building/estimate-lab-vehicle-specs-section";
 import { PaymentFinancePanel, type PaymentFinanceData } from "@/components/repair-order/payment-finance-panel";
 import { PaymentTransactionsPanel } from "@/components/repair-order/payment-transactions-panel";
 import type {
-  EstimateContextDrawerAppointment,
   EstimateContextDrawerCarePlan,
   EstimateContextDrawerDeferredJob,
   EstimateContextDrawerRo,
   EstimateContextDrawerVehicle,
 } from "@/lib/estimate-context-drawer-types";
-import type { EstimateLabVehicleSpecsBundle } from "@/lib/estimate-lab-vehicle-specs";
-import { formatCents, customerDisplayName } from "@/lib/format";
+
+type VehicleDrawerPanel = "details" | "history";
+import { formatCents } from "@/lib/format";
 import { formatVehicleDisplayLabel } from "@/lib/vehicle-display";
 import { AP_TERMS } from "@/lib/autopilot3030/terminology";
 import { cn } from "@/lib/utils";
 import { fmtDate } from "@/lib/datetime";
-import { fetchVehicleSpecsBundle } from "@/server/actions/vehicle-specs";
 import { formatPhoneInput } from "@/lib/phone";
 import { RO_STATUS_PILL } from "@/lib/ro-status";
-import { useAutodevDecodingUiEnabled, useVehicleSpecsUiEnabled } from "@/lib/shop-capabilities";
+import { useAutodevDecodingUiEnabled } from "@/lib/shop-capabilities";
 import { getCustomerTagNames } from "@/server/actions/customer-settings";
 import { updateCustomer } from "@/server/actions/customers";
 import { updateVehicle } from "@/server/actions/vehicles";
 import type { ROStatus } from "@/generated/prisma";
 
 const DRAWER_FIELD =
-  "h-9 rounded-md border-[#DDE5EF] bg-white text-sm shadow-none focus-visible:border-[#1E7FE0] focus-visible:ring-[#1E7FE0]/20";
+  "h-9 rounded-md border-border bg-white text-sm shadow-none focus-visible:border-brand-navy focus-visible:ring-brand-navy/20";
 
 const DRAWER_BTN_PRIMARY =
-  "h-9 rounded-md bg-[#E86A10] px-4 text-sm font-semibold text-white hover:bg-[#E86A10]/90";
+  "h-9 rounded-md bg-brand-navy px-4 text-sm font-semibold text-white hover:bg-brand-navy/90";
 
 const DRAWER_BTN_OUTLINE =
-  "h-9 rounded-md border-[#DDE5EF] bg-white px-4 text-sm font-medium text-[#0B1F3B] hover:bg-[#F0F3F8]";
+  "h-9 rounded-md border-border bg-white px-4 text-sm font-medium text-brand-navy hover:bg-brand-navy/[0.04]";
 
-const DRAWER_BTN_AZURE =
-  "h-9 rounded-md border-[#1E7FE0] bg-white px-4 text-sm font-semibold text-[#1E7FE0] hover:bg-[#f2f8fe]";
+const DRAWER_BTN_ACCENT =
+  "h-9 rounded-md border-brand-navy/30 bg-white px-4 text-sm font-semibold text-brand-navy hover:bg-brand-light/20";
 
-/** White card shell used across all drawer tabs. */
-function DrawerContentCard({
+/** Pane header — matches Vehicles orange-icon + light divider rhythm. */
+function DrawerPaneHeader({
+  icon: Icon,
+  title,
+  action,
+}: {
+  icon: React.ComponentType<{ className?: string }>;
+  title: string;
+  action?: React.ReactNode;
+}) {
+  return (
+    <div className="flex items-center justify-between gap-3 border-b border-[#eaecf0] py-3">
+      <div className="flex items-center gap-2">
+        <Icon className="size-4 text-brand-orange" />
+        <h3 className="text-sm font-semibold text-foreground">{title}</h3>
+      </div>
+      {action}
+    </div>
+  );
+}
+
+/** Flat section chrome — orange icon + title (Profile/Vehicles rhythm). */
+function DrawerFlatSection({
+  icon: Icon,
   title,
   children,
   className,
   headerAction,
 }: {
-  title?: string;
+  icon: React.ComponentType<{ className?: string }>;
+  title: string;
   children: React.ReactNode;
   className?: string;
   headerAction?: React.ReactNode;
 }) {
   return (
-    <section className={cn("rounded-lg border border-[#DDE5EF] bg-white", className)}>
-      {title ? (
-        <div className="flex items-center justify-between gap-3 border-b border-[#DDE5EF]/60 px-4 py-3">
-          <h3 className="text-sm font-semibold text-[#0B1F3B]">{title}</h3>
-          {headerAction}
+    <section className={cn("space-y-3", className)}>
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2">
+          <Icon className="size-4 text-brand-orange" />
+          <h3 className="text-sm font-semibold text-foreground">{title}</h3>
         </div>
-      ) : null}
-      <div className={cn(title ? "p-4" : "p-4")}>{children}</div>
+        {headerAction}
+      </div>
+      <div>{children}</div>
     </section>
-  );
-}
-
-function DrawerSubheading({ children }: { children: React.ReactNode }) {
-  return (
-    <p className="mb-2 text-sm font-semibold text-[#0B1F3B]">{children}</p>
   );
 }
 
@@ -137,35 +177,25 @@ function DrawerEmptyState({
   onAction?: () => void;
 }) {
   return (
-    <DrawerContentCard>
-      <div className="flex flex-col items-center py-8 text-center">
-        <span className="mb-3 flex size-10 items-center justify-center rounded-full bg-[#F0F3F8]">
-          <Icon className="size-5 text-[#8CA2C0]" />
+    <div className="rounded-md border border-border bg-white px-4 py-8">
+      <div className="flex flex-col items-center text-center">
+        <span className="mb-3 flex size-10 items-center justify-center rounded-md bg-brand-navy/[0.06]">
+          <Icon className="size-5 text-muted-foreground" />
         </span>
-        <p className="text-sm font-medium text-[#0B1F3B]">{title}</p>
-        <p className="mt-1 max-w-xs text-xs leading-relaxed text-[#5B7295]">{description}</p>
+        <p className="text-sm font-medium text-brand-navy">{title}</p>
+        <p className="mt-1 max-w-xs text-xs leading-relaxed text-muted-foreground">{description}</p>
         {actionLabel && onAction ? (
           <button
             type="button"
             onClick={onAction}
-            className="mt-3 text-sm font-medium text-[#1E7FE0] hover:underline"
+            className="mt-3 text-sm font-medium text-brand-navy hover:underline"
           >
             {actionLabel}
           </button>
         ) : null}
       </div>
-    </DrawerContentCard>
+    </div>
   );
-}
-
-function fmtApptWhen(iso: string) {
-  return new Date(iso).toLocaleString("en-US", {
-    weekday: "short",
-    month: "short",
-    day: "numeric",
-    hour: "numeric",
-    minute: "2-digit",
-  });
 }
 
 function fmtRoWhen(d: Date | string) {
@@ -210,7 +240,7 @@ function customerPayload(
 
 export function DrawerProfileTab({
   customer,
-  customerId,
+  customerId: _customerId,
   drawerOpen,
   canEdit,
   onSaved,
@@ -313,205 +343,282 @@ export function DrawerProfileTab({
     });
   }
 
+  const displayName =
+    type === "business" && company.trim()
+      ? company.trim()
+      : `${firstName} ${lastName}`.trim();
+  const disabled = !canEdit || pending;
+
   return (
-    <div className="space-y-4 pb-4">
-      <DrawerCustomerInsightsCard customerId={customerId} drawerOpen={drawerOpen} />
+    <TooltipProvider delayDuration={200}>
+      <div className="relative flex min-h-full flex-col bg-white">
+        <CustomerIntakeTypeTabs
+          type={type}
+          onChange={setType}
+          disabled={disabled}
+        />
 
-      <DrawerContentCard title="Customer Information">
-        <div className="space-y-4">
-          <div className="flex flex-wrap items-end justify-between gap-3">
-            <PersonBusinessToggle type={type} onChange={setType} compact className="rounded-full border-[#DDE5EF] p-0.5" />
-            <CrmFormField label="Customer type" compact className="min-w-[8.5rem]">
-              <Select defaultValue="regular">
-                <SelectTrigger className={DRAWER_FIELD}>
-                  <SelectValue placeholder="Regular" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="regular">Regular</SelectItem>
-                  <SelectItem value="fleet">Fleet</SelectItem>
-                  <SelectItem value="wholesale">Wholesale</SelectItem>
-                </SelectContent>
-              </Select>
-            </CrmFormField>
-          </div>
-
-          <div className="grid grid-cols-2 gap-x-4 gap-y-3">
-            {type === "business" ? (
-              <CrmFormField label="Business name" compact className="col-span-2">
-                <Input value={company} onChange={(e) => setCompany(e.target.value)} disabled={!canEdit || pending} className={DRAWER_FIELD} />
-              </CrmFormField>
-            ) : (
-              <>
-                <CrmFormField label="First name" compact>
-                  <Input value={firstName} onChange={(e) => setFirstName(e.target.value)} disabled={!canEdit || pending} className={DRAWER_FIELD} />
-                </CrmFormField>
-                <CrmFormField label="Last name" compact>
-                  <Input value={lastName} onChange={(e) => setLastName(e.target.value)} disabled={!canEdit || pending} className={DRAWER_FIELD} />
-                </CrmFormField>
-              </>
-            )}
-            <CrmFormField label="Phone" compact>
-              <Input
-                value={phone}
-                onChange={(e) => setPhone(formatPhoneInput(e.target.value))}
-                inputMode="tel"
-                placeholder="(555) 555-5555"
-                disabled={!canEdit || pending}
-                className={DRAWER_FIELD}
-              />
-            </CrmFormField>
-            <CrmFormField label="Type" compact>
-              <Select value={phoneType} onValueChange={setPhoneType} disabled={!canEdit || pending}>
-                <SelectTrigger className={DRAWER_FIELD}>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="Mobile">Mobile</SelectItem>
-                  <SelectItem value="Home">Home</SelectItem>
-                  <SelectItem value="Work">Work</SelectItem>
-                </SelectContent>
-              </Select>
-            </CrmFormField>
-            <CrmFormField label="Email" compact className="col-span-2">
-              <Input
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                placeholder="name@email.com"
-                disabled={!canEdit || pending}
-                className={DRAWER_FIELD}
-              />
-            </CrmFormField>
-          </div>
-
-          <div>
-            <DrawerSubheading>Primary Address</DrawerSubheading>
-            <div className="grid grid-cols-6 gap-3">
-              <CrmFormField label="Address" compact className="col-span-6">
-                <Input value={address} onChange={(e) => setAddress(e.target.value)} disabled={!canEdit || pending} className={DRAWER_FIELD} />
-              </CrmFormField>
-              <CrmFormField label="City" compact className="col-span-3">
-                <Input value={city} onChange={(e) => setCity(e.target.value)} disabled={!canEdit || pending} className={DRAWER_FIELD} />
-              </CrmFormField>
-              <CrmFormField label="State" compact className="col-span-1">
-                <Select value={state || undefined} onValueChange={setState} disabled={!canEdit || pending}>
-                  <SelectTrigger className={DRAWER_FIELD}>
-                    <SelectValue placeholder="—" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {US_STATE_CODES.map((s) => (
-                      <SelectItem key={s} value={s}>
-                        {s}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </CrmFormField>
-              <CrmFormField label="Zip" compact className="col-span-2">
-                <Input value={zip} onChange={(e) => setZip(e.target.value)} disabled={!canEdit || pending} className={DRAWER_FIELD} />
-              </CrmFormField>
-            </div>
-          </div>
-
-          <div>
-            <DrawerSubheading>Communication</DrawerSubheading>
-            <CustomerConsentCheckboxes
-              compact
-              transactionalSmsConsent={transactionalSms}
-              marketingOptIn={marketingSms}
-              marketingEmailConsent={marketingEmail}
-              onTransactionalChange={setTransactionalSms}
-              onMarketingSmsChange={setMarketingSms}
-              onMarketingEmailChange={setMarketingEmail}
-            />
-          </div>
-
-          <div className="grid grid-cols-2 gap-4">
-            <CrmFormField label="Internal notes" compact>
-              <Textarea
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                disabled={!canEdit || pending}
-                rows={3}
-                className={cn(DRAWER_FIELD, "min-h-[5rem] resize-none py-2")}
-              />
-            </CrmFormField>
-            <div>
-              <p className="mb-1.5 text-xs font-medium text-[#0B1F3B]">Tags</p>
-              <CustomerTagPicker
-                compact
-                availableTags={
-                  availableTags.length > 0
-                    ? availableTags
-                    : Array.from(new Set([...(customer.tags ?? []), ...tags]))
-                }
-                selected={tags}
-                onToggle={(t) => setTags((prev) => (prev.includes(t) ? prev.filter((x) => x !== t) : [...prev, t]))}
-              />
-              {canEdit ? (
-                <button
-                  type="button"
-                  className="mt-2 inline-flex items-center gap-1 rounded-md border border-dashed border-[#E86A10] px-3 py-1.5 text-xs font-medium text-[#E86A10] hover:bg-[#E86A10]/5"
+        <div className="min-h-0 flex-1 space-y-7 py-5">
+          <CustomerIntakeFormSection icon={User} title="Customer Information">
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              <div>
+                <CustomerIntakeFieldLabel label="First Name" required={type === "person"} />
+                <CustomerIntakeIconInput
+                  icon={User}
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                  placeholder="First name"
+                  disabled={disabled}
+                />
+              </div>
+              <div>
+                <CustomerIntakeFieldLabel label="Last Name" required={type === "person"} />
+                <CustomerIntakeIconInput
+                  icon={User}
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                  placeholder="Last name"
+                  disabled={disabled}
+                />
+              </div>
+              <div>
+                <CustomerIntakeFieldLabel label="Display Name" />
+                <CustomerIntakeIconInput
+                  icon={Users}
+                  value={displayName}
+                  readOnly
                   disabled
-                  title="Tag management coming soon"
-                >
-                  <Plus className="size-3.5" />
-                  Add tag
-                </button>
-              ) : null}
+                  placeholder="How this customer appears"
+                />
+              </div>
+              <div>
+                <CustomerIntakeFieldLabel
+                  label="Company Name"
+                  required={type === "business"}
+                  optional={type === "person"}
+                />
+                <CustomerIntakeIconInput
+                  icon={Building2}
+                  value={company}
+                  onChange={(e) => setCompany(e.target.value)}
+                  placeholder="Company name"
+                  disabled={disabled}
+                />
+              </div>
             </div>
-          </div>
 
-          {canEdit ? (
-            <div className="flex items-center justify-end gap-3 border-t border-[#DDE5EF]/60 pt-4">
-              {error ? <p className="mr-auto text-xs text-brand-red">{error}</p> : null}
-              <Button type="button" variant="outline" className={DRAWER_BTN_OUTLINE} disabled={pending} onClick={resetForm}>
-                Cancel
-              </Button>
-              <Button type="button" className={DRAWER_BTN_PRIMARY} disabled={pending} onClick={save}>
-                {pending ? <Loader2 className="size-4 animate-spin" /> : "Save"}
-              </Button>
+            <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+              <div>
+                <CustomerIntakeFieldLabel label="Phone" />
+                <div className="flex h-10 overflow-hidden rounded-md border border-[#d0d5dd] bg-white focus-within:border-brand-orange/50 focus-within:ring-3 focus-within:ring-brand-orange/20">
+                  <Select
+                    value={phoneType}
+                    onValueChange={setPhoneType}
+                    disabled={disabled}
+                  >
+                    <SelectTrigger className="h-full w-[118px] shrink-0 rounded-none border-0 border-r border-[#d0d5dd] bg-transparent px-2.5 text-sm shadow-none focus:ring-0">
+                      <Phone className="mr-1.5 size-3.5 text-muted-foreground/60" />
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Mobile">Mobile</SelectItem>
+                      <SelectItem value="Home">Home</SelectItem>
+                      <SelectItem value="Work">Work</SelectItem>
+                    </SelectContent>
+                  </Select>
+                  <Input
+                    value={phone}
+                    onChange={(e) => setPhone(formatPhoneInput(e.target.value))}
+                    placeholder="(555) 123-4567"
+                    inputMode="tel"
+                    disabled={disabled}
+                    className="h-full rounded-none border-0 pl-3 shadow-none focus-visible:ring-0"
+                  />
+                </div>
+              </div>
+              <div>
+                <CustomerIntakeFieldLabel label="Email" />
+                <CustomerIntakeIconInput
+                  icon={Mail}
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="name@email.com"
+                  type="email"
+                  disabled={disabled}
+                />
+              </div>
             </div>
-          ) : (
-            error ? <p className="text-xs text-brand-red">{error}</p> : null
-          )}
+
+            <div>
+              <CustomerIntakeFieldLabel label="Communication preferences" />
+              <div className="rounded-md border border-[#eaecf0] bg-[#fafbfc] px-3 py-3">
+                <CustomerConsentCheckboxes
+                  compact
+                  transactionalSmsConsent={transactionalSms}
+                  marketingOptIn={marketingSms}
+                  marketingEmailConsent={marketingEmail}
+                  onTransactionalChange={setTransactionalSms}
+                  onMarketingSmsChange={setMarketingSms}
+                  onMarketingEmailChange={setMarketingEmail}
+                />
+              </div>
+            </div>
+          </CustomerIntakeFormSection>
+
+          <div className="h-px bg-[#eaecf0]" />
+
+          <CustomerIntakeFormSection icon={MapPin} title="Address">
+            <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+              <div className="lg:col-span-2">
+                <CustomerIntakeFieldLabel label="Address Line 1" />
+                <Input
+                  value={address}
+                  onChange={(e) => setAddress(e.target.value)}
+                  placeholder="Street address"
+                  disabled={disabled}
+                  className={cn(CUSTOMER_INTAKE_FIELD, "pl-3")}
+                />
+              </div>
+            </div>
+            <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
+              <div>
+                <CustomerIntakeFieldLabel label="City" />
+                <CustomerIntakeIconInput
+                  icon={Building2}
+                  value={city}
+                  onChange={(e) => setCity(e.target.value)}
+                  placeholder="City"
+                  disabled={disabled}
+                />
+              </div>
+              <div>
+                <CustomerIntakeFieldLabel label="State / Province" />
+                <CustomerIntakeIconSelect
+                  icon={MapPin}
+                  value={state}
+                  onValueChange={setState}
+                  placeholder="State / Province"
+                  disabled={disabled}
+                >
+                  {(US_STATES.length ? US_STATES : US_STATE_CODES).map((s) => (
+                    <SelectItem key={s} value={s}>
+                      {s}
+                    </SelectItem>
+                  ))}
+                </CustomerIntakeIconSelect>
+              </div>
+              <div>
+                <CustomerIntakeFieldLabel label="Zip / Postal Code" />
+                <CustomerIntakeIconInput
+                  icon={Mail}
+                  value={zip}
+                  onChange={(e) => setZip(e.target.value)}
+                  placeholder="ZIP / Postal code"
+                  disabled={disabled}
+                />
+              </div>
+            </div>
+          </CustomerIntakeFormSection>
+
+          <div className="h-px bg-[#eaecf0]" />
+
+          <CustomerIntakeFormSection icon={FileText} title="Additional Information">
+            <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+              <div>
+                <CustomerIntakeFieldLabel label="Tags" optional />
+                <div className="rounded-md border border-[#d0d5dd] bg-white p-3">
+                  <CustomerTagPicker
+                    compact
+                    availableTags={
+                      availableTags.length > 0
+                        ? availableTags
+                        : Array.from(new Set([...(customer.tags ?? []), ...tags]))
+                    }
+                    selected={tags}
+                    onToggle={(t) =>
+                      setTags((prev) =>
+                        prev.includes(t) ? prev.filter((x) => x !== t) : [...prev, t],
+                      )
+                    }
+                  />
+                </div>
+              </div>
+              <div>
+                <CustomerIntakeFieldLabel label="Notes" optional />
+                <div className="relative">
+                  <FileText className="pointer-events-none absolute left-3 top-3 size-4 text-muted-foreground/60" />
+                  <Textarea
+                    value={notes}
+                    onChange={(e) => setNotes(e.target.value)}
+                    placeholder="Add any notes about this customer..."
+                    disabled={disabled}
+                    className="min-h-[96px] resize-y rounded-md border-[#d0d5dd] bg-white pl-9 text-sm shadow-none placeholder:text-muted-foreground/70 focus-visible:border-brand-orange/50 focus-visible:ring-brand-orange/20"
+                    rows={3}
+                  />
+                </div>
+              </div>
+            </div>
+          </CustomerIntakeFormSection>
+
+          {error && !canEdit ? <p className="text-sm text-destructive">{error}</p> : null}
         </div>
-      </DrawerContentCard>
-    </div>
+
+        {canEdit ? (
+          <div className="sticky bottom-0 z-10 -mx-4 mt-auto flex items-center justify-end gap-3 border-t border-[#eaecf0] bg-white px-4 py-4 sm:-mx-5 sm:px-5">
+            {error ? <p className="mr-auto text-sm text-destructive">{error}</p> : null}
+            <Button
+              type="button"
+              variant="outline"
+              className="h-10 border-[#d0d5dd] px-5"
+              disabled={pending}
+              onClick={resetForm}
+            >
+              Cancel
+            </Button>
+            <Button
+              type="button"
+              className="h-10 gap-2 bg-brand-orange px-5 text-white hover:bg-brand-orange/90"
+              disabled={pending}
+              onClick={save}
+            >
+              {pending ? (
+                <Loader2 className="size-4 animate-spin" />
+              ) : (
+                <Save className="size-4" />
+              )}
+              {pending ? "Saving…" : "Save Customer"}
+            </Button>
+          </div>
+        ) : null}
+      </div>
+    </TooltipProvider>
   );
 }
 
 function VehicleAccordionCard({
   vehicle,
   customerId,
+  repairOrders,
+  currentRoId,
   currentRoVehicleId,
-  roId,
   roMileageIn = null,
   roOdometerNotWorking = false,
-  preloadedSpecs,
   canEdit,
-  autoOpenSpecs = false,
   onSaved,
 }: {
   vehicle: EstimateContextDrawerVehicle;
   customerId: string;
+  repairOrders: EstimateContextDrawerRo[];
+  currentRoId?: string;
   currentRoVehicleId: string | null;
-  roId?: string;
   roMileageIn?: number | null;
   roOdometerNotWorking?: boolean;
-  preloadedSpecs: EstimateLabVehicleSpecsBundle | null;
   canEdit: boolean;
-  autoOpenSpecs?: boolean;
   onSaved: () => void;
 }) {
-  const [open, setOpen] = useState(vehicle.id === currentRoVehicleId || autoOpenSpecs);
-  const vehicleSpecsOk = useVehicleSpecsUiEnabled();
+  const [open, setOpen] = useState(vehicle.id === currentRoVehicleId);
+  const [panel, setPanel] = useState<VehicleDrawerPanel>("details");
   const autodevDecodingOk = useAutodevDecodingUiEnabled();
-  const [specsOpen, setSpecsOpen] = useState(false);
-  const [specsData, setSpecsData] = useState<EstimateLabVehicleSpecsBundle | null>(
-    vehicle.id === currentRoVehicleId ? preloadedSpecs : null,
-  );
-  const [specsError, setSpecsError] = useState<string | null>(null);
-  const autoSpecsRequested = useRef(false);
   const [vin, setVin] = useState(vehicle.vin ?? "");
   const [year, setYear] = useState(vehicle.year != null ? String(vehicle.year) : "");
   const [make, setMake] = useState(vehicle.make ?? "");
@@ -523,10 +630,12 @@ function VehicleAccordionCard({
   const [transmission, setTransmission] = useState(vehicle.transmission ?? "");
   const [drivetrain, setDrivetrain] = useState(vehicle.drivetrain ?? "");
   const [bodyClass, setBodyClass] = useState(vehicle.bodyClass ?? "");
+  const [color, setColor] = useState(vehicle.color ?? "");
+  const [unitNumber, setUnitNumber] = useState(vehicle.unitNumber ?? "");
+  const [notes, setNotes] = useState(vehicle.notes ?? "");
   const [decodedData, setDecodedData] = useState<unknown | undefined>(undefined);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [pending, start] = useTransition();
-  const [specsPending, startSpecs] = useTransition();
   const {
     pending: lookupPending,
     error: lookupError,
@@ -546,6 +655,16 @@ function VehicleAccordionCard({
   const canDecodeVin = vinNormalized.length === 17;
   const canLookupPlate = autodevDecodingOk && plate.trim().length > 0;
   const busy = pending || lookupPending;
+  const vehicleOrders = useMemo(
+    () => repairOrders.filter((ro) => ro.vehicleId === vehicle.id),
+    [repairOrders, vehicle.id],
+  );
+  const colorOptions = useMemo(() => {
+    if (color && !VEHICLE_COLORS.includes(color as (typeof VEHICLE_COLORS)[number])) {
+      return [color, ...VEHICLE_COLORS];
+    }
+    return [...VEHICLE_COLORS];
+  }, [color]);
 
   useEffect(() => {
     setVin(vehicle.vin ?? "");
@@ -559,52 +678,14 @@ function VehicleAccordionCard({
     setTransmission(vehicle.transmission ?? "");
     setDrivetrain(vehicle.drivetrain ?? "");
     setBodyClass(vehicle.bodyClass ?? "");
+    setColor(vehicle.color ?? "");
+    setUnitNumber(vehicle.unitNumber ?? "");
+    setNotes(vehicle.notes ?? "");
     setDecodedData(undefined);
     setSaveError(null);
+    setPanel("details");
     clearMessages();
   }, [vehicle, clearMessages]);
-
-  useEffect(() => {
-    if (vehicle.id === currentRoVehicleId && preloadedSpecs) {
-      setSpecsData(preloadedSpecs);
-    }
-  }, [vehicle.id, currentRoVehicleId, preloadedSpecs]);
-
-  useEffect(() => {
-    if (!autoOpenSpecs || !vehicleSpecsOk) {
-      autoSpecsRequested.current = false;
-      return;
-    }
-    if (autoSpecsRequested.current) return;
-    if (currentRoVehicleId && vehicle.id !== currentRoVehicleId) return;
-    autoSpecsRequested.current = true;
-    setOpen(true);
-    if (specsData || preloadedSpecs) {
-      if (preloadedSpecs && !specsData) setSpecsData(preloadedSpecs);
-      setSpecsOpen(true);
-      return;
-    }
-    setSpecsError(null);
-    startSpecs(async () => {
-      const res = await fetchVehicleSpecsBundle(vehicle.id, {
-        excludeRoId: vehicle.id === currentRoVehicleId && roId ? roId : undefined,
-      });
-      if (res.ok) {
-        setSpecsData(res.data);
-        setSpecsOpen(true);
-      } else {
-        setSpecsError(res.error);
-      }
-    });
-  }, [
-    autoOpenSpecs,
-    vehicleSpecsOk,
-    currentRoVehicleId,
-    preloadedSpecs,
-    roId,
-    specsData,
-    vehicle.id,
-  ]);
 
   function currentLookupFields(): VehicleLookupFields {
     return {
@@ -655,29 +736,6 @@ function VehicleAccordionCard({
     );
   }
 
-  function toggleSpecs() {
-    if (specsOpen) {
-      setSpecsOpen(false);
-      return;
-    }
-    if (specsData) {
-      setSpecsOpen(true);
-      return;
-    }
-    setSpecsError(null);
-    startSpecs(async () => {
-      const res = await fetchVehicleSpecsBundle(vehicle.id, {
-        excludeRoId: vehicle.id === currentRoVehicleId && roId ? roId : undefined,
-      });
-      if (res.ok) {
-        setSpecsData(res.data);
-        setSpecsOpen(true);
-      } else {
-        setSpecsError(res.error);
-      }
-    });
-  }
-
   function save() {
     if (!canEdit) return;
     setSaveError(null);
@@ -693,14 +751,13 @@ function VehicleAccordionCard({
         trim: trim.trim() || undefined,
         plate: plate.trim() || undefined,
         plateState: plate.trim() ? plateState.trim() || undefined : undefined,
-        unitNumber: vehicle.unitNumber,
-        notes: vehicle.notes,
+        unitNumber: unitNumber.trim() || null,
+        notes: notes.trim() || null,
+        color: color.trim() || null,
         engine: engine.trim() || null,
         transmission: transmission.trim() || null,
         drivetrain: drivetrain.trim() || null,
         bodyClass: bodyClass.trim() || null,
-        tireSizeFront: null,
-        tireSizeRear: null,
         decodedData,
       });
       if (res.ok) {
@@ -722,27 +779,36 @@ function VehicleAccordionCard({
   }
 
   const displayError = saveError ?? lookupError;
+  const onThisRo = vehicle.id === currentRoVehicleId;
 
   return (
-    <div className="overflow-hidden rounded-lg border border-[#DDE5EF] bg-white">
+    <div className="border-b border-[#eaecf0] last:border-b-0">
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        className="flex w-full items-center gap-2 border-b border-[#DDE5EF]/60 bg-[#F7F9FC] px-4 py-3 text-left"
+        className="flex w-full items-center gap-2.5 py-3.5 text-left transition-colors hover:bg-brand-navy/[0.02]"
       >
-        {open ? <ChevronDown className="size-4 shrink-0 text-muted-foreground" /> : <ChevronRight className="size-4 shrink-0 text-muted-foreground" />}
-        <Car className="size-4 shrink-0 text-brand-navy/60" />
-        <span className="min-w-0 flex-1 truncate text-sm font-semibold uppercase tracking-wide">{title}</span>
+        {open ? (
+          <ChevronDown className="size-4 shrink-0 text-muted-foreground" />
+        ) : (
+          <ChevronRight className="size-4 shrink-0 text-muted-foreground" />
+        )}
+        <Car className="size-4 shrink-0 text-brand-orange" />
+        <span className="min-w-0 flex-1 truncate text-sm font-semibold text-foreground">
+          {title || "Untitled vehicle"}
+        </span>
         {vehicle.plate ? (
-          <Badge variant="outline" className="shrink-0 font-mono text-[10px] uppercase">
+          <span className="shrink-0 font-mono text-[11px] uppercase tracking-wide text-muted-foreground">
             {vehicle.plate}
-          </Badge>
+          </span>
         ) : null}
-        {vehicle.id === currentRoVehicleId ? (
-          <Badge className="shrink-0 bg-brand-navy/10 text-[10px] text-brand-navy hover:bg-brand-navy/10">On RO</Badge>
+        {onThisRo ? (
+          <span className="shrink-0 rounded-md bg-brand-navy/10 px-1.5 py-0.5 text-[10px] font-semibold text-brand-navy">
+            On RO
+          </span>
         ) : null}
-        {vehicle.id === currentRoVehicleId && (roOdometerNotWorking || roMileageIn != null) ? (
-          <span className="shrink-0 text-[10px] tabular-nums text-muted-foreground">
+        {onThisRo && (roOdometerNotWorking || roMileageIn != null) ? (
+          <span className="shrink-0 text-[11px] tabular-nums text-muted-foreground">
             {roOdometerNotWorking
               ? "Odo N/W"
               : `${roMileageIn!.toLocaleString("en-US")} mi`}
@@ -751,188 +817,424 @@ function VehicleAccordionCard({
       </button>
 
       {open ? (
-        <div className="space-y-4 p-4">
-          <div className="flex flex-wrap gap-2">
-            <Button
+        <div className="pb-6">
+          <div className="mb-5 flex flex-wrap items-center gap-x-4 gap-y-1 border-b border-[#eaecf0]">
+            <button
               type="button"
-              variant="outline"
-              size="sm"
-              className="h-7 text-xs"
-              disabled
-              title="Coming soon"
+              onClick={() => setPanel("details")}
+              className={cn(
+                "border-b-2 px-0.5 py-2.5 text-sm font-medium transition-colors",
+                panel === "details"
+                  ? "border-brand-orange text-brand-orange"
+                  : "border-transparent text-muted-foreground hover:text-foreground",
+              )}
             >
-              History
-            </Button>
-            <Button
+              Details
+            </button>
+            <button
               type="button"
-              variant="outline"
-              size="sm"
-              className="h-7 text-xs"
-              disabled
+              onClick={() => setPanel("history")}
+              className={cn(
+                "inline-flex items-center gap-1.5 border-b-2 px-0.5 py-2.5 text-sm font-medium transition-colors",
+                panel === "history"
+                  ? "border-brand-orange text-brand-orange"
+                  : "border-transparent text-muted-foreground hover:text-foreground",
+              )}
+            >
+              <History className="size-3.5" aria-hidden />
+              History
+              {vehicleOrders.length > 0 ? (
+                <span className="text-xs font-normal tabular-nums text-muted-foreground">
+                  ({vehicleOrders.length})
+                </span>
+              ) : null}
+            </button>
+            <span
+              className="inline-flex items-center gap-1.5 px-0.5 py-2.5 text-sm text-muted-foreground/55"
               title="Coming soon"
             >
               Tire storage
-            </Button>
-            {vehicleSpecsOk ? (
-              <Button
-                type="button"
-                variant={specsOpen ? "default" : "outline"}
-                size="sm"
-                className={cn("h-7 text-xs", specsOpen && "bg-brand-navy hover:bg-brand-navy/90")}
-                disabled={specsPending}
-                onClick={toggleSpecs}
-              >
-                {specsPending ? (
-                  <Loader2 className="mr-1 size-3 animate-spin" aria-hidden />
-                ) : null}
-                Vehicle specs
-              </Button>
-            ) : null}
+            </span>
           </div>
 
-          {specsError ? <p className="text-xs text-brand-red">{specsError}</p> : null}
-
-          {vehicleSpecsOk && specsOpen && specsData ? (
-            <div className="overflow-hidden rounded-lg border border-border bg-muted/10">
-              <EstimateLabVehicleSpecsSection
-                data={specsData}
-                canEdit={canEdit}
-                showTitle
-              />
-            </div>
-          ) : null}
-
-          <div className="grid grid-cols-4 gap-3">
-            <CrmFormField label="Year">
-              <Input value={year} onChange={(e) => setYear(e.target.value.replace(/\D/g, "").slice(0, 4))} disabled={!canEdit || busy} className={DRAWER_FIELD} />
-            </CrmFormField>
-            <CrmFormField label="Make">
-              <Input value={make} onChange={(e) => setMake(e.target.value)} disabled={!canEdit || busy} className={DRAWER_FIELD} />
-            </CrmFormField>
-            <CrmFormField label="Model" className="col-span-2">
-              <Input value={model} onChange={(e) => setModel(e.target.value)} disabled={!canEdit || busy} className={DRAWER_FIELD} />
-            </CrmFormField>
-          </div>
-
-          <CrmFormField label="Trim">
-            <Input value={trim} onChange={(e) => setTrim(e.target.value)} disabled={!canEdit || busy} className={DRAWER_FIELD} />
-          </CrmFormField>
-
-          <CrmFormField label="Vehicle name (customer-facing)">
-            <Input value={title} readOnly className={cn(DRAWER_FIELD, "bg-muted/20")} />
-          </CrmFormField>
-
-          <div className="flex items-end gap-2">
-            <CrmFormField label="VIN" className="min-w-0 flex-1">
-              <Input
-                value={vin}
-                onChange={(e) => {
-                  setVin(e.target.value.toUpperCase());
-                  clearMessages();
-                  setSaveError(null);
-                }}
-                onBlur={() => {
-                  if (canEdit && canDecodeVin) runVinDecode(vin);
-                }}
-                maxLength={17}
-                placeholder="17-character VIN"
-                disabled={!canEdit || busy}
-                className={cn(DRAWER_FIELD, "font-mono text-xs uppercase")}
-              />
-            </CrmFormField>
-            {canEdit && canDecodeVin ? (
-              <Button
-                type="button"
-                variant="outline"
-                size="sm"
-                className="mb-0.5 h-8 shrink-0 border-brand-navy/25 text-brand-navy hover:bg-brand-navy/[0.04]"
-                disabled={busy}
-                onClick={() => runVinDecode()}
-              >
-                {lookupPending ? <Loader2 className="size-3.5 animate-spin" /> : "Decode"}
-              </Button>
-            ) : null}
-            <Button type="button" variant="outline" size="icon-sm" className="mb-0.5 shrink-0" onClick={copyVin} disabled={!vin} aria-label="Copy VIN">
-              <Copy className="size-3.5" />
-            </Button>
-          </div>
-
-          <div className="grid grid-cols-[1fr_88px] gap-3">
-            <CrmFormField label="License plate">
-              <Input
-                value={plate}
-                onChange={(e) => {
-                  setPlate(e.target.value.toUpperCase());
-                  clearMessages();
-                  setSaveError(null);
-                }}
-                placeholder="e.g. ABC1234"
-                disabled={!canEdit || busy}
-                className={cn(DRAWER_FIELD, "font-mono uppercase")}
-              />
-            </CrmFormField>
-            <CrmFormField label="State">
-              <Select
-                value={plateState || "NY"}
-                onValueChange={(v) => {
-                  setPlateState(v);
-                  clearMessages();
-                }}
-                disabled={!canEdit || busy}
-              >
-                <SelectTrigger className={DRAWER_FIELD}>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {US_STATE_CODES.map((s) => (
-                    <SelectItem key={s} value={s}>
-                      {US_STATE_NAMES[s] ?? s}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </CrmFormField>
-          </div>
-
-          {canEdit && !autodevDecodingOk ? (
-            <p className="text-xs text-muted-foreground">
-              Enter the plate manually on Core. Decode a 17-character VIN (NHTSA) or fill in year / make /
-              model below.
-            </p>
-          ) : null}
-
-          {canEdit && canLookupPlate ? (
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              className="h-8 gap-1.5 border-brand-navy/25 text-brand-navy hover:bg-brand-navy/[0.04]"
-              disabled={busy}
-              onClick={runPlateLookup}
-            >
-              {lookupPending ? (
-                <Loader2 className="size-3.5 animate-spin" />
+          {panel === "history" ? (
+            <VehicleIntakeFormSection icon={History} title="Repair order history">
+              {vehicleOrders.length === 0 ? (
+                <p className="py-6 text-center text-sm text-muted-foreground">
+                  No repair orders for this vehicle yet.
+                </p>
               ) : (
-                <Search className="size-3.5" />
+                <ul className="divide-y divide-[#eaecf0]">
+                  {vehicleOrders.map((ro) => {
+                    const pill = RO_STATUS_PILL[ro.status as ROStatus] ?? RO_STATUS_PILL.ESTIMATE;
+                    const isCurrent = currentRoId === ro.id;
+                    return (
+                      <li key={ro.id}>
+                        <Link
+                          href={`/repair-orders/${ro.id}/estimate`}
+                          className={cn(
+                            "flex items-start justify-between gap-3 py-3 transition-colors hover:bg-brand-navy/[0.03]",
+                            isCurrent && "bg-brand-navy/[0.03]",
+                          )}
+                        >
+                          <div className="min-w-0 space-y-1">
+                            <div className="flex flex-wrap items-center gap-2">
+                              <span className="text-sm font-bold tabular-nums text-foreground">
+                                #{ro.number}
+                              </span>
+                              <Badge variant="outline" className={cn("text-[10px]", pill.className)}>
+                                {pill.label}
+                              </Badge>
+                              {isCurrent ? (
+                                <span className="text-[10px] font-semibold text-brand-navy">
+                                  Current
+                                </span>
+                              ) : null}
+                            </div>
+                            <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                              <CalendarDays className="size-3.5 shrink-0" />
+                              {fmtRoWhen(ro.createdAt)}
+                            </p>
+                          </div>
+                          <div className="shrink-0 text-right">
+                            <p className="text-sm font-semibold tabular-nums">
+                              {formatCents(ro.totalCents)}
+                            </p>
+                            {ro.balanceCents != null && ro.balanceCents > 0 ? (
+                              <p className="mt-0.5 text-[11px] tabular-nums text-muted-foreground">
+                                Due {formatCents(ro.balanceCents)}
+                              </p>
+                            ) : null}
+                          </div>
+                        </Link>
+                      </li>
+                    );
+                  })}
+                </ul>
               )}
-              Look up VIN
-            </Button>
-          ) : null}
+            </VehicleIntakeFormSection>
+          ) : (
+            <TooltipProvider delayDuration={200}>
+              <div className="space-y-7">
+                {lookupNote ? (
+                  <div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2.5 text-sm text-amber-800">
+                    {lookupNote}
+                  </div>
+                ) : null}
 
-          {lookupNote ? (
-            <p className="text-xs text-emerald-700">{lookupNote}</p>
-          ) : null}
-          {displayError ? (
-            <p className="text-xs text-brand-red">{displayError}</p>
-          ) : null}
+                <VehicleIntakeFormSection icon={Car} title="Vehicle details">
+                  <div className="grid grid-cols-2 gap-x-3 gap-y-4 sm:grid-cols-4">
+                    <div>
+                      <VehicleIntakeFieldLabel label="Year" />
+                      <Input
+                        value={year}
+                        onChange={(e) => setYear(e.target.value.replace(/\D/g, "").slice(0, 4))}
+                        placeholder="2014"
+                        disabled={!canEdit || busy}
+                        className={VEHICLE_INTAKE_FIELD}
+                      />
+                    </div>
+                    <div>
+                      <VehicleIntakeFieldLabel label="Make" />
+                      <Input
+                        value={make}
+                        onChange={(e) => setMake(e.target.value)}
+                        placeholder="Honda"
+                        disabled={!canEdit || busy}
+                        className={VEHICLE_INTAKE_FIELD}
+                      />
+                    </div>
+                    <div>
+                      <VehicleIntakeFieldLabel label="Model" />
+                      <Input
+                        value={model}
+                        onChange={(e) => setModel(e.target.value)}
+                        placeholder="Accord"
+                        disabled={!canEdit || busy}
+                        className={VEHICLE_INTAKE_FIELD}
+                      />
+                    </div>
+                    <div>
+                      <VehicleIntakeFieldLabel label="Trim" />
+                      <Input
+                        value={trim}
+                        onChange={(e) => setTrim(e.target.value)}
+                        placeholder="EX-L"
+                        disabled={!canEdit || busy}
+                        className={VEHICLE_INTAKE_FIELD}
+                      />
+                    </div>
+                  </div>
 
-          {canEdit ? (
-            <div className="flex justify-end pt-1">
-              <Button type="button" className={DRAWER_BTN_PRIMARY} disabled={busy} onClick={save}>
-                {pending ? <Loader2 className="size-4 animate-spin" /> : "Update"}
-              </Button>
-            </div>
-          ) : null}
+                  <div className="grid grid-cols-2 gap-x-3 gap-y-4 sm:grid-cols-4">
+                    <div className="col-span-2">
+                      <VehicleIntakeFieldLabel label="VIN" />
+                      <div className="flex items-center gap-2">
+                        <Input
+                          value={vin}
+                          onChange={(e) => {
+                            setVin(e.target.value.toUpperCase());
+                            clearMessages();
+                            setSaveError(null);
+                          }}
+                          onBlur={() => {
+                            if (canEdit && canDecodeVin) runVinDecode(vin);
+                          }}
+                          maxLength={17}
+                          placeholder="17-character VIN"
+                          disabled={!canEdit || busy}
+                          className={cn(VEHICLE_INTAKE_FIELD, "min-w-0 flex-1 font-mono uppercase")}
+                        />
+                        {canEdit && canDecodeVin ? (
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            className="h-10 shrink-0 rounded-none border-[#d0d5dd] px-3 text-brand-orange hover:bg-brand-orange/5 hover:text-brand-orange"
+                            disabled={busy}
+                            onClick={() => runVinDecode()}
+                          >
+                            {lookupPending ? (
+                              <Loader2 className="size-3.5 animate-spin" />
+                            ) : (
+                              "Decode"
+                            )}
+                          </Button>
+                        ) : null}
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="icon"
+                          className="size-10 shrink-0 rounded-none border-[#d0d5dd]"
+                          onClick={copyVin}
+                          disabled={!vin}
+                          aria-label="Copy VIN"
+                        >
+                          <Copy className="size-3.5" />
+                        </Button>
+                      </div>
+                    </div>
+                    <div>
+                      <VehicleIntakeFieldLabel label="License Plate" />
+                      <Input
+                        value={plate}
+                        onChange={(e) => {
+                          setPlate(e.target.value.toUpperCase());
+                          clearMessages();
+                          setSaveError(null);
+                        }}
+                        placeholder="ABC1234"
+                        disabled={!canEdit || busy}
+                        className={cn(VEHICLE_INTAKE_FIELD, "font-mono uppercase")}
+                      />
+                    </div>
+                    <div>
+                      <VehicleIntakeFieldLabel label="Registration State" />
+                      <Select
+                        value={plateState || "NY"}
+                        onValueChange={(v) => {
+                          setPlateState(v);
+                          clearMessages();
+                        }}
+                        disabled={!canEdit || busy}
+                      >
+                        <SelectTrigger className={cn(VEHICLE_INTAKE_FIELD, "w-full min-w-0")}>
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {US_STATE_CODES.map((s) => (
+                            <SelectItem key={s} value={s}>
+                              {US_STATE_NAMES[s] ?? s}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div>
+                      <VehicleIntakeFieldLabel label="Engine" />
+                      <Input
+                        value={engine}
+                        onChange={(e) => setEngine(e.target.value)}
+                        placeholder="3.5L V6"
+                        disabled={!canEdit || busy}
+                        className={VEHICLE_INTAKE_FIELD}
+                      />
+                    </div>
+                    <div>
+                      <VehicleIntakeFieldLabel label="Transmission" />
+                      <select
+                        value={transmission || ""}
+                        onChange={(e) => setTransmission(e.target.value)}
+                        disabled={!canEdit || busy}
+                        className={VEHICLE_INTAKE_FIELD}
+                      >
+                        <option value="">Select…</option>
+                        {TRANSMISSION_OPTIONS.map((t) => (
+                          <option key={t} value={t}>
+                            {t}
+                          </option>
+                        ))}
+                        {transmission &&
+                        !TRANSMISSION_OPTIONS.includes(
+                          transmission as (typeof TRANSMISSION_OPTIONS)[number],
+                        ) ? (
+                          <option value={transmission}>{transmission}</option>
+                        ) : null}
+                      </select>
+                    </div>
+                    <div>
+                      <VehicleIntakeFieldLabel label="Drivetrain" />
+                      <select
+                        value={drivetrain || ""}
+                        onChange={(e) => setDrivetrain(e.target.value)}
+                        disabled={!canEdit || busy}
+                        className={VEHICLE_INTAKE_FIELD}
+                      >
+                        <option value="">Select…</option>
+                        {DRIVETRAIN_OPTIONS.map((d) => (
+                          <option key={d} value={d}>
+                            {d}
+                          </option>
+                        ))}
+                        {drivetrain &&
+                        !DRIVETRAIN_OPTIONS.includes(
+                          drivetrain as (typeof DRIVETRAIN_OPTIONS)[number],
+                        ) ? (
+                          <option value={drivetrain}>{drivetrain}</option>
+                        ) : null}
+                      </select>
+                    </div>
+                    <div>
+                      <VehicleIntakeFieldLabel label="Color" />
+                      <div className="relative">
+                        <Palette className="pointer-events-none absolute left-3 top-1/2 z-10 size-4 -translate-y-1/2 text-muted-foreground/60" />
+                        <Select
+                          value={color || undefined}
+                          onValueChange={setColor}
+                          disabled={!canEdit || busy}
+                        >
+                          <SelectTrigger
+                            className={cn(VEHICLE_INTAKE_FIELD, "w-full min-w-0 pl-9")}
+                          >
+                            <SelectValue placeholder="Select color" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            {colorOptions.map((c) => (
+                              <SelectItem key={c} value={c}>
+                                {c}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                      </div>
+                    </div>
+
+                    <div>
+                      <VehicleIntakeFieldLabel label="Body class" />
+                      <Input
+                        value={bodyClass}
+                        onChange={(e) => setBodyClass(e.target.value)}
+                        placeholder="Sedan"
+                        disabled={!canEdit || busy}
+                        className={VEHICLE_INTAKE_FIELD}
+                      />
+                    </div>
+                    <div>
+                      <VehicleIntakeFieldLabel label="Unit #" />
+                      <Input
+                        value={unitNumber}
+                        onChange={(e) => setUnitNumber(e.target.value)}
+                        placeholder="Fleet / unit #"
+                        disabled={!canEdit || busy}
+                        className={VEHICLE_INTAKE_FIELD}
+                      />
+                    </div>
+                    <div className="col-span-2">
+                      <VehicleIntakeFieldLabel
+                        label="Vehicle Name (visible to customers)"
+                        info="Shown on estimates, invoices, and customer-facing documents."
+                      />
+                      <Input
+                        value={title}
+                        readOnly
+                        className={cn(VEHICLE_INTAKE_FIELD, "bg-[#fafbfc] text-muted-foreground")}
+                      />
+                    </div>
+                  </div>
+
+                  {canEdit && !autodevDecodingOk ? (
+                    <p className="text-xs text-muted-foreground">
+                      Enter the plate manually on Core. Decode a 17-character VIN (NHTSA) or fill in
+                      year / make / model above.
+                    </p>
+                  ) : null}
+
+                  {canEdit && canLookupPlate ? (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="h-9 gap-1.5 rounded-none border-[#d0d5dd] text-brand-orange hover:bg-brand-orange/5 hover:text-brand-orange"
+                      disabled={busy}
+                      onClick={runPlateLookup}
+                    >
+                      {lookupPending ? (
+                        <Loader2 className="size-3.5 animate-spin" />
+                      ) : (
+                        <Search className="size-3.5" />
+                      )}
+                      Look up VIN
+                    </Button>
+                  ) : null}
+
+                  {displayError ? (
+                    <p className="text-sm text-destructive">{displayError}</p>
+                  ) : null}
+                </VehicleIntakeFormSection>
+
+                <div className="h-px bg-[#eaecf0]" />
+
+                <VehicleIntakeFormSection icon={FileText} title="Notes">
+                  <div className="relative">
+                    <FileText className="pointer-events-none absolute left-3 top-3 size-4 text-muted-foreground/60" />
+                    <Textarea
+                      value={notes}
+                      onChange={(e) => setNotes(e.target.value.slice(0, VEHICLE_NOTES_MAX))}
+                      placeholder="Internal notes about this vehicle"
+                      disabled={!canEdit || busy}
+                      rows={3}
+                      className="min-h-[88px] resize-y rounded-none border-[#d0d5dd] bg-white pl-9 text-sm shadow-none placeholder:text-muted-foreground/70 focus-visible:border-brand-orange/50 focus-visible:ring-brand-orange/20"
+                    />
+                  </div>
+                  <p className="text-right text-xs text-muted-foreground">
+                    {notes.length}/{VEHICLE_NOTES_MAX}
+                  </p>
+                </VehicleIntakeFormSection>
+
+                {canEdit ? (
+                  <div className="flex items-center justify-end border-t border-[#eaecf0] pt-4">
+                    {displayError ? (
+                      <p className="mr-auto text-sm text-destructive">{displayError}</p>
+                    ) : null}
+                    <Button
+                      type="button"
+                      className={VEHICLE_INTAKE_BTN_PRIMARY}
+                      disabled={busy}
+                      onClick={save}
+                    >
+                      {pending ? (
+                        <Loader2 className="size-4 animate-spin" />
+                      ) : (
+                        <Save className="size-4" />
+                      )}
+                      Update
+                    </Button>
+                  </div>
+                ) : null}
+              </div>
+            </TooltipProvider>
+          )}
         </div>
       ) : null}
     </div>
@@ -941,73 +1243,75 @@ function VehicleAccordionCard({
 
 export function DrawerVehiclesTab({
   vehicles,
+  repairOrders,
   customerId,
   customerName,
+  currentRoId,
   currentRoVehicleId,
-  roId,
   roMileageIn = null,
   roOdometerNotWorking = false,
-  vehicleSpecs,
   canEdit,
-  autoOpenSpecs = false,
   onSaved,
 }: {
   vehicles: EstimateContextDrawerVehicle[];
+  repairOrders: EstimateContextDrawerRo[];
   customerId: string;
   customerName: string;
+  currentRoId?: string;
   currentRoVehicleId: string | null;
-  roId?: string;
   /** Current RO odometer in — shown on the vehicle marked On RO. */
   roMileageIn?: number | null;
   roOdometerNotWorking?: boolean;
-  vehicleSpecs: EstimateLabVehicleSpecsBundle | null;
   canEdit: boolean;
-  autoOpenSpecs?: boolean;
   onSaved: () => void;
 }) {
   return (
-    <div className="space-y-3 pb-4">
-      {canEdit ? (
-        <AddVehicleDialog
-          customerId={customerId}
-          customerName={customerName}
-          onCreated={() => onSaved()}
-          trigger={
-            <Button type="button" className={cn(DRAWER_BTN_AZURE, "w-full justify-center gap-1.5")}>
-              <Plus className="size-4" />
-              Vehicle
-            </Button>
-          }
-        />
-      ) : null}
+    <div className="relative flex min-h-full flex-col bg-white">
+      <div className="flex items-center justify-between gap-3 border-b border-[#eaecf0] py-3">
+        <div className="flex items-center gap-2">
+          <Car className="size-4 text-brand-orange" />
+          <h3 className="text-sm font-semibold text-foreground">Vehicles</h3>
+        </div>
+        {canEdit ? (
+          <AddVehicleDialog
+            customerId={customerId}
+            customerName={customerName}
+            onCreated={() => onSaved()}
+            trigger={
+              <Button type="button" size="sm" className={cn(DRAWER_BTN_PRIMARY, "h-8 gap-1.5")}>
+                <Plus className="size-3.5" />
+                Vehicle
+              </Button>
+            }
+          />
+        ) : null}
+      </div>
 
       {vehicles.length === 0 ? (
-        <DrawerEmptyState
-          icon={Car}
-          title="No vehicles on file"
-          description="Add a vehicle to link repair orders and service history."
-        />
-      ) : (
-        vehicles.map((v) => (
-          <VehicleAccordionCard
-            key={v.id}
-            vehicle={v}
-            customerId={customerId}
-            currentRoVehicleId={currentRoVehicleId}
-            roId={roId}
-            roMileageIn={v.id === currentRoVehicleId ? roMileageIn : null}
-            roOdometerNotWorking={v.id === currentRoVehicleId ? roOdometerNotWorking : false}
-            preloadedSpecs={
-              v.id === currentRoVehicleId && vehicleSpecs?.vehicleId === v.id ? vehicleSpecs : null
-            }
-            canEdit={canEdit}
-            autoOpenSpecs={
-              autoOpenSpecs &&
-              (!currentRoVehicleId || v.id === currentRoVehicleId)
-            }
-            onSaved={onSaved}
+        <div className="py-8">
+          <DrawerEmptyState
+            icon={Car}
+            title="No vehicles on file"
+            description="Add a vehicle to link repair orders and service history."
           />
-        ))
+        </div>
+      ) : (
+        <div className="min-h-0 flex-1">
+          {vehicles.map((v) => (
+            <VehicleAccordionCard
+              key={v.id}
+              vehicle={v}
+              customerId={customerId}
+              repairOrders={repairOrders}
+              currentRoId={currentRoId}
+              currentRoVehicleId={currentRoVehicleId}
+              roMileageIn={v.id === currentRoVehicleId ? roMileageIn : null}
+              roOdometerNotWorking={v.id === currentRoVehicleId ? roOdometerNotWorking : false}
+              canEdit={canEdit}
+              onSaved={onSaved}
+            />
+          ))}
+        </div>
       )}
     </div>
   );
@@ -1022,11 +1326,16 @@ export function DrawerDeferredTab({
 }) {
   if (jobs.length === 0) {
     return (
-      <DrawerEmptyState
-        icon={Tag}
-        title="No deferred work"
-        description="Declined or deferred services from inspections will appear here for follow-up."
-      />
+      <div className="relative flex min-h-full flex-col bg-white">
+        <DrawerPaneHeader icon={Tag} title="Declined" />
+        <div className="py-8">
+          <DrawerEmptyState
+            icon={Tag}
+            title="No declined work"
+            description="Declined services from inspections will appear here for follow-up."
+          />
+        </div>
+      </div>
     );
   }
 
@@ -1038,56 +1347,62 @@ export function DrawerDeferredTab({
     return (
       <Link
         href={`/repair-orders/${job.roId}/estimate`}
-        className="block rounded-lg border border-[#DDE5EF] bg-white p-3 transition-colors hover:border-[#1E7FE0]/40 hover:bg-[#f2f8fe]/30"
+        className="flex items-start justify-between gap-3 border-b border-[#eaecf0] py-3.5 transition-colors last:border-b-0 hover:bg-brand-navy/[0.02]"
       >
-        <div className="flex flex-wrap items-start justify-between gap-2">
-          <div className="min-w-0 space-y-1">
-            <p className="text-sm font-semibold text-[#0B1F3B]">{job.jobName}</p>
-            <div className="flex flex-wrap items-center gap-2 text-xs text-[#5B7295]">
-              <span className="font-medium tabular-nums text-[#1E7FE0]">RO #{job.roNumber}</span>
-              <Badge variant="outline" className={cn("text-[10px]", pill.className)}>
-                {pill.label}
-              </Badge>
-            </div>
-            <p className="flex items-center gap-1.5 text-[11px] text-[#8CA2C0]">
-              <Car className="size-3 shrink-0" />
-              {job.vehicleLabel}
-            </p>
+        <div className="min-w-0 space-y-1">
+          <p className="text-sm font-semibold text-foreground">{job.jobName}</p>
+          <div className="flex flex-wrap items-center gap-2 text-xs text-muted-foreground">
+            <span className="font-medium tabular-nums text-brand-navy">RO #{job.roNumber}</span>
+            <Badge variant="outline" className={cn("text-[10px]", pill.className)}>
+              {pill.label}
+            </Badge>
           </div>
-          <div className="text-right">
-            <p className="text-sm font-semibold tabular-nums text-[#0B1F3B]">
-              {formatCents(job.totalCents)}
-            </p>
-            <p className="mt-0.5 text-[10px] text-[#8CA2C0]">{fmtDate(job.deferredAt)}</p>
-          </div>
+          <p className="flex items-center gap-1.5 text-[11px] text-muted-foreground">
+            <Car className="size-3 shrink-0 text-brand-orange" />
+            {job.vehicleLabel}
+          </p>
+        </div>
+        <div className="shrink-0 text-right">
+          <p className="text-sm font-semibold tabular-nums text-foreground">
+            {formatCents(job.totalCents)}
+          </p>
+          <p className="mt-0.5 text-[10px] text-muted-foreground">{fmtDate(job.deferredAt)}</p>
         </div>
       </Link>
     );
   }
 
   return (
-    <div className="space-y-4 pb-4">
+    <div className="relative flex min-h-full flex-col bg-white pb-4">
+      <DrawerPaneHeader icon={Tag} title="Declined" />
+
       {currentRo.length > 0 ? (
-        <DrawerContentCard title="This repair order">
-          <div className="space-y-2">
-            {currentRo.map((job) => (
+        <div className="pt-4">
+          <DrawerFlatSection icon={ClipboardList} title="This repair order">
+            <div>{currentRo.map((job) => (
               <JobRow key={job.id} job={job} />
-            ))}
-          </div>
-        </DrawerContentCard>
+            ))}</div>
+          </DrawerFlatSection>
+        </div>
       ) : null}
 
       {other.length > 0 ? (
-        <DrawerContentCard title={currentRo.length > 0 ? "Other deferred work" : "Deferred jobs"}>
-          <p className="mb-3 text-xs text-[#5B7295]">
-            Quoted services the customer declined or did not authorize — follow up on a future visit.
-          </p>
-          <div className="space-y-2">
-            {other.map((job) => (
+        <div className={cn(currentRo.length > 0 && "mt-5 border-t border-[#eaecf0] pt-5")}>
+          <DrawerFlatSection
+            icon={Tag}
+            title={currentRo.length > 0 ? "Other declined work" : "Declined jobs"}
+          >
+            {currentRo.length > 0 ? (
+              <p className="mb-1 text-xs text-muted-foreground">
+                Quoted services the customer declined or did not authorize — follow up on a future
+                visit.
+              </p>
+            ) : null}
+            <div>{other.map((job) => (
               <JobRow key={job.id} job={job} />
-            ))}
-          </div>
-        </DrawerContentCard>
+            ))}</div>
+          </DrawerFlatSection>
+        </div>
       ) : null}
     </div>
   );
@@ -1110,84 +1425,100 @@ export function DrawerRepairOrdersTab({
   function RoRow({ ro }: { ro: EstimateContextDrawerRo }) {
     const pill = RO_STATUS_PILL[ro.status as ROStatus] ?? RO_STATUS_PILL.ESTIMATE;
     const unapproved = ro.status === "ESTIMATE";
+    const isCurrent = Boolean(currentRoId && ro.id === currentRoId);
 
     return (
       <Link
         href={`/repair-orders/${ro.id}/estimate`}
         className={cn(
-          "block rounded-lg border border-[#DDE5EF] bg-white p-3 transition-colors hover:border-[#1E7FE0]/40 hover:bg-[#f2f8fe]/30",
-          currentRoId && ro.id === currentRoId && "ring-1 ring-[#E86A10]/30",
+          "relative flex items-start justify-between gap-3 border-b border-[#eaecf0] py-3.5 pl-3 transition-colors last:border-b-0 hover:bg-brand-navy/[0.02]",
+          isCurrent && "bg-brand-navy/[0.03] before:absolute before:inset-y-2 before:left-0 before:w-[3px] before:rounded-full before:bg-brand-orange",
         )}
       >
-        <div className="flex flex-wrap items-start justify-between gap-2">
-          <div className="min-w-0 space-y-1">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="text-sm font-bold tabular-nums text-foreground">{ro.number}</span>
-              <Badge variant="outline" className={cn("text-[10px]", pill.className)}>
-                {pill.label}
-              </Badge>
-            </div>
-            <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
-              <CalendarDays className="size-3.5 shrink-0" />
-              {fmtRoWhen(ro.createdAt)}
-            </p>
-            <p className="flex items-center gap-1.5 text-xs font-medium uppercase tracking-wide text-foreground/85">
-              <Car className="size-3.5 shrink-0 text-brand-navy/50" />
-              {ro.vehicleLabel}
-            </p>
-          </div>
-          <div className="text-right">
-            <p className="text-sm font-semibold tabular-nums">{formatCents(ro.totalCents)}</p>
+        <div className="min-w-0 space-y-1">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="text-sm font-bold tabular-nums text-foreground">{ro.number}</span>
+            <Badge variant="outline" className={cn("text-[10px]", pill.className)}>
+              {pill.label}
+            </Badge>
             {unapproved ? (
-              <Badge className="mt-1 bg-amber-100 text-[10px] text-amber-900 hover:bg-amber-100">Unapproved</Badge>
+              <Badge className="bg-amber-100 text-[10px] text-amber-900 hover:bg-amber-100">
+                Unapproved
+              </Badge>
             ) : null}
           </div>
+          <p className="flex items-center gap-1.5 text-xs text-muted-foreground">
+            <CalendarDays className="size-3.5 shrink-0" />
+            {fmtRoWhen(ro.createdAt)}
+          </p>
+          <p className="flex items-center gap-1.5 text-xs font-medium uppercase tracking-wide text-foreground/85">
+            <Car className="size-3.5 shrink-0 text-brand-orange" />
+            {ro.vehicleLabel}
+          </p>
+          <p className="truncate text-xs text-muted-foreground">{customerName}</p>
         </div>
-        <p className="mt-2 truncate text-xs text-muted-foreground">{customerName}</p>
+        <p className="shrink-0 text-sm font-semibold tabular-nums text-foreground">
+          {formatCents(ro.totalCents)}
+        </p>
       </Link>
     );
   }
 
   return (
-    <div className="space-y-4 pb-4">
-      <div className="grid grid-cols-2 gap-3">
-        <Button type="button" className={DRAWER_BTN_PRIMARY} asChild>
-          <Link href={`/repair-orders/new?customerId=${customerId}`}>
-            <Plus className="size-4" />
-            Estimate
-          </Link>
-        </Button>
-        <Button type="button" className={DRAWER_BTN_AZURE} disabled title="Coming soon">
-          <Plus className="size-4" />
-          Appointment
-        </Button>
+    <div className="relative flex min-h-full flex-col bg-white pb-4">
+      <DrawerPaneHeader
+        icon={ClipboardList}
+        title="Repair Orders"
+        action={
+          <Button asChild size="sm" className={cn(DRAWER_BTN_PRIMARY, "h-8 gap-1.5")}>
+            <Link href={`/repair-orders/new?customerId=${customerId}`}>
+              <Plus className="size-3.5" />
+              Estimate
+            </Link>
+          </Button>
+        }
+      />
+
+      <div className="pt-4">
+        <DrawerFlatSection icon={FileText} title="Active">
+          {active.length === 0 ? (
+            <p className="border-b border-[#eaecf0] py-6 text-center text-sm text-muted-foreground">
+              No open repair orders.{" "}
+              <Link
+                href={`/repair-orders/new?customerId=${customerId}`}
+                className="font-medium text-brand-navy hover:underline"
+              >
+                Create estimate
+              </Link>
+            </p>
+          ) : (
+            <div>{active.map((ro) => <RoRow key={ro.id} ro={ro} />)}</div>
+          )}
+        </DrawerFlatSection>
       </div>
 
-      <DrawerContentCard title="Active Repair Orders">
-        <div className="space-y-2">
-          {active.length === 0 ? (
-            <p className="py-6 text-center text-sm text-[#5B7295]">No open repair orders.</p>
-          ) : (
-            active.map((ro) => <RoRow key={ro.id} ro={ro} />)
-          )}
-        </div>
-      </DrawerContentCard>
-
       {archived.length > 0 ? (
-        <DrawerContentCard title="Completed">
-          <div className="space-y-2">
-            {archived.slice(0, 8).map((ro) => (
+        <div className="mt-5 border-t border-[#eaecf0] pt-5">
+          <DrawerFlatSection icon={History} title="Completed">
+            <div>{archived.slice(0, 8).map((ro) => (
               <RoRow key={ro.id} ro={ro} />
-            ))}
-          </div>
-        </DrawerContentCard>
+            ))}</div>
+          </DrawerFlatSection>
+        </div>
       ) : null}
     </div>
   );
 }
 
 export function DrawerPaymentTab({ data }: { data: PaymentFinanceData }) {
-  return <PaymentFinancePanel data={data} />;
+  return (
+    <div className="relative flex min-h-full flex-col bg-white pb-4">
+      <DrawerPaneHeader icon={Receipt} title="Payment" />
+      <div className="pt-4">
+        <PaymentFinancePanel data={data} />
+      </div>
+    </div>
+  );
 }
 
 /** Payment history across all ROs — used when drawer opens without an active RO. */
@@ -1216,34 +1547,43 @@ export function DrawerCustomerPaymentHistoryTab({ customerId }: { customerId: st
 
   if (loading && payments.length === 0 && !loadError) {
     return (
-      <div className="flex items-center justify-center gap-2 py-20 text-sm text-muted-foreground">
-        <Loader2 className="size-5 animate-spin text-brand-navy" />
-        Loading payments…
+      <div className="relative flex min-h-full flex-col bg-white">
+        <DrawerPaneHeader icon={Receipt} title="Payment" />
+        <div className="flex items-center justify-center gap-2 py-20 text-sm text-muted-foreground">
+          <Loader2 className="size-5 animate-spin text-brand-navy" />
+          Loading payments…
+        </div>
       </div>
     );
   }
 
   if (loadError) {
     return (
-      <div className="py-8 text-center">
-        <p className="text-sm text-brand-red">{loadError}</p>
+      <div className="relative flex min-h-full flex-col bg-white">
+        <DrawerPaneHeader icon={Receipt} title="Payment" />
+        <div className="py-8 text-center">
+          <p className="text-sm text-brand-red">{loadError}</p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-4 pb-4">
-      <DrawerContentCard title="Payment History">
-        <p className="mb-3 text-xs text-[#5B7295]">
-          All recorded payments across repair orders for this customer.
-        </p>
-        <PaymentTransactionsPanel
-          embedded
-          payments={payments}
-          failedPayments={failedPayments}
-          customerWide
-        />
-      </DrawerContentCard>
+    <div className="relative flex min-h-full flex-col bg-white pb-4">
+      <DrawerPaneHeader icon={Receipt} title="Payment" />
+      <div className="pt-4">
+        <DrawerFlatSection icon={History} title="Payment history">
+          <p className="mb-2 text-xs text-muted-foreground">
+            All recorded payments across repair orders for this customer.
+          </p>
+          <PaymentTransactionsPanel
+            embedded
+            payments={payments}
+            failedPayments={failedPayments}
+            customerWide
+          />
+        </DrawerFlatSection>
+      </div>
     </div>
   );
 }
@@ -1266,11 +1606,11 @@ const CARE_PLAN_PAYMENT_LABELS: Record<string, string> = {
 
 function CarePlanMembershipCard({ plan }: { plan: EstimateContextDrawerCarePlan }) {
   return (
-    <li className="overflow-hidden rounded-lg border border-border/80 bg-white shadow-sm">
-      <div className="flex items-start justify-between gap-2 border-b border-border/60 bg-brand-navy/[0.03] px-3 py-2.5">
+    <li className="border-b border-[#eaecf0] py-3.5 last:border-b-0">
+      <div className="flex items-start justify-between gap-2">
         <div className="min-w-0">
-          <p className="flex items-center gap-1.5 truncate text-sm font-semibold text-brand-navy">
-            <Shield className="size-4 shrink-0 text-brand-navy/80" aria-hidden />
+          <p className="flex items-center gap-1.5 truncate text-sm font-semibold text-foreground">
+            <Shield className="size-4 shrink-0 text-brand-orange" aria-hidden />
             {plan.planName}
           </p>
           <p className="mt-0.5 truncate text-xs text-muted-foreground">{plan.vehicleLabel}</p>
@@ -1279,25 +1619,24 @@ function CarePlanMembershipCard({ plan }: { plan: EstimateContextDrawerCarePlan 
           {plan.status.replace("_", " ")}
         </Badge>
       </div>
-      <div className="space-y-2 px-3 py-2.5">
-        <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
-          <span>Expires {fmtDate(plan.endsAt)}</span>
-          <span className="text-muted-foreground/50" aria-hidden>
-            ·
-          </span>
-          <span>{plan.progress}</span>
-          <span className="text-muted-foreground/50" aria-hidden>
-            ·
-          </span>
-          <span>{CARE_PLAN_PAYMENT_LABELS[plan.paymentMode] ?? plan.paymentMode}</span>
-        </div>
-        <Button asChild variant="outline" size="sm" className="h-8 w-full gap-1 border-brand-navy/20 text-brand-navy">
-          <Link href={`/maintenance-programs/subscribers/${plan.id}`}>
-            View member
-            <ChevronRight className="size-3.5" />
-          </Link>
-        </Button>
+      <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
+        <span>Expires {fmtDate(plan.endsAt)}</span>
+        <span className="text-muted-foreground/50" aria-hidden>
+          ·
+        </span>
+        <span>{plan.progress}</span>
+        <span className="text-muted-foreground/50" aria-hidden>
+          ·
+        </span>
+        <span>{CARE_PLAN_PAYMENT_LABELS[plan.paymentMode] ?? plan.paymentMode}</span>
       </div>
+      <Link
+        href={`/maintenance-programs/subscribers/${plan.id}`}
+        className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-brand-navy hover:underline"
+      >
+        View member
+        <ChevronRight className="size-3.5" />
+      </Link>
     </li>
   );
 }
@@ -1359,24 +1698,28 @@ export function DrawerCarePlanTab({
 
   if (!canAccess) {
     return (
-      <DrawerContentCard title={AP_TERMS.maintenancePrograms}>
-        <p className="text-sm text-[#5B7295]">
-          Care Plans are an Elite premium benefit — upgrade to enroll customers from the drawer.
-        </p>
-        <Button asChild variant="outline" size="sm" className={cn(DRAWER_BTN_AZURE, "mt-3")}>
-          <Link href="/settings/subscription">View plans</Link>
-        </Button>
-      </DrawerContentCard>
+      <div className="relative flex min-h-full flex-col bg-white pb-4">
+        <DrawerPaneHeader icon={Shield} title={AP_TERMS.maintenancePrograms} />
+        <div className="pt-4">
+          <p className="text-sm text-muted-foreground">
+            Care Plans are an Elite premium benefit — upgrade to enroll customers from the drawer.
+          </p>
+          <Button asChild variant="outline" size="sm" className={cn(DRAWER_BTN_ACCENT, "mt-3")}>
+            <Link href="/settings/subscription">View plans</Link>
+          </Button>
+        </div>
+      </div>
     );
   }
 
   const membersHref = `/maintenance-programs/subscribers?customerId=${encodeURIComponent(customerId)}`;
 
   return (
-    <div className="space-y-4 pb-4">
-      <DrawerContentCard
+    <div className="relative flex min-h-full flex-col bg-white pb-4">
+      <DrawerPaneHeader
+        icon={Shield}
         title={AP_TERMS.maintenancePrograms}
-        headerAction={
+        action={
           <div className="flex flex-wrap items-center gap-2">
             {plansUrl && shopName ? (
               <SharePlansLinkButton
@@ -1390,7 +1733,7 @@ export function DrawerCarePlanTab({
                 }}
               />
             ) : null}
-            <Button asChild size="sm" className={DRAWER_BTN_PRIMARY}>
+            <Button asChild size="sm" className={cn(DRAWER_BTN_PRIMARY, "h-8 gap-1.5")}>
               <Link href={membersHref}>
                 <Plus className="size-3.5" />
                 Enroll
@@ -1398,33 +1741,41 @@ export function DrawerCarePlanTab({
             </Button>
           </div>
         }
-      >
-        <p className="mb-4 text-xs text-[#5B7295]">
+      />
+
+      <div className="pt-4">
+        <p className="mb-3 text-xs text-muted-foreground">
           Memberships and enrollment for {customerName}.
         </p>
 
         {plans.length === 0 ? (
           <div className="flex flex-col items-center py-8 text-center">
-            <Shield className="mb-2 size-9 text-[#8CA2C0]/60" />
-            <p className="text-sm font-medium text-[#0B1F3B]">Not enrolled in a care plan</p>
-            <p className="mt-1 text-xs text-[#5B7295]">
-              Enroll at the counter or send {customerName.split(" ")[0] ?? "them"} the public signup link.
+            <span className="mb-3 flex size-10 items-center justify-center rounded-md bg-brand-navy/[0.06]">
+              <Shield className="size-5 text-muted-foreground" />
+            </span>
+            <p className="text-sm font-medium text-brand-navy">Not enrolled in a care plan</p>
+            <p className="mt-1 max-w-xs text-xs leading-relaxed text-muted-foreground">
+              Enroll at the counter or send {customerName.split(" ")[0] ?? "them"} the public signup
+              link.
             </p>
-            <Button asChild variant="outline" size="sm" className={cn(DRAWER_BTN_AZURE, "mt-4")}>
-              <Link href={membersHref}>Open {AP_TERMS.maintenanceSubscribers}</Link>
-            </Button>
+            <Link
+              href={membersHref}
+              className="mt-3 text-sm font-medium text-brand-navy hover:underline"
+            >
+              Open {AP_TERMS.maintenanceSubscribers}
+            </Link>
           </div>
         ) : (
           <>
-            <ul className="space-y-3">
+            <ul>
               {plans.map((plan) => (
                 <CarePlanMembershipCard key={plan.id} plan={plan} />
               ))}
             </ul>
-            <div className="mt-4 flex justify-end border-t border-[#DDE5EF]/60 pt-3">
+            <div className="mt-4 flex justify-end border-t border-[#eaecf0] pt-3">
               <Link
                 href={membersHref}
-                className="inline-flex items-center gap-1 text-xs font-medium text-[#1E7FE0] hover:underline"
+                className="inline-flex items-center gap-1 text-xs font-medium text-brand-navy hover:underline"
               >
                 View all in {AP_TERMS.maintenanceSubscribers}
                 <ExternalLink className="size-3" />
@@ -1432,7 +1783,7 @@ export function DrawerCarePlanTab({
             </div>
           </>
         )}
-      </DrawerContentCard>
+      </div>
     </div>
   );
 }
@@ -1441,172 +1792,94 @@ export function DrawerFinancesTab({ availableCreditCents }: { availableCreditCen
   const [sub, setSub] = useState<"credit" | "ar">("credit");
 
   return (
-    <div className="space-y-4 pb-4">
-      <div className="grid grid-cols-2 gap-3">
-        <Button
+    <div className="relative flex min-h-full flex-col bg-white pb-4">
+      <DrawerPaneHeader icon={Receipt} title="Finances" />
+
+      <div className="flex gap-4 border-b border-[#eaecf0] pt-1">
+        <button
           type="button"
-          variant={sub === "credit" ? "default" : "outline"}
-          className={cn("h-10 gap-2", sub === "credit" ? DRAWER_BTN_PRIMARY : DRAWER_BTN_AZURE)}
           onClick={() => setSub("credit")}
+          className={cn(
+            "border-b-2 px-0.5 py-2.5 text-sm font-medium transition-colors",
+            sub === "credit"
+              ? "border-brand-orange text-brand-orange"
+              : "border-transparent text-muted-foreground hover:text-foreground",
+          )}
         >
-          <Receipt className="size-4" />
           Store credit
-        </Button>
-        <Button
+        </button>
+        <button
           type="button"
-          variant={sub === "ar" ? "default" : "outline"}
-          className={cn("h-10 gap-2", sub === "ar" ? DRAWER_BTN_PRIMARY : DRAWER_BTN_AZURE)}
           onClick={() => setSub("ar")}
+          className={cn(
+            "border-b-2 px-0.5 py-2.5 text-sm font-medium transition-colors",
+            sub === "ar"
+              ? "border-brand-orange text-brand-orange"
+              : "border-transparent text-muted-foreground hover:text-foreground",
+          )}
         >
-          <History className="size-4" />
           AR account
-        </Button>
+        </button>
       </div>
 
-      {sub === "credit" ? (
-        <DrawerContentCard
-          title="Store Credit"
-          headerAction={
-            <Button type="button" variant="outline" size="sm" className={DRAWER_BTN_AZURE} disabled title="Coming soon">
-              <Plus className="size-3.5" />
-              Credit memo
-            </Button>
-          }
-        >
-          <div className="overflow-hidden rounded-md border border-[#DDE5EF]">
+      <div className="pt-4">
+        {sub === "credit" ? (
+          <DrawerFlatSection
+            icon={Receipt}
+            title="Store credit"
+            headerAction={
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className={cn(DRAWER_BTN_ACCENT, "h-8")}
+                disabled
+                title="Coming soon"
+              >
+                <Plus className="size-3.5" />
+                Credit memo
+              </Button>
+            }
+          >
             <table className="w-full text-sm">
               <thead>
-                <tr className="border-b border-[#DDE5EF] bg-[#F7F9FC] text-left text-xs font-semibold text-[#5B7295]">
-                  <th className="px-3 py-2">Memo #</th>
-                  <th className="px-3 py-2">Status</th>
-                  <th className="px-3 py-2 text-right">Amount</th>
-                  <th className="px-3 py-2 text-right">Remaining</th>
+                <tr className="border-b border-[#eaecf0] text-left text-xs font-semibold text-muted-foreground">
+                  <th className="py-2 pr-3">Memo #</th>
+                  <th className="py-2 pr-3">Status</th>
+                  <th className="py-2 pr-3 text-right">Amount</th>
+                  <th className="py-2 text-right">Remaining</th>
                 </tr>
               </thead>
               <tbody>
-                <tr className="border-t border-[#DDE5EF]/60 bg-[#f2f8fe]/40 font-medium text-[#0B1F3B]">
-                  <td className="px-3 py-3" colSpan={3}>
+                <tr className="border-b border-[#eaecf0] font-medium text-foreground">
+                  <td className="py-3 pr-3" colSpan={3}>
                     Total available credit
                   </td>
-                  <td className="px-3 py-3 text-right tabular-nums">{formatCents(availableCreditCents)}</td>
+                  <td className="py-3 text-right tabular-nums">
+                    {formatCents(availableCreditCents)}
+                  </td>
                 </tr>
               </tbody>
             </table>
-          </div>
-        </DrawerContentCard>
-      ) : (
-        <DrawerEmptyState
-          icon={History}
-          title="Accounts receivable"
-          description="Open invoices and charge-account balances will appear here."
-        />
-      )}
+          </DrawerFlatSection>
+        ) : (
+          <DrawerEmptyState
+            icon={History}
+            title="Accounts receivable"
+            description="Open invoices and charge-account balances will appear here."
+          />
+        )}
+      </div>
     </div>
-  );
-}
-
-export function DrawerActionRail({
-  customerId,
-  customerName,
-  vehicleId,
-  roId,
-  roNumber,
-  appointments,
-  employees,
-  defaultDurationMins,
-  onAppointmentCreated,
-}: {
-  customerId: string;
-  customerName: string;
-  vehicleId: string | null;
-  roId?: string;
-  roNumber?: number;
-  appointments: EstimateContextDrawerAppointment[];
-  employees: { id: string; name: string }[];
-  defaultDurationMins: number;
-  onAppointmentCreated?: () => void;
-}) {
-  const [apptOpen, setApptOpen] = useState(false);
-  const estimateClass = cn(
-    "flex w-full items-center justify-center gap-1.5 rounded-md px-3 py-2.5 text-sm font-semibold text-white transition-colors",
-    "bg-[#E86A10] hover:bg-[#E86A10]/90",
-  );
-  const outlineActionClass =
-    "flex w-full items-center justify-center gap-1.5 rounded-md border border-[#1E7FE0] bg-white px-3 py-2.5 text-sm font-semibold text-[#1E7FE0] transition-colors hover:bg-[#f2f8fe] [&_svg]:text-[#1E7FE0]";
-
-  return (
-    <aside className="hidden w-[13rem] shrink-0 flex-col border-l border-[#DDE5EF] bg-[#F7F9FC] md:flex">
-      <div className="border-b border-[#DDE5EF] p-4">
-        <div className="space-y-2">
-          <Link href={`/repair-orders/new?customerId=${customerId}`} className={estimateClass}>
-            <Plus className="size-4" />
-            Estimate
-          </Link>
-          <button type="button" className={outlineActionClass} onClick={() => setApptOpen(true)}>
-            <Plus className="size-4" />
-            Appointment
-          </button>
-        </div>
-      </div>
-
-      <NewAppointmentDialog
-        open={apptOpen}
-        onOpenChange={setApptOpen}
-        defaultDurationMins={defaultDurationMins}
-        employees={employees}
-        onCreated={onAppointmentCreated}
-        defaults={{
-          customerId,
-          customerName,
-          vehicleId,
-          repairOrderId: roId,
-          notes: roNumber != null ? `RO #${roNumber}` : undefined,
-        }}
-      />
-
-      <div className="min-h-0 flex-1 overflow-y-auto p-4">
-        <DrawerContentCard>
-          {appointments.length === 0 ? (
-            <div className="flex flex-col items-center py-4 text-center">
-              <span className="mb-2 flex size-9 items-center justify-center rounded-full bg-[#F0F3F8]">
-                <Calendar className="size-4 text-[#8CA2C0]" />
-              </span>
-              <p className="text-xs leading-relaxed text-[#5B7295]">
-                No upcoming appointments for this customer.
-              </p>
-              <button
-                type="button"
-                onClick={() => setApptOpen(true)}
-                className="mt-2 text-sm font-medium text-[#1E7FE0] hover:underline"
-              >
-                Schedule Appointment
-              </button>
-            </div>
-          ) : (
-            <ul className="space-y-2">
-              {appointments.map((a) => (
-                <li key={a.id} className="rounded-md border border-[#DDE5EF] bg-[#F7F9FC] px-2.5 py-2">
-                  <p className="truncate text-xs font-semibold text-[#0B1F3B]">{a.title}</p>
-                  <p className="mt-0.5 text-[11px] text-[#5B7295]">{fmtApptWhen(a.startAt)}</p>
-                  {a.vehicleLabel ? (
-                    <p className="mt-0.5 truncate text-[10px] text-[#8CA2C0]">{a.vehicleLabel}</p>
-                  ) : null}
-                </li>
-              ))}
-            </ul>
-          )}
-        </DrawerContentCard>
-      </div>
-    </aside>
   );
 }
 
 export const DRAWER_TABS: { id: ContextDrawerTab; label: string }[] = [
   { id: "profile", label: "Profile" },
   { id: "vehicles", label: "Vehicles" },
-  { id: "carePlan", label: "Care Plan" },
-  { id: "deferred", label: "Deferred" },
+  { id: "deferred", label: "Declined" },
   { id: "orders", label: "Repair Orders" },
   { id: "payment", label: "Payment" },
+  { id: "carePlan", label: "Care Plan" },
   { id: "finances", label: "Finances" },
 ];

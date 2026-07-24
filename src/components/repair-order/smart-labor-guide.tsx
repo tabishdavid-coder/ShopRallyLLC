@@ -21,6 +21,7 @@ import {
   Library,
   ListTree,
   Info,
+  Cable,
 } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -90,6 +91,8 @@ import {
   type LaborCatalogMode,
 } from "@/lib/labor-catalog-mode";
 import { MOTOR_REFERENCE_BASE_VEHICLE_ID } from "@/lib/labor-motor-tree-static";
+import { useMotorLaborUiEnabled } from "@/lib/shop-capabilities";
+import { LaborWiringTab } from "@/components/repair-order/labor-wiring-tab";
 type CartLine = LaborCartLine & { key: number };
 
 function browsePositionHint(hits: LaborGuideHit[], subcategoryId: string | null): string | null {
@@ -606,6 +609,7 @@ function OperationDetailPanel({
   disabled?: boolean;
 }) {
   const variants = expandOperationVariants(hit);
+  const [detailTab, setDetailTab] = useState<"labor" | "wiring">("labor");
   const [companions, setCompanions] = useState<ResolvedLaborCompanion[]>([]);
   const [companionsLoading, setCompanionsLoading] = useState(false);
   const [companionsEmptyHint, setCompanionsEmptyHint] = useState(false);
@@ -696,6 +700,37 @@ function OperationDetailPanel({
         </div>
       </div>
 
+      <div className="flex gap-1 border-b bg-muted/20 px-4 py-2">
+        <button
+          type="button"
+          onClick={() => setDetailTab("labor")}
+          className={cn(
+            "rounded-md px-3 py-1.5 text-xs font-semibold transition-colors",
+            detailTab === "labor"
+              ? "bg-brand-navy text-primary-foreground shadow-sm"
+              : "text-muted-foreground hover:bg-brand-light/10 hover:text-brand-navy",
+          )}
+        >
+          Labor
+        </button>
+        <button
+          type="button"
+          onClick={() => setDetailTab("wiring")}
+          className={cn(
+            "inline-flex items-center gap-1.5 rounded-md px-3 py-1.5 text-xs font-semibold transition-colors",
+            detailTab === "wiring"
+              ? "bg-brand-navy text-primary-foreground shadow-sm"
+              : "text-muted-foreground hover:bg-brand-light/10 hover:text-brand-navy",
+          )}
+        >
+          <Cable className="size-3.5" />
+          Wiring
+        </button>
+      </div>
+
+      {detailTab === "wiring" ? (
+        <LaborWiringTab vehicleId={vehicleId} />
+      ) : (
       <div className="min-h-0 flex-1 overflow-auto">
         {/* Primary Labor */}
         <div className="border-b bg-brand-navy/[0.04] px-4 py-2 text-[10px] font-semibold uppercase tracking-wide text-brand-navy/70">
@@ -802,6 +837,7 @@ function OperationDetailPanel({
           </p>
         ) : null}
       </div>
+      )}
     </div>
   );
 }
@@ -842,6 +878,8 @@ export function SmartLaborGuide({
   submitLabel?: string;
 }) {
   const router = useRouter();
+  const oemLaborGuideEntitled = useMotorLaborUiEnabled();
+  const laborGuideTriggerLabel = oemLaborGuideEntitled ? "OEM Labor Guide" : "Labor Book";
   const [internalOpen, setInternalOpen] = useState(false);
   const open = controlledOpen ?? internalOpen;
   const setOpen = controlledOnOpenChange ?? setInternalOpen;
@@ -864,8 +902,7 @@ export function SmartLaborGuide({
   const [motorInitLoading, setMotorInitLoading] = useState(false);
   const [motorSource, setMotorSource] = useState<LaborBookMotorSource>("shop");
   const [catalogMode, setCatalogMode] = useState<LaborCatalogMode>("reference");
-  // AI labor generation is parked by default (pivot to MOTOR). Server tells us if
-  // LABOR_AI_ENABLED=true; when false we hide the "Estimate with AI" affordances.
+  const [oemLaborPrimary, setOemLaborPrimary] = useState(false);
   const [aiEnabled, setAiEnabled] = useState(false);
   const [baseVehicleId, setBaseVehicleId] = useState<number | null>(null);
   const [motorTree, setMotorTree] = useState<LaborBookMotorSidebarNode[]>([]);
@@ -879,10 +916,13 @@ export function SmartLaborGuide({
     useGroupColumnWidth();
 
   const useMotorBrowseUI = motorTree.length > 0;
-  const isLicensedMotorMode = catalogMode === "licensed" && motorSource === "motor";
+  /** Pro/Elite entitlement drives OEM chrome immediately; server init confirms data path. */
+  const isOemPrimaryMode = oemLaborPrimary || oemLaborGuideEntitled;
+  const isLicensedMotorMode =
+    !isOemPrimaryMode && catalogMode === "licensed" && motorSource === "motor";
   const isReferenceTaxonomyBrowse = catalogMode === "reference" && useMotorBrowseUI;
-  const useTaxonomyJobsColumn = isLicensedMotorMode || isReferenceTaxonomyBrowse;
-  const catalogLabels = laborCatalogDisplayLabels(catalogMode);
+  const useTaxonomyJobsColumn = isLicensedMotorMode || isReferenceTaxonomyBrowse || isOemPrimaryMode;
+  const catalogLabels = laborCatalogDisplayLabels(catalogMode, { oemPrimary: isOemPrimaryMode });
 
   const odometerLabel = odometerNotWorking
     ? "Odometer N/A"
@@ -915,11 +955,17 @@ export function SmartLaborGuide({
         setMotorSource("shop");
         setMotorTree([]);
         setBaseVehicleId(null);
-        setSyncBanner(null);
+        setSyncBanner(
+          oemLaborGuideEntitled
+            ? "OEM automation primary — platform SQL averages. MOTOR catalog available as fallback."
+            : null,
+        );
         setAiEnabled(false);
+        setOemLaborPrimary(oemLaborGuideEntitled);
       } else {
         setMotorSource(res.source);
         setCatalogMode(res.catalogMode);
+        setOemLaborPrimary(res.oemLaborPrimary ?? oemLaborGuideEntitled);
         setMotorTree(res.tree);
         setBaseVehicleId(res.baseVehicleId);
         setSyncBanner(res.syncBanner ?? null);
@@ -930,7 +976,7 @@ export function SmartLaborGuide({
     return () => {
       cancelled = true;
     };
-  }, [open, vehicleId]);
+  }, [open, vehicleId, oemLaborGuideEntitled]);
 
   const loadMotorApplications = useCallback(
     (selection: MotorSubGroupSelection) => {
@@ -1424,7 +1470,9 @@ export function SmartLaborGuide({
       : null;
   const libraryBrowsing = !request.trim() && !selectedHit && !generating && !motorInitLoading;
 
-  const sourceBadgeText = isLicensedMotorMode
+  const sourceBadgeText = isOemPrimaryMode
+    ? `Source: ${catalogLabels.sourceBadge}`
+    : isLicensedMotorMode
     ? `Source: ${catalogLabels.sourceBadge} · BaseVehicleID ${baseVehicleId}`
     : isReferenceTaxonomyBrowse
       ? `Source: ${catalogLabels.sourceBadge}`
@@ -1442,6 +1490,7 @@ export function SmartLaborGuide({
     hits.length > 0;
 
   const isFloating = presentation === "floating";
+  const dialogTitlePrefix = isOemPrimaryMode ? "OEM Labor Guide" : "Labor Book";
 
   return (
     <Dialog
@@ -1462,7 +1511,8 @@ export function SmartLaborGuide({
         )}
         onClick={() => setOpen(true)}
       >
-        <ListTree className={cn("size-4", variant === "hero" && "size-3.5 text-brand-light")} /> Labor Book
+        <ListTree className={cn("size-4", variant === "hero" && "size-3.5 text-brand-light")} />{" "}
+        {laborGuideTriggerLabel}
       </Button>
       ) : null}
 
@@ -1488,7 +1538,7 @@ export function SmartLaborGuide({
             <ShoppingCart className="size-7 shrink-0 rounded-full bg-brand-light/20 p-1.5 text-brand-light" />
             <div className="min-w-0 flex-1">
               <DialogTitle className="truncate text-[15px] font-semibold text-primary-foreground">
-                Labor Book: {customerName ? `${customerName}'s ` : ""}
+                {dialogTitlePrefix}: {customerName ? `${customerName}'s ` : ""}
                 {vehicleLabel}
               </DialogTitle>
               <DialogDescription className="truncate text-xs text-primary-foreground/75">
@@ -1526,21 +1576,35 @@ export function SmartLaborGuide({
                 <span
                   className={cn(
                     "shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide",
-                    isLicensedMotorMode
+                    isOemPrimaryMode
+                      ? "bg-brand-navy/10 text-brand-navy"
+                      : isLicensedMotorMode
                       ? "bg-brand-light/15 text-brand-navy"
                       : isReferenceTaxonomyBrowse
                         ? "bg-brand-red/10 text-brand-red"
                         : "bg-muted text-muted-foreground",
                   )}
                   title={
-                    useMotorBrowseUI
+                    isOemPrimaryMode
                       ? catalogLabels.browseSubtitle
-                      : "Browse by system or search cached jobs for this vehicle"
+                      : useMotorBrowseUI
+                        ? catalogLabels.browseSubtitle
+                        : "Browse by system or search cached jobs for this vehicle"
                   }
                 >
                   {sourceBadgeText}
                 </span>
-                {isLicensedMotorMode ? (
+                {isOemPrimaryMode ? (
+                  <span
+                    className="ml-auto inline-flex shrink-0 items-center text-muted-foreground"
+                    title="OEM BOOK hours from platform SQL averages. MOTOR and AI drafts are fallbacks — verify AI-DRAFT rows."
+                  >
+                    <Info className="size-3.5 text-brand-light" aria-hidden />
+                    <span className="sr-only">
+                      OEM BOOK hours from platform pipeline. MOTOR fallback when OEM misses.
+                    </span>
+                  </span>
+                ) : isLicensedMotorMode ? (
                   <span
                     className="ml-auto inline-flex shrink-0 items-center text-muted-foreground"
                     title="BOOK hours are licensed MOTOR times; AI drafts are labeled — verify before quoting."
@@ -1598,9 +1662,11 @@ export function SmartLaborGuide({
                     placeholder={
                       aiEnabled
                         ? "Search cached jobs or describe a repair to generate with AI…"
-                        : catalogMode === "licensed"
-                          ? "Search the MOTOR catalog for this vehicle…"
-                          : "Search cached jobs for this vehicle…"
+                        : isOemPrimaryMode
+                          ? "Search OEM labor averages for this vehicle…"
+                          : catalogMode === "licensed"
+                            ? "Search the MOTOR catalog for this vehicle…"
+                            : "Search cached jobs for this vehicle…"
                     }
                     className="h-11 flex-1 border-0 bg-transparent pl-0 pr-2 shadow-none focus-visible:ring-0"
                   />

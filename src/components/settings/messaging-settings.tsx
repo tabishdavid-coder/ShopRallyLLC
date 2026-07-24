@@ -20,6 +20,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 import {
   updateMessagingSettings,
+  submitSmsSetupRequest,
   type MessagingSettings,
 } from "@/server/actions/messaging-settings";
 import { VoiceCallLogPanel } from "@/components/settings/voice-call-log-panel";
@@ -27,6 +28,7 @@ import { acceptSmsAddendum } from "@/server/actions/legal";
 import { PLANS } from "@/lib/plans";
 import { sendShopTestSms, syncShopTwilioWebhooks } from "@/server/actions/platform-sms";
 import type { ShopSmsSetupStatus } from "@/lib/sms-constants";
+import { effectiveTwilioPhoneNumber } from "@/lib/sms-constants";
 
 const inputCls =
   "w-full rounded-md border border-input bg-background px-3 py-2 text-sm outline-none focus:ring-1 focus:ring-ring";
@@ -36,13 +38,15 @@ const SETUP_META: Record<
   { label: string; variant: "default" | "secondary" | "outline" }
 > = {
   configured: { label: "Configured", variant: "default" },
-  pending_port: { label: "Pending port", variant: "outline" },
+  pending_port: { label: "Request pending", variant: "outline" },
   not_configured: { label: "Not configured", variant: "secondary" },
 };
 
 export function MessagingSettingsPanel({ initial }: { initial: MessagingSettings }) {
   const [step, setStep] = useState(1);
   const [landline, setLandline] = useState(initial.landlineNumber ?? "");
+  const [preferredAreaCode, setPreferredAreaCode] = useState(initial.smsPreferredAreaCode ?? "");
+  const [requestNotes, setRequestNotes] = useState(initial.smsSetupRequestNotes ?? "");
   const [twilio, setTwilio] = useState(initial.twilioPhoneNumber ?? "");
   const [messagingSid, setMessagingSid] = useState(initial.twilioMessagingServiceSid ?? "");
   const [optOutFooter, setOptOutFooter] = useState(initial.smsOptOutFooter ?? "");
@@ -56,6 +60,7 @@ export function MessagingSettingsPanel({ initial }: { initial: MessagingSettings
   const [saved, setSaved] = useState(false);
   const [testResult, setTestResult] = useState<string | null>(null);
   const [webhookSyncResult, setWebhookSyncResult] = useState<string | null>(null);
+  const [requestResult, setRequestResult] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [pending, start] = useTransition();
 
@@ -71,6 +76,30 @@ export function MessagingSettingsPanel({ initial }: { initial: MessagingSettings
       if (res.ok) {
         setAddendumAccepted(true);
         onSuccess?.();
+      } else {
+        setError(res.error);
+      }
+    });
+  }
+
+  const hasAssignedNumber = Boolean(
+    effectiveTwilioPhoneNumber(twilio || initial.twilioPhoneNumber),
+  );
+  const requestPending = Boolean(initial.smsSetupRequestedAt && !hasAssignedNumber);
+
+  function submitRequest() {
+    setRequestResult(null);
+    setError(null);
+    start(async () => {
+      const res = await submitSmsSetupRequest({
+        landlineNumber: landline,
+        preferredAreaCode: preferredAreaCode.trim() || undefined,
+        notes: requestNotes.trim() || undefined,
+      });
+      if (res.ok) {
+        setRequestResult(
+          "Request sent to ShopRally. We'll provision or port your SMS number and notify you when it's ready.",
+        );
       } else {
         setError(res.error);
       }
@@ -171,17 +200,80 @@ export function MessagingSettingsPanel({ initial }: { initial: MessagingSettings
           <p className="mt-2 text-xs text-amber-800">
             Platform admin: set <code className="rounded bg-muted px-1">TWILIO_ACCOUNT_SID</code> and{" "}
             <code className="rounded bg-muted px-1">TWILIO_AUTH_TOKEN</code> in{" "}
-            <code className="rounded bg-muted px-1">.env</code>. Messages are stored locally until then.
+            <code className="rounded bg-muted px-1">.env</code> — see{" "}
+            <code className="rounded bg-muted px-1">docs/TWILIO-LOCAL-SETUP.md</code>. Messages are stored
+            locally until then.
           </p>
         ) : null}
       </div>
+
+      {!hasAssignedNumber ? (
+        <div className="rounded-lg border border-brand-light/50 bg-brand-light/10 p-4 shadow-sm">
+          <h3 className="font-medium text-brand-navy">Request SMS setup</h3>
+          <p className="mt-1 text-sm text-muted-foreground">
+            ShopRally provisions your business SMS number on our platform Twilio account. Submit your
+            shop landline and preferences — platform ops will assign a number or start a port.
+          </p>
+          {requestPending ? (
+            <p className="mt-3 flex items-center gap-1.5 text-sm text-amber-800">
+              <CheckCircle2 className="size-4 shrink-0" />
+              Request submitted{" "}
+              {initial.smsSetupRequestedAt
+                ? new Date(initial.smsSetupRequestedAt).toLocaleString()
+                : ""}
+              . Platform will provision your number — refresh after assignment.
+            </p>
+          ) : null}
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            <Field label="Shop landline (required)">
+              <input
+                className={inputCls}
+                placeholder="(718) 555-0100"
+                value={landline}
+                onChange={(e) => setLandline(e.target.value)}
+              />
+            </Field>
+            <Field label="Preferred area code">
+              <input
+                className={inputCls}
+                placeholder="718"
+                maxLength={3}
+                value={preferredAreaCode}
+                onChange={(e) => setPreferredAreaCode(e.target.value.replace(/\D/g, ""))}
+              />
+            </Field>
+          </div>
+          <Field label="Notes for platform (optional)">
+            <textarea
+              className={`${inputCls} min-h-[72px] resize-y`}
+              placeholder="Port existing landline, preferred number type, hours to reach you…"
+              value={requestNotes}
+              onChange={(e) => setRequestNotes(e.target.value)}
+            />
+          </Field>
+          <div className="mt-3 flex flex-wrap items-center gap-2">
+            <Button
+              size="sm"
+              className="bg-brand-navy hover:bg-brand-navy/90"
+              disabled={pending || !landline.trim() || requestPending}
+              onClick={submitRequest}
+            >
+              {pending ? <Loader2 className="size-4 animate-spin" /> : null}
+              {requestPending ? "Request pending" : "Submit SMS setup request"}
+            </Button>
+            {requestResult ? (
+              <span className="text-xs text-emerald-700">{requestResult}</span>
+            ) : null}
+          </div>
+        </div>
+      ) : null}
 
       <WizardSteps
         current={step}
         onSelect={setStep}
         completed={{
-          1: Boolean(twilio.trim() || initial.twilioPhoneNumber),
-          2: Boolean(twilio.trim() || initial.twilioPhoneNumber),
+          1: Boolean(effectiveTwilioPhoneNumber(twilio || initial.twilioPhoneNumber)),
+          2: Boolean(effectiveTwilioPhoneNumber(twilio || initial.twilioPhoneNumber)),
           3: addendumAccepted,
           4: smsEnabled,
         }}
@@ -196,7 +288,7 @@ export function MessagingSettingsPanel({ initial }: { initial: MessagingSettings
             the repository for porting steps.
           </p>
 
-          <Field label="Landline number (marketing / display)">
+          <Field label="Shop landline (open-hours call forward)">
             <input
               className={inputCls}
               placeholder="(555) 123-4567"
@@ -204,7 +296,8 @@ export function MessagingSettingsPanel({ initial }: { initial: MessagingSettings
               onChange={(e) => setLandline(e.target.value)}
             />
             <p className="mt-1 text-xs text-muted-foreground">
-              Your published shop phone — reference only while porting is in progress.
+              Published shop phone and the number Twilio dials during open hours when someone calls
+              your Twilio line. Leave blank only if you are not using voice yet.
             </p>
           </Field>
 
@@ -505,11 +598,12 @@ export function MessagingSettingsPanel({ initial }: { initial: MessagingSettings
         <div className="flex items-start gap-2">
           <MessageSquare className="mt-0.5 size-4 text-brand-navy" />
           <div className="text-sm">
-            <p className="font-medium">Need a number?</p>
+            <p className="font-medium">Platform-managed numbers</p>
             <p className="mt-1 text-muted-foreground">
-              Contact ShopRally support or ask your platform admin to provision a test number from{" "}
+              Shops never enter Twilio credentials. After your request is fulfilled, complete the wizard
+              above and send a test message. Operators provision from{" "}
               <Link href="/platform/shops" className="font-medium text-brand-navy hover:underline">
-                Platform → Shops
+                Platform → Shops → Manage SMS
               </Link>
               .
             </p>
@@ -519,7 +613,7 @@ export function MessagingSettingsPanel({ initial }: { initial: MessagingSettings
               rel="noopener noreferrer"
               className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-brand-navy hover:underline"
             >
-              Twilio trial account guide
+              Twilio trial account guide (platform ops)
               <ExternalLink className="size-3" />
             </a>
           </div>

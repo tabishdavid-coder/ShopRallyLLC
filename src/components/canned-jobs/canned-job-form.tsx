@@ -9,11 +9,8 @@ import {
   CollapsibleTrigger,
 } from "@/components/ui/collapsible";
 
-import {
-  CRM_CHIP_ACTIVE,
-  CRM_CHIP_INACTIVE,
-  FormStripLabel,
-} from "@/components/crm/form-strip-label";
+import { FormStripLabel } from "@/components/crm/form-strip-label";
+import { cannedJobCategoryBadgeClasses, cannedJobCategoryChipClasses } from "@/lib/canned-job-category-colors";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -21,7 +18,10 @@ import { Textarea } from "@/components/ui/textarea";
 import {
   CANNED_JOB_CATEGORY_SELECT_OPTIONS,
   deriveCategoryUi,
+  partLineTypeFromDb,
+  partLineTypeToDb,
   resolveCategoryFromUi,
+  type CannedJobPartLineTypeUi,
   type SaveCannedJobInput,
 } from "@/lib/canned-job-schemas";
 import {
@@ -44,11 +44,14 @@ export type LaborRow = {
 };
 export type PartRow = {
   id?: string;
+  lineType: CannedJobPartLineTypeUi;
   brand: string;
   description: string;
   partNumber: string;
   costCents: number;
   quantity: number;
+  inventoryPartId?: string | null;
+  tireStockId?: string | null;
 };
 
 export type FeeRow = {
@@ -61,6 +64,23 @@ export type FeeRow = {
   taxable: boolean;
 };
 
+export type DiscountRow = {
+  id?: string;
+  name: string;
+  method: AdjustMethod;
+  base: AdjustBase;
+  amount: number;
+};
+
+export type InspectionRow = {
+  id?: string;
+  name: string;
+  description: string;
+  inspectionTemplateId?: string | null;
+  hours: number;
+  flatAmountCents?: number | null;
+};
+
 export type CannedJobFormState = {
   name: string;
   description: string;
@@ -69,6 +89,8 @@ export type CannedJobFormState = {
   labor: LaborRow[];
   parts: PartRow[];
   fees: FeeRow[];
+  discounts: DiscountRow[];
+  inspections: InspectionRow[];
 };
 
 const dollars = (cents: number) => (cents / 100).toFixed(2);
@@ -341,19 +363,13 @@ export function CategorySelectField({
   );
 
   if (variant === "chips") {
-    const chipClass = (active: boolean) =>
-      cn(
-        "rounded px-2 py-1 text-[11px] font-semibold transition-colors",
-        active ? CRM_CHIP_ACTIVE : CRM_CHIP_INACTIVE,
-      );
-
     return (
       <div className="space-y-2">
         <div className="flex flex-wrap gap-1.5">
           <button
             type="button"
             onClick={() => handleSelectChange("")}
-            className={chipClass(!selectPreset)}
+            className={cannedJobCategoryChipClasses(null, !selectPreset)}
           >
             None
           </button>
@@ -362,7 +378,10 @@ export function CategorySelectField({
               key={c}
               type="button"
               onClick={() => handleSelectChange(c)}
-              className={chipClass(c === "Other" ? isOther : selectPreset === c)}
+              className={cannedJobCategoryChipClasses(
+                c,
+                c === "Other" ? isOther : selectPreset === c,
+              )}
             >
               {c}
             </button>
@@ -460,6 +479,35 @@ export function feeLineAmountCents(
   return calcAdjustmentTotal(f, laborCostCents, partsCostCents);
 }
 
+export function discountLineAmountCents(
+  d: Pick<DiscountRow, "method" | "base" | "amount">,
+  laborCostCents: number,
+  partsCostCents: number,
+): number {
+  return calcAdjustmentTotal(d, laborCostCents, partsCostCents);
+}
+
+export function inspectionLineAmountCents(
+  row: Pick<InspectionRow, "hours" | "flatAmountCents">,
+  laborRateCents: number,
+): number {
+  if (row.flatAmountCents != null && row.flatAmountCents > 0) return row.flatAmountCents;
+  return Math.round(row.hours * laborRateCents);
+}
+
+export function emptyPartRow(lineType: CannedJobPartLineTypeUi = "part"): PartRow {
+  return {
+    lineType,
+    brand: "",
+    description: "",
+    partNumber: "",
+    costCents: 0,
+    quantity: lineType === "tire" ? 4 : 1,
+    inventoryPartId: null,
+    tireStockId: null,
+  };
+}
+
 function qtyDisplay(qty: number) {
   return String(qty);
 }
@@ -481,10 +529,12 @@ export const CANNED_JOB_QUICK_TEMPLATES: QuickTemplate[] = [
       isActive: true,
       labor: [{ name: "Oil & filter change", description: "", hours: 0.5 }],
       parts: [
-        { brand: "", description: "Engine oil (5 qt)", partNumber: "", costCents: 3500, quantity: 1 },
-        { brand: "", description: "Oil filter", partNumber: "", costCents: 800, quantity: 1 },
+        { lineType: "part", brand: "", description: "Engine oil (5 qt)", partNumber: "", costCents: 3500, quantity: 1 },
+        { lineType: "part", brand: "", description: "Oil filter", partNumber: "", costCents: 800, quantity: 1 },
       ],
       fees: [],
+      discounts: [],
+      inspections: [],
     },
   },
   {
@@ -500,10 +550,12 @@ export const CANNED_JOB_QUICK_TEMPLATES: QuickTemplate[] = [
         { name: "Brake system inspection & road test", description: "", hours: 0.3 },
       ],
       parts: [
-        { brand: "", description: "Front brake pads (set)", partNumber: "", costCents: 6500, quantity: 1 },
-        { brand: "", description: "Brake cleaner", partNumber: "", costCents: 400, quantity: 1 },
+        { lineType: "part", brand: "", description: "Front brake pads (set)", partNumber: "", costCents: 6500, quantity: 1 },
+        { lineType: "part", brand: "", description: "Brake cleaner", partNumber: "", costCents: 400, quantity: 1 },
       ],
       fees: [],
+      discounts: [],
+      inspections: [],
     },
   },
   {
@@ -517,6 +569,8 @@ export const CANNED_JOB_QUICK_TEMPLATES: QuickTemplate[] = [
       labor: [{ name: "Multi-point inspection", description: "", hours: 0.75 }],
       parts: [],
       fees: [],
+      discounts: [],
+      inspections: [],
     },
   },
 ];
@@ -530,6 +584,8 @@ export function emptyCannedJobForm(): CannedJobFormState {
     labor: [],
     parts: [],
     fees: [],
+    discounts: [],
+    inspections: [],
   };
 }
 
@@ -547,11 +603,14 @@ export function cannedJobFormFromDetail(job: CannedJobDetail): CannedJobFormStat
     })),
     parts: (job.partLines ?? []).map((p) => ({
       id: p.id,
+      lineType: partLineTypeFromDb(p.lineType),
       brand: p.brand ?? "",
       description: p.description,
       partNumber: p.partNumber ?? "",
       costCents: p.costCents,
       quantity: p.quantity,
+      inventoryPartId: p.inventoryPartId,
+      tireStockId: p.tireStockId,
     })),
     fees: (job.feeLines ?? []).map((f) => ({
       id: f.id,
@@ -561,6 +620,21 @@ export function cannedJobFormFromDetail(job: CannedJobDetail): CannedJobFormStat
       amount: f.amount,
       capCents: f.capCents,
       taxable: f.taxable,
+    })),
+    discounts: (job.discountLines ?? []).map((d) => ({
+      id: d.id,
+      name: d.name,
+      method: d.method,
+      base: d.base,
+      amount: d.amount,
+    })),
+    inspections: (job.inspectionLines ?? []).map((i) => ({
+      id: i.id,
+      name: i.name,
+      description: i.description ?? "",
+      inspectionTemplateId: i.inspectionTemplateId,
+      hours: i.hours,
+      flatAmountCents: i.flatAmountCents,
     })),
   };
 }
@@ -588,11 +662,14 @@ export function cannedJobFormToPayload(
       .filter((p) => p.description.trim())
       .map((p) => ({
         id: p.id,
+        lineType: partLineTypeToDb(p.lineType),
         brand: p.brand.trim() || null,
         description: p.description.trim(),
         partNumber: p.partNumber.trim() || null,
         costCents: p.costCents,
         quantity: p.quantity,
+        inventoryPartId: p.inventoryPartId ?? null,
+        tireStockId: p.tireStockId ?? null,
       })),
     feeLines: form.fees
       .filter((f) => f.name.trim())
@@ -605,6 +682,25 @@ export function cannedJobFormToPayload(
         capCents: f.capCents ?? null,
         taxable: f.taxable,
       })),
+    discountLines: form.discounts
+      .filter((d) => d.name.trim())
+      .map((d) => ({
+        id: d.id,
+        name: d.name.trim(),
+        method: d.method,
+        base: d.base,
+        amount: d.amount,
+      })),
+    inspectionLines: form.inspections
+      .filter((i) => i.name.trim())
+      .map((i) => ({
+        id: i.id,
+        name: i.name.trim(),
+        description: i.description.trim() || null,
+        inspectionTemplateId: i.inspectionTemplateId ?? null,
+        hours: i.hours,
+        flatAmountCents: i.flatAmountCents ?? null,
+      })),
   };
 }
 
@@ -616,24 +712,37 @@ export function useCannedJobFormSummary(
     const laborLines = form.labor.filter((l) => laborRowTitle(l));
     const partLines = form.parts.filter((p) => p.description.trim());
     const feeLines = form.fees.filter((f) => f.name.trim());
-    const laborHours = laborLines.reduce((s, l) => s + l.hours, 0);
-    const laborCostCents = laborLines.reduce(
-      (s, l) => s + laborLineAmountCents(l, laborRateCents),
-      0,
-    );
+    const discountLines = form.discounts.filter((d) => d.name.trim());
+    const inspectionLines = form.inspections.filter((i) => i.name.trim());
+    const laborHours =
+      laborLines.reduce((s, l) => s + l.hours, 0) +
+      inspectionLines.reduce((s, i) => s + i.hours, 0);
+    const laborCostCents =
+      laborLines.reduce((s, l) => s + laborLineAmountCents(l, laborRateCents), 0) +
+      inspectionLines.reduce(
+        (s, i) => s + inspectionLineAmountCents(i, laborRateCents),
+        0,
+      );
     const partsCostCents = partLines.reduce((s, p) => s + p.costCents * p.quantity, 0);
     const feesCostCents = feeLines.reduce(
       (s, f) => s + feeLineAmountCents(f, laborCostCents, partsCostCents),
+      0,
+    );
+    const discountsCostCents = discountLines.reduce(
+      (s, d) => s + discountLineAmountCents(d, laborCostCents, partsCostCents),
       0,
     );
     return {
       laborLineCount: laborLines.length,
       partLineCount: partLines.length,
       feeLineCount: feeLines.length,
+      discountLineCount: discountLines.length,
+      inspectionLineCount: inspectionLines.length,
       laborHours,
       laborCostCents,
       partsCostCents,
       feesCostCents,
+      discountsCostCents,
     };
   }, [form, laborRateCents]);
 }
@@ -660,7 +769,12 @@ export function CannedJobFormSummary({
         <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
           <p className="font-semibold text-foreground">{form.name.trim() || "Untitled job"}</p>
           {form.category ? (
-            <span className="rounded-full bg-brand-navy/10 px-1.5 py-px text-[10px] font-medium text-brand-navy">
+            <span
+              className={cn(
+                "rounded-full border px-1.5 py-px text-[10px] font-medium",
+                cannedJobCategoryBadgeClasses(form.category),
+              )}
+            >
               {form.category}
             </span>
           ) : null}
@@ -708,10 +822,19 @@ export function CannedJobFormSummary({
 
         <p className="mt-2 text-xs tabular-nums text-muted-foreground">
           Labor {formatCents(summary.laborCostCents)} · Parts {formatCents(summary.partsCostCents)}
-          {summary.feeLineCount > 0 ? ` · Fees ${formatCents(summary.feesCostCents)}` : ""} ·{" "}
+          {summary.feeLineCount > 0 ? ` · Fees ${formatCents(summary.feesCostCents)}` : ""}
+          {summary.discountLineCount > 0
+            ? ` · Discounts −${formatCents(summary.discountsCostCents)}`
+            : ""}{" "}
+          ·{" "}
           <span className="font-semibold text-brand-navy">
             Total{" "}
-            {formatCents(summary.laborCostCents + summary.partsCostCents + summary.feesCostCents)}
+            {formatCents(
+              summary.laborCostCents +
+                summary.partsCostCents +
+                summary.feesCostCents -
+                summary.discountsCostCents,
+            )}
           </span>
         </p>
       </aside>
@@ -724,7 +847,12 @@ export function CannedJobFormSummary({
       <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
         <p className="font-semibold text-foreground">{form.name.trim() || "Untitled job"}</p>
         {form.category ? (
-          <span className="rounded bg-brand-navy/10 px-1.5 py-px text-[10px] font-medium text-brand-navy">
+          <span
+            className={cn(
+              "rounded border px-1.5 py-px text-[10px] font-medium",
+              cannedJobCategoryBadgeClasses(form.category),
+            )}
+          >
             {form.category}
           </span>
         ) : null}
@@ -772,10 +900,19 @@ export function CannedJobFormSummary({
 
       <p className="mt-2 text-xs tabular-nums text-muted-foreground">
         Labor {formatCents(summary.laborCostCents)} · Parts {formatCents(summary.partsCostCents)}
-        {summary.feeLineCount > 0 ? ` · Fees ${formatCents(summary.feesCostCents)}` : ""} ·{" "}
+        {summary.feeLineCount > 0 ? ` · Fees ${formatCents(summary.feesCostCents)}` : ""}
+        {summary.discountLineCount > 0
+          ? ` · Discounts −${formatCents(summary.discountsCostCents)}`
+          : ""}{" "}
+        ·{" "}
         <span className="font-semibold text-brand-navy">
           Total{" "}
-          {formatCents(summary.laborCostCents + summary.partsCostCents + summary.feesCostCents)}
+          {formatCents(
+            summary.laborCostCents +
+              summary.partsCostCents +
+              summary.feesCostCents -
+              summary.discountsCostCents,
+          )}
         </span>
       </p>
     </aside>
@@ -848,7 +985,8 @@ function CannedJobReviewPanel({
   const laborLines = form.labor.filter((l) => laborRowTitle(l));
   const partLines = form.parts.filter((p) => p.description.trim());
   const feeLines = form.fees.filter((f) => f.name.trim());
-  const totalCents = summary.laborCostCents + summary.partsCostCents + summary.feesCostCents;
+  const totalCents =
+    summary.laborCostCents + summary.partsCostCents + summary.feesCostCents - summary.discountsCostCents;
 
   return (
     <div className={cn("grid gap-4 lg:grid-cols-2", className)}>
@@ -859,7 +997,12 @@ function CannedJobReviewPanel({
             {form.name.trim() || "Untitled job"}
           </p>
           {form.category ? (
-            <span className="mt-1.5 inline-flex rounded bg-brand-navy/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-brand-navy">
+            <span
+              className={cn(
+                "mt-1.5 inline-flex rounded border px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide",
+                cannedJobCategoryBadgeClasses(form.category),
+              )}
+            >
               {form.category}
             </span>
           ) : (
@@ -1004,7 +1147,7 @@ export function CannedJobIntakeForm({
   const addPart = () =>
     setForm((f) => ({
       ...f,
-      parts: [...f.parts, { brand: "", description: "", partNumber: "", costCents: 0, quantity: 1 }],
+      parts: [...f.parts, emptyPartRow()],
     }));
 
   const handlePartEnter = (index: number, e: React.KeyboardEvent) => {
@@ -1014,7 +1157,7 @@ export function CannedJobIntakeForm({
   };
 
   const applyTemplate = (template: QuickTemplate) => {
-    setForm({ ...template.form, labor: [...template.form.labor], parts: [...template.form.parts], fees: [...(template.form.fees ?? [])] });
+    setForm({ ...template.form, labor: [...template.form.labor], parts: [...template.form.parts], fees: [...(template.form.fees ?? [])], discounts: [...(template.form.discounts ?? [])], inspections: [...(template.form.inspections ?? [])] });
   };
 
   const showBasics = step === "basics" || step === "all";

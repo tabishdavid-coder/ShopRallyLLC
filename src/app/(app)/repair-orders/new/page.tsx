@@ -5,9 +5,9 @@ import { NewRepairOrderPageClient } from "@/components/repair-order/new-repair-o
 export default async function NewRepairOrderPage({
   searchParams,
 }: {
-  searchParams: Promise<{ customerId?: string; vehicleId?: string; from?: string }>;
+  searchParams: Promise<{ customerId?: string; vehicleId?: string; from?: string; cannedJobId?: string }>;
 }) {
-  const { customerId, vehicleId, from } = await searchParams;
+  const { customerId, vehicleId, from, cannedJobId } = await searchParams;
   const shopId = await getShopId();
   const config = await loadRoIntakeConfig(shopId);
 
@@ -17,6 +17,7 @@ export default async function NewRepairOrderPage({
       initialCustomerId={customerId}
       initialVehicleId={vehicleId}
       fromQuickLabor={from === "quick-labor"}
+      pendingCannedJobId={cannedJobId}
     />
   );
 }

@@ -165,7 +165,7 @@ export function JobCardMenu({
               ctx ? (
                 <DropdownMenuItem
                   onSelect={() =>
-                    ctx.openVehicleSpecs({
+                    ctx.openVehicleDetails({
                       ...historyTarget,
                       vehicleId: context.vehicleId!,
                       vehicleLabel: context.vehicleLabel,
@@ -181,13 +181,13 @@ export function JobCardMenu({
                   }
                 >
                   <Car className="size-4" />
-                  Vehicle specs
+                  Vehicle details
                 </DropdownMenuItem>
               ) : (
                 <DropdownMenuItem asChild>
-                  <Link href={roEstimateActionHref(roId, "specs")}>
+                  <Link href={roEstimateActionHref(roId, "vehicle")}>
                     <Car className="size-4" />
-                    Vehicle specs
+                    Vehicle details
                   </Link>
                 </DropdownMenuItem>
               )

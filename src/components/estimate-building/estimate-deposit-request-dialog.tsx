@@ -188,7 +188,7 @@ export function EstimateDepositRequestDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="gap-0 p-0 sm:max-w-lg">
+      <DialogContent className="flex flex-col gap-0 overflow-hidden p-0 sm:max-w-lg">
         <DialogHeader className="border-b px-5 py-4">
           <DialogTitle className="flex items-center gap-2 text-lg font-semibold text-brand-navy">
             <Wallet className="size-5 text-brand-navy" />
@@ -337,7 +337,7 @@ export function EstimateDepositRequestDialog({
 
         {status ? <p className="px-5 pb-2 text-sm text-muted-foreground">{status}</p> : null}
 
-        <DialogFooter className="border-t px-5 py-3">
+        <DialogFooter className="shrink-0 border-t px-5 py-3">
           <Button type="button" variant="ghost" onClick={() => onOpenChange(false)} disabled={pending}>
             Close
           </Button>

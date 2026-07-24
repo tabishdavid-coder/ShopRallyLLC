@@ -16,10 +16,12 @@ export type DeferredJobRow = {
 };
 
 /**
- * Customer-scoped deferred work: jobs quoted on an estimate but not authorized
- * after an approval decision (partial customer approve, shop uncheck, etc.).
+ * Customer-scoped declined work (UI: Declined tab): jobs quoted on an estimate
+ * but not authorized after an approval decision (partial customer approve, shop
+ * uncheck, etc.).
  *
- * Uses existing `Job.authorized` — no separate deferred model.
+ * Uses existing `Job.authorized` — no separate deferred model. Internal ids/
+ * field names stay `deferred*` for deeplinks and API stability.
  */
 export async function getCustomerDeferredJobs(
   shopId: string,

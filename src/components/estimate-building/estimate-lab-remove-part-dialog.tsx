@@ -39,7 +39,7 @@ export function EstimateLabRemovePartDialog({
 }) {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="gap-0 p-0 sm:max-w-md">
+      <DialogContent className="flex flex-col gap-0 overflow-hidden p-0 sm:max-w-md">
         <DialogHeader className="border-b px-5 py-4">
           <DialogTitle className="flex items-center gap-2 text-lg font-semibold text-brand-navy">
             <AlertTriangle className="size-5 text-brand-red" aria-hidden />
@@ -60,7 +60,7 @@ export function EstimateLabRemovePartDialog({
           </p>
         </div>
 
-        <DialogFooter className="gap-2 border-t px-5 py-3 sm:gap-0">
+        <DialogFooter className="shrink-0 gap-2 border-t px-5 py-3 sm:gap-0">
           <Button
             type="button"
             variant="outline"

@@ -18,7 +18,10 @@ import type { CannedJobSummary } from "@/lib/canned-job-types";
 import type { LaborTier, PartTier } from "@/lib/matrix";
 import { cn } from "@/lib/utils";
 
-/** Jobs header / toolbar action row: Canned jobs | Job | Job with AI (left → right). */
+/**
+ * Jobs header / toolbar action row: Canned jobs | Job | Job with AI (left → right).
+ * Canned jobs opens CannedJobPickerSheet → live shop catalog (prisma.CannedJob / /canned-jobs).
+ */
 export function EstimateJobActionsCluster({
   roId,
   cannedJobs,

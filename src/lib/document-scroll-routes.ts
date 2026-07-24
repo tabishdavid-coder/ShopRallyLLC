@@ -1,6 +1,7 @@
 /** Marketing site routes — scroll the document, not a locked CRM viewport. */
 const MARKETING_DOCUMENT_PREFIXES = [
   "/pricing",
+  "/pricing-preview",
   "/features",
   "/compare",
   "/launch",

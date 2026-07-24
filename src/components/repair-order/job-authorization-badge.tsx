@@ -63,7 +63,7 @@ const STATUS_STYLES: Record<
   },
   deferred: {
     className: "border border-[#CBD8E7] bg-[#F3F8FE] text-[#5B7295]",
-    label: "Deferred",
+    label: "Declined",
   },
   pending: {
     className: "border border-amber-400/60 bg-amber-50 text-amber-900",

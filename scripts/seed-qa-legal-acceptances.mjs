@@ -14,7 +14,7 @@ const require = createRequire(import.meta.url);
 /** Must match REQUIRED_AGREEMENT_TYPES in src/server/legal.ts */
 const REQUIRED_TYPES = ["PLATFORM_TOS", "PRIVACY_POLICY", "ACCEPTABLE_USE"];
 
-const DEFAULT_SHOP_IDS = ["shop_macuto", "shop_demo"];
+const DEFAULT_SHOP_IDS = ["shop_macuto", "shop_demo", "shop_planet"];
 
 async function loadPrisma() {
   try {

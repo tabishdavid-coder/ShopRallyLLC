@@ -1,0 +1,1705 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Tabish Friday Labor — Estimated Work Times</title>
+  <style>
+    :root {
+      --motor-navy: #0b3d5c;
+      --motor-navy-2: #0e4a6e;
+      --motor-teal: #0d7377;
+      --motor-teal-soft: #e6f3f3;
+      --motor-row: #f4f7f9;
+      --motor-line: #c5d4de;
+      --motor-amber: #c45c26;
+      --motor-green: #1f7a4c;
+      --motor-bg: #dce3e8;
+      --text: #1a2430;
+      --muted: #5b6b78;
+      --white: #fff;
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; margin: 0; }
+    body {
+      font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+      background: var(--motor-bg);
+      color: var(--text);
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    /* Top product chrome — MOTOR EWT style */
+    .appbar {
+      flex: 0 0 auto;
+      display: flex; align-items: center; gap: 14px; flex-wrap: wrap;
+      padding: 0 14px; height: 42px;
+      background: linear-gradient(180deg, #0a334d, var(--motor-navy));
+      color: #fff; font-size: 12px;
+      border-bottom: 2px solid var(--motor-teal);
+    }
+    .brand {
+      display: flex; align-items: center; gap: 8px; font-weight: 800; letter-spacing: 0.02em;
+    }
+    .brand .mark {
+      width: 22px; height: 22px; border-radius: 3px;
+      background: var(--motor-teal); display: grid; place-items: center;
+      font-size: 10px; font-weight: 900;
+    }
+    .appbar .tab {
+      padding: 8px 12px; border-bottom: 2px solid transparent; opacity: 0.8; cursor: default;
+    }
+    .appbar .tab.on { border-bottom-color: #7fd3d6; opacity: 1; font-weight: 700; }
+    .appbar .right { margin-left: auto; opacity: 0.85; font-size: 11px; }
+
+    .workspace {
+      flex: 1; min-height: 0;
+      margin: 10px;
+      display: flex; flex-direction: column;
+      background: var(--white);
+      border: 1px solid #9fb4c3;
+      box-shadow: 0 2px 10px rgba(11,61,92,0.12);
+      overflow: hidden;
+    }
+
+    /* Vehicle / application header */
+    .veh-head {
+      background: linear-gradient(180deg, #f7fafc, #eef3f6);
+      border-bottom: 1px solid var(--motor-line);
+      padding: 10px 14px 12px;
+    }
+    .veh-top { display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-start; justify-content: space-between; }
+    .veh-title { font-size: 16px; font-weight: 800; color: var(--motor-navy); }
+    .veh-title select {
+      margin-left: 8px; font-size: 12px; padding: 3px 8px;
+      border: 1px solid var(--motor-line); background: #fff; color: var(--motor-navy);
+    }
+    .badge-ewt {
+      font-size: 10px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase;
+      background: var(--motor-teal); color: #fff; padding: 4px 8px; border-radius: 2px;
+    }
+    .spec-strip {
+      margin-top: 8px; display: flex; flex-wrap: wrap; gap: 6px 14px;
+      font-size: 11px; color: var(--muted);
+    }
+    .spec-strip b { color: var(--motor-navy); font-weight: 700; }
+    .config-band {
+      margin-top: 8px; padding: 6px 10px;
+      background: var(--motor-teal-soft); border: 1px solid #b7d8d9;
+      font-size: 11px; color: var(--motor-navy);
+    }
+    .search-row { margin-top: 10px; display: flex; gap: 8px; align-items: center; }
+    .search-row input {
+      flex: 1; height: 34px; border: 1px solid #8fa8b8; padding: 0 12px 0 30px;
+      font-size: 13px; background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%235b6b78' stroke-width='2'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='M20 20l-3-3'/%3E%3C/svg%3E") 10px center no-repeat;
+    }
+    .chips { margin-top: 8px; display: flex; flex-wrap: wrap; gap: 6px; }
+    .chip {
+      border: 1px solid #9fb4c3; background: #fff; color: var(--motor-navy);
+      padding: 3px 10px; font-size: 11px; cursor: pointer; border-radius: 2px;
+    }
+    .chip:hover, .chip.on { background: var(--motor-navy); color: #fff; border-color: var(--motor-navy); }
+
+    .crumb {
+      display: flex; flex-wrap: wrap; align-items: center; gap: 4px;
+      padding: 7px 14px; border-bottom: 1px solid var(--motor-line);
+      background: #f0f4f7; font-size: 12px;
+    }
+    .crumb button {
+      border: 0; background: transparent; color: var(--motor-teal); cursor: pointer; padding: 2px 4px;
+      font-weight: 600;
+    }
+    .crumb button:hover { text-decoration: underline; }
+    .crumb button.here { color: var(--text); font-weight: 800; cursor: default; text-decoration: none; }
+    .crumb .sep { color: #90a4b2; }
+
+    .toast {
+      display: none; padding: 6px 14px; font-size: 12px;
+      background: #e8f6ee; color: var(--motor-green); border-bottom: 1px solid #b9e0c8;
+    }
+    .toast.show { display: block; }
+
+    .body { flex: 1; min-height: 0; display: flex; }
+
+    /* Left MOTOR taxonomy */
+    .tax {
+      width: 240px; flex: 0 0 auto; overflow: auto;
+      border-right: 1px solid var(--motor-line);
+      background: #f7fafc;
+    }
+    .tax-h {
+      position: sticky; top: 0; z-index: 1;
+      padding: 8px 10px; font-size: 10px; font-weight: 800; letter-spacing: 0.08em;
+      text-transform: uppercase; color: #fff;
+      background: var(--motor-navy-2);
+    }
+    .sys {
+      border-bottom: 1px solid #e2e9ef;
+    }
+    .sys > button {
+      width: 100%; border: 0; background: #eef3f6; text-align: left;
+      padding: 8px 10px; font-size: 12px; font-weight: 700; color: var(--motor-navy);
+      cursor: pointer; display: flex; gap: 6px; align-items: center;
+    }
+    .sys > button:hover { background: #e4edf3; }
+    .sys.open > button { background: var(--motor-navy); color: #fff; }
+    .group { padding: 2px 0 6px; }
+    .group-l {
+      padding: 4px 10px 2px 22px; font-size: 10px; font-weight: 800;
+      text-transform: uppercase; letter-spacing: 0.04em; color: var(--muted);
+    }
+    .leaf {
+      width: 100%; border: 0; background: transparent; text-align: left; cursor: pointer;
+      padding: 5px 10px 5px 28px; font-size: 12px; color: #334555;
+    }
+    .leaf:hover { background: #e7f1f2; color: var(--motor-teal); }
+    .leaf.on {
+      background: var(--motor-teal); color: #fff; font-weight: 700;
+      box-shadow: inset 3px 0 0 var(--motor-amber);
+    }
+
+    /* Center results — ops table + combined jobs strip below */
+    .main { flex: 1; min-width: 0; display: flex; flex-direction: column; background: #fff; }
+    .filters {
+      padding: 8px 12px; border-bottom: 1px solid var(--motor-line);
+      display: flex; flex-wrap: wrap; gap: 8px 16px; align-items: center;
+      background: #fafcfd; font-size: 11px;
+    }
+    .filters .lbl { font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: 0.04em; }
+    .pill {
+      border: 1px solid #9fb4c3; background: #fff; color: var(--motor-navy);
+      padding: 3px 10px; font-size: 11px; cursor: pointer; border-radius: 999px;
+    }
+    .pill.on { background: var(--motor-navy); color: #fff; border-color: var(--motor-navy); }
+    .table-wrap { flex: 1 1 48%; min-height: 140px; overflow: auto; }
+    .mid-addons {
+      flex: 0 1 42%; min-height: 120px; max-height: 46%;
+      overflow: auto; border-top: 2px solid var(--motor-navy);
+      background: linear-gradient(180deg, #f3f8f9, #eef4f6);
+    }
+    .mid-addons .addons { margin: 0; border: 0; background: transparent; }
+    .mid-addons .addons-h {
+      position: sticky; top: 0; z-index: 1;
+      border-bottom: 1px solid #b7d8d9;
+    }
+    .mid-addons .addons-b { padding: 8px 10px 12px; }
+    .mid-addons .addon-row {
+      grid-template-columns: 18px 1fr auto auto; gap: 10px; align-items: center;
+      padding: 8px 6px; background: #fff; border: 1px solid #e0eaf0;
+      border-radius: 2px; margin-bottom: 6px;
+    }
+    .mid-addons .addon-row:last-child { margin-bottom: 0; border-bottom: 1px solid #e0eaf0; }
+    .mid-addons-empty {
+      padding: 16px 14px; font-size: 12px; color: var(--muted); line-height: 1.45;
+    }
+    .mid-addons-empty strong { color: var(--motor-navy); }
+    table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    thead th {
+      position: sticky; top: 0; z-index: 1;
+      background: #d9e4ec; color: var(--motor-navy);
+      text-align: left; padding: 8px 10px; font-size: 10px;
+      text-transform: uppercase; letter-spacing: 0.05em;
+      border-bottom: 1px solid #adc0ce;
+    }
+    tbody td { padding: 8px 10px; border-bottom: 1px solid #e6edf2; vertical-align: middle; }
+    tbody tr { cursor: pointer; }
+    tbody tr:nth-child(even) { background: var(--motor-row); }
+    tbody tr:hover { background: #e7f4f4; }
+    tbody tr.selected { background: #d8efef; outline: 1px solid #9ec9cb; }
+    .lit { font-weight: 700; color: var(--motor-navy); }
+    .code { font-size: 10px; color: var(--muted); margin-top: 2px; font-family: Consolas, monospace; }
+    .pos { color: var(--muted); font-weight: 600; }
+    .hrs { font-family: Consolas, monospace; font-weight: 800; text-align: right; color: var(--motor-green); }
+    .status {
+      display: inline-block; font-size: 9px; font-weight: 800; padding: 2px 6px;
+      border-radius: 2px; letter-spacing: 0.03em;
+    }
+    .status.L0_EXACT { background: #d9f0e3; color: #166534; }
+    .status.L2_CHASSIS, .status.L1_VECTOR { background: #ffe8d5; color: #9a3412; }
+    .status.L4_PENDING { background: #fde2e2; color: #991b1b; }
+    .addbtn {
+      width: 26px; height: 26px; border: 1px solid #8fa8b8; background: #fff;
+      color: var(--motor-navy); font-weight: 900; cursor: pointer;
+    }
+    .addbtn:hover { background: var(--motor-teal); color: #fff; border-color: var(--motor-teal); }
+    .addbtn:disabled { opacity: 0.35; cursor: not-allowed; }
+    .empty {
+      margin: 48px auto; text-align: center; color: var(--muted); font-size: 13px; max-width: 320px;
+    }
+
+    /* Right detail */
+    .detail {
+      width: 300px; flex: 0 0 auto; border-left: 1px solid var(--motor-line);
+      background: #f7fafc; display: flex; flex-direction: column; overflow: auto;
+    }
+    .detail-h {
+      padding: 8px 12px; font-size: 10px; font-weight: 800; letter-spacing: 0.08em;
+      text-transform: uppercase; color: #fff; background: var(--motor-navy-2);
+    }
+    .detail-b { padding: 12px; font-size: 12px; }
+    .detail-b h3 { margin: 0 0 6px; font-size: 14px; color: var(--motor-navy); }
+    .kv { margin: 10px 0; }
+    .kv .k { font-size: 10px; font-weight: 800; text-transform: uppercase; color: var(--muted); }
+    .kv .v { margin-top: 2px; font-weight: 700; color: var(--text); }
+    .kv .mono { font-family: Consolas, monospace; font-size: 11px; }
+    .btn-add {
+      width: 100%; margin-top: 12px; border: 0; cursor: pointer;
+      background: var(--motor-amber); color: #fff; font-weight: 800;
+      padding: 9px 12px; font-size: 12px;
+    }
+    .btn-add:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    /* Frequently Combined Jobs (middle strip) */
+    .addons { border: 1px solid #b7d8d9; background: #fff; }
+    .addons-h {
+      padding: 8px 12px; font-size: 10px; font-weight: 800; letter-spacing: 0.06em;
+      text-transform: uppercase; background: var(--motor-teal-soft); color: var(--motor-navy);
+      display: flex; justify-content: space-between; align-items: center; gap: 10px;
+      cursor: pointer; user-select: none;
+    }
+    .addons-h span.meta { font-weight: 600; opacity: 0.8; letter-spacing: 0; text-transform: none; }
+    .addons-b { padding: 6px 8px 8px; }
+    .addons.collapsed .addons-b { display: none; }
+    .addon-row {
+      display: grid; grid-template-columns: 18px 1fr auto; gap: 8px; align-items: start;
+      padding: 7px 4px; border-bottom: 1px solid #e6edf2; font-size: 11px;
+    }
+    .addon-row:last-child { border-bottom: 0; }
+    .addon-row label { cursor: pointer; font-weight: 700; color: var(--motor-navy); }
+    .addon-row .sub { display: block; font-weight: 500; color: var(--muted); margin-top: 2px; font-size: 10px; }
+    .addon-row .addh { font-family: Consolas, monospace; font-weight: 800; color: var(--motor-green); white-space: nowrap; }
+    .addon-row .freq {
+      display: inline-block; font-size: 9px; font-weight: 800;
+      background: #ffe8d5; color: #9a3412; padding: 2px 6px; border-radius: 2px; white-space: nowrap;
+    }
+    .linkish {
+      border: 0; background: transparent; color: var(--motor-teal); font-weight: 700;
+      cursor: pointer; padding: 0; font-size: 11px; text-decoration: underline;
+    }
+    .detail-links { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; }
+    .conf {
+      display: inline-block; font-size: 9px; font-weight: 800; padding: 2px 6px; border-radius: 2px;
+    }
+    .conf.c100 { background: #d9f0e3; color: #166534; }
+    .conf.c80 { background: #fff3cd; color: #854d0e; }
+    .conf.c50 { background: #fde2e2; color: #991b1b; }
+
+    /* View tabs — do NOT force column here; EWT body must stay row (tax | table | detail). */
+    .view-panel { display: none; flex: 1; min-height: 0; overflow: hidden; }
+    .view-panel.on { display: flex; }
+    #viewEwt.view-panel.on { flex-direction: row; }
+    #viewFluids.view-panel.on,
+    #viewAssoc.view-panel.on,
+    #viewDiagrams.view-panel.on,
+    #viewProcedures.view-panel.on { flex-direction: column; overflow: auto; }
+    .fluids-wrap { padding: 14px; }
+    .fluids-wrap h2 { margin: 0 0 4px; font-size: 15px; color: var(--motor-navy); }
+    .fluids-wrap .subh { margin: 0 0 12px; font-size: 12px; color: var(--muted); }
+    .diagram-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px;
+    }
+    .diagram-card {
+      border: 1px solid var(--motor-line); background: #fff; overflow: hidden;
+    }
+    .diagram-card img {
+      display: block; width: 100%; height: 180px; object-fit: contain;
+      background: #f4f7fb; border-bottom: 1px solid var(--motor-line);
+    }
+    .diagram-card .cap { padding: 8px 10px; font-size: 12px; }
+    .diagram-card .cap b { color: var(--motor-navy); display: block; margin-bottom: 2px; }
+    .diagram-card .src {
+      font-size: 10px; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted);
+    }
+    .proc-list { display: flex; flex-direction: column; gap: 12px; }
+    .proc-card {
+      border: 1px solid var(--motor-line); background: #fff; padding: 12px 14px;
+    }
+    .proc-card .ph {
+      display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: baseline; justify-content: space-between;
+      margin-bottom: 8px;
+    }
+    .proc-card h3 { margin: 0; font-size: 14px; color: var(--motor-navy); }
+    .proc-meta { font-size: 11px; color: var(--muted); display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+    .proc-card ol { margin: 8px 0 0; padding-left: 20px; font-size: 12px; line-height: 1.45; }
+    .proc-card li { margin: 4px 0; }
+    .proc-card .torque { color: var(--motor-amber); font-weight: 700; font-family: Consolas, monospace; font-size: 11px; }
+    .vote-btn {
+      border: 1px solid #9fb4c3; background: #fff; color: var(--motor-navy);
+      font-weight: 800; font-size: 11px; padding: 4px 10px; cursor: pointer;
+    }
+    .vote-btn:hover { background: var(--motor-teal); color: #fff; border-color: var(--motor-teal); }
+    .src-badge {
+      display: inline-block; font-size: 9px; font-weight: 800; padding: 2px 6px; border-radius: 2px;
+      background: #e7f1f2; color: var(--motor-navy); text-transform: uppercase; letter-spacing: 0.04em;
+    }
+    .src-badge.tech { background: #ffe8d5; color: #9a3412; }
+    .src-badge.scraped { background: #d9f0e3; color: #166534; }
+    .fluids-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px;
+    }
+    .fluid-card {
+      border: 1px solid var(--motor-line); background: #fff; padding: 10px 12px;
+    }
+    .fluid-card .cat { font-size: 10px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+    .fluid-card .cap { margin-top: 4px; font-size: 18px; font-weight: 800; color: var(--motor-navy); font-family: Consolas, monospace; }
+    .fluid-card .type { margin-top: 4px; font-size: 12px; font-weight: 700; }
+    .fluid-card .meta { margin-top: 8px; font-size: 10px; color: var(--muted); display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+    .appbar .tab { cursor: pointer; }
+    .appbar .tab:hover { opacity: 1; }
+
+    /* Bottom staging dock */
+    .dock {
+      flex: 0 0 auto;
+      display: flex; flex-wrap: wrap; align-items: center; gap: 10px;
+      padding: 8px 12px; border-top: 2px solid var(--motor-navy);
+      background: linear-gradient(180deg, #eef3f6, #e4ebf0);
+      font-size: 12px;
+    }
+    .dock strong { color: var(--motor-navy); }
+    .dock-chips { display: flex; flex-wrap: wrap; gap: 6px; flex: 1; }
+    .dock-chip {
+      background: #fff; border: 1px solid #9fb4c3; padding: 3px 8px; font-size: 11px;
+      display: inline-flex; gap: 6px; align-items: center;
+    }
+    .dock-chip button {
+      border: 0; background: transparent; color: #991b1b; cursor: pointer; font-weight: 800;
+    }
+    .dock .totals { font-family: Consolas, monospace; font-weight: 800; color: var(--motor-green); }
+    .dock .go {
+      border: 0; background: var(--motor-navy); color: #fff; font-weight: 800;
+      padding: 8px 14px; cursor: pointer; font-size: 12px;
+    }
+    .dock .go:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    @media (max-width: 1100px) {
+      .detail { display: none; }
+      .tax { width: 200px; }
+    }
+
+    /* CRM iframe embed — hide product chrome; parent dialog supplies title */
+    body.embedded .appbar { display: none; }
+    body.embedded .workspace { margin: 0; border: 0; box-shadow: none; }
+  </style>
+</head>
+<body>
+  <header class="appbar">
+    <div class="brand"><span class="mark">TFL</span> TABISH FRIDAY LABOR</div>
+    <div class="tab on" data-view="ewt">Labor</div>
+    <div class="tab" data-view="fluids">Fluid Specs</div>
+    <div class="tab" data-view="assoc">Combined Jobs</div>
+    <div class="tab" data-view="diagrams">Diagrams</div>
+    <div class="tab" data-view="procedures">Procedures</div>
+    <div class="right">Labor · Fluids · Diagrams · Procedures · Albany $145/hr · $0 data</div>
+  </header>
+
+  <div class="workspace">
+    <section class="veh-head">
+      <div class="veh-top">
+        <div>
+          <div class="veh-title">
+            <span id="vehicleLabel">2015 Honda Accord · 2.4L</span>
+            <select id="vehicleSelect" aria-label="Vehicle">
+              <option value="accord">2015 Honda Accord · 2.4L (tier 2)</option>
+              <option value="accord14">2014 Honda Accord · 3.5L V6 (tier 3)</option>
+              <option value="camry">2012 Toyota Camry · 2.5L I4 (tier 2)</option>
+              <option value="f150">2020 Ford F-150 · 5.0L V8 (tier 3)</option>
+              <option value="civic">2012 Honda Civic · 1.8L I4 (tier 1)</option>
+              <option value="rivian">2024 Rivian R1T · Dual Motor (tier 5)</option>
+            </select>
+          </div>
+          <div class="spec-strip" id="specStrip"></div>
+        </div>
+        <span class="badge-ewt">EWT Browser</span>
+      </div>
+      <div class="config-band" id="configBand">Application config · chassis scaling enabled</div>
+      <div class="search-row">
+        <input id="search" placeholder="Search Estimated Work Times…" />
+      </div>
+      <div class="chips" id="chips"></div>
+    </section>
+
+    <nav class="crumb" id="crumb"></nav>
+    <div class="toast" id="toast"></div>
+
+    <div class="body view-panel on" id="viewEwt">
+      <aside class="tax">
+        <div class="tax-h">Taxonomy · System / Group / Component</div>
+        <div id="systems"></div>
+      </aside>
+
+      <main class="main">
+        <div class="filters" id="filters"></div>
+        <div class="table-wrap" id="tableHost">
+          <div class="empty">Select a component in the taxonomy, or search above.</div>
+        </div>
+        <section class="mid-addons" id="midAddons" aria-label="Frequently combined jobs">
+          <div class="mid-addons-empty">Select an operation above to see frequently combined jobs.</div>
+        </section>
+      </main>
+
+      <aside class="detail">
+        <div class="detail-h">Application detail</div>
+        <div class="detail-b" id="detail">
+          <div style="color:var(--muted)">Select an operation row to view base time and fitment. Combined jobs appear under the table.</div>
+        </div>
+      </aside>
+    </div>
+
+    <div class="view-panel" id="viewFluids">
+      <div class="fluids-wrap" id="fluidsHost"></div>
+    </div>
+
+    <div class="view-panel" id="viewAssoc">
+      <div class="fluids-wrap" id="assocHost"></div>
+    </div>
+
+    <div class="view-panel" id="viewDiagrams">
+      <div class="fluids-wrap" id="diagramsHost"></div>
+    </div>
+
+    <div class="view-panel" id="viewProcedures">
+      <div class="fluids-wrap" id="proceduresHost"></div>
+    </div>
+
+    <footer class="dock">
+      <strong>Staging</strong>
+      <span id="dockCount">(0)</span>
+      <div class="dock-chips" id="dockChips"></div>
+      <span class="totals" id="dockTotals">0.00 hr · $0.00</span>
+      <button class="go" id="addEstimate" type="button" disabled>Add to estimate →</button>
+    </footer>
+  </div>
+
+  <script>
+    const CRM_MSG = "shoprally:tabish-friday-labor";
+    const urlParams = new URLSearchParams(location.search);
+    const EMBEDDED = urlParams.get("embedded") !== "0";
+    if (EMBEDDED) document.body.classList.add("embedded");
+
+    const RATE_CENTS = 14500; // Albany/Capital Region $145.00
+
+    const VEHICLES = {
+      accord: {
+        label: "2015 Honda Accord · 2.4L",
+        chassis: "2",
+        seedChassis: "1",
+        seedHours: 1.0,
+        mode: "L2",
+        fluidsKey: "accord15",
+      },
+      accord14: {
+        label: "2014 Honda Accord · 3.5L V6",
+        chassis: "3",
+        seedChassis: "1",
+        seedHours: 1.0,
+        mode: "L2",
+        fluidsKey: "accord14",
+      },
+      camry: {
+        label: "2012 Toyota Camry · 2.5L I4",
+        chassis: "2",
+        seedChassis: "1",
+        seedHours: 1.0,
+        mode: "L2",
+        fluidsKey: "camry",
+      },
+      f150: {
+        label: "2020 Ford F-150 · 5.0L V8",
+        chassis: "3",
+        seedChassis: "1",
+        seedHours: 1.0,
+        mode: "L2",
+        fluidsKey: "f150",
+      },
+      civic: {
+        label: "2012 Honda Civic · 1.8L I4",
+        chassis: "1",
+        seedChassis: "1",
+        seedHours: 1.0,
+        mode: "L0",
+        fluidsKey: "civic",
+      },
+      rivian: {
+        label: "2024 Rivian R1T · Dual Motor",
+        chassis: "5",
+        seedChassis: "1",
+        seedHours: 1.0,
+        mode: "L2",
+        fluidsKey: null,
+      },
+    };
+
+    // OEM × fluidcapacity merge fixtures (confidence 100 when both agree)
+    const FLUIDS = {
+      accord14: [
+        { cat: "ENG_OIL", name: "Engine Oil", cap: 4.5, unit: "qt", type: "0W-20", source: "oem+fluidcapacity", conf: 100 },
+        { cat: "ATF", name: "Transmission Fluid", cap: 3.7, unit: "qt", type: "ATF DW-1", source: "oem+fluidcapacity", conf: 100 },
+        { cat: "COOLANT", name: "Coolant", cap: 6.9, unit: "qt", type: "Honda Type 2", source: "oem+fluidcapacity", conf: 100 },
+        { cat: "BRAKE_FLUID", name: "Brake Fluid", cap: null, unit: "qt", type: "DOT 3", source: "oem_manual", conf: 80 },
+        { cat: "WASHER", name: "Washer Fluid", cap: 2.6, unit: "qt", type: "—", source: "oem+fluidcapacity", conf: 100 },
+      ],
+      accord15: [
+        { cat: "ENG_OIL", name: "Engine Oil", cap: 4.4, unit: "qt", type: "0W-20", source: "oem+fluidcapacity", conf: 100 },
+        { cat: "ATF", name: "Transmission Fluid", cap: 3.5, unit: "qt", type: "ATF DW-1", source: "oem+fluidcapacity", conf: 100 },
+        { cat: "COOLANT", name: "Coolant", cap: 6.7, unit: "qt", type: "Honda Type 2", source: "oem_manual", conf: 80 },
+        { cat: "BRAKE_FLUID", name: "Brake Fluid", cap: null, unit: "qt", type: "DOT 3", source: "fluidcapacity", conf: 80 },
+        { cat: "WASHER", name: "Washer Fluid", cap: 2.6, unit: "qt", type: "—", source: "oem+fluidcapacity", conf: 100 },
+      ],
+      camry: [
+        { cat: "ENG_OIL", name: "Engine Oil", cap: 4.6, unit: "qt", type: "0W-20", source: "oem+fluidcapacity", conf: 100 },
+        { cat: "ATF", name: "Transmission Fluid", cap: 3.9, unit: "qt", type: "Toyota ATF WS", source: "oem+fluidcapacity", conf: 100 },
+        { cat: "COOLANT", name: "Coolant", cap: 7.1, unit: "qt", type: "Toyota SLLC", source: "oem+fluidcapacity", conf: 100 },
+        { cat: "BRAKE_FLUID", name: "Brake Fluid", cap: null, unit: "qt", type: "DOT 3", source: "oem_manual", conf: 80 },
+        { cat: "WASHER", name: "Washer Fluid", cap: 3.7, unit: "qt", type: "—", source: "oem+fluidcapacity", conf: 100 },
+      ],
+      f150: [
+        { cat: "ENG_OIL", name: "Engine Oil", cap: 7.7, unit: "qt", type: "5W-20", source: "oem+fluidcapacity", conf: 100 },
+        { cat: "ATF", name: "Transmission Fluid", cap: 13.1, unit: "qt", type: "MERCON ULV", source: "oem+fluidcapacity", conf: 100 },
+        { cat: "COOLANT", name: "Coolant", cap: 15.1, unit: "qt", type: "Motorcraft Orange", source: "oem+fluidcapacity", conf: 100 },
+        { cat: "DIFF_FLUID", name: "Differential Fluid", cap: 5.5, unit: "qt", type: "75W-85", source: "oem+fluidcapacity", conf: 100 },
+        { cat: "TC_FLUID", name: "Transfer Case Fluid", cap: 1.5, unit: "qt", type: "MERCON LV", source: "oem+fluidcapacity", conf: 100 },
+        { cat: "BRAKE_FLUID", name: "Brake Fluid", cap: null, unit: "qt", type: "DOT 4 LV", source: "oem_manual", conf: 80 },
+        { cat: "WASHER", name: "Washer Fluid", cap: 4.2, unit: "qt", type: "—", source: "oem+fluidcapacity", conf: 100 },
+      ],
+      civic: [
+        { cat: "ENG_OIL", name: "Engine Oil", cap: 3.9, unit: "qt", type: "0W-20", source: "oem+fluidcapacity", conf: 100 },
+        { cat: "ATF", name: "Transmission Fluid", cap: 2.8, unit: "qt", type: "ATF DW-1", source: "fluidcapacity", conf: 80 },
+        { cat: "COOLANT", name: "Coolant", cap: 5.6, unit: "qt", type: "Honda Type 2", source: "oem_manual", conf: 80 },
+      ],
+    };
+
+    // OEM exploded diagrams (fixture SVG placeholders — cached locally, $0)
+    const SVG_PAD = "data:image/svg+xml," + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="640" height="400" viewBox="0 0 640 400"><rect width="640" height="400" fill="#f4f7fb"/><text x="24" y="36" font-family="sans-serif" font-size="18" fill="#0b3d5c">OEM Exploded View</text><text x="24" y="60" font-family="sans-serif" font-size="13" fill="#555">Partsouq — Front brake pads</text><rect x="80" y="100" width="180" height="120" rx="8" fill="#7fd3d6" stroke="#0b3d5c"/><text x="110" y="170" font-family="sans-serif" font-size="14" fill="#0b3d5c">1 Pad set</text><rect x="320" y="120" width="140" height="80" rx="8" fill="#fff" stroke="#c45c26"/><text x="350" y="165" font-family="sans-serif" font-size="14" fill="#c45c26">2 Shim</text><line x1="260" y1="160" x2="320" y2="160" stroke="#333" stroke-dasharray="4 3"/></svg>`);
+    const SVG_ROTOR = "data:image/svg+xml," + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="640" height="400" viewBox="0 0 640 400"><rect width="640" height="400" fill="#f8fafc"/><text x="24" y="36" font-family="sans-serif" font-size="18" fill="#0b3d5c">7zap illustration</text><circle cx="300" cy="210" r="90" fill="none" stroke="#0b3d5c" stroke-width="6"/><rect x="250" y="180" width="100" height="60" rx="6" fill="#7fd3d6"/><text x="270" y="215" font-family="sans-serif" font-size="14" fill="#0b3d5c">Rotor</text></svg>`);
+    const SVG_ASM = "data:image/svg+xml," + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="640" height="400" viewBox="0 0 640 400"><rect width="640" height="400" fill="#ffffff"/><text x="24" y="36" font-family="sans-serif" font-size="18" fill="#0b3d5c">RevolutionParts</text><polygon points="200,120 420,120 480,280 140,280" fill="#e8f3ff" stroke="#0b3d5c"/><text x="250" y="210" font-family="sans-serif" font-size="14" fill="#0b3d5c">Brake assembly</text></svg>`);
+
+    const DIAGRAMS = {
+      "BRAKES.FRONT.PADS.R_AND_R": [
+        { id: 1, source: "partsouq", caption: "Front brake pads — exploded view", src: SVG_PAD },
+        { id: 2, source: "7zap", caption: "Brake system illustration", src: SVG_ROTOR },
+      ],
+      "BRAKES.FRONT.ROTORS.R_AND_R": [
+        { id: 3, source: "revolutionparts", caption: "OEM brake assembly diagram", src: SVG_ASM },
+        { id: 2, source: "7zap", caption: "Brake system illustration", src: SVG_ROTOR },
+      ],
+      "BRAKES.FRONT.CALIPER.R_AND_R": [
+        { id: 1, source: "partsouq", caption: "Front caliper / pad group", src: SVG_PAD },
+      ],
+    };
+
+    // Shop procedure KB fixtures (scraped DIY + tech contributions)
+    const PROCEDURES = {
+      "BRAKES.FRONT.PADS.R_AND_R": [
+        {
+          id: 101, title: "2014–15 Honda Accord — Front brake pad R&R",
+          source: "scraped", author: "diy_scrape", votes: 12, approved: true,
+          steps: [
+            { n: 1, text: "Park on level ground, set the parking brake, loosen lug nuts." },
+            { n: 2, text: "Raise vehicle, support with jack stands, remove front wheels.", tool: "jack stands" },
+            { n: 3, text: "Remove lower caliper guide pin bolt; pivot caliper up — do not hang by hose.", tool: "14mm socket" },
+            { n: 4, text: "Slide out old pads; note wear-indicator orientation." },
+            { n: 5, text: "Compress caliper piston; install new pads with shims/grease.", tool: "C-clamp" },
+            { n: 6, text: "Torque guide pin bolt.", torque: "25 ft-lbs (34 N·m)" },
+            { n: 7, text: "Reinstall wheel; torque lug nuts in star pattern.", torque: "80 ft-lbs (108 N·m)" },
+            { n: 8, text: "Pump brake pedal until firm; road-test at low speed." },
+          ],
+        },
+        {
+          id: 102, title: "Tech tip — ceramic pads on Accord (shop note)",
+          source: "tech_contribution", author: "tech.j", votes: 5, approved: true,
+          steps: [
+            { n: 1, text: "Clean hub face; apply thin anti-seize on pad backs only (not friction)." },
+            { n: 2, text: "Bed-in: 8–10 moderate stops from 35 mph without full ABS." },
+            { n: 3, text: "Recheck lug torque after first heat cycle.", torque: "80 ft-lbs" },
+          ],
+        },
+      ],
+      "BRAKES.FRONT.ROTORS.R_AND_R": [
+        {
+          id: 201, title: "Front rotor R&R with pad service",
+          source: "scraped", author: "diy_scrape", votes: 7, approved: true,
+          steps: [
+            { n: 1, text: "Complete pad R&R steps through caliper support." },
+            { n: 2, text: "Remove caliper bracket bolts; set assembly aside." },
+            { n: 3, text: "Remove rotor; if stuck, use threaded holes with bolts evenly." },
+            { n: 4, text: "Clean hub; install new rotor; torque bracket bolts.", torque: "80 ft-lbs" },
+            { n: 5, text: "Reassemble pads/caliper; torque lugs.", torque: "80 ft-lbs" },
+          ],
+        },
+      ],
+      "ENGINE.LUBE.OIL_FILTER.REPLACE": [
+        {
+          id: 301, title: "Oil & filter — shop SOP",
+          source: "tech_contribution", author: "shop.sop", votes: 18, approved: true,
+          steps: [
+            { n: 1, text: "Warm engine briefly; drain oil into pan." },
+            { n: 2, text: "Replace filter; lube gasket; hand-tight + ¾ turn." },
+            { n: 3, text: "Refill to capacity; idle; check for leaks; recheck level." },
+          ],
+        },
+      ],
+    };
+
+    // Primary job key → frequently combined add-ons (industry seed + overlap)
+    // additionalHours = combined − primary (overlap already applied)
+    const ASSOCIATIONS = {
+      "BRAKES.FRONT.PADS|R_AND_R": [
+        { key: "BRAKES.FRONT.ROTORS|R_AND_R", label: "Front rotors — R&R", standalone: 1.5, additional: 0.3, freq: 92, note: "1.2 hr overlap vs standalone" },
+        { key: "BRAKES.HYDRAULIC.FLUID|FLUSH", label: "Brake fluid flush", standalone: 0.8, additional: 0.5, freq: 78, note: "Often with pad jobs" },
+        { key: "BRAKES.FRONT.HARDWARE", label: "Hardware kit", standalone: 0.4, additional: 0.2, freq: 85, note: "Seed add-on", synthetic: { name: "Brake Hardware Kit — Replace", hours: 0.2, id: "synth-hw", key: "BRAKES.FRONT.HARDWARE.REPLACE", pos: "FRONT", path: "L0_EXACT", skill: "B", note: "Association seed" } },
+      ],
+      "ENGINE.IGNITION.SPARK_PLUGS|REPLACE": [
+        { key: "ENGINE.IGNITION.COILS|R_AND_R", label: "Ignition coils — R&R", standalone: 1.0, additional: 0.6, freq: 71, note: "Coil-on-plug access" },
+      ],
+      "ENGINE.TIMING.BELT|R_AND_R": [
+        { key: "ENGINE.COOLING.WATER_PUMP|R_AND_R", label: "Water pump — R&R", standalone: 2.8, additional: 1.3, freq: 88, note: "1.5 hr overlap when timing open" },
+        { key: "ENGINE.BELT.SERPENTINE", label: "Serpentine belt", standalone: 0.5, additional: 0.2, freq: 80, note: "Seed add-on", synthetic: { name: "Serpentine Belt — Replace", hours: 0.2, id: "synth-serp", key: "ENGINE.BELT.SERPENTINE.REPLACE", pos: "ALL", path: "L0_EXACT", skill: "B", note: "Association seed" } },
+      ],
+      "SUSPENSION.FRONT.STRUT|R_AND_R": [
+        { key: "SUSPENSION.FRONT.SWAY_LINK|R_AND_R", label: "Sway bar links — R&R", standalone: 0.6, additional: 0.35, freq: 74, note: "Access overlap" },
+      ],
+      "ENGINE.LUBE.OIL_FILTER|REPLACE": [
+        { key: "ENGINE.FILTER.CABIN", label: "Cabin air filter", standalone: 0.3, additional: 0.2, freq: 81, note: "Maintenance bundle", synthetic: { name: "Cabin Air Filter — Replace", hours: 0.2, id: "synth-cabin", key: "ENGINE.FILTER.CABIN_AIR.REPLACE", pos: "ALL", path: "L0_EXACT", skill: "B", note: "Association seed" } },
+        { key: "ENGINE.FILTER.AIR", label: "Engine air filter", standalone: 0.3, additional: 0.2, freq: 79, note: "Maintenance bundle", synthetic: { name: "Engine Air Filter — Replace", hours: 0.2, id: "synth-air", key: "ENGINE.FILTER.AIR.REPLACE", pos: "ALL", path: "L0_EXACT", skill: "B", note: "Association seed" } },
+      ],
+      "ELECTRICAL.CHARGING.ALTERNATOR|R_AND_R": [
+        { key: "ENGINE.BELT.SERPENTINE", label: "Serpentine belt", standalone: 0.5, additional: 0.25, freq: 86, note: "Belt off for alt R&R", synthetic: { name: "Serpentine Belt — Replace", hours: 0.25, id: "synth-serp2", key: "ENGINE.BELT.SERPENTINE.REPLACE", pos: "ALL", path: "L0_EXACT", skill: "B", note: "Association seed" } },
+      ],
+      "ELECTRICAL.CHARGING.BATTERY|REPLACE": [
+        { key: "ELECTRICAL.BATTERY.TERMINALS", label: "Terminal clean/service", standalone: 0.3, additional: 0.2, freq: 77, note: "Seed add-on", synthetic: { name: "Battery Terminals — Clean", hours: 0.2, id: "synth-term", key: "ELECTRICAL.BATTERY.TERMINALS.CLEAN", pos: "ALL", path: "L0_EXACT", skill: "B", note: "Association seed" } },
+      ],
+      "DRIVETRAIN.TRANSMISSION.FLUID|FLUSH": [
+        { key: "DRIVETRAIN.TRANSMISSION.FILTER|REPLACE", label: "Transmission filter", standalone: 1.0, additional: 0.6, freq: 69, note: "0.4 hr overlap" },
+      ],
+      "ENGINE.COOLING.RADIATOR|R_AND_R": [
+        { key: "ENGINE.COOLING.THERMOSTAT|R_AND_R", label: "Thermostat — R&R", standalone: 1.2, additional: 0.8, freq: 66, note: "Cooling system open" },
+      ],
+      "ENGINE.COOLING.WATER_PUMP|R_AND_R": [
+        { key: "ENGINE.COOLING.THERMOSTAT|R_AND_R", label: "Thermostat — R&R", standalone: 1.2, additional: 0.85, freq: 70, note: "Cooling system open" },
+      ],
+    };
+
+    // Matches sql/schema.sql chassis_multipliers seed (from tier 1)
+    const MULTIPLIERS = {
+      "1": { "1": 1, "2": 1.05, "3": 1.18, "4": 1.3, "5": 1.45 },
+      "2": { "1": 0.95, "2": 1, "3": 1.12, "4": 1.22, "5": 1.35 },
+    };
+
+    // Full demo taxonomy: Main System → Sub-System → Component
+    // (Action selected via pills: R&R / Replace / Inspect / Flush / Diagnose)
+    const TREE = [
+      {
+        id: "BRAKES",
+        label: "Brakes",
+        subs: [
+          {
+            id: "BRAKES.FRONT",
+            label: "Front",
+            comps: [
+              { id: "BRAKES.FRONT.PADS", label: "Pads" },
+              { id: "BRAKES.FRONT.ROTORS", label: "Rotors" },
+              { id: "BRAKES.FRONT.CALIPER", label: "Caliper" },
+            ],
+          },
+          {
+            id: "BRAKES.REAR",
+            label: "Rear",
+            comps: [
+              { id: "BRAKES.REAR.PADS", label: "Pads" },
+              { id: "BRAKES.REAR.ROTORS", label: "Rotors" },
+              { id: "BRAKES.REAR.SHOES", label: "Shoes / drums" },
+            ],
+          },
+          {
+            id: "BRAKES.HYDRAULIC",
+            label: "Hydraulic",
+            comps: [
+              { id: "BRAKES.HYDRAULIC.FLUID", label: "Brake fluid" },
+              { id: "BRAKES.HYDRAULIC.MASTER", label: "Master cylinder" },
+            ],
+          },
+        ],
+      },
+      {
+        id: "ENGINE",
+        label: "Engine",
+        subs: [
+          {
+            id: "ENGINE.LUBE",
+            label: "Lubrication",
+            comps: [
+              { id: "ENGINE.LUBE.OIL_FILTER", label: "Oil & filter" },
+              { id: "ENGINE.LUBE.PAN_GASKET", label: "Oil pan gasket" },
+            ],
+          },
+          {
+            id: "ENGINE.COOLING",
+            label: "Cooling",
+            comps: [
+              { id: "ENGINE.COOLING.THERMOSTAT", label: "Thermostat" },
+              { id: "ENGINE.COOLING.WATER_PUMP", label: "Water pump" },
+              { id: "ENGINE.COOLING.RADIATOR", label: "Radiator" },
+            ],
+          },
+          {
+            id: "ENGINE.IGNITION",
+            label: "Ignition",
+            comps: [
+              { id: "ENGINE.IGNITION.SPARK_PLUGS", label: "Spark plugs" },
+              { id: "ENGINE.IGNITION.COILS", label: "Ignition coils" },
+            ],
+          },
+          {
+            id: "ENGINE.TIMING",
+            label: "Timing",
+            comps: [
+              { id: "ENGINE.TIMING.BELT", label: "Timing belt" },
+              { id: "ENGINE.TIMING.CHAIN", label: "Timing chain" },
+            ],
+          },
+        ],
+      },
+      {
+        id: "SUSPENSION",
+        label: "Suspension",
+        subs: [
+          {
+            id: "SUSPENSION.FRONT",
+            label: "Front",
+            comps: [
+              { id: "SUSPENSION.FRONT.STRUT", label: "Strut / assembly" },
+              { id: "SUSPENSION.FRONT.CONTROL_ARM", label: "Control arm" },
+              { id: "SUSPENSION.FRONT.BALL_JOINT", label: "Ball joint" },
+              { id: "SUSPENSION.FRONT.SWAY_LINK", label: "Sway bar link" },
+            ],
+          },
+          {
+            id: "SUSPENSION.REAR",
+            label: "Rear",
+            comps: [
+              { id: "SUSPENSION.REAR.SHOCK", label: "Shock" },
+              { id: "SUSPENSION.REAR.SPRING", label: "Spring" },
+            ],
+          },
+        ],
+      },
+      {
+        id: "STEERING",
+        label: "Steering",
+        subs: [
+          {
+            id: "STEERING.LINKAGE",
+            label: "Linkage",
+            comps: [
+              { id: "STEERING.LINKAGE.TIE_ROD", label: "Outer tie rod" },
+              { id: "STEERING.LINKAGE.INNER_TIE_ROD", label: "Inner tie rod" },
+            ],
+          },
+          {
+            id: "STEERING.POWER",
+            label: "Power assist",
+            comps: [
+              { id: "STEERING.POWER.RACK", label: "Rack & pinion" },
+              { id: "STEERING.POWER.PUMP", label: "Power steering pump" },
+            ],
+          },
+        ],
+      },
+      {
+        id: "DRIVETRAIN",
+        label: "Drivetrain",
+        subs: [
+          {
+            id: "DRIVETRAIN.TRANSMISSION",
+            label: "Transmission",
+            comps: [
+              { id: "DRIVETRAIN.TRANSMISSION.FLUID", label: "ATF / fluid service" },
+              { id: "DRIVETRAIN.TRANSMISSION.FILTER", label: "Trans filter" },
+              { id: "DRIVETRAIN.TRANSMISSION.MOUNT", label: "Trans mount" },
+            ],
+          },
+          {
+            id: "DRIVETRAIN.AXLE",
+            label: "Axle",
+            comps: [
+              { id: "DRIVETRAIN.AXLE.CV_AXLE", label: "CV axle" },
+              { id: "DRIVETRAIN.AXLE.WHEEL_BEARING", label: "Wheel bearing" },
+            ],
+          },
+        ],
+      },
+      {
+        id: "ELECTRICAL",
+        label: "Electrical",
+        subs: [
+          {
+            id: "ELECTRICAL.CHARGING",
+            label: "Charging",
+            comps: [
+              { id: "ELECTRICAL.CHARGING.ALTERNATOR", label: "Alternator" },
+              { id: "ELECTRICAL.CHARGING.BATTERY", label: "Battery" },
+            ],
+          },
+          {
+            id: "ELECTRICAL.STARTING",
+            label: "Starting",
+            comps: [{ id: "ELECTRICAL.STARTING.STARTER", label: "Starter" }],
+          },
+          {
+            id: "ELECTRICAL.LIGHTING",
+            label: "Lighting",
+            comps: [
+              { id: "ELECTRICAL.LIGHTING.HEADLAMP", label: "Headlamp bulb" },
+              { id: "ELECTRICAL.LIGHTING.TAIL_LAMP", label: "Tail lamp" },
+            ],
+          },
+        ],
+      },
+      {
+        id: "HVAC",
+        label: "HVAC",
+        subs: [
+          {
+            id: "HVAC.AC",
+            label: "A/C",
+            comps: [
+              { id: "HVAC.AC.COMPRESSOR", label: "Compressor" },
+              { id: "HVAC.AC.CONDENSER", label: "Condenser" },
+              { id: "HVAC.AC.RECHARGE", label: "Recharge / performance" },
+            ],
+          },
+          {
+            id: "HVAC.HEATING",
+            label: "Heating",
+            comps: [
+              { id: "HVAC.HEATING.HEATER_CORE", label: "Heater core" },
+              { id: "HVAC.HEATING.BLOWER", label: "Blower motor" },
+            ],
+          },
+        ],
+      },
+      {
+        id: "EXHAUST",
+        label: "Exhaust",
+        subs: [
+          {
+            id: "EXHAUST.SYSTEM",
+            label: "System",
+            comps: [
+              { id: "EXHAUST.SYSTEM.CATALYST", label: "Catalytic converter" },
+              { id: "EXHAUST.SYSTEM.MUFFLER", label: "Muffler" },
+              { id: "EXHAUST.SYSTEM.O2_SENSOR", label: "O2 sensor" },
+            ],
+          },
+        ],
+      },
+    ];
+
+    const ACTIONS = [
+      { id: "R_AND_R", label: "R&R" },
+      { id: "REPLACE", label: "Replace" },
+      { id: "INSPECT", label: "Inspect" },
+      { id: "FLUSH", label: "Flush" },
+      { id: "DIAGNOSE", label: "Diagnose" },
+    ];
+
+    const JOB_DEFS = [
+      // Brakes
+      { comp: "BRAKES.FRONT.PADS", action: "R_AND_R", name: "Brake Pads — Remove & Replace", pos: "FRONT", base: 1.0, flags: ["premium"] },
+      { comp: "BRAKES.FRONT.PADS", action: "INSPECT", name: "Brake Pads — Inspect", pos: "FRONT", base: 0.3, flags: [] },
+      { comp: "BRAKES.FRONT.ROTORS", action: "R_AND_R", name: "Brake Rotors — Remove & Replace", pos: "FRONT", base: 1.4, flags: ["coated"] },
+      { comp: "BRAKES.FRONT.CALIPER", action: "R_AND_R", name: "Brake Caliper — Remove & Replace", pos: "FRONT", base: 1.6, flags: [] },
+      { comp: "BRAKES.REAR.PADS", action: "R_AND_R", name: "Brake Pads — Remove & Replace", pos: "REAR", base: 1.1, flags: ["ceramic", "premium"] },
+      { comp: "BRAKES.REAR.ROTORS", action: "R_AND_R", name: "Brake Rotors — Remove & Replace", pos: "REAR", base: 1.5, flags: [] },
+      { comp: "BRAKES.REAR.SHOES", action: "R_AND_R", name: "Brake Shoes — Remove & Replace", pos: "REAR", base: 1.8, flags: [] },
+      { comp: "BRAKES.HYDRAULIC.FLUID", action: "FLUSH", name: "Brake Fluid — Flush & Bleed", pos: "ALL", base: 0.8, flags: [] },
+      { comp: "BRAKES.HYDRAULIC.MASTER", action: "R_AND_R", name: "Master Cylinder — Remove & Replace", pos: "ALL", base: 2.2, flags: [] },
+      // Engine
+      { comp: "ENGINE.LUBE.OIL_FILTER", action: "REPLACE", name: "Engine Oil & Filter — Replace", pos: "ALL", base: 0.5, flags: ["oem"] },
+      { comp: "ENGINE.LUBE.PAN_GASKET", action: "R_AND_R", name: "Oil Pan Gasket — Remove & Replace", pos: "ALL", base: 3.5, flags: [] },
+      { comp: "ENGINE.COOLING.THERMOSTAT", action: "R_AND_R", name: "Thermostat — Remove & Replace", pos: "ALL", base: 1.2, flags: [] },
+      { comp: "ENGINE.COOLING.WATER_PUMP", action: "R_AND_R", name: "Water Pump — Remove & Replace", pos: "ALL", base: 2.8, flags: [] },
+      { comp: "ENGINE.COOLING.RADIATOR", action: "R_AND_R", name: "Radiator — Remove & Replace", pos: "ALL", base: 2.4, flags: [] },
+      { comp: "ENGINE.IGNITION.SPARK_PLUGS", action: "REPLACE", name: "Spark Plugs — Replace", pos: "ALL", base: 1.0, flags: ["iridium"] },
+      { comp: "ENGINE.IGNITION.COILS", action: "R_AND_R", name: "Ignition Coil — Remove & Replace", pos: "ALL", base: 0.7, flags: [] },
+      { comp: "ENGINE.TIMING.BELT", action: "R_AND_R", name: "Timing Belt — Remove & Replace", pos: "ALL", base: 4.5, flags: [] },
+      { comp: "ENGINE.TIMING.CHAIN", action: "R_AND_R", name: "Timing Chain — Remove & Replace", pos: "ALL", base: 8.0, flags: [] },
+      // Suspension
+      { comp: "SUSPENSION.FRONT.STRUT", action: "R_AND_R", name: "Front Strut Assembly — Remove & Replace", pos: "FRONT", base: 1.8, flags: [] },
+      { comp: "SUSPENSION.FRONT.CONTROL_ARM", action: "R_AND_R", name: "Control Arm — Remove & Replace", pos: "FRONT", base: 1.5, flags: [] },
+      { comp: "SUSPENSION.FRONT.BALL_JOINT", action: "R_AND_R", name: "Ball Joint — Remove & Replace", pos: "FRONT", base: 1.3, flags: [] },
+      { comp: "SUSPENSION.FRONT.SWAY_LINK", action: "R_AND_R", name: "Sway Bar Link — Remove & Replace", pos: "FRONT", base: 0.6, flags: [] },
+      { comp: "SUSPENSION.REAR.SHOCK", action: "R_AND_R", name: "Rear Shock — Remove & Replace", pos: "REAR", base: 1.0, flags: [] },
+      { comp: "SUSPENSION.REAR.SPRING", action: "R_AND_R", name: "Rear Spring — Remove & Replace", pos: "REAR", base: 1.4, flags: [] },
+      // Steering
+      { comp: "STEERING.LINKAGE.TIE_ROD", action: "R_AND_R", name: "Outer Tie Rod — Remove & Replace", pos: "FRONT", base: 0.8, flags: [] },
+      { comp: "STEERING.LINKAGE.INNER_TIE_ROD", action: "R_AND_R", name: "Inner Tie Rod — Remove & Replace", pos: "FRONT", base: 1.6, flags: [] },
+      { comp: "STEERING.POWER.RACK", action: "R_AND_R", name: "Steering Rack — Remove & Replace", pos: "ALL", base: 3.8, flags: [] },
+      { comp: "STEERING.POWER.PUMP", action: "R_AND_R", name: "Power Steering Pump — Remove & Replace", pos: "ALL", base: 1.9, flags: [] },
+      // Drivetrain
+      { comp: "DRIVETRAIN.TRANSMISSION.FLUID", action: "FLUSH", name: "Transmission Fluid — Service / Flush", pos: "ALL", base: 1.2, flags: [] },
+      { comp: "DRIVETRAIN.TRANSMISSION.FILTER", action: "REPLACE", name: "Transmission Filter — Replace", pos: "ALL", base: 1.8, flags: [] },
+      { comp: "DRIVETRAIN.TRANSMISSION.MOUNT", action: "R_AND_R", name: "Transmission Mount — Remove & Replace", pos: "ALL", base: 1.5, flags: [] },
+      { comp: "DRIVETRAIN.AXLE.CV_AXLE", action: "R_AND_R", name: "CV Axle — Remove & Replace", pos: "FRONT", base: 1.7, flags: [] },
+      { comp: "DRIVETRAIN.AXLE.WHEEL_BEARING", action: "R_AND_R", name: "Wheel Bearing / Hub — Remove & Replace", pos: "FRONT", base: 1.9, flags: [] },
+      // Electrical
+      { comp: "ELECTRICAL.CHARGING.ALTERNATOR", action: "R_AND_R", name: "Alternator — Remove & Replace", pos: "ALL", base: 1.6, flags: [] },
+      { comp: "ELECTRICAL.CHARGING.BATTERY", action: "REPLACE", name: "Battery — Replace & Register", pos: "ALL", base: 0.4, flags: [] },
+      { comp: "ELECTRICAL.STARTING.STARTER", action: "R_AND_R", name: "Starter — Remove & Replace", pos: "ALL", base: 2.0, flags: [] },
+      { comp: "ELECTRICAL.LIGHTING.HEADLAMP", action: "REPLACE", name: "Headlamp Bulb — Replace", pos: "FRONT", base: 0.5, flags: [] },
+      { comp: "ELECTRICAL.LIGHTING.TAIL_LAMP", action: "REPLACE", name: "Tail Lamp Bulb — Replace", pos: "REAR", base: 0.3, flags: [] },
+      // HVAC
+      { comp: "HVAC.AC.COMPRESSOR", action: "R_AND_R", name: "A/C Compressor — Remove & Replace", pos: "ALL", base: 3.2, flags: [] },
+      { comp: "HVAC.AC.CONDENSER", action: "R_AND_R", name: "A/C Condenser — Remove & Replace", pos: "ALL", base: 2.1, flags: [] },
+      { comp: "HVAC.AC.RECHARGE", action: "DIAGNOSE", name: "A/C Performance Test & Recharge", pos: "ALL", base: 1.0, flags: [] },
+      { comp: "HVAC.HEATING.HEATER_CORE", action: "R_AND_R", name: "Heater Core — Remove & Replace", pos: "ALL", base: 6.5, flags: ["with_ac"] },
+      { comp: "HVAC.HEATING.BLOWER", action: "R_AND_R", name: "Blower Motor — Remove & Replace", pos: "ALL", base: 1.4, flags: [] },
+      // Exhaust
+      { comp: "EXHAUST.SYSTEM.CATALYST", action: "R_AND_R", name: "Catalytic Converter — Remove & Replace", pos: "ALL", base: 2.5, flags: [] },
+      { comp: "EXHAUST.SYSTEM.MUFFLER", action: "R_AND_R", name: "Muffler — Remove & Replace", pos: "ALL", base: 1.2, flags: [] },
+      { comp: "EXHAUST.SYSTEM.O2_SENSOR", action: "R_AND_R", name: "Oxygen Sensor — Remove & Replace", pos: "ALL", base: 0.7, flags: [] },
+    ];
+
+    const CHIPS = [
+      { label: "Front pads", comp: "BRAKES.FRONT.PADS", action: "R_AND_R" },
+      { label: "Front struts", comp: "SUSPENSION.FRONT.STRUT", action: "R_AND_R" },
+      { label: "Oil & filter", comp: "ENGINE.LUBE.OIL_FILTER", action: "REPLACE" },
+      { label: "Spark plugs", comp: "ENGINE.IGNITION.SPARK_PLUGS", action: "REPLACE" },
+      { label: "Alternator", comp: "ELECTRICAL.CHARGING.ALTERNATOR", action: "R_AND_R" },
+      { label: "A/C recharge", comp: "HVAC.AC.RECHARGE", action: "DIAGNOSE" },
+      { label: "CV axle", comp: "DRIVETRAIN.AXLE.CV_AXLE", action: "R_AND_R" },
+      { label: "Heater core", comp: "HVAC.HEATING.HEATER_CORE", action: "R_AND_R" },
+    ];
+
+
+    const state = {
+      vehicleId: "accord",
+      view: "ewt",
+      expanded: new Set(["BRAKES"]),
+      systemId: "BRAKES",
+      subId: "BRAKES.FRONT",
+      compId: "BRAKES.FRONT.PADS",
+      actionId: "R_AND_R",
+      posFilter: "ALL",
+      search: "",
+      selectedJobId: null,
+      cart: [],
+      addonChecked: new Set(),
+      addonsOpen: true,
+      votedProcedures: new Set(),
+      clicks: 0,
+    };
+
+    function selectedRow() {
+      const rows = jobsForView();
+      return rows.find((r) => r.id === state.selectedJobId) || rows[0] || null;
+    }
+
+    function diagramsForKey(opKey) {
+      if (DIAGRAMS[opKey]) return DIAGRAMS[opKey];
+      // Fall back to component-level matches
+      return Object.entries(DIAGRAMS)
+        .filter(([k]) => opKey && (k.startsWith(opKey.split(".").slice(0, 3).join(".")) || opKey.startsWith(k.split(".").slice(0, 3).join("."))))
+        .flatMap(([, list]) => list);
+    }
+
+    function proceduresForKey(opKey) {
+      return PROCEDURES[opKey] || [];
+    }
+
+    function money(cents) { return "$" + (cents / 100).toFixed(2); }
+    function bump() { state.clicks += 1; }
+
+    function resolveHours(base) {
+      const v = VEHICLES[state.vehicleId];
+      if (v.mode === "L0") {
+        return { path: "L0_EXACT", hours: base, multiplier: 1, note: "Exact matrix / book time for this vehicle", skill: "B" };
+      }
+      if (v.mode === "L2") {
+        const m = MULTIPLIERS[v.seedChassis][v.chassis];
+        const hours = Math.round(base * m * 1000) / 1000;
+        return {
+          path: "L2_CHASSIS",
+          hours,
+          multiplier: m,
+          note: `Inherited from tier ${v.seedChassis} seed × ${m.toFixed(2)} (chassis interpolation)`,
+          skill: "B",
+        };
+      }
+      return { path: "L4_PENDING", hours: null, multiplier: null, note: "No seed / multiplier — pending curation", skill: "—" };
+    }
+
+    function partsCategory(job) {
+      if (job.comp.includes(".PADS")) {
+        const material = job.flags.includes("ceramic") ? "CERAMIC" : "STANDARD";
+        const tier = job.flags.includes("premium") ? "PREMIUM" : "STANDARD";
+        return `BRAKE_PAD_${job.pos}_${material}_${tier}`;
+      }
+      if (job.comp.includes(".ROTORS")) return `BRAKE_ROTOR_${job.pos}_STANDARD`;
+      if (job.comp.includes("OIL_FILTER")) return "OIL_FILTER_OEM";
+      if (job.comp.includes("SPARK_PLUGS")) return "SPARK_PLUG_SET";
+      if (job.comp.includes("ALTERNATOR")) return "ALTERNATOR_OEM";
+      if (job.comp.includes("CV_AXLE")) return "CV_AXLE_" + job.pos;
+      if (job.comp.includes("HEATER_CORE")) return "HEATER_CORE_ASSEMBLY";
+      return job.comp.split(".").slice(-2).join("_") + "_OEM";
+    }
+
+    function defaultActionForComp(compId) {
+      const available = ACTIONS.filter((a) => JOB_DEFS.some((j) => j.comp === compId && j.action === a.id));
+      if (!available.length) return "R_AND_R";
+      for (const p of ["R_AND_R", "REPLACE", "FLUSH", "DIAGNOSE", "INSPECT"]) {
+        if (available.some((a) => a.id === p)) return p;
+      }
+      return available[0].id;
+    }
+
+    function jobsForView() {
+      const q = state.search.trim().toLowerCase();
+      let rows = JOB_DEFS.map((d) => {
+        const resolved = resolveHours(d.base);
+        return { id: `${d.comp}.${d.action}`, key: `${d.comp}.${d.action}`, ...d, ...resolved };
+      });
+      if (q) {
+        rows = rows.filter((r) =>
+          r.name.toLowerCase().includes(q) || r.key.toLowerCase().includes(q) || r.pos.toLowerCase().includes(q)
+        );
+      } else if (state.compId) {
+        rows = rows.filter((r) => r.comp === state.compId);
+        if (state.actionId) rows = rows.filter((r) => r.action === state.actionId);
+      } else {
+        rows = [];
+      }
+      if (state.posFilter !== "ALL") {
+        rows = rows.filter((r) => r.pos === state.posFilter || r.pos === "ALL");
+      }
+      return rows;
+    }
+
+    function findLabels() {
+      const sys = TREE.find((t) => t.id === state.systemId);
+      const sub = sys?.subs.find((s) => s.id === state.subId);
+      const comp = sub?.comps.find((c) => c.id === state.compId);
+      return {
+        system: sys?.label,
+        group: sub?.label,
+        component: comp?.label,
+        action: ACTIONS.find((a) => a.id === state.actionId)?.label,
+      };
+    }
+
+    function renderChips() {
+      const root = document.getElementById("chips");
+      root.innerHTML = "";
+      for (const c of CHIPS) {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "chip" + (state.compId === c.comp && state.actionId === c.action && !state.search ? " on" : "");
+        btn.textContent = c.label;
+        btn.onclick = () => {
+          const parts = c.comp.split(".");
+          state.systemId = parts[0];
+          state.subId = parts.slice(0, 2).join(".");
+          state.compId = c.comp;
+          state.actionId = c.action;
+          state.expanded = new Set([state.systemId]);
+          state.search = "";
+          document.getElementById("search").value = "";
+          state.selectedJobId = null;
+          bump();
+          paint();
+        };
+        root.appendChild(btn);
+      }
+    }
+
+    function renderSystems() {
+      const root = document.getElementById("systems");
+      root.innerHTML = "";
+      for (const sys of TREE) {
+        const open = state.expanded.has(sys.id);
+        const box = document.createElement("div");
+        box.className = "sys" + (open ? " open" : "");
+        const sysBtn = document.createElement("button");
+        sysBtn.type = "button";
+        sysBtn.innerHTML = `<span>${open ? "▾" : "▸"}</span><span>${sys.label}</span>`;
+        sysBtn.onclick = () => {
+          state.expanded = open ? new Set() : new Set([sys.id]);
+          state.systemId = sys.id;
+          bump();
+          paint();
+        };
+        box.appendChild(sysBtn);
+        if (open) {
+          for (const sub of sys.subs) {
+            const g = document.createElement("div");
+            g.className = "group";
+            g.innerHTML = `<div class="group-l">${sub.label}</div>`;
+            for (const comp of sub.comps) {
+              const leaf = document.createElement("button");
+              leaf.type = "button";
+              leaf.className = "leaf" + (state.compId === comp.id && !state.search ? " on" : "");
+              leaf.textContent = comp.label;
+              leaf.onclick = () => {
+                state.systemId = sys.id;
+                state.subId = sub.id;
+                state.compId = comp.id;
+                state.actionId = defaultActionForComp(comp.id);
+                state.search = "";
+                document.getElementById("search").value = "";
+                state.selectedJobId = null;
+                bump();
+                paint();
+              };
+              g.appendChild(leaf);
+            }
+            box.appendChild(g);
+          }
+        }
+        root.appendChild(box);
+      }
+    }
+
+    function renderCrumb() {
+      const root = document.getElementById("crumb");
+      const v = VEHICLES[state.vehicleId];
+      const L = findLabels();
+      const parts = [{ t: v.label, i: -1 }];
+      if (!state.search) {
+        if (L.system) parts.push({ t: L.system, i: 0 });
+        if (L.group) parts.push({ t: L.group, i: 1 });
+        if (L.component) parts.push({ t: L.component, i: 2 });
+        if (L.action && state.compId) parts.push({ t: L.action, i: 3 });
+      } else {
+        parts.push({ t: `Search “${state.search.trim()}”`, i: 99 });
+      }
+      root.innerHTML = parts.map((p, idx) => {
+        const sep = idx ? `<span class="sep">›</span>` : "";
+        const cls = idx === parts.length - 1 ? "here" : "";
+        return `${sep}<button type="button" class="${cls}" data-i="${p.i}">${p.t}</button>`;
+      }).join("");
+      root.querySelectorAll("button").forEach((btn) => {
+        btn.onclick = () => {
+          const i = Number(btn.dataset.i);
+          if (i < 0) { state.compId = null; state.subId = null; }
+          else if (i === 0) { state.subId = null; state.compId = null; }
+          else if (i === 1) { state.compId = null; }
+          state.search = "";
+          document.getElementById("search").value = "";
+          bump();
+          paint();
+        };
+      });
+    }
+
+    function renderFilters() {
+      const root = document.getElementById("filters");
+      if (state.search || !state.compId) {
+        root.innerHTML = `<span class="lbl">Scope</span><span style="color:var(--muted)">${state.search ? "Search results" : "Select taxonomy component"}</span>`;
+        return;
+      }
+      const ops = ACTIONS.filter((a) => JOB_DEFS.some((j) => j.comp === state.compId && j.action === a.id));
+      const positions = ["ALL", ...new Set(JOB_DEFS.filter((j) => j.comp === state.compId).map((j) => j.pos))];
+      root.innerHTML = `
+        <span class="lbl">Position</span>
+        ${positions.map((p) => `<button type="button" class="pill ${state.posFilter===p?"on":""}" data-pos="${p}">${p === "ALL" ? "All" : p}</button>`).join("")}
+        <span class="lbl">Operation</span>
+        ${ops.map((a) => `<button type="button" class="pill ${state.actionId===a.id?"on":""}" data-act="${a.id}">${a.label}</button>`).join("")}
+      `;
+      root.querySelectorAll("[data-pos]").forEach((b) => b.onclick = () => { state.posFilter = b.dataset.pos; bump(); paint(); });
+      root.querySelectorAll("[data-act]").forEach((b) => b.onclick = () => { state.actionId = b.dataset.act; state.selectedJobId = null; bump(); paint(); });
+    }
+
+    function renderTable() {
+      const host = document.getElementById("tableHost");
+      const rows = jobsForView();
+      if (!rows.length) {
+        host.innerHTML = `<div class="empty">${state.search || state.compId ? "No applications for this filter." : "Select a component in the taxonomy, or search above."}</div>`;
+        return;
+      }
+      if (!state.selectedJobId) state.selectedJobId = rows[0].id;
+      host.innerHTML = `<table>
+        <thead><tr>
+          <th>Literal / Operation</th><th>Position</th><th>Resolve</th><th>Skill</th><th style="text-align:right">Base time</th><th style="text-align:center">Add</th>
+        </tr></thead>
+        <tbody id="tbody"></tbody>
+      </table>`;
+      const tbody = host.querySelector("#tbody");
+      for (const row of rows) {
+        const tr = document.createElement("tr");
+        if (state.selectedJobId === row.id) tr.classList.add("selected");
+        tr.innerHTML = `
+          <td><div class="lit">${row.name}</div><div class="code">${row.key}</div></td>
+          <td class="pos">${row.pos}</td>
+          <td><span class="status ${row.path}">${row.path}</span></td>
+          <td>${row.skill || "B"}</td>
+          <td class="hrs">${row.hours == null ? "—" : row.hours.toFixed(2)}</td>
+          <td style="text-align:center"><button class="addbtn" ${row.hours==null?"disabled":""}>+</button></td>`;
+        tr.onclick = (e) => {
+          if (e.target.closest(".addbtn")) return;
+          state.selectedJobId = row.id; bump(); paint();
+        };
+        tr.querySelector(".addbtn").onclick = (e) => {
+          e.stopPropagation();
+          if (row.hours == null) return;
+          if (!state.cart.some((c) => c.id === row.id)) state.cart.push(row);
+          state.selectedJobId = row.id; bump(); paint();
+        };
+        tbody.appendChild(tr);
+      }
+    }
+
+    function jobAssocKey(row) {
+      if (!row) return "";
+      const parts = row.key.split(".");
+      const action = parts[parts.length - 1];
+      const comp = parts.slice(0, -1).join(".");
+      return `${comp}|${action}`;
+    }
+
+    function addonsForRow(row) {
+      return ASSOCIATIONS[jobAssocKey(row)] || [];
+    }
+
+    function resolveAddonJob(addon) {
+      if (addon.synthetic) return { ...addon.synthetic, hours: addon.additional };
+      const found = JOB_DEFS.find((j) => `${j.comp}|${j.action}` === addon.key);
+      if (!found) return null;
+      const resolved = resolveHours(found.base);
+      return {
+        id: `${found.comp}.${found.action}`,
+        key: `${found.comp}.${found.action}`,
+        name: found.name,
+        pos: found.pos,
+        hours: addon.additional,
+        path: resolved.path,
+        skill: resolved.skill,
+        note: `Add-on (+${addon.additional.toFixed(2)} hr after ${addon.freq}% co-occurrence overlap)`,
+        isAddon: true,
+        addonOf: addon.key,
+      };
+    }
+
+    function bindAddonCheckboxes(root, row, addons) {
+      root.querySelectorAll("[data-addon]").forEach((cb) => {
+        cb.onchange = () => {
+          const key = cb.dataset.addon;
+          if (cb.checked) state.addonChecked.add(key);
+          else state.addonChecked.delete(key);
+          const job = resolveAddonJob(addons.find((a) => a.key === key));
+          if (!job) return;
+          if (cb.checked) {
+            if (!state.cart.some((c) => c.id === job.id)) state.cart.push(job);
+            if (row.hours != null && !state.cart.some((c) => c.id === row.id)) state.cart.push(row);
+          } else {
+            state.cart = state.cart.filter((c) => c.id !== job.id);
+          }
+          bump(); paint();
+        };
+      });
+    }
+
+    function renderMidAddons() {
+      const host = document.getElementById("midAddons");
+      const row = selectedRow();
+      if (!row) {
+        host.innerHTML = `<div class="mid-addons-empty">Select an operation above to see <strong>Frequently Combined Jobs</strong>.</div>`;
+        return;
+      }
+      const addons = addonsForRow(row);
+      if (!addons.length) {
+        host.innerHTML = `
+          <div class="addons">
+            <div class="addons-h">
+              Frequently Combined Jobs
+              <span class="meta">for ${row.name.split("—")[0].trim()}</span>
+            </div>
+            <div class="mid-addons-empty">No active associations for this operation yet — the learner promotes pairs above 10% co-occurrence from closed ROs.</div>
+          </div>`;
+        return;
+      }
+      host.innerHTML = `
+        <div class="addons ${state.addonsOpen ? "" : "collapsed"}" id="addonsBox">
+          <div class="addons-h" id="addonsToggle">
+            <span>Frequently Combined Jobs · ${row.name.split("—")[0].trim()}</span>
+            <span class="meta">${addons.length} suggestion${addons.length === 1 ? "" : "s"} · check to stage (+additional hrs)</span>
+          </div>
+          <div class="addons-b">
+            ${addons.map((a) => {
+              const checked = state.addonChecked.has(a.key) ? "checked" : "";
+              const id = "ad_" + a.key.replace(/[^a-z0-9]/gi, "_");
+              return `<div class="addon-row">
+                <input type="checkbox" data-addon="${a.key}" id="${id}" ${checked} />
+                <label for="${id}">${a.label}
+                  <span class="sub">${a.note}</span>
+                </label>
+                <span class="freq">${a.freq}% together</span>
+                <div class="addh">+${a.additional.toFixed(2)} hr</div>
+              </div>`;
+            }).join("")}
+          </div>
+        </div>`;
+      const toggle = document.getElementById("addonsToggle");
+      if (toggle) toggle.onclick = () => { state.addonsOpen = !state.addonsOpen; paint(); };
+      bindAddonCheckboxes(host, row, addons);
+    }
+
+    function renderDetail() {
+      const root = document.getElementById("detail");
+      const row = selectedRow();
+      if (!row) {
+        root.innerHTML = `<div style="color:var(--muted)">Select an operation row to view base time and fitment. Combined jobs appear under the table.</div>`;
+        return;
+      }
+      const cents = row.hours == null ? null : Math.round(row.hours * RATE_CENTS);
+      const partsStatus = row.path === "L4_PENDING" ? "PENDING_REVIEW" : "PLACEHOLDER_ENQUEUED";
+      const addons = addonsForRow(row);
+      const diagrams = diagramsForKey(row.key);
+      const procedures = proceduresForKey(row.key);
+
+      root.innerHTML = `
+        <h3>${row.name}</h3>
+        <div class="code">${row.key}</div>
+        <div class="kv"><div class="k">Position / qualifier</div><div class="v">${row.pos}</div></div>
+        <div class="kv"><div class="k">Base / scaled time</div><div class="v mono">${row.hours == null ? "—" : row.hours.toFixed(3) + " hr"} · Skill ${row.skill || "B"}</div></div>
+        <div class="kv"><div class="k">Resolve path</div><div class="v"><span class="status ${row.path}">${row.path}</span><div style="margin-top:4px;font-weight:500;color:var(--muted)">${row.note}</div></div></div>
+        <div class="kv"><div class="k">Labor @ Albany/Capital Region</div><div class="v mono">${cents == null ? "—" : money(cents)}</div></div>
+        <div class="kv"><div class="k">Parts fitment</div><div class="v">${partsStatus}<div class="mono" style="margin-top:4px;background:#fff;border:1px solid var(--motor-line);padding:6px">${partsCategory(row)}</div></div></div>
+        <div class="kv"><div class="k">Related</div>
+          <div class="detail-links">
+            <button type="button" class="linkish" id="gotoDiagrams">${diagrams.length ? diagrams.length + " diagram" + (diagrams.length === 1 ? "" : "s") : "Diagrams"}</button>
+            <button type="button" class="linkish" id="gotoProcedures">${procedures.length ? procedures.length + " procedure" + (procedures.length === 1 ? "" : "s") : "Procedures"}</button>
+            <span style="font-size:11px;color:var(--muted)">${addons.length ? addons.length + " combined below" : "no add-ons"}</span>
+          </div>
+        </div>
+        <button class="btn-add" id="detailAdd" ${row.hours==null?"disabled":""}>Add application to staging</button>
+      `;
+      const btn = document.getElementById("detailAdd");
+      if (btn) btn.onclick = () => {
+        if (row.hours == null) return;
+        if (!state.cart.some((c) => c.id === row.id)) state.cart.push(row);
+        for (const a of addons) {
+          if (!state.addonChecked.has(a.key)) continue;
+          const job = resolveAddonJob(a);
+          if (job && !state.cart.some((c) => c.id === job.id)) state.cart.push(job);
+        }
+        bump(); paint();
+      };
+      const gd = document.getElementById("gotoDiagrams");
+      if (gd) gd.onclick = () => setView("diagrams");
+      const gp = document.getElementById("gotoProcedures");
+      if (gp) gp.onclick = () => setView("procedures");
+    }
+
+    function renderDiagrams() {
+      const host = document.getElementById("diagramsHost");
+      const row = selectedRow();
+      const v = VEHICLES[state.vehicleId];
+      const opKey = row?.key;
+      const list = opKey ? diagramsForKey(opKey) : [];
+      // Also show catalog when nothing selected
+      const catalog = list.length ? list : Object.values(DIAGRAMS).flat();
+      const seen = new Set();
+      const unique = catalog.filter((d) => {
+        if (seen.has(d.id)) return false;
+        seen.add(d.id);
+        return true;
+      });
+      host.innerHTML = `
+        <h2>Exploded Parts Diagrams</h2>
+        <p class="subh">${v.label}${row ? " · " + row.name : ""} · OEM illustrations cached locally (Partsouq / 7zap / RevolutionParts) · $0</p>
+        ${!unique.length ? `<div class="empty">No diagrams cached for this operation yet. Run OEM scrape / scripts/resync_diagrams.py.</div>` : `
+        <div class="diagram-grid">
+          ${unique.map((d, i) => `
+            <div class="diagram-card">
+              <img src="${d.src}" alt="${d.caption}" loading="${i === 0 ? "eager" : "lazy"}" />
+              <div class="cap">
+                <b>${d.caption}</b>
+                <span class="src">${d.source} · local cache</span>
+              </div>
+            </div>`).join("")}
+        </div>`}
+        ${row ? `<p class="subh" style="margin-top:14px">Context from Labor selection · <button type="button" class="linkish" id="backLabor">← Back to Labor</button></p>` : ""}`;
+      const back = document.getElementById("backLabor");
+      if (back) back.onclick = () => setView("ewt");
+    }
+
+    function renderProcedures() {
+      const host = document.getElementById("proceduresHost");
+      const row = selectedRow();
+      const v = VEHICLES[state.vehicleId];
+      const opKey = row?.key;
+      let list = opKey ? proceduresForKey(opKey) : Object.values(PROCEDURES).flat();
+      list = [...list].sort((a, b) => (b.votes - a.votes) || (b.id - a.id));
+      host.innerHTML = `
+        <h2>Repair Procedures</h2>
+        <p class="subh">${v.label}${row ? " · " + row.name : ""} · Scraped DIY seed + tech contributions · upvote to rank · $0 after seed</p>
+        ${!list.length ? `<div class="empty">No approved procedures for this operation yet. Techs can submit via POST /procedures/submit or note parser.</div>` : `
+        <div class="proc-list">
+          ${list.map((p) => `
+            <article class="proc-card">
+              <div class="ph">
+                <h3>${p.title}</h3>
+                <button type="button" class="vote-btn" data-vote="${p.id}" ${state.votedProcedures.has(p.id) ? "disabled" : ""}>
+                  ▲ ${p.votes}${state.votedProcedures.has(p.id) ? " · voted" : ""}
+                </button>
+              </div>
+              <div class="proc-meta">
+                <span class="src-badge ${p.source === "tech_contribution" ? "tech" : "scraped"}">${p.source}</span>
+                <span>${p.author || "—"}</span>
+                <span>${p.steps.length} steps</span>
+              </div>
+              <ol>
+                ${p.steps.map((s) => `
+                  <li>${s.text}
+                    ${s.torque ? `<span class="torque"> · ${s.torque}</span>` : ""}
+                    ${s.tool ? `<span style="color:var(--muted)"> · ${s.tool}</span>` : ""}
+                  </li>`).join("")}
+              </ol>
+            </article>`).join("")}
+        </div>`}
+        ${row ? `<p class="subh" style="margin-top:14px"><button type="button" class="linkish" id="backLabor2">← Back to Labor</button></p>` : ""}`;
+      host.querySelectorAll("[data-vote]").forEach((btn) => {
+        btn.onclick = () => {
+          const id = Number(btn.dataset.vote);
+          if (state.votedProcedures.has(id)) return;
+          state.votedProcedures.add(id);
+          // Mutate fixture votes for demo
+          for (const arr of Object.values(PROCEDURES)) {
+            const hit = arr.find((x) => x.id === id);
+            if (hit) hit.votes += 1;
+          }
+          bump(); paint();
+        };
+      });
+      const back = document.getElementById("backLabor2");
+      if (back) back.onclick = () => setView("ewt");
+    }
+
+    function renderFluids() {
+      const host = document.getElementById("fluidsHost");
+      const v = VEHICLES[state.vehicleId];
+      const rows = (v.fluidsKey && FLUIDS[v.fluidsKey]) || [];
+      if (!rows.length) {
+        host.innerHTML = `<h2>Fluid Specs</h2>
+          <p class="subh">${v.label} — no harvested specs yet. POST /vehicles queues OEM PDF × fluidcapacity merge.</p>
+          <div class="empty">Background harvester populates vehicle_fluid_specs within minutes of VIN/YMME entry.</div>`;
+        return;
+      }
+      host.innerHTML = `
+        <h2>Fluid Specs</h2>
+        <p class="subh">${v.label} · OEM owner's manual × fluidcapacity.com · pure SQL lookups ($0)</p>
+        <div class="fluids-grid">
+          ${rows.map((f) => `
+            <div class="fluid-card">
+              <div class="cat">${f.name} · ${f.cat}</div>
+              <div class="cap">${f.cap == null ? "As needed" : f.cap.toFixed(1) + " " + f.unit}</div>
+              <div class="type">${f.type}</div>
+              <div class="meta">
+                <span class="conf c${f.conf}">${f.conf}% confidence</span>
+                <span>${f.source}</span>
+              </div>
+            </div>`).join("")}
+        </div>`;
+    }
+
+    function renderAssocGuide() {
+      const host = document.getElementById("assocHost");
+      const groups = Object.entries(ASSOCIATIONS);
+      host.innerHTML = `
+        <h2>Frequently Combined Jobs</h2>
+        <p class="subh">Industry seeds + shop telemetry learner. Suggests add-ons with overlap-aware additional hours — no MOTOR association fees.</p>
+        <table>
+          <thead><tr><th>Primary</th><th>Suggested add-on</th><th>Freq</th><th style="text-align:right">+ Hours</th></tr></thead>
+          <tbody>
+            ${groups.map(([primary, list]) => list.map((a) => `
+              <tr>
+                <td><div class="lit">${primary.replace("|", " · ")}</div></td>
+                <td>${a.label}<div class="code">${a.note}</div></td>
+                <td><span class="freq">${a.freq}%</span></td>
+                <td class="hrs">+${a.additional.toFixed(2)}</td>
+              </tr>`).join("")).join("")}
+          </tbody>
+        </table>`;
+    }
+
+    function setView(view) {
+      state.view = view;
+      document.querySelectorAll(".appbar .tab").forEach((t) => t.classList.toggle("on", t.dataset.view === view));
+      document.getElementById("viewEwt").classList.toggle("on", view === "ewt");
+      document.getElementById("viewFluids").classList.toggle("on", view === "fluids");
+      document.getElementById("viewAssoc").classList.toggle("on", view === "assoc");
+      document.getElementById("viewDiagrams").classList.toggle("on", view === "diagrams");
+      document.getElementById("viewProcedures").classList.toggle("on", view === "procedures");
+      document.getElementById("crumb").style.display = view === "ewt" ? "" : "none";
+      paint();
+    }
+
+    function renderDock() {
+      document.getElementById("dockCount").textContent = `(${state.cart.length})`;
+      const chips = document.getElementById("dockChips");
+      chips.innerHTML = state.cart.map((c, idx) =>
+        `<span class="dock-chip">${c.name.split("—")[0].trim()} ${c.hours.toFixed(1)}h <button type="button" data-x="${idx}">×</button></span>`
+      ).join("");
+      chips.querySelectorAll("button").forEach((b) => {
+        b.onclick = () => { state.cart.splice(Number(b.dataset.x), 1); bump(); paint(); };
+      });
+      const hours = state.cart.reduce((s, c) => s + c.hours, 0);
+      const cents = Math.round(hours * RATE_CENTS);
+      document.getElementById("dockTotals").textContent = `${hours.toFixed(2)} hr · ${money(cents)}`;
+      document.getElementById("addEstimate").disabled = state.cart.length === 0;
+    }
+
+    function paint() {
+      const v = VEHICLES[state.vehicleId];
+      document.getElementById("vehicleLabel").textContent = v.label;
+      const fluidN = (v.fluidsKey && FLUIDS[v.fluidsKey]) ? FLUIDS[v.fluidsKey].length : 0;
+      document.getElementById("specStrip").innerHTML = `
+        <span><b>Year/Make/Model</b> ${v.label}</span>
+        <span><b>Chassis tier</b> ${v.chassis}</span>
+        <span><b>Fluid specs</b> ${fluidN ? fluidN + " harvested" : "pending"}</span>
+        <span><b>Diagrams / Procedures</b> local KB</span>`;
+      document.getElementById("configBand").textContent =
+        `Application config · chassis tier ${v.chassis} · Albany $145/hr · combined jobs under ops table · diagrams + procedures cached locally · not MOTOR-licensed`;
+      if (state.view === "ewt") {
+        renderChips();
+        renderSystems();
+        renderCrumb();
+        renderFilters();
+        renderTable();
+        renderMidAddons();
+        renderDetail();
+      } else if (state.view === "fluids") {
+        renderFluids();
+      } else if (state.view === "assoc") {
+        renderAssocGuide();
+      } else if (state.view === "diagrams") {
+        renderDiagrams();
+      } else if (state.view === "procedures") {
+        renderProcedures();
+      }
+      renderDock();
+    }
+
+    document.querySelectorAll(".appbar .tab").forEach((t) => {
+      t.onclick = () => setView(t.dataset.view);
+    });
+
+    document.getElementById("vehicleSelect").onchange = (e) => {
+      state.vehicleId = e.target.value;
+      state.cart = [];
+      state.addonChecked = new Set();
+      state.selectedJobId = null;
+      bump(); paint();
+    };
+    document.getElementById("search").oninput = (e) => {
+      state.search = e.target.value;
+      state.selectedJobId = null;
+      if (state.search.trim()) bump();
+      paint();
+    };
+    function postCartToParent() {
+      if (!state.cart.length) return;
+      const lines = state.cart.map((c) => ({
+        id: c.id,
+        key: c.key,
+        name: c.name,
+        hours: c.hours,
+        path: c.path,
+        pos: c.pos,
+      }));
+      if (window.parent && window.parent !== window) {
+        window.parent.postMessage(
+          {
+            type: CRM_MSG,
+            action: "add-lines",
+            lines,
+            roId: urlParams.get("roId"),
+          },
+          window.location.origin,
+        );
+        state.cart = [];
+        bump(); paint();
+        return true;
+      }
+      return false;
+    }
+
+    document.getElementById("addEstimate").onclick = () => {
+      if (!state.cart.length) return;
+      if (postCartToParent()) return;
+      const hrs = state.cart.reduce((s, c) => s + c.hours, 0);
+      const toast = document.getElementById("toast");
+      toast.textContent = `Lab only — staged ${state.cart.length} application(s), ${hrs.toFixed(2)} hr / ${money(Math.round(hrs * RATE_CENTS))}. No CRM write.`;
+      toast.classList.add("show");
+      state.cart = [];
+      bump(); paint();
+      setTimeout(() => toast.classList.remove("show"), 3200);
+    };
+
+    function matchVehicleIdFromParams() {
+      const year = urlParams.get("year");
+      const make = (urlParams.get("make") || "").toLowerCase();
+      const model = (urlParams.get("model") || "").toLowerCase();
+      if (!make || !model) return null;
+      for (const [id, v] of Object.entries(VEHICLES)) {
+        const lbl = v.label.toLowerCase();
+        if (make && !lbl.includes(make)) continue;
+        if (model && !lbl.includes(model)) continue;
+        if (year && !lbl.includes(year)) continue;
+        return id;
+      }
+      return null;
+    }
+
+    function applyVehicleFromParams() {
+      const year = urlParams.get("year");
+      const make = urlParams.get("make");
+      const model = urlParams.get("model");
+      const trim = urlParams.get("trim");
+      const engine = urlParams.get("engine");
+      const vin = urlParams.get("vin");
+      if (!year && !make && !model && !vin) return;
+
+      const parts = [year, make, model, trim, engine].filter(Boolean);
+      const customLabel = parts.join(" ");
+      const matched = matchVehicleIdFromParams();
+      if (matched) {
+        state.vehicleId = matched;
+      } else if (customLabel) {
+        const dynId = "crm_dynamic";
+        if (!VEHICLES[dynId]) {
+          VEHICLES[dynId] = {
+            label: customLabel,
+            chassis: "2",
+            seedChassis: "1",
+            seedHours: 1.0,
+            mode: "L2",
+            fluidsKey: null,
+          };
+          const sel = document.getElementById("vehicleSelect");
+          const opt = document.createElement("option");
+          opt.value = dynId;
+          opt.textContent = customLabel + " (CRM decode)";
+          sel.appendChild(opt);
+        } else {
+          VEHICLES[dynId].label = customLabel;
+        }
+        state.vehicleId = dynId;
+        document.getElementById("vehicleSelect").value = dynId;
+      }
+      if (vin) {
+        const strip = document.getElementById("specStrip");
+        if (strip) {
+          const vinSpan = document.createElement("span");
+          vinSpan.innerHTML = `<b>VIN</b> ${vin}`;
+          strip.prepend(vinSpan);
+        }
+      }
+    }
+
+    applyVehicleFromParams();
+    paint();
+  </script>
+</body>
+</html>

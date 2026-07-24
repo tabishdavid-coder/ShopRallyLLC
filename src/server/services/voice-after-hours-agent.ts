@@ -206,9 +206,11 @@ export async function handleInboundVoiceCall(input: {
     if (landline) {
       return twimlResponse(twimlSay(`Connecting you to ${shop.name}.`) + twimlDial(landline));
     }
+    // Shop is open but no forward target — do not claim we're closed.
     return twimlResponse(
-      twimlSay(`Thanks for calling ${shop.name}. Please call back during business hours.`) +
-        twimlHangup(),
+      twimlSay(
+        `Thanks for calling ${shop.name}. We couldn't connect your call right now. Please try again shortly or send us a text if messaging is available.`,
+      ) + twimlHangup(),
     );
   }
 

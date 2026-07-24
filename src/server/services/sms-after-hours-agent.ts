@@ -7,6 +7,7 @@ import { parseBookingSettings } from "@/lib/booking-settings";
 import { normalizePhoneE164 } from "@/lib/phone";
 import { isShopOpenNow } from "@/lib/shop-hours";
 import { leadReadyToBook, type SmsAgentLeadDraft } from "@/lib/sms-agent-ai";
+import { isSmsStopKeyword } from "@/lib/sms-constants";
 import { canUseReleasedFeature } from "@/lib/subscription";
 import { isAiConfigured } from "@/server/services/ai/client";
 import { suggestSmsAgentReply } from "@/server/services/ai/sms-agent";
@@ -22,7 +23,6 @@ import {
 } from "@/server/services/messaging";
 
 const SESSION_TTL_MS = 86_400_000;
-const STOP_KEYWORDS = new Set(["STOP", "STOPALL", "UNSUBSCRIBE", "CANCEL", "END", "QUIT"]);
 
 type SessionState = {
   lead: SmsAgentLeadDraft;
@@ -138,7 +138,7 @@ export async function handleSmsAfterHoursAgent(input: {
   const bodyTrim = input.body.trim();
   const bodyUpper = bodyTrim.toUpperCase();
 
-  if (STOP_KEYWORDS.has(bodyUpper)) {
+  if (isSmsStopKeyword(bodyUpper)) {
     const customer = await findCustomerByPhone(input.shopId, input.from);
     if (customer) {
       await prisma.customer.update({

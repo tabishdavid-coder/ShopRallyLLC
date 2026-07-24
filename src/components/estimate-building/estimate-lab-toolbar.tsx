@@ -14,6 +14,7 @@ import { useEstimateLabLabor } from "@/components/estimate-building/estimate-lab
 import { useEstimateLabParts } from "@/components/estimate-building/estimate-lab-parts-provider";
 import type { CannedJobSummary } from "@/lib/canned-job-types";
 import type { LaborTier, PartTier } from "@/lib/matrix";
+import { TABISH_FRIDAY_LABOR_TITLE } from "@/lib/tabish-friday-labor";
 import {
   useMotorLaborUiEnabled,
   usePartsTechUiEnabled,
@@ -90,8 +91,8 @@ export function EstimateLabToolbar({
             <button
               type="button"
               onClick={() => openLaborGuide()}
-              title="Open Labor Book — search flat-rate operations for this vehicle"
-              aria-label="Open Labor Book — search flat-rate operations for this vehicle"
+              title={`Open ${TABISH_FRIDAY_LABOR_TITLE} — labor, fluids, combined jobs, diagrams`}
+              aria-label={`Open ${TABISH_FRIDAY_LABOR_TITLE}`}
               className={cn(
                 "inline-flex h-9 items-center gap-1.5 rounded-none border border-[#DDE5EF] bg-white",
                 "px-3 text-sm font-medium text-[#0B1F3B]",
@@ -100,7 +101,7 @@ export function EstimateLabToolbar({
               )}
             >
               <ListTree className="size-4 shrink-0 text-[#E86A10]" aria-hidden />
-              Labor Book
+              {TABISH_FRIDAY_LABOR_TITLE}
             </button>
           ) : null}
 

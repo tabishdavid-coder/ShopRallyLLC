@@ -152,4 +152,49 @@ export const CANNED_JOB_SEED_TEMPLATES: CannedJobSeedTemplate[] = [
       { description: "UV leak detection dye", brand: "Interdynamics", partNumber: "UV-LEAK", costCents: 1200, quantity: 1 },
     ],
   },
+  {
+    name: "Serpentine belt replacement",
+    category: "Belts & Hoses",
+    description: "Replace serpentine drive belt, inspect tensioner and pulleys.",
+    usageCount: 4,
+    lastUsedDaysAgo: 11,
+    labor: [{ description: "R&R serpentine belt", hours: 0.7 }],
+    parts: [
+      { description: "Serpentine belt", brand: "Continental", partNumber: "SER-5060840", costCents: 2200, quantity: 1 },
+    ],
+  },
+  {
+    name: "Wheel bearing — front hub",
+    category: "Suspension",
+    description: "Replace front wheel bearing/hub assembly, torque to spec.",
+    usageCount: 2,
+    lastUsedDaysAgo: 22,
+    labor: [{ description: "R&R front wheel bearing hub", hours: 1.5 }],
+    parts: [
+      { description: "Front hub assembly", brand: "Moog", partNumber: "HB-512001", costCents: 8500, quantity: 1 },
+    ],
+  },
+  {
+    name: "Catalytic converter replacement",
+    category: "Exhaust",
+    description: "Replace catalytic converter, inspect O2 sensors and exhaust leaks.",
+    usageCount: 1,
+    lastUsedDaysAgo: 60,
+    labor: [{ description: "R&R catalytic converter", hours: 2.0 }],
+    parts: [
+      { description: "Catalytic converter — direct fit", brand: "Walker", partNumber: "CAT-16386", costCents: 28500, quantity: 1 },
+      { description: "Exhaust gasket", brand: "Fel-Pro", partNumber: "CAT-GASKET", costCents: 800, quantity: 1 },
+    ],
+  },
+  {
+    name: "Headlight bulb replacement",
+    category: "Electrical",
+    description: "Replace headlight bulb(s), aim check, verify operation.",
+    usageCount: 7,
+    lastUsedDaysAgo: 4,
+    labor: [{ description: "Replace headlight bulb", hours: 0.3 }],
+    parts: [
+      { description: "H11 headlight bulb", brand: "Sylvania", partNumber: "H11-SLV", costCents: 1800, quantity: 1 },
+    ],
+  },
 ];

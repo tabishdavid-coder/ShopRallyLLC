@@ -570,6 +570,9 @@ const SaveJobInput = z.object({
         retailCents: z.number().int().min(0),
         discountCents: z.number().int().min(0).optional().default(0),
         taxable: z.boolean().optional().default(true),
+        lineType: z.enum(["PART", "TIRE", "SUBLET", "HAZARDOUS", "OTHER"]).optional().default("PART"),
+        inventoryPartId: z.string().nullable().optional(),
+        tireStockId: z.string().nullable().optional(),
       }),
     )
     .max(100),
@@ -658,6 +661,9 @@ export async function saveJob(raw: SaveJobInput): Promise<EstimateResult> {
               discountCents,
               totalCents,
               taxable: p.taxable ?? true,
+              lineType: p.lineType ?? "PART",
+              inventoryPartId: p.inventoryPartId ?? null,
+              tireStockId: p.tireStockId ?? null,
               sortOrder: i,
             },
           })
@@ -674,6 +680,9 @@ export async function saveJob(raw: SaveJobInput): Promise<EstimateResult> {
               discountCents,
               totalCents,
               taxable: p.taxable ?? true,
+              lineType: p.lineType ?? "PART",
+              inventoryPartId: p.inventoryPartId ?? null,
+              tireStockId: p.tireStockId ?? null,
               sortOrder: i,
             },
           });

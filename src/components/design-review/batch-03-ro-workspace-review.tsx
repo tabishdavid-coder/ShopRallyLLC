@@ -242,17 +242,20 @@ export function Batch03RoWorkspaceReview() {
 
       <ReviewBlock
         id="RO-06"
-        title="Vehicle specs sidebar (light theme links)"
-        risk="RO context deck uses light strip but sidebar links still use link-on-dark — low contrast."
-        fix="specLinkClass(lightTheme) on recalls, tire last-order, and maintenance links when deck is light."
-        files={["src/components/repair-order/ro-vehicle-specs-panel.tsx"]}
+        title="Vehicle Specs product UI removed"
+        risk="Specs enrichment (fluids / recalls / catalog) was too complex; product UI stripped."
+        fix="Identity edit remains in Vehicles drawer (YMM / VIN / plate). Specs CTAs and panels deleted."
+        files={[
+          "src/components/estimate-building/estimate-lab-context-drawer-panels.tsx",
+          "src/components/repair-order/ro-context-deck.tsx",
+        ]}
         liveHref="/repair-orders"
-        testSteps="Open RO overview — expand Specs / Recalls accordions; links should be readable navy/subtle, not white-on-light."
+        testSteps="Open RO Vehicles drawer — edit YMM/VIN/plate; confirm no Specs / Fluids / enrich CTAs."
         before={
-          <p className="text-brand-red">White-ish links on light sidebar — hard to read.</p>
+          <p className="text-brand-red">Specs CTA + Fluids/identity enrichment panels on estimate + job board.</p>
         }
         after={
-          <p className="text-emerald-800">link-subtle / brand-navy links on light RO sidebar.</p>
+          <p className="text-emerald-800">Simple vehicle details form only; Specs product surfaces gone.</p>
         }
       />
 

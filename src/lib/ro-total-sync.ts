@@ -1,5 +1,5 @@
 import { prisma } from "@/db/client";
-import type { AdjustBase, AdjustMethod } from "@/generated/prisma";
+import type { AdjustBase, AdjustMethod, PrismaClient } from "@/generated/prisma";
 
 /** Compute one fee/discount's cents value against the labor/parts bases. */
 export function adjustmentValue(
@@ -18,8 +18,11 @@ export function adjustmentValue(
  * Recompute and persist an RO's cached money totals from its lines, fees and
  * discounts. Single source of truth — used by every estimate mutation.
  */
-export async function recomputeRoTotals(roId: string): Promise<void> {
-  const ro = await prisma.repairOrder.findUnique({
+export async function recomputeRoTotals(
+  roId: string,
+  db: PrismaClient = prisma,
+): Promise<void> {
+  const ro = await db.repairOrder.findUnique({
     where: { id: roId },
     select: {
       shopSuppliesCents: true,
@@ -92,7 +95,7 @@ export async function recomputeRoTotals(roId: string): Promise<void> {
   if (ro.shop.taxCapCents != null) tax = Math.min(tax, ro.shop.taxCapCents);
   const total = labor + parts + supplies - discountTotal + feesTotal + tax;
 
-  await prisma.repairOrder.update({
+  await db.repairOrder.update({
     where: { id: roId },
     data: {
       laborSubtotalCents: labor,
@@ -104,13 +107,13 @@ export async function recomputeRoTotals(roId: string): Promise<void> {
     },
   });
 
-  const inv = await prisma.invoice.findFirst({
+  const inv = await db.invoice.findFirst({
     where: { repairOrderId: roId },
     select: { id: true, totalCents: true, balanceCents: true },
   });
   if (inv && inv.balanceCents === inv.totalCents) {
     const invoiceSubtotal = labor + parts + supplies + feesTotal - discountTotal;
-    await prisma.invoice.update({
+    await db.invoice.update({
       where: { id: inv.id },
       data: {
         subtotalCents: invoiceSubtotal,

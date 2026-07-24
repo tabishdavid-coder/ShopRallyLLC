@@ -6,6 +6,7 @@ import type { MessageRow } from "@/lib/messaging-types";
 import {
   DEFAULT_SMS_OPT_OUT_FOOTER,
   deriveShopSmsSetupStatus,
+  isSmsStopKeyword,
   type ShopSmsSetupStatus,
 } from "@/lib/sms-constants";
 import { SMS_ENABLED } from "@/lib/features";
@@ -427,6 +428,14 @@ export async function recordInboundSms(params: {
     return null;
   }
 
+  const bodyTrim = params.body.trim();
+  if (isSmsStopKeyword(bodyTrim) && customer.marketingOptIn) {
+    await prisma.customer.update({
+      where: { id: customer.id },
+      data: { marketingOptIn: false },
+    });
+  }
+
   const repairOrderId = await findActiveRepairOrderId(params.shopId, customer.id);
 
   const msg = await prisma.message.create({
@@ -435,7 +444,7 @@ export async function recordInboundSms(params: {
       customerId: customer.id,
       repairOrderId,
       direction: "INBOUND",
-      body: params.body.trim(),
+      body: bodyTrim,
       status: "received",
       twilioSid: params.twilioSid,
       fromNumber: normalizePhoneE164(params.from),

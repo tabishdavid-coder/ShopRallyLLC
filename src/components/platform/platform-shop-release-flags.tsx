@@ -6,6 +6,7 @@ import { Flag, Loader2 } from "lucide-react";
 
 import { updateShopReleaseFlags } from "@/server/actions/platform";
 import {
+  RELEASE_MODULE_DESCRIPTIONS,
   RELEASE_MODULE_LABELS,
   RELEASE_MODULES,
   type ReleaseFlagMap,
@@ -111,7 +112,8 @@ export function PlatformShopReleaseFlags({
                 <Label htmlFor={`release-${module}`} className="font-medium text-foreground">
                   {RELEASE_MODULE_LABELS[module]}
                 </Label>
-                <p className="text-xs text-muted-foreground">
+                <p className="text-xs text-muted-foreground">{RELEASE_MODULE_DESCRIPTIONS[module]}</p>
+                <p className="text-[11px] text-muted-foreground/80">
                   {explicit === true
                     ? "Explicitly ON"
                     : explicit === false

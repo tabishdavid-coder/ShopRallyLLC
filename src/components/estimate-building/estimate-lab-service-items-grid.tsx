@@ -19,8 +19,9 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import { ChevronDown, GripVertical, Plus, X } from "lucide-react";
+import { ChevronDown, GripVertical, Plus, Search, X } from "lucide-react";
 
+import { TireStockPickerDialog } from "@/components/canned-jobs/tire-stock-picker-dialog";
 import { EstimateLabLineAddSplit } from "@/components/estimate-building/estimate-lab-line-add-split";
 import {
   EstimateLineTypeMenu,
@@ -31,6 +32,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { stripVehicleDetailsFromLineText } from "@/lib/labor-guide-helpers";
+import { estimatePartRowFromTireStock } from "@/lib/estimate-part-line-helpers";
 import {
   laborLineAmount,
   laborLineTotal,
@@ -42,6 +44,7 @@ import {
 import { type LaborTier, type PartTier } from "@/lib/matrix";
 import { applyLaborMatrixRow, applyPartMatrixRow } from "@/lib/line-calc";
 import { cn } from "@/lib/utils";
+import type { TireStockRow } from "@/server/tire-stock";
 import {
   addDiscount,
   addFee,
@@ -119,8 +122,17 @@ function lineTypeGuideHandlers(
   onPartLookup?: () => void,
   onLaborManual?: () => void,
   onPartManual?: () => void,
+  onTireFromStock?: () => void,
+  onCustomTire?: () => void,
 ): EstimateLineTypeMenuHandlers | undefined {
-  if (!onLaborLookup && !onPartLookup && !onLaborManual && !onPartManual) {
+  if (
+    !onLaborLookup &&
+    !onPartLookup &&
+    !onLaborManual &&
+    !onPartManual &&
+    !onTireFromStock &&
+    !onCustomTire
+  ) {
     return undefined;
   }
   return {
@@ -128,6 +140,8 @@ function lineTypeGuideHandlers(
     onPartFromGuide: onPartLookup,
     onCustomLabor: onLaborManual,
     onCustomPart: onPartManual,
+    onTireFromStock,
+    onCustomTire,
   };
 }
 
@@ -171,6 +185,8 @@ type PartRow = {
   taxable?: boolean;
   sortOrder?: number;
   lineType?: PartFamilyType;
+  inventoryPartId?: string | null;
+  tireStockId?: string | null;
 };
 
 type FieldDrafts = Record<string, string>;
@@ -364,12 +380,14 @@ function newPartRow(
     brand: "",
     description: "",
     partNumber: "",
-    quantity: 1,
+    quantity: lineType === "tire" ? 4 : 1,
     costCents: 0,
     retailCents: 0,
     discountCents: 0,
     taxable,
     lineType,
+    inventoryPartId: null,
+    tireStockId: null,
   };
   if (partTiers.length > 0) {
     return { ...applyPartMatrixRow({ ...base, usePartMatrix: true }, partTiers), lineType };
@@ -811,6 +829,8 @@ export function EstimateLabServiceItemsGrid({
   const calcOpts = { baseRateCents, laborTiers };
   const [addType, setAddType] = useState<InlineLineType>("labor");
   const [dndReady, setDndReady] = useState(false);
+  const [tirePickerOpen, setTirePickerOpen] = useState(false);
+  const [tirePickTarget, setTirePickTarget] = useState<number | "new" | null>(null);
 
   useEffect(() => {
     setDndReady(true);
@@ -1024,7 +1044,18 @@ export function EstimateLabServiceItemsGrid({
     }
 
     updateAt(index, (m) =>
-      m.kind === "part" ? { ...m, lineType: partType, row: { ...m.row, lineType: partType } } : m,
+      m.kind === "part"
+        ? {
+            ...m,
+            lineType: partType,
+            row: {
+              ...m.row,
+              lineType: partType,
+              tireStockId: partType === "tire" ? m.row.tireStockId ?? null : null,
+              inventoryPartId: partType === "part" ? m.row.inventoryPartId ?? null : null,
+            },
+          }
+        : m,
     );
   }
 
@@ -1041,12 +1072,68 @@ export function EstimateLabServiceItemsGrid({
   }
 
   const showHeaders = editing || merged.length > 0;
+  function addManualTireRow() {
+    onAddLine?.("tire");
+  }
+
+  function openTirePickerForNewRow() {
+    setTirePickTarget("new");
+    setTirePickerOpen(true);
+  }
+
+  function openTirePickerForPartIndex(partIndex: number) {
+    setTirePickTarget(partIndex);
+    setTirePickerOpen(true);
+  }
+
+  function switchTireRowToManual(partIndex: number) {
+    onPartsChange(
+      parts.map((p, i) =>
+        i === partIndex
+          ? { ...p, lineType: "tire", tireStockId: null, inventoryPartId: null }
+          : p,
+      ),
+    );
+  }
+
+  function applyTirePick(tire: TireStockRow) {
+    const row = estimatePartRowFromTireStock(tire, partTiers, partsTaxable);
+    if (tirePickTarget === "new") {
+      onPartsChange([...parts, row]);
+    } else if (typeof tirePickTarget === "number") {
+      onPartsChange(
+        parts.map((p, i) =>
+          i === tirePickTarget ? { ...row, id: p.id, lineType: "tire" as const } : p,
+        ),
+      );
+    }
+    setTirePickTarget(null);
+  }
+
   const typeGuideHandlers = lineTypeGuideHandlers(
     onLaborLookup,
     onPartLookup,
     onLaborManual,
     onPartManual,
+    openTirePickerForNewRow,
+    addManualTireRow,
   );
+
+  function handlersForRow(item: MergedItem, index: number): EstimateLineTypeMenuHandlers | undefined {
+    if (item.kind === "part" && item.lineType === "tire") {
+      const pi = partIndexInArray(index);
+      if (pi < 0) return typeGuideHandlers;
+      return lineTypeGuideHandlers(
+        onLaborLookup,
+        onPartLookup,
+        onLaborManual,
+        onPartManual,
+        () => openTirePickerForPartIndex(pi),
+        () => switchTireRowToManual(pi),
+      );
+    }
+    return typeGuideHandlers;
+  }
 
   function addManualForType(type: InlineLineType) {
     if (type === "labor") {
@@ -1055,6 +1142,10 @@ export function EstimateLabServiceItemsGrid({
     }
     if (type === "part") {
       onPartManual?.();
+      return;
+    }
+    if (type === "tire") {
+      addManualTireRow();
       return;
     }
     if (type === "fee" || type === "discount") {
@@ -1069,7 +1160,11 @@ export function EstimateLabServiceItemsGrid({
       onLaborLookup?.();
       return;
     }
-    if (type === "part" || type === "tire") {
+    if (type === "tire") {
+      openTirePickerForNewRow();
+      return;
+    }
+    if (type === "part") {
       onPartLookup?.();
     }
   }
@@ -1077,12 +1172,14 @@ export function EstimateLabServiceItemsGrid({
   const addRowHasLookup = addType === "labor" || addType === "part" || addType === "tire";
   const addRowHint =
     addType === "labor"
-      ? "Manual order = blank labor row; Labor lookup = flat-rate guide"
-      : addType === "part" || addType === "tire"
-        ? "Manual order = phone/off-catalog line; Lookup = supplier catalog search"
-        : addType === "fee" || addType === "discount"
-          ? "Add line — pick a saved preset in the row or enter name + amount inline"
-          : "Pick type, then add a blank line inline";
+      ? "Manual order = blank labor row; OEM lookup = OEM Labor Guide (MOTOR fallback)"
+      : addType === "tire"
+        ? "Manual tire = off-stock entry; Tire stock = pick from shop inventory"
+        : addType === "part"
+          ? "Manual order = phone/off-catalog line; Lookup = supplier catalog search"
+          : addType === "fee" || addType === "discount"
+            ? "Add line — pick a saved preset in the row or enter name + amount inline"
+            : "Pick type, then add a blank line inline";
 
   const rows = merged.map((item, index) => {
     const draftPrefix =
@@ -1459,6 +1556,8 @@ export function EstimateLabServiceItemsGrid({
     const amountCents = partLineAmount(p);
     const netCents = partLineTotal(p);
     const lineTaxable = p.taxable ?? partsTaxable;
+    const partIndex = partIndexInArray(index);
+    const rowTypeHandlers = handlersForRow(item, index);
 
     return (
       <SortableRow key={item.key} id={item.key} disabled={!editing || !dndReady} gridTemplateColumns={gridTemplateColumns}>
@@ -1477,33 +1576,52 @@ export function EstimateLabServiceItemsGrid({
                 typeOptions={SERVICE_LINE_TYPE_OPTIONS}
                 editing={editing}
                 onChange={(t) => onTypeChange(index, t)}
-                handlers={typeGuideHandlers}
+                handlers={rowTypeHandlers}
               />
             </div>
             <LabNameDescCells
               name={
                 editing ? (
-                  <LabDescriptionTextarea
-                    value={p.description}
-                    placeholder="Enter name*"
-                    onChange={(e) =>
-                      updateAt(index, (m) =>
-                        m.kind === "part"
-                          ? { ...m, row: { ...m.row, description: e.target.value } }
-                          : m,
-                      )
-                    }
-                    onBlur={() => {
-                      const cleaned = stripVehicleDetailsFromLineText(p.description);
-                      if (cleaned === p.description) return;
-                      updateAt(index, (m) =>
-                        m.kind === "part" ? { ...m, row: { ...m.row, description: cleaned } } : m,
-                      );
-                    }}
-                  />
+                  <div className="flex min-w-0 items-start gap-1">
+                    {item.lineType === "tire" ? (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (partIndex >= 0) openTirePickerForPartIndex(partIndex);
+                        }}
+                        title="Pick from tire stock"
+                        aria-label="Pick from tire stock"
+                        className="mt-0.5 flex size-6 shrink-0 items-center justify-center rounded-md text-brand-navy/70 hover:bg-brand-light/15 hover:text-brand-navy"
+                      >
+                        <Search className="size-3.5" />
+                      </button>
+                    ) : null}
+                    <LabDescriptionTextarea
+                      value={p.description}
+                      placeholder={item.lineType === "tire" ? "Tire name" : "Enter name*"}
+                      onChange={(e) =>
+                        updateAt(index, (m) =>
+                          m.kind === "part"
+                            ? { ...m, row: { ...m.row, description: e.target.value } }
+                            : m,
+                        )
+                      }
+                      onBlur={() => {
+                        const cleaned = stripVehicleDetailsFromLineText(p.description);
+                        if (cleaned === p.description) return;
+                        updateAt(index, (m) =>
+                          m.kind === "part" ? { ...m, row: { ...m.row, description: cleaned } } : m,
+                        );
+                      }}
+                      className="min-w-0 flex-1"
+                    />
+                  </div>
                 ) : (
                   <p className={cn("min-w-0 line-clamp-2 text-xs", lineThrough)}>
                     {partNameDisplay || "—"}
+                    {item.lineType === "tire" && p.tireStockId ? (
+                      <span className="ml-1 text-[10px] font-normal text-muted-foreground">· Stock</span>
+                    ) : null}
                   </p>
                 )
               }
@@ -1704,7 +1822,7 @@ export function EstimateLabServiceItemsGrid({
                 <div className="flex min-w-0 flex-wrap items-center gap-1">
                   {addRowHasLookup ? (
                     <EstimateLabLineAddSplit
-                      kind={addType === "labor" ? "labor" : "part"}
+                      kind={addType === "labor" ? "labor" : addType === "tire" ? "tire" : "part"}
                       onManual={() => addManualForType(addType)}
                       onLookup={() => addLookupForType(addType)}
                     />
@@ -1753,6 +1871,15 @@ export function EstimateLabServiceItemsGrid({
           ) : null}
         </div>
       </div>
+
+      <TireStockPickerDialog
+        open={tirePickerOpen}
+        onOpenChange={(open) => {
+          setTirePickerOpen(open);
+          if (!open) setTirePickTarget(null);
+        }}
+        onPick={applyTirePick}
+      />
     </div>
   );
 }

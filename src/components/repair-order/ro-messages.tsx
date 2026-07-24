@@ -195,7 +195,7 @@ function RoMessagesPanel({
           </p>
         ) : null}
 
-        <div className="flex-1 space-y-2 overflow-y-auto bg-muted/30 px-4 py-3">
+        <div className="msg-thread-canvas flex-1 space-y-2 overflow-y-auto px-4 py-3">
           {loading ? (
             <div className="flex h-full items-center justify-center gap-2 text-sm text-muted-foreground">
               <Loader2 className="size-4 animate-spin" /> Loading…

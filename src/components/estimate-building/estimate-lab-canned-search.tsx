@@ -12,7 +12,10 @@ import { filterCannedJobsByQuery } from "@/lib/canned-job-browse-filter";
 import { estimateCannedJobSummaryTotal } from "@/lib/canned-job-estimate";
 import type { CannedJobSummary } from "@/lib/canned-job-types";
 import type { LaborTier, PartTier } from "@/lib/matrix";
-import { addCannedJobToRepairOrder } from "@/server/actions/canned-jobs";
+import {
+  addCannedJobToRepairOrder,
+  fetchCannedJobsForPicker,
+} from "@/server/actions/canned-jobs";
 import { useEstimateActionToast } from "@/components/repair-order/estimate-action-toast";
 
 const MAX_RESULTS = 8;
@@ -39,13 +42,34 @@ export function EstimateLabCannedSearch({
   const [open, setOpen] = useState(false);
   const [highlight, setHighlight] = useState(0);
   const [pending, start] = useTransition();
+  const [localJobs, setLocalJobs] = useState(jobs);
   const rootRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLUListElement>(null);
+  const listFetchGen = useRef(0);
+  const catalogLoadedRef = useRef(false);
+
+  useEffect(() => {
+    setLocalJobs(jobs);
+  }, [jobs]);
 
   const results = useMemo(() => {
     if (!query.trim()) return [];
-    return filterCannedJobsByQuery(jobs, query).slice(0, MAX_RESULTS);
-  }, [jobs, query]);
+    return filterCannedJobsByQuery(localJobs, query).slice(0, MAX_RESULTS);
+  }, [localJobs, query]);
+
+  function refreshCatalogOnce() {
+    if (catalogLoadedRef.current) return;
+    catalogLoadedRef.current = true;
+    const gen = ++listFetchGen.current;
+    fetchCannedJobsForPicker()
+      .then((updated) => {
+        if (gen !== listFetchGen.current) return;
+        setLocalJobs(updated);
+      })
+      .catch(() => {
+        catalogLoadedRef.current = false;
+      });
+  }
 
   const showDropdown = open && query.trim().length > 0;
 
@@ -122,6 +146,7 @@ export function EstimateLabCannedSearch({
           setOpen(true);
         }}
         onFocus={() => {
+          refreshCatalogOnce();
           if (query.trim()) setOpen(true);
         }}
         onKeyDown={onInputKeyDown}

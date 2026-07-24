@@ -18,6 +18,8 @@ const summarySelect = {
   laborLines: { select: { hours: true }, orderBy: { sortOrder: "asc" as const } },
   partLines: { select: { costCents: true, quantity: true }, orderBy: { sortOrder: "asc" as const } },
   feeLines: { select: { id: true }, orderBy: { sortOrder: "asc" as const } },
+  discountLines: { select: { id: true }, orderBy: { sortOrder: "asc" as const } },
+  inspectionLines: { select: { hours: true }, orderBy: { sortOrder: "asc" as const } },
 };
 
 function toSummary(row: {
@@ -33,6 +35,8 @@ function toSummary(row: {
   laborLines: { hours: number }[];
   partLines: { costCents: number; quantity: number }[];
   feeLines: { id: string }[];
+  discountLines: { id: string }[];
+  inspectionLines: { hours: number }[];
 }): CannedJobSummary {
   return {
     id: row.id,
@@ -47,7 +51,11 @@ function toSummary(row: {
     laborLineCount: row.laborLines.length,
     partLineCount: row.partLines.length,
     feeLineCount: row.feeLines.length,
-    laborHours: row.laborLines.reduce((s, l) => s + l.hours, 0),
+    discountLineCount: row.discountLines.length,
+    inspectionLineCount: row.inspectionLines.length,
+    laborHours:
+      row.laborLines.reduce((s, l) => s + l.hours, 0) +
+      row.inspectionLines.reduce((s, l) => s + l.hours, 0),
     partsCostCents: row.partLines.reduce((s, p) => s + p.costCents * p.quantity, 0),
   };
 }
@@ -118,11 +126,14 @@ export async function getCannedJob(shopId: string, id: string): Promise<CannedJo
       partLines: {
         select: {
           id: true,
+          lineType: true,
           brand: true,
           description: true,
           partNumber: true,
           costCents: true,
           quantity: true,
+          inventoryPartId: true,
+          tireStockId: true,
           sortOrder: true,
         },
         orderBy: { sortOrder: "asc" },
@@ -140,6 +151,29 @@ export async function getCannedJob(shopId: string, id: string): Promise<CannedJo
         },
         orderBy: { sortOrder: "asc" },
       },
+      discountLines: {
+        select: {
+          id: true,
+          name: true,
+          method: true,
+          base: true,
+          amount: true,
+          sortOrder: true,
+        },
+        orderBy: { sortOrder: "asc" },
+      },
+      inspectionLines: {
+        select: {
+          id: true,
+          name: true,
+          description: true,
+          inspectionTemplateId: true,
+          hours: true,
+          flatAmountCents: true,
+          sortOrder: true,
+        },
+        orderBy: { sortOrder: "asc" },
+      },
     },
   });
   if (!row) return null;
@@ -149,6 +183,8 @@ export async function getCannedJob(shopId: string, id: string): Promise<CannedJo
     laborLines: row.laborLines,
     partLines: row.partLines,
     feeLines: row.feeLines,
+    discountLines: row.discountLines,
+    inspectionLines: row.inspectionLines,
   };
 }
 

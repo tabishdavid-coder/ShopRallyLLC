@@ -1,6 +1,7 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useId, useMemo, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import { Search } from "lucide-react";
 
 import { Input } from "@/components/ui/input";
@@ -12,14 +13,13 @@ import {
 } from "@/lib/shop-labor-item-types";
 import { cn } from "@/lib/utils";
 
-const MAX_RESULTS = 8;
-
 /** Inline typeahead for picking shop labor catalog items in canned job builder. */
 export function ShopLaborPickerInput({
   value,
   onChange,
   onPick,
   items = [],
+  laborRateCents = 0,
   placeholder = "Search shop labor…",
   className,
   "aria-label": ariaLabel = "Labor name",
@@ -28,28 +28,62 @@ export function ShopLaborPickerInput({
   onChange: (value: string) => void;
   onPick: (line: { description: string; hours: number; flatAmountCents: number | null }) => void;
   items?: ShopLaborItemRow[];
+  laborRateCents?: number;
   placeholder?: string;
   className?: string;
   "aria-label"?: string;
 }) {
   const [open, setOpen] = useState(false);
   const [highlight, setHighlight] = useState(0);
+  const [mounted, setMounted] = useState(false);
+  const [dropdownStyle, setDropdownStyle] = useState<React.CSSProperties | null>(null);
   const rootRef = useRef<HTMLDivElement>(null);
+  const dropdownRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLUListElement>(null);
+  const listId = useId();
 
   const results = useMemo(() => {
     const needle = value.trim().toLowerCase();
-    if (!needle) return items.slice(0, MAX_RESULTS);
-    return items
-      .filter(
-        (item) =>
-          item.name.toLowerCase().includes(needle) ||
-          (item.description?.toLowerCase().includes(needle) ?? false),
-      )
-      .slice(0, MAX_RESULTS);
+    if (!needle) return items;
+    return items.filter(
+      (item) =>
+        item.name.toLowerCase().includes(needle) ||
+        (item.description?.toLowerCase().includes(needle) ?? false),
+    );
   }, [items, value]);
 
   const showDropdown = open && results.length > 0;
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  const updateDropdownPosition = useCallback(() => {
+    const anchor = rootRef.current;
+    if (!anchor) return;
+    const rect = anchor.getBoundingClientRect();
+    setDropdownStyle({
+      position: "fixed",
+      top: rect.bottom + 4,
+      left: rect.left,
+      width: Math.max(rect.width, 224),
+      zIndex: 100,
+    });
+  }, []);
+
+  useEffect(() => {
+    if (!showDropdown) {
+      setDropdownStyle(null);
+      return;
+    }
+    updateDropdownPosition();
+    window.addEventListener("scroll", updateDropdownPosition, true);
+    window.addEventListener("resize", updateDropdownPosition);
+    return () => {
+      window.removeEventListener("scroll", updateDropdownPosition, true);
+      window.removeEventListener("resize", updateDropdownPosition);
+    };
+  }, [showDropdown, updateDropdownPosition, value]);
 
   useEffect(() => {
     setHighlight(0);
@@ -63,14 +97,17 @@ export function ShopLaborPickerInput({
 
   useEffect(() => {
     function onDocClick(e: MouseEvent) {
-      if (!rootRef.current?.contains(e.target as Node)) setOpen(false);
+      const target = e.target as Node;
+      if (rootRef.current?.contains(target)) return;
+      if (dropdownRef.current?.contains(target)) return;
+      setOpen(false);
     }
     document.addEventListener("mousedown", onDocClick);
     return () => document.removeEventListener("mousedown", onDocClick);
   }, []);
 
   function pick(item: ShopLaborItemRow) {
-    onPick(shopLaborItemToCannedLaborLine(item));
+    onPick(shopLaborItemToCannedLaborLine(item, laborRateCents));
     setOpen(false);
   }
 
@@ -96,6 +133,52 @@ export function ShopLaborPickerInput({
     }
   }
 
+  const dropdown =
+    showDropdown && dropdownStyle ? (
+      <div
+        ref={dropdownRef}
+        style={dropdownStyle}
+        className="overflow-hidden rounded-md border border-border bg-white shadow-lg ring-1 ring-brand-navy/10"
+      >
+        <ul
+          ref={listRef}
+          id={listId}
+          role="listbox"
+          className="max-h-[280px] overflow-y-auto py-1"
+        >
+          {results.map((item, idx) => {
+            const active = idx === highlight;
+            const price = shopLaborItemPriceCents(item);
+            return (
+              <li key={item.id} role="presentation">
+                <button
+                  type="button"
+                  role="option"
+                  aria-selected={active}
+                  className={cn(
+                    "flex w-full flex-col items-start px-2.5 py-2 text-left",
+                    active ? "bg-brand-light/25" : "hover:bg-muted/50",
+                  )}
+                  onMouseEnter={() => setHighlight(idx)}
+                  onMouseDown={(e) => {
+                    e.preventDefault();
+                    pick(item);
+                  }}
+                >
+                  <span className="truncate text-xs font-medium text-foreground">{item.name}</span>
+                  <span className="truncate text-[11px] text-muted-foreground">
+                    {item.defaultHours > 0 ? `${item.defaultHours.toFixed(2)}h` : "Flat"}
+                    {price > 0 ? ` · ${formatCents(price)}` : ""}
+                    {item.rateCents > 0 ? ` · ${formatCents(item.rateCents)}/hr` : ""}
+                  </span>
+                </button>
+              </li>
+            );
+          })}
+        </ul>
+      </div>
+    ) : null;
+
   return (
     <div ref={rootRef} className="relative min-w-0">
       <Search className="pointer-events-none absolute left-2 top-1/2 size-3 -translate-y-1/2 text-muted-foreground" />
@@ -111,44 +194,11 @@ export function ShopLaborPickerInput({
         className={cn("pl-7", className)}
         aria-label={ariaLabel}
         aria-expanded={showDropdown}
+        aria-controls={listId}
         aria-autocomplete="list"
         role="combobox"
       />
-      {showDropdown ? (
-        <div className="absolute top-full z-50 mt-1 w-full min-w-[14rem] overflow-hidden rounded-md border border-border bg-white shadow-lg">
-          <ul ref={listRef} role="listbox" className="max-h-48 overflow-y-auto py-1">
-            {results.map((item, idx) => {
-              const active = idx === highlight;
-              const price = shopLaborItemPriceCents(item);
-              return (
-                <li key={item.id} role="presentation">
-                  <button
-                    type="button"
-                    role="option"
-                    aria-selected={active}
-                    className={cn(
-                      "flex w-full flex-col items-start px-2.5 py-1.5 text-left",
-                      active ? "bg-brand-light/25" : "hover:bg-muted/50",
-                    )}
-                    onMouseEnter={() => setHighlight(idx)}
-                    onMouseDown={(e) => {
-                      e.preventDefault();
-                      pick(item);
-                    }}
-                  >
-                    <span className="truncate text-xs font-medium text-foreground">{item.name}</span>
-                    <span className="truncate text-[10px] text-muted-foreground">
-                      {item.defaultHours > 0 ? `${item.defaultHours.toFixed(2)}h` : "Flat"}
-                      {price > 0 ? ` · ${formatCents(price)}` : ""}
-                      {item.rateCents > 0 ? ` · ${formatCents(item.rateCents)}/hr` : ""}
-                    </span>
-                  </button>
-                </li>
-              );
-            })}
-          </ul>
-        </div>
-      ) : null}
+      {mounted && dropdown ? createPortal(dropdown, document.body) : null}
     </div>
   );
 }

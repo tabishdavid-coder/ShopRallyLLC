@@ -50,9 +50,9 @@ export default async function ApprovePage({
           {view.alreadyApproved ? (
             <>
               <JobSection
-                title="Authorized work"
+                title="Approved work"
                 jobs={displayJobs}
-                emptyMessage="No jobs were authorized on this estimate."
+                emptyMessage="No jobs were approved on this estimate."
               />
 
               {declinedJobs.length > 0 ? (

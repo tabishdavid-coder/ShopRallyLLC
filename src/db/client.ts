@@ -11,14 +11,25 @@ const globalForPrisma = globalThis as unknown as {
 /** Bump when generated client shape changes (e.g. Shop.apptWeeklyHours). */
 const PRISMA_SCHEMA_REVISION = 14;
 
+function isPrismaDevLocal(url: URL): boolean {
+  return url.hostname === "localhost" || url.hostname === "127.0.0.1";
+}
+
 function withDevPoolParams(url: string): string {
   if (process.env.NODE_ENV !== "development") return url;
   try {
     const parsed = new URL(url);
-    // Neon free/dev caps are low; extra browser tabs + HMR blow past the pool fast.
-    // Prefer Neon's pooler host when available; keep limit modest either way.
-    const usingPooler = parsed.hostname.includes("-pooler") || parsed.searchParams.get("pgbouncer") === "true";
-    parsed.searchParams.set("connection_limit", usingPooler ? "10" : "8");
+    // Prisma Dev TCP proxy: pgbouncer mode + single connection avoids prepared-statement
+    // collisions ("s0 already exists") and keeps the local proxy from going zombie.
+    if (isPrismaDevLocal(parsed)) {
+      parsed.searchParams.set("pgbouncer", "true");
+      parsed.searchParams.set("connection_limit", "1");
+    } else {
+      // Neon free/dev caps are low; extra browser tabs + HMR blow past the pool fast.
+      const usingPooler =
+        parsed.hostname.includes("-pooler") || parsed.searchParams.get("pgbouncer") === "true";
+      parsed.searchParams.set("connection_limit", usingPooler ? "10" : "8");
+    }
     parsed.searchParams.set("pool_timeout", "30");
     parsed.searchParams.set("connect_timeout", "15");
     return parsed.toString();

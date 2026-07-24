@@ -41,13 +41,16 @@ export function CustomerInsightsPanel({
   initial,
   compact = false,
   drawer = false,
+  banner = false,
 }: {
   customerId: string;
   initial: CustomerInsightsView;
   /** Tighter layout for the right customer drawer. */
   compact?: boolean;
-  /** Full expanded card for drawer Profile tab — matches target screenshot. */
+  /** Expanded card for drawer Profile tab. */
   drawer?: boolean;
+  /** Slim navy/light-blue banner for lifecycle Profile (A+2). */
+  banner?: boolean;
 }) {
   const [view, setView] = useState(initial);
   const [error, setError] = useState<string | null>(null);
@@ -67,25 +70,107 @@ export function CustomerInsightsPanel({
 
   const isDrawerStyle = drawer || compact;
 
+  if (banner && drawer) {
+    const ready = view.kind === "ready" ? view : null;
+    const firstBullet = ready?.insights.bullets[0] ?? null;
+    const extraBullets = ready ? Math.max(0, ready.insights.bullets.length - 1) : 0;
+    const action =
+      ready && ready.insights.suggestedAction.type !== "none"
+        ? ready.insights.suggestedAction
+        : null;
+
+    return (
+      <div className="rounded-md border border-brand-light/50 bg-gradient-to-r from-brand-light/20 via-brand-light/10 to-white px-3 py-2.5">
+        <div className="flex items-start gap-2.5">
+          <span className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-md bg-brand-navy text-white">
+            <Sparkles className="size-3.5" />
+          </span>
+          <div className="min-w-0 flex-1">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <p className="text-xs font-semibold text-brand-navy">AI Insights</p>
+              {ready ? (
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="h-7 gap-1 px-2 text-xs text-brand-navy hover:bg-brand-navy/[0.06]"
+                  disabled={pending}
+                  onClick={refresh}
+                >
+                  {pending ? (
+                    <Loader2 className="size-3 animate-spin" />
+                  ) : (
+                    <RefreshCw className="size-3" />
+                  )}
+                  Refresh
+                </Button>
+              ) : null}
+            </div>
+            {error ? (
+              <p className="mt-1 text-xs text-destructive">{error}</p>
+            ) : null}
+            {view.kind === "upgrade" ? (
+              <p className="mt-1 text-xs text-muted-foreground">
+                Included on {PLANS.ENTERPRISE.name}.{" "}
+                <Link href="/billing" className="font-medium text-brand-navy hover:underline">
+                  Upgrade
+                </Link>
+              </p>
+            ) : null}
+            {view.kind === "empty" ? (
+              <p className="mt-1 text-xs text-muted-foreground">
+                {view.reason === "no_ros"
+                  ? "Insights appear after this customer has at least one repair order."
+                  : "AI insights require platform AI configuration."}
+              </p>
+            ) : null}
+            {view.kind === "error" ? (
+              <p className="mt-1 text-xs text-destructive">{view.message}</p>
+            ) : null}
+            {firstBullet ? (
+              <p className="mt-1 line-clamp-2 text-xs leading-snug text-foreground/85">
+                {firstBullet}
+                {extraBullets > 0 ? ` · +${extraBullets} more` : null}
+              </p>
+            ) : null}
+            {action ? (
+              <p className="mt-1.5 flex flex-wrap items-center gap-1.5 text-[11px]">
+                <span className="inline-flex items-center gap-1 rounded bg-brand-navy px-1.5 py-0.5 font-semibold text-white">
+                  {(() => {
+                    const Icon = ACTION_ICON[action.type];
+                    return <Icon className="size-3" />;
+                  })()}
+                  {action.label}
+                </span>
+                <span className="min-w-0 text-muted-foreground line-clamp-1">
+                  {action.rationale}
+                </span>
+              </p>
+            ) : null}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <Card
       className={cn(
         "border-brand-light/40 bg-gradient-to-br from-brand-light/10 to-card",
         isDrawerStyle &&
-          "rounded-lg border border-[#DDE5EF] bg-white bg-none py-0 shadow-none ring-0 ring-offset-0 [--card-spacing:--spacing(3)]",
+          "rounded-lg border border-border bg-white bg-none py-0 shadow-none ring-0 ring-offset-0 [--card-spacing:--spacing(3)]",
       )}
     >
       {drawer ? (
-        <CardHeader className="flex-row items-center justify-between space-y-0 border-b border-[#DDE5EF]/60 px-4 py-3 pb-3">
-          <CardTitle className="flex items-center gap-2 text-sm font-semibold text-[#0B1F3B]">
-            <Sparkles className="size-4 text-[#E86A10]" />
+        <CardHeader className="flex-row items-center justify-between space-y-0 border-b border-border/60 px-4 py-3 pb-3">
+          <CardTitle className="flex items-center gap-2 text-sm font-semibold text-brand-navy">
+            <Sparkles className="size-4 text-brand-navy" />
             AI Insights
           </CardTitle>
           {view.kind === "ready" ? (
             <Button
               size="sm"
               variant="outline"
-              className="h-8 gap-1.5 rounded-md border-[#DDE5EF] px-3 text-xs font-medium text-[#0B1F3B] hover:border-[#1E7FE0] hover:bg-[#f2f8fe]"
+              className="h-8 gap-1.5 rounded-md border-border px-3 text-xs font-medium text-brand-navy hover:border-brand-navy/40 hover:bg-brand-light/15"
               disabled={pending}
               onClick={refresh}
             >
@@ -173,7 +258,7 @@ export function CustomerInsightsPanel({
             <ul
               className={cn(
                 drawer
-                  ? "space-y-2.5 text-sm text-[#0B1F3B]"
+                  ? "space-y-2.5 text-sm text-brand-navy"
                   : compact
                     ? "grid min-w-0 flex-1 gap-x-5 gap-y-1.5 text-xs sm:grid-cols-2"
                     : "space-y-2 text-sm",
@@ -182,14 +267,14 @@ export function CustomerInsightsPanel({
               {view.insights.bullets.map((bullet, i) => (
                 <li key={i} className="flex gap-2.5">
                   {drawer ? (
-                    <span className="mt-0.5 flex size-4 shrink-0 items-center justify-center rounded-full bg-[#1E7FE0]/15">
-                      <Info className="size-2.5 text-[#1E7FE0]" strokeWidth={2.5} />
+                    <span className="mt-0.5 flex size-4 shrink-0 items-center justify-center rounded-full bg-brand-light/40">
+                      <Info className="size-2.5 text-brand-navy" strokeWidth={2.5} />
                     </span>
                   ) : (
                     <span
                       className={cn(
                         "shrink-0 bg-brand-navy",
-                        compact ? "mt-1.5 size-1.5 rounded-none bg-[#1E7FE0]" : "mt-2 size-1.5 rounded-full",
+                        compact ? "mt-1.5 size-1.5 rounded-none" : "mt-2 size-1.5 rounded-full",
                       )}
                     />
                   )}
@@ -202,7 +287,7 @@ export function CustomerInsightsPanel({
               <Button
                 size="sm"
                 variant="outline"
-                className="h-7 shrink-0 gap-1 rounded-none border-[#DDE5EF] px-2 text-xs text-[#0B1F3B] hover:border-[#1E7FE0]"
+                className="h-7 shrink-0 gap-1 rounded-none border-border px-2 text-xs text-brand-navy hover:border-brand-navy/40"
                 disabled={pending}
                 onClick={refresh}
               >
@@ -217,21 +302,21 @@ export function CustomerInsightsPanel({
 
             {view.insights.suggestedAction.type !== "none" ? (
               drawer ? (
-                <div className="rounded-lg bg-[#E8F4FD] px-4 py-3">
+                <div className="rounded-lg bg-brand-light/20 px-4 py-3">
                   <div className="flex gap-3">
                     {(() => {
                       const Icon = ACTION_ICON[view.insights.suggestedAction.type];
                       return (
-                        <span className="flex size-9 shrink-0 items-center justify-center rounded-full bg-[#0B1F3B]">
+                        <span className="flex size-9 shrink-0 items-center justify-center rounded-md bg-brand-navy">
                           <Icon className="size-4 text-white" />
                         </span>
                       );
                     })()}
                     <div className="min-w-0 flex-1">
-                      <p className="text-sm font-semibold text-[#0B1F3B]">
+                      <p className="text-sm font-semibold text-brand-navy">
                         {view.insights.suggestedAction.label}
                       </p>
-                      <p className="mt-1 text-xs leading-relaxed text-[#5B7295]">
+                      <p className="mt-1 text-xs leading-relaxed text-muted-foreground">
                         {view.insights.suggestedAction.rationale}
                       </p>
                     </div>

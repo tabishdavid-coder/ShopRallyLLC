@@ -3,12 +3,14 @@
 import type { ReactNode } from "react";
 
 import { EstimateLabLaborProvider } from "@/components/estimate-building/estimate-lab-labor-provider";
+import type { QuickLaborVehicle } from "@/lib/quick-labor";
 
-/** Wraps estimate job lists so Tekmetric + inline layouts can open SmartLaborGuide. */
+/** Wraps estimate job lists so Tekmetric + inline layouts can open Tabish Friday Labor. */
 export function EstimateLaborGuideShell({
   children,
   roId,
   vehicleId,
+  initialVehicle,
   customerName,
   vehicleLabel,
   specLine,
@@ -18,6 +20,7 @@ export function EstimateLaborGuideShell({
   children: ReactNode;
   roId: string;
   vehicleId: string;
+  initialVehicle?: QuickLaborVehicle | null;
   customerName: string;
   vehicleLabel: string;
   specLine: string;
@@ -28,6 +31,7 @@ export function EstimateLaborGuideShell({
     <EstimateLabLaborProvider
       roId={roId}
       vehicleId={vehicleId}
+      initialVehicle={initialVehicle}
       customerName={customerName}
       vehicleLabel={vehicleLabel}
       specLine={specLine}

@@ -1,5 +1,6 @@
 import { prisma } from "@/db/client";
 import { recomputeRoTotals } from "@/lib/ro-total-sync";
+import type { PrismaClient } from "@/generated/prisma";
 
 /**
  * Sync RO-level shop fees with Settings → Shop Fees:
@@ -9,19 +10,20 @@ import { recomputeRoTotals } from "@/lib/ro-total-sync";
 export async function ensureAutoApplyFees(
   shopId: string,
   repairOrderId: string,
+  db: PrismaClient = prisma,
 ): Promise<boolean> {
-  const ro = await prisma.repairOrder.findFirst({
+  const ro = await db.repairOrder.findFirst({
     where: { id: repairOrderId, shopId },
     select: { id: true },
   });
   if (!ro) return false;
 
   const [templates, existing] = await Promise.all([
-    prisma.shopFeeTemplate.findMany({
+    db.shopFeeTemplate.findMany({
       where: { shopId },
       orderBy: { sortOrder: "asc" },
     }),
-    prisma.fee.findMany({
+    db.fee.findMany({
       where: { shopId, repairOrderId, jobId: null },
       select: { id: true, name: true },
     }),
@@ -42,18 +44,18 @@ export async function ensureAutoApplyFees(
     .map((f) => f.id);
 
   if (inactiveIds.length) {
-    await prisma.fee.deleteMany({ where: { id: { in: inactiveIds } } });
+    await db.fee.deleteMany({ where: { id: { in: inactiveIds } } });
     changed = true;
   }
 
   const autoTemplates = templates.filter((t) => t.autoApply);
   if (!autoTemplates.length) {
-    if (changed) await recomputeRoTotals(repairOrderId);
+    if (changed) await recomputeRoTotals(repairOrderId, db);
     return changed;
   }
 
   const refreshed = changed
-    ? await prisma.fee.findMany({
+    ? await db.fee.findMany({
         where: { shopId, repairOrderId, jobId: null },
         select: { name: true },
       })
@@ -62,12 +64,12 @@ export async function ensureAutoApplyFees(
   const have = new Set(refreshed.map((f) => f.name.trim().toLowerCase()));
   const missing = autoTemplates.filter((t) => !have.has(t.name.trim().toLowerCase()));
   if (!missing.length) {
-    if (changed) await recomputeRoTotals(repairOrderId);
+    if (changed) await recomputeRoTotals(repairOrderId, db);
     return changed;
   }
 
   const baseSort = refreshed.length;
-  await prisma.fee.createMany({
+  await db.fee.createMany({
     data: missing.map((t, i) => ({
       shopId,
       repairOrderId,
@@ -81,7 +83,7 @@ export async function ensureAutoApplyFees(
     })),
   });
 
-  await recomputeRoTotals(repairOrderId);
+  await recomputeRoTotals(repairOrderId, db);
   return true;
 }
 

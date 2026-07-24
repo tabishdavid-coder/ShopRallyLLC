@@ -19,8 +19,9 @@ import type { EditableVehicle } from "@/components/repair-order/edit-vehicle-dia
 export type JobBoardHistoryTarget = {
   customerId: string;
   customerName: string;
-  roId: string;
-  roNumber: number;
+  /** Optional — profile-only opens (e.g. Messages) may omit RO context. */
+  roId?: string;
+  roNumber?: number;
   customerFirstName?: string;
   customerLastName?: string;
   customerPhone?: string | null;
@@ -36,14 +37,21 @@ export type JobBoardHistoryTarget = {
   } | null;
 };
 
-export type JobBoardSpecsTarget = JobBoardHistoryTarget & {
+export type JobBoardVehicleTarget = JobBoardHistoryTarget & {
   vehicleId: string;
   vehicleLabel: string;
 };
 
+/** @deprecated Use JobBoardVehicleTarget */
+export type JobBoardSpecsTarget = JobBoardVehicleTarget;
+
 type JobBoardContextValue = {
-  openCustomerHistory: (target: JobBoardHistoryTarget) => void;
-  openVehicleSpecs: (target: JobBoardSpecsTarget) => void;
+  openCustomerHistory: (
+    target: JobBoardHistoryTarget,
+    options?: { tab?: ContextDrawerTab },
+  ) => void;
+  /** Opens Vehicles tab for identity edit (not Specs enrichment). */
+  openVehicleDetails: (target: JobBoardVehicleTarget) => void;
 };
 
 const JobBoardContext = createContext<JobBoardContextValue | null>(null);
@@ -104,19 +112,20 @@ export function JobBoardHistoryProvider({
 }) {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [drawerTab, setDrawerTab] = useState<ContextDrawerTab>("profile");
-  const [autoOpenSpecs, setAutoOpenSpecs] = useState(false);
   const [target, setTarget] = useState<JobBoardHistoryTarget | null>(null);
 
-  /** Opens the shared RO/customer right menu on Repair orders (current RO highlighted). */
-  const openCustomerHistory = useCallback((next: JobBoardHistoryTarget) => {
-    setTarget(next);
-    setDrawerTab("orders");
-    setAutoOpenSpecs(false);
-    setDrawerOpen(true);
-  }, []);
+  /** Opens the shared customer lifecycle drawer without leaving the host page. */
+  const openCustomerHistory = useCallback(
+    (next: JobBoardHistoryTarget, options?: { tab?: ContextDrawerTab }) => {
+      setTarget(next);
+      setDrawerTab(options?.tab ?? "orders");
+      setDrawerOpen(true);
+    },
+    [],
+  );
 
-  /** Opens the same right menu on Vehicles with specs expanded — stays on job board. */
-  const openVehicleSpecs = useCallback((next: JobBoardSpecsTarget) => {
+  /** Opens Vehicles tab for identity edit — stays on job board. */
+  const openVehicleDetails = useCallback((next: JobBoardVehicleTarget) => {
     setTarget({
       ...next,
       vehicleId: next.vehicleId,
@@ -132,13 +141,12 @@ export function JobBoardHistoryProvider({
         : null),
     });
     setDrawerTab("vehicles");
-    setAutoOpenSpecs(true);
     setDrawerOpen(true);
   }, []);
 
   const value = useMemo(
-    () => ({ openCustomerHistory, openVehicleSpecs }),
-    [openCustomerHistory, openVehicleSpecs],
+    () => ({ openCustomerHistory, openVehicleDetails }),
+    [openCustomerHistory, openVehicleDetails],
   );
 
   const customer = target ? seedCustomer(target) : null;
@@ -152,16 +160,10 @@ export function JobBoardHistoryProvider({
           open={drawerOpen}
           onOpenChange={(next) => {
             setDrawerOpen(next);
-            if (!next) {
-              setTarget(null);
-              setAutoOpenSpecs(false);
-            }
+            if (!next) setTarget(null);
           }}
           tab={drawerTab}
-          onTabChange={(tab) => {
-            setDrawerTab(tab);
-            if (tab !== "vehicles") setAutoOpenSpecs(false);
-          }}
+          onTabChange={setDrawerTab}
           customer={customer}
           customerId={target.customerId}
           vehicle={vehicle}
@@ -171,8 +173,7 @@ export function JobBoardHistoryProvider({
           initialData={null}
           appointmentEmployees={appointmentEmployees}
           defaultAppointmentDurationMins={defaultAppointmentDurationMins}
-          autoOpenSpecs={autoOpenSpecs}
-          source="estimate"
+          source={target.roId ? "estimate" : "customers"}
         />
       ) : null}
     </JobBoardContext.Provider>

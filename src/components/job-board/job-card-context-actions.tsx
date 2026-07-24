@@ -98,7 +98,7 @@ export function JobCardContextActions({
   };
 
   const chatLabel = labeled ? "Chat" : "Message";
-  const vehicleActionLabel = labeled ? "Vehicle" : "Car specs";
+  const vehicleActionLabel = "Vehicle";
 
   const iconClass = labeled ? "size-3.5 shrink-0 opacity-80" : "size-3.5 shrink-0";
 
@@ -204,10 +204,10 @@ export function JobCardContextActions({
           variant={variant}
           size={size}
           className={btnClass}
-          title="Vehicle specifications"
-          aria-label="Vehicle specifications"
+          title="Vehicle details"
+          aria-label="Vehicle details"
           onClick={() =>
-            ctx.openVehicleSpecs({
+            ctx.openVehicleDetails({
               ...historyTarget,
               vehicleId,
               vehicleLabel,
@@ -224,9 +224,9 @@ export function JobCardContextActions({
           variant={variant}
           size={size}
           className={btnClass}
-          title="Vehicle specifications"
+          title="Vehicle details"
         >
-          <Link href={roEstimateActionHref(roId, "specs")} aria-label="Vehicle specifications">
+          <Link href={roEstimateActionHref(roId, "vehicle")} aria-label="Vehicle details">
             <Car className={iconClass} aria-hidden />
             {showLabels ? vehicleActionLabel : null}
           </Link>

@@ -11,7 +11,7 @@ export type ShopCapabilities = {
   sms: boolean;
   /** Stripe Connect / online RO checkout — Pro+ only. */
   stripePayments: boolean;
-  /** Licensed MOTOR Labor Book — Pro+ only. */
+  /** OEM Labor Guide (Pro/Elite) — platform OEM primary, MOTOR fallback. */
   motorLabor: boolean;
   /** PartsTech / vendor parts lookup — included on Ignition (Core) and above. */
   partsTech: boolean;
@@ -74,7 +74,7 @@ export function usePlanFeatures(): PlanFeatureSet {
   return useShopCapabilities().planFeatures;
 }
 
-/** Licensed MOTOR Labor Book UI — Pro+. */
+/** OEM Labor Guide UI — Pro/Elite when plan + release flag allow premium labor. */
 export function useMotorLaborUiEnabled(): boolean {
   return useShopCapabilities().motorLabor;
 }

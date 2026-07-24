@@ -11,8 +11,25 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const projectRoot = path.resolve(__dirname, "..");
 const nextCli = path.join(projectRoot, "node_modules", "next", "dist", "bin", "next");
 
+/** Prisma Dev TCP needs pgbouncer mode to avoid prepared-statement collisions. */
+function prismaDevSafeUrl(raw) {
+  if (!raw) return raw;
+  try {
+    const parsed = new URL(raw);
+    const local = parsed.hostname === "localhost" || parsed.hostname === "127.0.0.1";
+    if (!local) return raw;
+    parsed.searchParams.set("sslmode", parsed.searchParams.get("sslmode") ?? "disable");
+    parsed.searchParams.set("pgbouncer", "true");
+    parsed.searchParams.set("connection_limit", "1");
+    return parsed.toString();
+  } catch {
+    return raw;
+  }
+}
+
 const env = {
   ...process.env,
+  DATABASE_URL: prismaDevSafeUrl(process.env.DATABASE_URL),
   APP_URL: process.env.APP_URL ?? `http://localhost:${PORT}`,
   NEXT_PUBLIC_AP_SHELL: "3030",
   NEXT_PUBLIC_SHOPRALLY_DESIGN_MODE: "0",
@@ -51,7 +68,7 @@ function freePort(port) {
 freePort(PORT);
 
 console.log(`[dev] ShopRally CRM — http://localhost:${PORT}`);
-console.log(`[dev] Tip: keep ONE browser tab open — extra tabs exhaust the Neon pool.`);
+console.log(`[dev] Local DB: Prisma Dev (shoprally). Start with: npm run db:dev`);
 
 const child = spawn(process.execPath, [nextCli, "dev", "-p", String(PORT)], {
   stdio: "inherit",

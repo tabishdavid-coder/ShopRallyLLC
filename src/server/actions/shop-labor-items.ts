@@ -1,7 +1,5 @@
 "use server";
 
-import { revalidatePath } from "next/cache";
-
 import { prisma } from "@/db/client";
 import { getShopId } from "@/lib/shop";
 import { SaveShopLaborItemInput } from "@/lib/shop-labor-item-schemas";
@@ -11,6 +9,10 @@ import {
   listShopLaborItemsForManage,
   listShopLaborItemsForPicker,
 } from "@/server/shop-labor-items";
+import {
+  revalidateShopLaborSurfaces,
+  syncShopDefaultLaborRateCents,
+} from "@/server/shop-labor-rates-sync";
 
 export type ShopLaborItemResult = { ok: true; id?: string } | { ok: false; error: string };
 
@@ -19,7 +21,7 @@ export type ShopLaborItemsFetchResult =
   | { ok: false; error: string };
 
 function revalidateShopLabor() {
-  revalidatePath("/canned-jobs");
+  revalidateShopLaborSurfaces();
 }
 
 export async function fetchShopLaborItemsForPicker(q?: string): Promise<ShopLaborItemsFetchResult> {
@@ -57,7 +59,7 @@ export async function saveShopLaborItem(raw: unknown): Promise<ShopLaborItemResu
   if (d.id) {
     const existing = await prisma.shopLaborItem.findFirst({
       where: { id: d.id, shopId },
-      select: { id: true },
+      select: { id: true, isDefault: true },
     });
     if (!existing) return { ok: false, error: "Labor item not found." };
 
@@ -73,6 +75,14 @@ export async function saveShopLaborItem(raw: unknown): Promise<ShopLaborItemResu
         isActive: d.isActive,
       },
     });
+
+    if (existing.isDefault) {
+      await prisma.shop.update({
+        where: { id: shopId },
+        data: { laborRateCents: d.rateCents },
+      });
+    }
+
     revalidateShopLabor();
     return { ok: true, id: d.id };
   }
@@ -80,6 +90,10 @@ export async function saveShopLaborItem(raw: unknown): Promise<ShopLaborItemResu
   const maxSort = await prisma.shopLaborItem.aggregate({
     where: { shopId },
     _max: { sortOrder: true },
+  });
+
+  const hasDefault = await prisma.shopLaborItem.count({
+    where: { shopId, isDefault: true },
   });
 
   const created = await prisma.shopLaborItem.create({
@@ -92,10 +106,15 @@ export async function saveShopLaborItem(raw: unknown): Promise<ShopLaborItemResu
       costCents: d.costCents,
       taxable: d.taxable,
       isActive: d.isActive,
+      isDefault: hasDefault === 0,
       sortOrder: (maxSort._max.sortOrder ?? -1) + 1,
     },
-    select: { id: true },
+    select: { id: true, isDefault: true },
   });
+
+  if (created.isDefault) {
+    await syncShopDefaultLaborRateCents(shopId);
+  }
   revalidateShopLabor();
   return { ok: true, id: created.id };
 }
@@ -105,8 +124,29 @@ export async function deleteShopLaborItem(id: string): Promise<ShopLaborItemResu
   const denied = await gates.cannedJobsManage(shopId);
   if (denied) return { ok: false, error: denied.error };
 
-  const res = await prisma.shopLaborItem.deleteMany({ where: { id, shopId } });
-  if (res.count === 0) return { ok: false, error: "Labor item not found." };
+  const existing = await prisma.shopLaborItem.findFirst({
+    where: { id, shopId },
+    select: { isDefault: true },
+  });
+  if (!existing) return { ok: false, error: "Labor item not found." };
+
+  await prisma.shopLaborItem.deleteMany({ where: { id, shopId } });
+
+  if (existing.isDefault) {
+    const next = await prisma.shopLaborItem.findFirst({
+      where: { shopId },
+      orderBy: [{ sortOrder: "asc" }, { name: "asc" }],
+      select: { id: true },
+    });
+    if (next) {
+      await prisma.shopLaborItem.updateMany({
+        where: { id: next.id, shopId },
+        data: { isDefault: true },
+      });
+    }
+    await syncShopDefaultLaborRateCents(shopId);
+  }
+
   revalidateShopLabor();
   return { ok: true };
 }

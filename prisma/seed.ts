@@ -39,6 +39,7 @@ import { ensureAutoApplyFees } from "../src/lib/ro-fees-apply";
 import { CANNED_JOB_SEED_TEMPLATES } from "../src/lib/canned-jobs-seed-data";
 import { SHOP_LABOR_ITEM_SEED } from "../src/lib/shop-labor-items-seed-data";
 import { FAQ_SEED } from "./data/faqs";
+import { seedMacutoBulkData } from "./data/seed-macuto-bulk";
 import { hashAgreementContent } from "../src/lib/agreement-hash";
 import {
   AGREEMENT_SEED_DEFINITIONS,
@@ -124,6 +125,7 @@ async function seedShopLaborItemsForShop(prismaClient: PrismaClient, shopId: str
       costCents: item.costCents ?? 0,
       taxable: item.taxable ?? true,
       isActive: item.isActive ?? true,
+      isDefault: i === 0,
       sortOrder: i,
     })),
   });
@@ -332,6 +334,15 @@ async function main() {
       },
       plan: "PROFESSIONAL",
       billingStatus: "ACTIVE",
+      planFeatures: {
+        _release: {
+          motorLabor: true,
+          sms: true,
+          partsTech: true,
+          growthEngine: true,
+          aiSuite: true,
+        },
+      },
       estimateTermsHtml: DEFAULT_ESTIMATE_TERMS_HTML,
       invoiceTermsHtml: DEFAULT_INVOICE_TERMS_HTML,
       estimateTermsVersion: "1.0",
@@ -606,6 +617,9 @@ async function main() {
       phone: "(718) 555-0144",
       phoneDigits: phoneDigitsKey("(718) 555-0144"),
       email: "maria.cortes@example.com",
+      // Ignition SMS demo: transactional consent so RO / Messages sends work in tests
+      transactionalSmsConsent: true,
+      marketingOptIn: true,
     },
   });
 
@@ -709,6 +723,8 @@ async function main() {
       phone: "(718) 555-0188",
       phoneDigits: phoneDigitsKey("(718) 555-0188"),
       email: "james.rivera@example.com",
+      transactionalSmsConsent: true,
+      marketingOptIn: true,
     },
   });
   const macutoSandra = await prisma.customer.create({
@@ -720,6 +736,8 @@ async function main() {
       phone: "(347) 555-0166",
       phoneDigits: phoneDigitsKey("(347) 555-0166"),
       email: "sandra.okonkwo@example.com",
+      transactionalSmsConsent: true,
+      marketingOptIn: true,
     },
   });
   const macutoKevin = await prisma.customer.create({
@@ -731,6 +749,8 @@ async function main() {
       phone: "(929) 555-0133",
       phoneDigits: phoneDigitsKey("(929) 555-0133"),
       email: "kevin.tran@example.com",
+      transactionalSmsConsent: true,
+      marketingOptIn: true,
     },
   });
 
@@ -908,6 +928,17 @@ async function main() {
       },
     ],
   });
+
+  const macutoBulk = await seedMacutoBulkData(prisma, {
+    shopId: macuto.id,
+    serviceWriterId: elena.id,
+    technicianId: miguel.id,
+    laborRateCents: dollars(125),
+    smsFromNumber: MACUTO_SMS_FROM,
+  });
+  console.log(
+    `  Macuto QA bulk: ${macutoBulk.customers} customers, ${macutoBulk.vehicles} vehicles, ${macutoBulk.repairOrders} ROs, ${macutoBulk.appointments} appointments, ${macutoBulk.messages} SMS, ${macutoBulk.inspections} inspections, ${macutoBulk.invoices} invoices`,
+  );
 
   // Demo login history for the owner (Employees → History tab).
   const ua = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36";
@@ -1574,6 +1605,21 @@ async function main() {
     { stockNumber: "TR-GDY-2657017", brand: "Goodyear", model: "Wrangler SR-A", size: "265/70R17", width: 265, aspectRatio: 70, rimDiameter: 17, loadSpeed: "113T", seasonality: "ALL_SEASON" as const, condition: "NEW" as const, quantityOnHand: 6, reorderPoint: 4, reorderQty: 4, costCents: dollars(95), retailCents: dollars(165), binLocation: "T1-B1" },
     { stockNumber: "TR-CON-2254517-U", brand: "Continental", model: "ProContact TX", size: "225/45R17", width: 225, aspectRatio: 45, rimDiameter: 17, loadSpeed: "91H", seasonality: "ALL_SEASON" as const, condition: "USED" as const, quantityOnHand: 4, reorderPoint: 2, reorderQty: 4, costCents: dollars(35), retailCents: dollars(69), binLocation: "T2-U1", treadDepth32nds: 6, dotCode: "2319" },
     { stockNumber: "TR-FIR-2055516", brand: "Firestone", model: "WeatherGrip", size: "205/55R16", width: 205, aspectRatio: 55, rimDiameter: 16, loadSpeed: "91H", seasonality: "ALL_WEATHER" as const, condition: "NEW" as const, quantityOnHand: 2, reorderPoint: 4, reorderQty: 8, costCents: dollars(72), retailCents: dollars(125), binLocation: "T1-C1", notes: "Low stock demo SKU" },
+    { stockNumber: "TR-YOK-2155517", brand: "Yokohama", model: "Avid Ascend GT", size: "215/55R17", width: 215, aspectRatio: 55, rimDiameter: 17, loadSpeed: "94V", seasonality: "ALL_SEASON" as const, condition: "NEW" as const, quantityOnHand: 10, reorderPoint: 4, reorderQty: 8, costCents: dollars(78), retailCents: dollars(139), binLocation: "T1-A3" },
+    { stockNumber: "TR-HAN-2356018", brand: "Hankook", model: "Kinergy GT", size: "235/60R18", width: 235, aspectRatio: 60, rimDiameter: 18, loadSpeed: "107H", seasonality: "ALL_SEASON" as const, condition: "NEW" as const, quantityOnHand: 8, reorderPoint: 4, reorderQty: 8, costCents: dollars(92), retailCents: dollars(159), binLocation: "T1-B2" },
+    { stockNumber: "TR-BRI-2256016", brand: "Bridgestone", model: "Turanza QuietTrack", size: "225/60R16", width: 225, aspectRatio: 60, rimDiameter: 16, loadSpeed: "98H", seasonality: "ALL_SEASON" as const, condition: "NEW" as const, quantityOnHand: 6, reorderPoint: 4, reorderQty: 8, costCents: dollars(85), retailCents: dollars(145), binLocation: "T1-C2" },
+    { stockNumber: "TR-PIR-2454019", brand: "Pirelli", model: "Cinturato P7 All Season Plus", size: "245/40R19", width: 245, aspectRatio: 40, rimDiameter: 19, loadSpeed: "98Y", seasonality: "ALL_SEASON" as const, condition: "NEW" as const, quantityOnHand: 4, reorderPoint: 2, reorderQty: 4, costCents: dollars(135), retailCents: dollars(225), binLocation: "T1-D1" },
+    { stockNumber: "TR-COO-2755520", brand: "Cooper", model: "Discoverer HT3", size: "275/55R20", width: 275, aspectRatio: 55, rimDiameter: 20, loadSpeed: "113T", seasonality: "ALL_SEASON" as const, condition: "NEW" as const, quantityOnHand: 4, reorderPoint: 2, reorderQty: 4, costCents: dollars(118), retailCents: dollars(199), binLocation: "T1-D2" },
+    { stockNumber: "TR-GEN-1956515", brand: "General", model: "Altimax RT43", size: "195/65R15", width: 195, aspectRatio: 65, rimDiameter: 15, loadSpeed: "91H", seasonality: "ALL_SEASON" as const, condition: "NEW" as const, quantityOnHand: 12, reorderPoint: 6, reorderQty: 12, costCents: dollars(58), retailCents: dollars(99), binLocation: "T1-E1" },
+    { stockNumber: "TR-FAL-2255017", brand: "Falken", model: "Sincera SN250 A/S", size: "225/50R17", width: 225, aspectRatio: 50, rimDiameter: 17, loadSpeed: "94V", seasonality: "ALL_SEASON" as const, condition: "NEW" as const, quantityOnHand: 6, reorderPoint: 4, reorderQty: 8, costCents: dollars(72), retailCents: dollars(129), binLocation: "T1-E2" },
+    { stockNumber: "TR-NIT-2557017", brand: "Nitto", model: "NT421Q", size: "255/70R17", width: 255, aspectRatio: 70, rimDiameter: 17, loadSpeed: "115T", seasonality: "ALL_SEASON" as const, condition: "NEW" as const, quantityOnHand: 4, reorderPoint: 2, reorderQty: 4, costCents: dollars(105), retailCents: dollars(179), binLocation: "T1-F1" },
+    { stockNumber: "TR-MIC-2254518-U", brand: "Michelin", model: "Pilot Sport A/S 4", size: "225/45R18", width: 225, aspectRatio: 45, rimDiameter: 18, loadSpeed: "95W", seasonality: "ALL_SEASON" as const, condition: "USED" as const, quantityOnHand: 2, reorderPoint: 2, reorderQty: 4, costCents: dollars(55), retailCents: dollars(99), binLocation: "T2-U2", treadDepth32nds: 5, dotCode: "4520" },
+    { stockNumber: "TR-BFG-2756518", brand: "BFGoodrich", model: "All-Terrain T/A KO2", size: "275/65R18", width: 275, aspectRatio: 65, rimDiameter: 18, loadSpeed: "123S", seasonality: "ALL_SEASON" as const, condition: "NEW" as const, quantityOnHand: 4, reorderPoint: 2, reorderQty: 4, costCents: dollars(165), retailCents: dollars(279), binLocation: "T1-F2" },
+    { stockNumber: "TR-GDY-2055516-W", brand: "Goodyear", model: "Ultra Grip Winter", size: "205/55R16", width: 205, aspectRatio: 55, rimDiameter: 16, loadSpeed: "91T", seasonality: "WINTER" as const, condition: "NEW" as const, quantityOnHand: 8, reorderPoint: 4, reorderQty: 8, costCents: dollars(68), retailCents: dollars(119), binLocation: "T1-W1" },
+    { stockNumber: "TR-BRI-2254517-W", brand: "Bridgestone", model: "Blizzak WS90", size: "225/45R17", width: 225, aspectRatio: 45, rimDiameter: 17, loadSpeed: "91H", seasonality: "WINTER" as const, condition: "NEW" as const, quantityOnHand: 6, reorderPoint: 4, reorderQty: 8, costCents: dollars(98), retailCents: dollars(169), binLocation: "T1-W2" },
+    { stockNumber: "TR-MIC-2454519", brand: "Michelin", model: "Pilot Sport 4S", size: "245/45R19", width: 245, aspectRatio: 45, rimDiameter: 19, loadSpeed: "98Y", seasonality: "SUMMER" as const, condition: "NEW" as const, quantityOnHand: 4, reorderPoint: 2, reorderQty: 4, costCents: dollars(185), retailCents: dollars(309), binLocation: "T1-S1" },
+    { stockNumber: "TR-CON-2355519", brand: "Continental", model: "ExtremeContact Sport", size: "235/55R19", width: 235, aspectRatio: 55, rimDiameter: 19, loadSpeed: "101Y", seasonality: "SUMMER" as const, condition: "NEW" as const, quantityOnHand: 4, reorderPoint: 2, reorderQty: 4, costCents: dollars(142), retailCents: dollars(239), binLocation: "T1-S2" },
+    { stockNumber: "TR-FIR-2657017-U", brand: "Firestone", model: "Destination LE3", size: "265/70R17", width: 265, aspectRatio: 70, rimDiameter: 17, loadSpeed: "115T", seasonality: "ALL_SEASON" as const, condition: "USED" as const, quantityOnHand: 2, reorderPoint: 2, reorderQty: 4, costCents: dollars(42), retailCents: dollars(79), binLocation: "T2-U3", treadDepth32nds: 7, dotCode: "3821" },
   ] as const;
 
   for (const shopId of [demo.id, macuto.id]) {
@@ -1600,7 +1646,7 @@ async function main() {
     select: { id: true },
   });
   for (const ro of demoRos) {
-    await ensureAutoApplyFees(demo.id, ro.id);
+    await ensureAutoApplyFees(demo.id, ro.id, prisma);
   }
 
   // Google Reviews — demo inbox (mock mode until shop connects GBP)
@@ -1815,6 +1861,25 @@ async function main() {
     { partNumber: "WIP-22", description: "Wiper blade — 22 in", brand: "Bosch", category: "Other", vendorName: "AutoZone Commercial", quantityOnHand: 14, reorderPoint: 8, reorderQty: 16, costCents: dollars(10), retailCents: dollars(40), binLocation: "H1-01" },
     { partNumber: "FUEL-FILTER", description: "Inline fuel filter", brand: "WIX", category: "Filters", vendorName: "NAPA", quantityOnHand: 5, reorderPoint: 6, reorderQty: 12, costCents: dollars(15), retailCents: dollars(60), binLocation: "A1-05" },
     { partNumber: "PCV-VALVE", description: "PCV valve", brand: "Standard", category: "Engine", vendorName: "NAPA", quantityOnHand: 7, reorderPoint: 5, reorderQty: 10, costCents: dollars(6), retailCents: dollars(24), binLocation: "D1-02" },
+    { partNumber: "RAD-CAP-16", description: "Radiator cap — 16 psi", brand: "Stant", category: "Cooling", vendorName: "NAPA", quantityOnHand: 8, reorderPoint: 4, reorderQty: 8, costCents: dollars(5), retailCents: dollars(20), binLocation: "D3-01" },
+    { partNumber: "THM-180", description: "Thermostat — 180°F", brand: "Stant", category: "Cooling", vendorName: "NAPA", quantityOnHand: 6, reorderPoint: 4, reorderQty: 8, costCents: dollars(8), retailCents: dollars(32), binLocation: "D3-02" },
+    { partNumber: "RAD-HOSE-LOW", description: "Lower radiator hose", brand: "Dayco", category: "Belts & Hoses", vendorName: "NAPA", quantityOnHand: 3, reorderPoint: 4, reorderQty: 6, costCents: dollars(16), retailCents: dollars(64), binLocation: "D2-05" },
+    { partNumber: "HEATER-HOSE", description: "Heater hose — 5/8 in", brand: "Gates", category: "Belts & Hoses", vendorName: "NAPA", quantityOnHand: 10, reorderPoint: 5, reorderQty: 10, costCents: dollars(4), retailCents: dollars(16), binLocation: "D2-06" },
+    { partNumber: "FUEL-PUMP-MOD", description: "Fuel pump module", brand: "Delphi", category: "Fuel", vendorName: "WorldPac", quantityOnHand: 1, reorderPoint: 2, reorderQty: 2, costCents: dollars(165), retailCents: dollars(660), binLocation: "G2-01" },
+    { partNumber: "IGN-COIL", description: "Ignition coil", brand: "Denso", category: "Ignition", vendorName: "WorldPac", quantityOnHand: 4, reorderPoint: 4, reorderQty: 8, costCents: dollars(38), retailCents: dollars(152), binLocation: "D1-03" },
+    { partNumber: "MAF-SENSOR", description: "Mass airflow sensor", brand: "Bosch", category: "Engine", vendorName: "WorldPac", quantityOnHand: 2, reorderPoint: 2, reorderQty: 4, costCents: dollars(95), retailCents: dollars(380), binLocation: "D1-04" },
+    { partNumber: "WHEEL-BRG-F", description: "Front wheel bearing hub", brand: "Moog", category: "Suspension", vendorName: "WorldPac", quantityOnHand: 2, reorderPoint: 2, reorderQty: 4, costCents: dollars(85), retailCents: dollars(340), binLocation: "F1-03" },
+    { partNumber: "SWAY-LINK-F", description: "Front sway bar link", brand: "Moog", category: "Suspension", vendorName: "WorldPac", quantityOnHand: 4, reorderPoint: 4, reorderQty: 8, costCents: dollars(22), retailCents: dollars(88), binLocation: "F1-04" },
+    { partNumber: "TIE-ROD-IN", description: "Inner tie rod end", brand: "Moog", category: "Steering", vendorName: "WorldPac", quantityOnHand: 3, reorderPoint: 4, reorderQty: 6, costCents: dollars(28), retailCents: dollars(112), binLocation: "F2-01" },
+    { partNumber: "BALL-JOINT-UP", description: "Upper ball joint", brand: "Moog", category: "Suspension", vendorName: "WorldPac", quantityOnHand: 2, reorderPoint: 2, reorderQty: 4, costCents: dollars(35), retailCents: dollars(140), binLocation: "F2-02" },
+    { partNumber: "MUFFLER-UNIV", description: "Universal muffler", brand: "Walker", category: "Exhaust", vendorName: "NAPA", quantityOnHand: 2, reorderPoint: 2, reorderQty: 4, costCents: dollars(55), retailCents: dollars(220), binLocation: "G1-03" },
+    { partNumber: "CAT-CONV-DIR", description: "Catalytic converter — direct fit", brand: "Walker", category: "Exhaust", vendorName: "WorldPac", quantityOnHand: 1, reorderPoint: 1, reorderQty: 2, costCents: dollars(285), retailCents: dollars(1140), binLocation: "G1-04" },
+    { partNumber: "HEADLAMP-H11", description: "H11 headlight bulb", brand: "Sylvania", category: "Electrical", vendorName: "AutoZone Commercial", quantityOnHand: 12, reorderPoint: 6, reorderQty: 12, costCents: dollars(18), retailCents: dollars(72), binLocation: "E2-01" },
+    { partNumber: "FUSE-ASSORT", description: "Blade fuse assortment kit", brand: "Bussmann", category: "Electrical", vendorName: "NAPA", quantityOnHand: 5, reorderPoint: 3, reorderQty: 5, costCents: dollars(12), retailCents: dollars(48), binLocation: "E2-02" },
+    { partNumber: "TRANS-FILTER", description: "Transmission filter kit", brand: "Wix", category: "Transmission", vendorName: "WorldPac", quantityOnHand: 3, reorderPoint: 3, reorderQty: 6, costCents: dollars(22), retailCents: dollars(88), binLocation: "D4-01" },
+    { partNumber: "ATF-MAXLIFE", description: "ATF — MaxLife (1 qt)", brand: "Valvoline", category: "Fluids", vendorName: "NAPA", quantityOnHand: 16, reorderPoint: 8, reorderQty: 16, costCents: dollars(9), retailCents: dollars(36), binLocation: "C1-06" },
+    { partNumber: "OIL-0W20-SYN", description: "0W-20 full synthetic — 5 qt", brand: "Pennzoil Platinum", category: "Fluids", vendorName: "WorldPac", quantityOnHand: 14, reorderPoint: 8, reorderQty: 16, costCents: dollars(32), retailCents: dollars(128), binLocation: "C1-07" },
+    { partNumber: "WASHER-FLUID", description: "Windshield washer fluid — gallon", brand: "Prestone", category: "Fluids", vendorName: "NAPA", quantityOnHand: 20, reorderPoint: 8, reorderQty: 16, costCents: dollars(3), retailCents: dollars(12), binLocation: "C1-08" },
   ] as const;
 
   for (const shopId of [demo.id, macuto.id]) {
@@ -1921,6 +1986,11 @@ async function main() {
   const faqCount = await prisma.faqArticle.count();
   const invCount = await prisma.inventoryPart.count({ where: { shopId: demo.id } });
   const macutoInvCount = await prisma.inventoryPart.count({ where: { shopId: macuto.id } });
+  const macutoCustCount = await prisma.customer.count({ where: { shopId: macuto.id } });
+  const macutoRoCount = await prisma.repairOrder.count({ where: { shopId: macuto.id } });
+  const macutoApptCount = await prisma.appointment.count({ where: { shopId: macuto.id } });
+  const macutoVehCount = await prisma.vehicle.count({ where: { shopId: macuto.id } });
+  const macutoCannedCount = await prisma.cannedJob.count({ where: { shopId: macuto.id } });
   const approvalRo = await prisma.repairOrder.findFirst({
     where: { shopId: demo.id, approvalToken: { not: null } },
     select: { number: true, approvalToken: true },
@@ -1929,7 +1999,7 @@ async function main() {
     `Seed complete: shop "${demo.name}" with ${total} customers, ${roCount} repair orders, ${apptCount} appointments, ${tireStockCount} tire SKUs, ${invCount} inventory parts, ${messageThreadCount} SMS threads, ${reviewCount} Google reviews, ${faqCount} FAQ articles.`,
   );
   console.log(
-    `Macuto Core QA ("${macuto.name}"): ${macutoInvCount} inventory parts, ${macutoTireCount} tire SKUs, ${macutoMessageThreadCount} SMS threads (${macutoMessageCount} messages) — Parts: http://localhost:3031/platform/enter?shop=shop_macuto&next=/inventory · Tires: http://localhost:3031/platform/enter?shop=shop_macuto&next=/tires · Messages: http://localhost:3031/platform/enter?shop=shop_macuto&next=/messages`,
+    `Macuto Core QA ("${macuto.name}"): ${macutoCustCount} customers, ${macutoVehCount} vehicles, ${macutoRoCount} ROs, ${macutoApptCount} appointments, ${macutoInvCount} inventory parts, ${macutoTireCount} tire SKUs, ${macutoCannedCount} canned jobs, ${macutoMessageThreadCount} SMS threads (${macutoMessageCount} messages) — Job board: http://localhost:3031/platform/enter?shop=shop_macuto&next=/job-board · Parts: http://localhost:3031/platform/enter?shop=shop_macuto&next=/inventory · Tires: http://localhost:3031/platform/enter?shop=shop_macuto&next=/tires · Messages: http://localhost:3031/platform/enter?shop=shop_macuto&next=/messages`,
   );
   if (approvalRo?.approvalToken) {
     console.log(

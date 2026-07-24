@@ -11,11 +11,14 @@ export function NewRepairOrderPageClient({
   initialCustomerId,
   initialVehicleId,
   fromQuickLabor,
+  pendingCannedJobId,
 }: {
   config: RoIntakeConfig;
   initialCustomerId?: string;
   initialVehicleId?: string;
   fromQuickLabor?: boolean;
+  /** After RO create, apply this canned job template to the new estimate. */
+  pendingCannedJobId?: string;
 }) {
   const router = useRouter();
 
@@ -28,6 +31,7 @@ export function NewRepairOrderPageClient({
           initialCustomerId={initialCustomerId}
           initialVehicleId={initialVehicleId}
           fromQuickLabor={fromQuickLabor}
+          pendingCannedJobId={pendingCannedJobId}
           onCancel={() => router.push(CRM_HOME_HREF)}
         />
       </div>

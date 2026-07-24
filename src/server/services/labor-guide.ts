@@ -55,17 +55,8 @@ export const LaborSuggestionSchema = z.object({
     ),
 });
 
-export type LaborSuggestion = z.infer<typeof LaborSuggestionSchema>;
-
-export type Vehicle = {
-  vin?: string | null;
-  year: number | null;
-  make: string | null;
-  model: string | null;
-  trim: string | null;
-  engine: string | null;
-  drivetrain?: string | null;
-};
+export type { LaborSuggestion, Vehicle } from "@/lib/labor-guide-types";
+import type { LaborSuggestion, Vehicle } from "@/lib/labor-guide-types";
 
 export type SuggestLaborJobOptions = {
   /** Similar cached rows injected as few-shot context (internal RAG). */

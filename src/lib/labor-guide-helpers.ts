@@ -5,7 +5,7 @@ import type {
   LaborGuideSource,
   LaborVariant,
 } from "@/lib/labor-guide-types";
-import type { LaborSuggestion } from "@/server/services/labor-guide";
+import type { LaborSuggestion } from "@/lib/labor-guide-types";
 
 /**
  * Remove trailing vehicle YMM phrases from estimate line names
@@ -252,12 +252,36 @@ export function laborTierFromDataSource(
 ): LaborTierMeta {
   const ds = (dataSource ?? "").toLowerCase();
 
-  // Licensed book time (MOTOR EWT / catalog) — the only "authority" tier today.
+  // Licensed book time (MOTOR EWT / catalog) — fallback on Pro/Elite after OEM automation.
   if (ds === "motor_ewt" || ds.startsWith("motor") || ds === "y_mm_catalog" || source === "catalog") {
     return {
       tier: "BOOK",
       label: "BOOK",
       badgeClass: "bg-primary/10 text-primary",
+      billable: true,
+      verify: false,
+    };
+  }
+
+  // OEM automation pipeline — primary Pro/Elite book-time lane (Jul 2026).
+  if (
+    ds === "oem_sql_average" ||
+    ds === "oem_automation" ||
+    ds.startsWith("oem_")
+  ) {
+    if (ds === "oem_default_1hr") {
+      return {
+        tier: "AI_DRAFT",
+        label: "OEM · verify",
+        badgeClass: "bg-amber-500/15 text-amber-800",
+        billable: false,
+        verify: true,
+      };
+    }
+    return {
+      tier: "BOOK",
+      label: "OEM BOOK",
+      badgeClass: "bg-brand-navy/10 text-brand-navy",
       billable: true,
       verify: false,
     };

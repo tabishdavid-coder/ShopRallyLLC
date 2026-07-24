@@ -21,6 +21,7 @@ import { EstimateJobActionsCluster } from "@/components/estimate-building/estima
 import { EstimateLabJobsList } from "@/components/estimate-building/estimate-lab-jobs-list";
 import { EstimateLabPartsProvider } from "@/components/estimate-building/estimate-lab-parts-provider";
 import { EstimateLabLaborProvider } from "@/components/estimate-building/estimate-lab-labor-provider";
+import { roVehicleToQuickLaborVehicle } from "@/lib/tabish-friday-labor";
 import { EstimateLabRoHeader } from "@/components/estimate-building/estimate-lab-ro-header";
 import { EstimateLabContextDrawerProvider } from "@/components/estimate-building/estimate-lab-context-drawer-provider";
 import { EstimateLabContextDeeplink } from "@/components/estimate-building/estimate-lab-context-deeplink";
@@ -229,7 +230,7 @@ export async function EstimateBuildingLabPanel({
     getIntegrationStatusForShop(shopId, "weldon"),
   ]);
 
-  // Vehicle specs / catalog / Gemini are NOT loaded here — on-demand via Specs button only.
+  // Vehicle Specs product UI removed — identity edit lives in the Vehicles drawer tab.
   const [
     sidebarOptions,
     auditEvents,
@@ -364,20 +365,6 @@ export async function EstimateBuildingLabPanel({
     deposit,
     estimateTotalCents: ro.totalCents,
     quickReference: buildQuickReference(ro),
-    vehicleId: ro.vehicleId,
-    vehicleIdentitySummary: v
-      ? {
-          vin: v.vin,
-          year: v.year,
-          make: v.make,
-          model: v.model,
-          trim: v.trim,
-          engine: v.engine,
-          transmission: v.transmission,
-          drivetrain: v.drivetrain,
-          bodyClass: v.bodyClass,
-        }
-      : null,
     technicians: sidebarOptions.technicians,
     // Design-mode-only payment status override — production always shows real invoice data.
     allowPaymentPreview: variant === "lab",
@@ -688,6 +675,7 @@ export async function EstimateBuildingLabPanel({
         <EstimateLabLaborProvider
           roId={ro.id}
           vehicleId={ro.vehicleId}
+          initialVehicle={roVehicleToQuickLaborVehicle(v)}
           customerName={customerName}
           vehicleLabel={vehicleLabel}
           specLine={specLine}

@@ -24,43 +24,81 @@ function revalidateMoneySurfaces() {
   revalidatePath("/job-board");
 }
 
-/* ───────────────────────── Labor Rates ───────────────────────── */
+/* ───────────────────────── Labor Rates (unified ShopLaborItem) ───────────────────────── */
 
 const LaborRateRow = z.object({
+  id: z.string().optional(),
   name: z.string().trim().min(1, "Labor rate name is required."),
   rate: z.number().nonnegative(),
   isDefault: z.boolean(),
+  defaultHours: z.number().min(0).max(99).default(1),
+  isActive: z.boolean().default(true),
 });
 
 export async function saveLaborRates(rows: z.infer<typeof LaborRateRow>[]): Promise<RoSettingsResult> {
   const parsed = z.array(LaborRateRow).min(1, "Add at least one labor rate.").safeParse(rows);
   if (!parsed.success) return { ok: false, error: parsed.error.issues[0]?.message ?? "Invalid input." };
   const shopId = await getShopId();
-  const denied = await gates.employeesManage(shopId);
-  if (denied) return { ok: false, error: denied.error };
+  const deniedEmployees = await gates.employeesManage(shopId);
+  const deniedCatalog = await gates.cannedJobsManage(shopId);
+  if (deniedEmployees && deniedCatalog) {
+    return { ok: false, error: deniedEmployees.error ?? deniedCatalog.error ?? "Not allowed." };
+  }
 
-  // Exactly one default; if none flagged, the first wins.
   const data = parsed.data;
   let defaultIdx = data.findIndex((r) => r.isDefault);
   if (defaultIdx < 0) defaultIdx = 0;
-  const defaultRateCents = Math.round(data[defaultIdx].rate * 100);
+  const defaultRateCents = Math.round(data[defaultIdx]!.rate * 100);
 
-  await prisma.$transaction([
-    prisma.laborRate.deleteMany({ where: { shopId } }),
-    prisma.laborRate.createMany({
-      data: data.map((r, i) => ({
-        shopId,
+  await prisma.$transaction(async (tx) => {
+    const existing = await tx.shopLaborItem.findMany({
+      where: { shopId },
+      select: { id: true },
+    });
+    const existingIds = new Set(existing.map((e) => e.id));
+    const keepIds = new Set(data.map((r) => r.id).filter(Boolean) as string[]);
+    const deleteIds = [...existingIds].filter((id) => !keepIds.has(id));
+
+    if (deleteIds.length) {
+      await tx.shopLaborItem.deleteMany({ where: { shopId, id: { in: deleteIds } } });
+    }
+
+    await tx.shopLaborItem.updateMany({
+      where: { shopId, isDefault: true },
+      data: { isDefault: false },
+    });
+
+    for (let i = 0; i < data.length; i++) {
+      const r = data[i]!;
+      const rowData = {
         name: r.name,
         rateCents: Math.round(r.rate * 100),
+        defaultHours: r.defaultHours,
+        isActive: r.isActive,
         isDefault: i === defaultIdx,
         sortOrder: i,
-      })),
-    }),
-    // Default labor rate is the source of truth for new ROs + estimate base rate.
-    prisma.shop.update({ where: { id: shopId }, data: { laborRateCents: defaultRateCents } }),
-  ]);
+      };
+
+      if (r.id && existingIds.has(r.id)) {
+        await tx.shopLaborItem.updateMany({
+          where: { id: r.id, shopId },
+          data: rowData,
+        });
+      } else {
+        await tx.shopLaborItem.create({
+          data: { shopId, ...rowData },
+        });
+      }
+    }
+
+    await tx.shop.update({
+      where: { id: shopId },
+      data: { laborRateCents: defaultRateCents },
+    });
+  });
 
   revalidateMoneySurfaces();
+  revalidatePath("/canned-jobs");
   return { ok: true };
 }
 

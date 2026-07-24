@@ -12,6 +12,7 @@ const rowSelect = {
   costCents: true,
   taxable: true,
   isActive: true,
+  isDefault: true,
   sortOrder: true,
   updatedAt: true,
 } as const;
@@ -25,6 +26,7 @@ function toRow(row: {
   costCents: number;
   taxable: boolean;
   isActive: boolean;
+  isDefault: boolean;
   sortOrder: number;
   updatedAt: Date;
 }): ShopLaborItemRow {

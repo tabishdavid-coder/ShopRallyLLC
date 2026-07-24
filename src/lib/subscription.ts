@@ -35,6 +35,7 @@ export type SubscriptionFeature =
   | "sms"
   | "laborGuide"
   | "motorLabor"
+  | "wiring_diagrams"
   | "reports"
   | "integrations"
   | "multiLocation"
@@ -68,6 +69,7 @@ const FEATURE_MAP: Record<SubscriptionFeature, PlanFeature | null> = {
   sms: "customerSms",
   laborGuide: "laborGuide",
   motorLabor: "motorLabor",
+  wiring_diagrams: "wiringDiagrams",
   reports: "reports",
   integrations: "integrations",
   multiLocation: "multiLocation",
@@ -93,6 +95,7 @@ const FEATURE_RELEASE_MODULE: Partial<Record<SubscriptionFeature, ReleaseModule>
   parts: "partsTech",
   sms: "sms",
   motorLabor: "motorLabor",
+  wiring_diagrams: "wiringDiagrams",
   shop_site: "shopSite",
   website_seo: "websiteSeo",
   marketing_campaigns: "growthEngine",

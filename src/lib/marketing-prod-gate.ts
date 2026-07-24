@@ -11,6 +11,7 @@ import { isClerkConfigured } from "@/lib/clerk-auth-client";
 export const MARKETING_PUBLIC_PREFIXES = [
   "/",
   "/pricing",
+  "/pricing-preview",
   "/features",
   "/compare",
   "/launch",

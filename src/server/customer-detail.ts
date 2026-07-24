@@ -16,6 +16,7 @@ export type CustomerDetailRo = {
   status: string;
   totalCents: number;
   createdAt: Date;
+  vehicleId: string | null;
   vehicleLabel: string;
   balanceCents: number | null;
 };
@@ -35,6 +36,7 @@ export type CustomerDetailVehicle = {
   transmission: string | null;
   drivetrain: string | null;
   bodyClass: string | null;
+  color: string | null;
 };
 
 export type CustomerDetail = {
@@ -114,6 +116,7 @@ export async function getCustomerDetail(
           transmission: true,
           drivetrain: true,
           bodyClass: true,
+          color: true,
         },
       },
       repairOrders: {
@@ -125,6 +128,7 @@ export async function getCustomerDetail(
           status: true,
           totalCents: true,
           createdAt: true,
+          vehicleId: true,
           vehicle: { select: { year: true, make: true, model: true } },
           invoice: { select: { balanceCents: true } },
         },
@@ -140,6 +144,7 @@ export async function getCustomerDetail(
     status: ro.status,
     totalCents: ro.totalCents,
     createdAt: ro.createdAt,
+    vehicleId: ro.vehicleId,
     vehicleLabel: ro.vehicle ? vehicleLabel(ro.vehicle) : "—",
     balanceCents: ro.invoice?.balanceCents ?? null,
   }));

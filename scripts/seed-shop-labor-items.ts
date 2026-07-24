@@ -27,6 +27,7 @@ async function seedShopLabor(shopId: string) {
       costCents: item.costCents ?? 0,
       taxable: item.taxable ?? true,
       isActive: item.isActive ?? true,
+      isDefault: i === 0,
       sortOrder: i,
     })),
   });

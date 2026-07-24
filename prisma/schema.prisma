@@ -246,6 +246,7 @@ enum PlatformAuditEventType {
   SHOP_ACTIVATED
   SHOP_INTAKE_SUBMITTED
   SHOP_CRM_ENTERED
+  SMS_NUMBER_REQUESTED
 }
 
 // Append-only shop-level audit trail for estimate edits, payments, and disputes.
@@ -605,6 +606,10 @@ model Shop {
   twilioMessagingServiceSid String? // optional per-shop Messaging Service (A2P 10DLC)
   smsEnabled        Boolean @default(false)
   smsConfiguredAt   DateTime? // set when shop completes SMS setup wizard
+  /// Shop owner submitted Settings → Phone & SMS setup request (platform fulfills).
+  smsSetupRequestedAt   DateTime?
+  smsPreferredAreaCode  String? // e.g. 718 — used when platform provisions
+  smsSetupRequestNotes  String? @db.Text // porting notes, preferred number, etc.
   smsOptOutFooter   String? // appended to outbound SMS when missing (TCPA)
   /// Premier AI SMS agent — auto-reply after hours on inbound Twilio SMS.
   aiSmsAgentEnabled Boolean @default(false)
@@ -747,6 +752,9 @@ model Shop {
   consentRecords             ConsentRecord[]
   dataPolicy                 ShopDataPolicy?
   roAttachments              RoAttachment[]
+  wiringDiagramSources       WiringDiagramSource[]
+  wiringDiagrams             WiringDiagram[]
+  wiringDiagramDownloadJobs  WiringDiagramDownloadJob[]
 
   @@index([platformId])
 }
@@ -955,9 +963,11 @@ model CannedJob {
   updatedAt   DateTime  @updatedAt
 
   shop       Shop                  @relation(fields: [shopId], references: [id], onDelete: Cascade)
-  laborLines CannedJobLaborLine[]
-  partLines  CannedJobPartLine[]
-  feeLines   CannedJobFeeLine[]
+  laborLines       CannedJobLaborLine[]
+  partLines        CannedJobPartLine[]
+  feeLines         CannedJobFeeLine[]
+  discountLines    CannedJobDiscountLine[]
+  inspectionLines  CannedJobInspectionLine[]
   maintenanceProgramServices MaintenanceProgramService[]
 
   @@index([shopId])
@@ -980,20 +990,42 @@ model CannedJobLaborLine {
   @@index([cannedJobId])
 }
 
+enum CannedJobPartLineType {
+  PART
+  TIRE
+  SUBLET
+  OTHER
+}
+
+enum PartLineType {
+  PART
+  TIRE
+  SUBLET
+  HAZARDOUS
+  OTHER
+}
+
 model CannedJobPartLine {
-  id          String  @id @default(cuid())
-  shopId      String
-  cannedJobId String
-  description String
-  brand       String?
-  partNumber  String?
-  costCents   Int     @default(0)
-  quantity    Int     @default(1)
-  sortOrder   Int     @default(0)
+  id                String                @id @default(cuid())
+  shopId            String
+  cannedJobId       String
+  lineType          CannedJobPartLineType @default(PART)
+  description       String
+  brand             String?
+  partNumber        String?
+  costCents         Int                   @default(0)
+  quantity          Int                   @default(1)
+  /// Optional link to shop parts inventory row (PART lines).
+  inventoryPartId   String?
+  /// Optional link to shop tire stock row (TIRE lines).
+  tireStockId       String?
+  sortOrder         Int                   @default(0)
 
   cannedJob CannedJob @relation(fields: [cannedJobId], references: [id], onDelete: Cascade)
 
   @@index([cannedJobId])
+  @@index([inventoryPartId])
+  @@index([tireStockId])
 }
 
 model CannedJobFeeLine {
@@ -1007,6 +1039,37 @@ model CannedJobFeeLine {
   capCents    Int?
   taxable     Boolean      @default(false)
   sortOrder   Int          @default(0)
+
+  cannedJob CannedJob @relation(fields: [cannedJobId], references: [id], onDelete: Cascade)
+
+  @@index([cannedJobId])
+}
+
+model CannedJobDiscountLine {
+  id          String       @id @default(cuid())
+  shopId      String
+  cannedJobId String
+  name        String
+  method      AdjustMethod @default(FIXED)
+  base        AdjustBase   @default(LABOR_PARTS)
+  amount      Int          @default(0) // bps if PERCENT, cents if FIXED
+  sortOrder   Int          @default(0)
+
+  cannedJob CannedJob @relation(fields: [cannedJobId], references: [id], onDelete: Cascade)
+
+  @@index([cannedJobId])
+}
+
+model CannedJobInspectionLine {
+  id                   String  @id @default(cuid())
+  shopId               String
+  cannedJobId          String
+  name                 String
+  description          String?
+  inspectionTemplateId String?
+  hours                Float   @default(0)
+  flatAmountCents      Int?
+  sortOrder            Int     @default(0)
 
   cannedJob CannedJob @relation(fields: [cannedJobId], references: [id], onDelete: Cascade)
 
@@ -1039,8 +1102,8 @@ model LeadSource {
   @@index([shopId])
 }
 
-// RO Settings → Labor Rates. Named hourly rates; the default feeds new ROs and
-// the estimate base rate (kept in sync with Shop.laborRateCents).
+// RO Settings → Labor Rates (legacy). Superseded by ShopLaborItem — kept for expand-only
+// rollout; app reads/writes ShopLaborItem only.
 model LaborRate {
   id        String  @id @default(cuid())
   shopId    String
@@ -1054,8 +1117,8 @@ model LaborRate {
   @@index([shopId])
 }
 
-// Catalog → Labor. Shop-scoped labor line templates (Maintenance Labor, Inspection Labor, etc.)
-// picked when building canned jobs and estimate labor rows — not the platform Labor Guide corpus.
+// Unified shop labor list — RO Settings labor rates + canned-job labor catalog share this table.
+// The row marked isDefault syncs Shop.laborRateCents for new ROs and estimate base rate.
 model ShopLaborItem {
   id            String   @id @default(cuid())
   shopId        String
@@ -1066,6 +1129,7 @@ model ShopLaborItem {
   costCents     Int      @default(0)
   taxable       Boolean  @default(true)
   isActive      Boolean  @default(true)
+  isDefault     Boolean  @default(false)
   sortOrder     Int      @default(0)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
@@ -1283,10 +1347,93 @@ model Vehicle {
   tireOrders     TireOrder[]
   subscriptionVehicles SubscriptionVehicle[]
   ownershipTransfers VehicleOwnershipTransfer[]
+  wiringDiagrams             WiringDiagram[]
+  wiringDiagramDownloadJobs  WiringDiagramDownloadJob[]
 
   @@index([shopId])
   @@index([customerId])
   @@index([shopId, vin])
+}
+
+enum WiringSystem {
+  ENGINE_MANAGEMENT
+  ABS
+  BODY_CONTROL
+  HVAC
+  OTHER
+}
+
+enum WiringDiagramDownloadStatus {
+  PENDING
+  RUNNING
+  COMPLETED
+  FAILED
+}
+
+/// Shop-licensed OEM portal subscription window (credentials via env key name — never plaintext).
+model WiringDiagramSource {
+  id                String    @id @default(cuid())
+  shopId            String
+  brand             String // honda | toyota | ford | …
+  portalUrlPattern  String?
+  credentialsEnvKey String? // e.g. WIRING_HONDA_SHOP_<shopId> — secret lives in env/Vault
+  subscriptionStart DateTime?
+  subscriptionEnd   DateTime?
+  enabled           Boolean   @default(true)
+  createdAt         DateTime  @default(now())
+  updatedAt         DateTime  @updatedAt
+
+  shop Shop @relation(fields: [shopId], references: [id], onDelete: Cascade)
+
+  @@unique([shopId, brand])
+  @@index([shopId])
+}
+
+/// Cached wiring diagram PDF/PNG — shop-licensed cache; do not redistribute.
+model WiringDiagram {
+  id                 String       @id @default(cuid())
+  shopId             String
+  vehicleId          String
+  wiringSystem       WiringSystem
+  storageKey         String
+  mimeType           String
+  fileName           String?
+  sourceBrand        String
+  pageCount          Int?
+  downloadedAt       DateTime     @default(now())
+  downloadedByUserId String?
+  createdAt          DateTime     @default(now())
+  updatedAt          DateTime     @updatedAt
+
+  shop         Shop                      @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  vehicle      Vehicle                   @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  downloadJobs WiringDiagramDownloadJob[]
+
+  @@unique([shopId, vehicleId, wiringSystem])
+  @@index([shopId, vehicleId])
+}
+
+/// Tracks explicit user-triggered OEM downloads (mutex + status for concurrent requests).
+model WiringDiagramDownloadJob {
+  id              String                      @id @default(cuid())
+  shopId          String
+  vehicleId       String
+  wiringSystem    WiringSystem
+  sourceBrand     String
+  status          WiringDiagramDownloadStatus @default(PENDING)
+  errorMessage    String?
+  wiringDiagramId String?
+  startedAt       DateTime?
+  completedAt     DateTime?
+  createdAt       DateTime                    @default(now())
+  updatedAt       DateTime                    @updatedAt
+
+  shop    Shop             @relation(fields: [shopId], references: [id], onDelete: Cascade)
+  vehicle Vehicle          @relation(fields: [vehicleId], references: [id], onDelete: Cascade)
+  diagram WiringDiagram?   @relation(fields: [wiringDiagramId], references: [id], onDelete: SetNull)
+
+  @@index([shopId, vehicleId, status])
+  @@index([shopId, status])
 }
 
 /** Audit trail when a vehicle is reassigned between customers in the same shop. */
@@ -1552,12 +1699,20 @@ model PartLine {
   status      PartStatus @default(NEEDED)
   partstechId String?
   vendor      String? // supplier name (e.g. from PartsTech quote / phone order)
+  /// Inline type picker — Part, Tire, Sublet, Hazardous, Other.
+  lineType          PartLineType @default(PART)
+  /// Optional link to shop parts inventory row (PART lines).
+  inventoryPartId   String?
+  /// Optional link to shop tire stock row (TIRE lines).
+  tireStockId       String?
   sortOrder   Int        @default(0)
   createdAt   DateTime   @default(now())
 
   job Job @relation(fields: [jobId], references: [id], onDelete: Cascade)
 
   @@index([jobId])
+  @@index([inventoryPartId])
+  @@index([tireStockId])
 }
 
 // Vendor purchase order for parts on a repair order (grouped by supplier).
@@ -2579,4 +2734,120 @@ model SubscriptionPayment {
 
   @@index([subscriptionId])
   @@index([shopId])
+}
+
+// ─────────────────────── OEM data automation (platform-level) ───────────────────────
+
+enum ScraperSourceStatus {
+  active
+  degraded
+  disabled
+}
+
+/// Runtime probe health — distinct from operational `status` (active/degraded/disabled).
+enum ScraperSourceHealthStatus {
+  unknown
+  healthy
+  degraded
+}
+
+/// External OEM / fluids harvest sources — shared across all shops (not tenant-scoped).
+model ScraperSource {
+  id               String                    @id @default(cuid())
+  sourceName       String                    @unique
+  baseUrl          String
+  endpoints        Json                      @default("{}")
+  selectors        Json                      @default("{}")
+  status           ScraperSourceStatus       @default(active)
+  healthStatus     ScraperSourceHealthStatus @default(unknown)
+  priority         Int                       @default(10)
+  originalPriority Int?
+  lastHealthyCheck DateTime?
+  lastAttempted    DateTime?
+  successCount     Int                       @default(0)
+  failureCount     Int                       @default(0)
+  lastError        String?                   @db.Text
+  createdAt        DateTime                  @default(now())
+  updatedAt        DateTime                  @updatedAt
+
+  healthAlerts    HealthAlert[]
+  sourceHealthLog SourceHealthLog[]
+
+  @@index([status, priority])
+  @@index([healthStatus])
+}
+
+/// Per-attempt health probe audit for a scraper source.
+model SourceHealthLog {
+  id             String                    @id @default(cuid())
+  sourceId       String
+  timestamp      DateTime                  @default(now())
+  status         ScraperSourceHealthStatus
+  responseTimeMs Int?
+  errorMessage   String?                   @db.Text
+
+  source ScraperSource @relation(fields: [sourceId], references: [id], onDelete: Cascade)
+
+  @@index([sourceId, timestamp])
+  @@index([timestamp])
+}
+
+/// Redundancy fallback audit — primary source failed, alternate succeeded (or not).
+model FallbackEvent {
+  id             String   @id @default(cuid())
+  timestamp      DateTime @default(now())
+  dataType       String
+  primarySource  String?
+  fallbackSource String?
+  success        Boolean
+  details        Json?
+
+  @@index([timestamp])
+  @@index([dataType])
+}
+
+enum HealthAlertSeverity {
+  info
+  warning
+  critical
+}
+
+/// Platform health alerts from OEM source monitors and scheduled jobs.
+model HealthAlert {
+  id         String              @id @default(cuid())
+  sourceId   String?
+  sourceName String
+  severity   HealthAlertSeverity @default(warning)
+  message    String              @db.Text
+  detail     Json?
+  resolvedAt DateTime?
+  createdAt  DateTime            @default(now())
+
+  source ScraperSource? @relation(fields: [sourceId], references: [id], onDelete: SetNull)
+
+  @@index([createdAt])
+  @@index([sourceName])
+  @@index([resolvedAt])
+}
+
+enum AutomationJobStatus {
+  running
+  success
+  failed
+  skipped
+}
+
+/// Scheduled OEM automation job run history (platform-level audit).
+model AutomationJobRun {
+  id              String              @id @default(cuid())
+  jobName         String
+  startedAt       DateTime            @default(now())
+  finishedAt      DateTime?
+  status          AutomationJobStatus @default(running)
+  detail          Json?
+  nextScheduledAt DateTime?
+  errorMessage    String?             @db.Text
+
+  @@index([jobName, startedAt])
+  @@index([startedAt])
 }

@@ -13,6 +13,7 @@ export const RELEASE_MODULES = [
   "shopSite",
   "websiteSeo",
   "aiSuite",
+  "wiringDiagrams",
 ] as const;
 
 export type ReleaseModule = (typeof RELEASE_MODULES)[number];
@@ -30,16 +31,36 @@ const KILL_ENV: Record<ReleaseModule, string> = {
   shopSite: "RELEASE_KILL_SHOP_SITE",
   websiteSeo: "RELEASE_KILL_WEBSITE_SEO",
   aiSuite: "RELEASE_KILL_AI_SUITE",
+  wiringDiagrams: "RELEASE_KILL_WIRING_DIAGRAMS",
 };
 
+/**
+ * Human labels for release toggles. Keep `motorLabor` as the release key (Jul 2026 OEM pivot) —
+ * do not add a separate `oemLabor` flag; Pro/Elite shops need one toggle for premium labor
+ * (OEM-primary guide + MOTOR fallback). Renaming the key would orphan existing `_release` JSON.
+ */
 export const RELEASE_MODULE_LABELS: Record<ReleaseModule, string> = {
   growthEngine: "Growth Engine",
   sms: "Two-way SMS",
-  motorLabor: "MOTOR labor data",
+  motorLabor: "Tabish Friday Labor (Pro/Elite)",
   partsTech: "PartsTech",
   shopSite: "ShopSite",
   websiteSeo: "Growth Engine SEO",
   aiSuite: "AI suite",
+  wiringDiagrams: "Wiring diagrams",
+};
+
+/** Helper text under each release toggle on Platform → shop detail. */
+export const RELEASE_MODULE_DESCRIPTIONS: Record<ReleaseModule, string> = {
+  growthEngine: "Marketing campaigns, automations, and review-request flows.",
+  sms: "Two-way texting and share-via-SMS on estimates and invoices.",
+  motorLabor:
+    "Pro/Elite Tabish Friday Labor — EWT browser, fluids, combined jobs. Starter uses shop labor library.",
+  partsTech: "Vendor parts catalog lookup and ordering from the estimate.",
+  shopSite: "Hosted customer microsite and website editor.",
+  websiteSeo: "Local SEO runs, GSC, and on-page SEO automation.",
+  aiSuite: "AI intake, review drafts, campaign copy, and receptionist tools.",
+  wiringDiagrams: "Interactive wiring diagrams in the estimate workspace.",
 };
 
 export function isReleaseModule(value: string): value is ReleaseModule {

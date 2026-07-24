@@ -42,7 +42,7 @@ const FEATURE_LABELS: Record<PlanFeature, string> = {
   aiSeoContent: "Growth Engine SEO content",
   aiCustomerInsights: "AI customer insights",
   aiReceptionist: "AI receptionist (SMS + voice after-hours)",
-  motorLabor: "Licensed MOTOR labor data",
+  motorLabor: "Tabish Friday Labor (Pro/Elite)",
   autodevDecoding: "Auto.dev plate lookup",
   freeformRoIntake: "Smart AI repair-order intake",
 };

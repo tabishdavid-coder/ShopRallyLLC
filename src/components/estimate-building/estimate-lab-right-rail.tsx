@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * Order summary right rail — Palette C Money → Status → Profitability → Specs.
+ * Order summary right rail — Palette C Money → Status → Profitability.
  * Visual restyle only; preserves payment/send/print/deposit/workflow/approval wiring.
  * IA: agents/EstimateBuilding/RIGHT-RAIL-IA.md
  */
@@ -19,10 +19,6 @@ import {
 
 import { EstimateLabRightRailFees } from "@/components/estimate-building/estimate-lab-right-rail-fees";
 import { EstimateLabMessagesHost } from "@/components/estimate-building/estimate-lab-messages-host";
-import {
-  EstimateLabVehicleSpecsLazy,
-  type VehicleSpecsIdentitySummary,
-} from "@/components/estimate-building/estimate-lab-vehicle-specs-lazy";
 import { useEstimateLabPartsOptional } from "@/components/estimate-building/estimate-lab-parts-provider";
 import {
   usePartsTechUiEnabled,
@@ -144,10 +140,6 @@ export type EstimateLabRightRailProps = {
   estimateTotalCents: number;
   profitability?: EstimateLabProfitability | null;
   quickReference?: EstimateLabQuickReferenceData | null;
-  /** When set, Specs rail is on-demand (no eager catalog / AI). */
-  vehicleId?: string | null;
-  /** Lightweight identity for always-visible rail (no Specs API). */
-  vehicleIdentitySummary?: VehicleSpecsIdentitySummary | null;
   /** Shop technicians for Status-card assign picker (same source as RO sidebar). */
   technicians?: StaffPick[];
   /** Design-mode-only "preview a payment status" override. Defaults to true; set false on production ROs so the strip always reflects real invoice data. */
@@ -986,8 +978,6 @@ function EstimateLabRightRailBody(props: EstimateLabRightRailProps) {
     estimateTotalCents,
     profitability = null,
     quickReference = null,
-    vehicleId = null,
-    vehicleIdentitySummary = null,
     technicians = [],
     allowPaymentPreview = true,
     invoiceId,
@@ -1063,15 +1053,6 @@ function EstimateLabRightRailBody(props: EstimateLabRightRailProps) {
           depositPaid={depositPaid}
           depositPending={depositPending}
         />
-
-        {vehicleId ? (
-          <EstimateLabVehicleSpecsLazy
-            vehicleId={vehicleId}
-            excludeRoId={roId}
-            canEdit={canEdit}
-            identitySummary={vehicleIdentitySummary}
-          />
-        ) : null}
       </div>
 
       <EstimateDepositRequestDialog

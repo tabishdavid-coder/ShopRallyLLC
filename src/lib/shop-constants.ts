@@ -47,6 +47,13 @@ export const EMPTY_DEMO_SHOP_ID = "shop_eastside";
 export const MACUTO_SHOP_ID = "shop_macuto";
 
 /**
+ * Ignition live-demo tenant — Planet Auto (STARTER).
+ * Dedicated CRM for Twilio demo number + sales walkthroughs.
+ * Seed: `npm run db:seed-planet-auto`
+ */
+export const PLANET_AUTO_SHOP_ID = "shop_planet";
+
+/**
  * Macuto Core walkthrough RO (#1001).
  * Live Neon id (cuid) — the fixed seed id `ro_macuto_1001` is not present in this DB.
  * Prefer opening from Job Board if this drifts after a re-seed.

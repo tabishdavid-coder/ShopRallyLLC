@@ -22,12 +22,13 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { CannedJobPickerSheet } from "@/components/repair-order/canned-job-picker-sheet";
-import { SmartLaborGuide } from "@/components/repair-order/smart-labor-guide";
 import { RoAdjustmentToolbarButton } from "@/components/repair-order/ro-adjustment-toolbar-button";
+import { useEstimateLabLabor } from "@/components/estimate-building/estimate-lab-labor-provider";
 import { addJob } from "@/server/actions/estimate";
 import { useEstimateActionToast } from "@/components/repair-order/estimate-action-toast";
 import type { CannedJobSummary } from "@/lib/canned-job-types";
 import type { LaborTier, PartTier } from "@/lib/matrix";
+import { TABISH_FRIDAY_LABOR_TITLE } from "@/lib/tabish-friday-labor";
 import { useMotorLaborUiEnabled } from "@/lib/shop-capabilities";
 import { cn } from "@/lib/utils";
 
@@ -76,8 +77,8 @@ export function EstimateJobLauncher({
 }) {
   const router = useRouter();
   const { toast } = useEstimateActionToast();
+  const { openLaborGuide } = useEstimateLabLabor();
   const [launcherOpen, setLauncherOpen] = useState(false);
-  const [laborGuideOpen, setLaborGuideOpen] = useState(false);
   const [cannedOpen, setCannedOpen] = useState(false);
   const [feeOpen, setFeeOpen] = useState(false);
   const [discountOpen, setDiscountOpen] = useState(false);
@@ -89,8 +90,8 @@ export function EstimateJobLauncher({
       ? [
           {
             id: "labor-guide",
-            label: "Search Labor Book",
-            description: "Find flat-rate operations and build a job with labor lines.",
+            label: TABISH_FRIDAY_LABOR_TITLE,
+            description: "EWT browser — labor, fluids, combined jobs, diagrams, procedures.",
             icon: <ListTree className="size-5 text-brand-navy" />,
           } satisfies LauncherItem,
         ]
@@ -154,7 +155,7 @@ export function EstimateJobLauncher({
     switch (item.id) {
       case "labor-guide":
         closeLauncher();
-        setLaborGuideOpen(true);
+        openLaborGuide();
         break;
       case "canned":
         closeLauncher();
@@ -226,20 +227,6 @@ export function EstimateJobLauncher({
           </div>
         </DialogContent>
       </Dialog>
-
-      <SmartLaborGuide
-        vehicleId={vehicleId}
-        roId={roId}
-        customerName={customerName}
-        vehicleLabel={vehicleLabel}
-        specLine={specLine}
-        mileageIn={mileageIn}
-        odometerNotWorking={odometerNotWorking}
-        presentation="floating"
-        open={laborGuideOpen}
-        onOpenChange={setLaborGuideOpen}
-        hideTrigger
-      />
 
       <CannedJobPickerSheet
         open={cannedOpen}

@@ -129,7 +129,7 @@ export function AuthorizeEstimateDialog({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="gap-0 p-0 sm:max-w-2xl">
+      <DialogContent className="flex flex-col gap-0 overflow-hidden p-0 sm:max-w-2xl">
         <DialogHeader className="border-b px-5 py-4">
           <DialogTitle className="text-lg font-semibold text-brand-navy">Authorize estimate</DialogTitle>
           <DialogDescription>
@@ -233,7 +233,7 @@ export function AuthorizeEstimateDialog({
 
         {status ? <p className="px-5 pb-2 text-sm text-muted-foreground">{status}</p> : null}
 
-        <DialogFooter className="border-t px-5 py-3">
+        <DialogFooter className="shrink-0 border-t px-5 py-3">
           <Button type="button" variant="ghost" onClick={() => onOpenChange(false)} disabled={pending}>
             Cancel
           </Button>

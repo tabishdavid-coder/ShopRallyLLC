@@ -7,6 +7,7 @@ import { prisma } from "@/db/client";
 import { publicUrl } from "@/lib/app-url";
 import { isPlatformAdmin } from "@/lib/platform";
 import { normalizePhoneE164 } from "@/lib/phone";
+import { isSmsSeedPlaceholderNumber } from "@/lib/sms-constants";
 import { getShopId } from "@/lib/shop";
 import type { ShopActionResult } from "@/server/actions/shop";
 import { getShopSmsStatus, sendShopSms } from "@/server/services/messaging";
@@ -50,7 +51,7 @@ export async function provisionShopSmsNumber(
   });
   if (!shop) return { ok: false, error: "Shop not found." };
 
-  if (shop.twilioPhoneNumber) {
+  if (shop.twilioPhoneNumber && !isSmsSeedPlaceholderNumber(shop.twilioPhoneNumber)) {
     return {
       ok: false,
       error: `${shop.name} already has ${shop.twilioPhoneNumber}. Clear it first to provision a new number.`,
@@ -76,6 +77,7 @@ export async function provisionShopSmsNumber(
         twilioPhoneNumber: normalized,
         smsEnabled: true,
         smsConfiguredAt: new Date(),
+        smsSetupRequestedAt: null,
       },
     });
 
@@ -123,6 +125,7 @@ export async function assignShopSmsNumber(
       twilioPhoneNumber: normalized,
       smsEnabled: parsed.data.smsEnabled ?? true,
       smsConfiguredAt: new Date(),
+      smsSetupRequestedAt: null,
     },
   });
 

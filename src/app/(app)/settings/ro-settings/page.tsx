@@ -18,7 +18,7 @@ export default async function RoSettingsPage({
 }) {
   const { section } = await searchParams;
   const shopId = await getShopId();
-  const [shop, laborRates, fees, discounts] = await Promise.all([
+  const [shop, laborItems, fees, discounts] = await Promise.all([
     prisma.shop.findUnique({
       where: { id: shopId },
       select: {
@@ -42,7 +42,10 @@ export default async function RoSettingsPage({
         estimateJobsLayout: true,
       },
     }),
-    prisma.laborRate.findMany({ where: { shopId }, orderBy: { sortOrder: "asc" } }),
+    prisma.shopLaborItem.findMany({
+      where: { shopId },
+      orderBy: [{ sortOrder: "asc" }, { name: "asc" }],
+    }),
     prisma.shopFeeTemplate.findMany({ where: { shopId }, orderBy: { sortOrder: "asc" } }),
     prisma.shopDiscountTemplate.findMany({ where: { shopId }, orderBy: { sortOrder: "asc" } }),
   ]);
@@ -51,9 +54,24 @@ export default async function RoSettingsPage({
   return (
     <RoSettings
       laborRates={
-        laborRates.length
-          ? laborRates.map((r) => ({ name: r.name, rate: c(r.rateCents), isDefault: r.isDefault }))
-          : [{ name: "Standard labor rate", rate: c(shop.laborRateCents), isDefault: true }]
+        laborItems.length
+          ? laborItems.map((r) => ({
+              id: r.id,
+              name: r.name,
+              rate: c(r.rateCents),
+              isDefault: r.isDefault,
+              defaultHours: r.defaultHours,
+              isActive: r.isActive,
+            }))
+          : [
+              {
+                name: "Standard labor rate",
+                rate: c(shop.laborRateCents),
+                isDefault: true,
+                defaultHours: 1,
+                isActive: true,
+              },
+            ]
       }
       fees={fees.map((f) => ({
         name: f.name,
@@ -91,6 +109,7 @@ export default async function RoSettingsPage({
         updatedAt: shop.estimateTermsUpdatedAt,
       }}
       estimateJobsLayout={shop.estimateJobsLayout}
+      shopDefaultRateCents={shop.laborRateCents}
       initialSection={section}
     />
   );

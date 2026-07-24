@@ -1,5 +1,28 @@
 /** Shared labor guide hit types (safe for client + server). */
 
+/** AI / cache labor suggestion shape — keep client-safe (no server-only imports). */
+export type LaborSuggestion = {
+  jobName: string;
+  unitLabel: string;
+  unitsOnVehicle: number;
+  laborHoursPerUnit: number;
+  laborOperations: string[];
+  notes: string;
+  confidenceScore: number;
+  reasoningSummary: string;
+};
+
+/** VIN-decoded vehicle context for labor lookup (client + server). */
+export type Vehicle = {
+  vin?: string | null;
+  year: number | null;
+  make: string | null;
+  model: string | null;
+  trim: string | null;
+  engine: string | null;
+  drivetrain?: string | null;
+};
+
 export type LaborGuideSource = "cached" | "ai_estimate" | "shop_custom" | "catalog";
 
 export type LaborGuideHit = {

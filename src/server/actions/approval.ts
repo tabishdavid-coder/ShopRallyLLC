@@ -17,7 +17,7 @@ export type ApproveResult =
   | { ok: false; error: string };
 
 const submitApprovalSchema = z.object({
-  approvedJobIds: z.array(z.string()).min(1, "Select at least one job to approve."),
+  approvedJobIds: z.array(z.string()).min(1, "Approve at least one job to continue."),
   signatureDataUrl: z
     .string()
     .startsWith("data:image/png", "Signature must be a PNG image.")
@@ -25,7 +25,9 @@ const submitApprovalSchema = z.object({
   signatureWidth: z.number().int().positive().optional(),
   signatureHeight: z.number().int().positive().optional(),
   signerName: z.string().trim().min(1, "Enter your name.").max(200),
-  consent: z.literal(true, { message: "You must authorize the selected work." }),
+  consent: z.literal(true, {
+    message: "You must check the authorization box before submitting.",
+  }),
 });
 
 export type SubmitCustomerApprovalInput = z.infer<typeof submitApprovalSchema>;
@@ -69,7 +71,7 @@ export async function submitCustomerApproval(
   const jobIdSet = new Set(ro.jobs.map((j) => j.id));
   const approvedJobIds = parsed.data.approvedJobIds.filter((id) => jobIdSet.has(id));
   if (approvedJobIds.length === 0) {
-    return { ok: false, error: "Select at least one valid job to approve." };
+    return { ok: false, error: "Approve at least one valid job to continue." };
   }
 
   const h = await headers();
@@ -110,16 +112,24 @@ export async function submitCustomerApproval(
     { approvedJobIds },
   );
 
+  const declinedJobIds = ro.jobs
+    .map((j) => j.id)
+    .filter((id) => !approvedJobIds.includes(id));
+
   await recordShopAuditEventSafe({
     shopId: ro.shopId,
     repairOrderId: ro.id,
     eventType: ShopAuditEventType.ESTIMATE_APPROVED_BY_CUSTOMER,
-    summary: `Customer approved ${approvedJobIds.length} job(s) via approval link`,
+    summary:
+      declinedJobIds.length > 0
+        ? `Customer approved ${approvedJobIds.length} job(s), declined ${declinedJobIds.length} via approval link`
+        : `Customer approved ${approvedJobIds.length} job(s) via approval link`,
     actor: null,
     metadata: {
       actorType: "customer",
       signerName: parsed.data.signerName,
       approvedJobIds,
+      declinedJobIds,
       ip,
       userAgent,
       termsVersion: terms.version,

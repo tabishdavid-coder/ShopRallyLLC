@@ -88,8 +88,27 @@ export type LaborCatalogDisplayLabels = {
   estimateButtonLabel: string;
 };
 
+/** Pro/Elite OEM-primary Labor Book chrome (MOTOR demoted to fallback). */
+export function oemPrimaryLaborDisplayLabels(): LaborCatalogDisplayLabels {
+  return {
+    browseTitle: "OEM Labor Guide",
+    browseSubtitle:
+      "Platform OEM automation — SQL averages from the global labor pipeline. MOTOR available as fallback.",
+    sourceBadge: "OEM automation · platform averages",
+    emptySubGroupMessage:
+      "No OEM average for this operation — search or try MOTOR fallback (Pro/Elite).",
+    estimateButtonLabel: "Estimate with AI",
+  };
+}
+
 /** UI copy — reference mode avoids "MOTOR catalog" branding when unlicensed. */
-export function laborCatalogDisplayLabels(mode: LaborCatalogMode): LaborCatalogDisplayLabels {
+export function laborCatalogDisplayLabels(
+  mode: LaborCatalogMode,
+  opts?: { oemPrimary?: boolean },
+): LaborCatalogDisplayLabels {
+  if (opts?.oemPrimary) {
+    return oemPrimaryLaborDisplayLabels();
+  }
   if (mode === "licensed") {
     return {
       browseTitle: "MOTOR Catalog",

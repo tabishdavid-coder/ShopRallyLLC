@@ -17,6 +17,7 @@ import {
 
 import { CannedJobFormSheet } from "@/components/canned-jobs/canned-job-form-sheet";
 import { CategoryFilterChips } from "@/components/canned-jobs/category-filter-chips";
+import { EstimateActionToastProvider } from "@/components/repair-order/estimate-action-toast";
 import {
   CatalogListBody,
   CatalogListCard,
@@ -57,6 +58,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { cannedJobCategoryBadgeClasses } from "@/lib/canned-job-category-colors";
 import { CANNED_JOB_CATEGORIES } from "@/lib/canned-job-schemas";
 import type { CannedJobDetail, CannedJobSummary } from "@/lib/canned-job-types";
 import { formatCents } from "@/lib/format";
@@ -73,20 +75,6 @@ type EditorMode = "none" | "create" | "edit";
 type StatusFilter = "all" | "active" | "inactive";
 
 const PER_PAGE = 25;
-
-function categoryTone(category: string | null): string {
-  if (!category) return "border-border bg-muted/40 text-muted-foreground";
-  const map: Record<string, string> = {
-    Brakes: "border-brand-red/25 bg-brand-red/8 text-brand-red",
-    Maintenance: "border-brand-navy/25 bg-brand-navy/8 text-brand-navy",
-    Inspection: "border-emerald-600/25 bg-emerald-600/8 text-emerald-800",
-    Fluids: "border-sky-600/25 bg-sky-600/8 text-sky-800",
-    Electrical: "border-amber-600/25 bg-amber-600/8 text-amber-900",
-    Engine: "border-violet-600/25 bg-violet-600/8 text-violet-900",
-    Suspension: "border-orange-600/25 bg-orange-600/8 text-orange-900",
-  };
-  return map[category] ?? "border-brand-light/40 bg-brand-light/15 text-brand-navy";
-}
 
 function jobCostBasis(job: CannedJobSummary, laborRateCents: number) {
   const laborCostCents = Math.round(job.laborHours * laborRateCents);
@@ -198,6 +186,7 @@ export function CannedJobsManager({
   }
 
   return (
+    <EstimateActionToastProvider>
     <CatalogListPage>
       <CatalogListHeader
         title="Canned Jobs"
@@ -256,6 +245,7 @@ export function CannedJobsManager({
               setCategory(v);
               setPage(1);
             }}
+            coloredCategories
             className="scrollbar-thin overflow-x-auto overscroll-x-contain pb-0.5"
           />
         </CatalogListToolbar>
@@ -327,7 +317,7 @@ export function CannedJobsManager({
                           <span
                             className={cn(
                               "inline-block max-w-full truncate rounded border px-1.5 py-px text-[10px] font-semibold uppercase tracking-wide",
-                              categoryTone(job.category),
+                              cannedJobCategoryBadgeClasses(job.category),
                             )}
                           >
                             {job.category}
@@ -460,5 +450,6 @@ export function CannedJobsManager({
         onSaved={handleSaved}
       />
     </CatalogListPage>
+    </EstimateActionToastProvider>
   );
 }

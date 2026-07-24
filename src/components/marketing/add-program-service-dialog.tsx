@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Loader2, RefreshCw, Star, Wrench } from "lucide-react";
 
 import { CannedJobFormSheet } from "@/components/canned-jobs/canned-job-form-sheet";
+import { EstimateActionToastProvider } from "@/components/repair-order/estimate-action-toast";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -509,15 +510,17 @@ export function AddProgramServiceDialog({
         </DialogContent>
       </Dialog>
 
-      <CannedJobFormSheet
-        open={jobDialogOpen}
-        onOpenChange={setJobDialogOpen}
-        categories={cannedJobCategories}
-        onSaved={(id) => {
-          setJobDialogOpen(false);
-          if (id) afterNewJob(id);
-        }}
-      />
+      <EstimateActionToastProvider>
+        <CannedJobFormSheet
+          open={jobDialogOpen}
+          onOpenChange={setJobDialogOpen}
+          categories={cannedJobCategories}
+          onSaved={(id) => {
+            setJobDialogOpen(false);
+            if (id) afterNewJob(id);
+          }}
+        />
+      </EstimateActionToastProvider>
     </>
   );
 }

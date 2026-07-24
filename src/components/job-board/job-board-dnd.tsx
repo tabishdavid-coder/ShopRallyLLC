@@ -553,6 +553,7 @@ function SortableCard({
         columnTheme={columnTheme}
         selected={selected}
         openHref={openHref}
+        onSendApproval={() => onAuthorize(card)}
         menu={
           <JobCardMenu
             columnId={columnId}

@@ -15,6 +15,7 @@ export type EstimateContextDrawerRo = {
   status: string;
   totalCents: number;
   createdAt: string;
+  vehicleId: string | null;
   vehicleLabel: string;
   balanceCents: number | null;
 };
@@ -34,6 +35,7 @@ export type EstimateContextDrawerVehicle = {
   transmission: string | null;
   drivetrain: string | null;
   bodyClass: string | null;
+  color: string | null;
 };
 
 export type EstimateContextDrawerDetail = {

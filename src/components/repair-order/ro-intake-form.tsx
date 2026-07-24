@@ -81,6 +81,7 @@ import {
 import type { CustomerPick, VehiclePick } from "@/lib/picker-types";
 import { parseYmmSearch, type ParsedYmm } from "@/lib/parse-ymm-search";
 import { createRepairOrder } from "@/server/actions/repair-orders";
+import { addCannedJobToRepairOrder } from "@/server/actions/canned-jobs";
 import { saveLaborRates } from "@/server/actions/ro-settings";
 import { customerDisplayName, formatCents } from "@/lib/format";
 import { searchQueryToCustomerPrefill } from "@/lib/customer-search";
@@ -283,6 +284,7 @@ export function RoIntakeForm({
   initialCustomerId,
   initialVehicleId,
   fromQuickLabor = false,
+  pendingCannedJobId,
   onCreated,
   onCancel,
 }: {
@@ -291,6 +293,8 @@ export function RoIntakeForm({
   initialCustomerId?: string;
   initialVehicleId?: string;
   fromQuickLabor?: boolean;
+  /** After RO create, apply this canned job to the new estimate (from canned job builder). */
+  pendingCannedJobId?: string;
   /** Sheet mode: called after RO is created (before navigation). */
   onCreated?: (roId: string) => void;
   onCancel?: () => void;
@@ -785,14 +789,36 @@ export function RoIntakeForm({
     if (!Number.isFinite(amount) || amount < 0) return setRateError("Enter a valid hourly rate.");
 
     const nextRows = [
-      ...laborRates.map((r) => ({ name: r.name, rate: r.rateCents / 100, isDefault: r.isDefault })),
-      { name, rate: amount, isDefault: laborRates.length === 0 },
+      ...laborRates.map((r) => ({
+        id: r.id,
+        name: r.name,
+        rate: r.rateCents / 100,
+        isDefault: r.isDefault,
+        defaultHours: r.defaultHours ?? 1,
+        isActive: r.isActive ?? true,
+      })),
+      {
+        name,
+        rate: amount,
+        isDefault: laborRates.length === 0,
+        defaultHours: 1,
+        isActive: true,
+      },
     ];
     startSaveRate(async () => {
       const res = await saveLaborRates(nextRows);
       if (!res.ok) return setRateError(res.error);
       const newIndex = nextRows.length - 1;
-      setLaborRates(nextRows.map((r) => ({ name: r.name, rateCents: Math.round(r.rate * 100), isDefault: r.isDefault })));
+      setLaborRates(
+        nextRows.map((r) => ({
+          id: r.id,
+          name: r.name,
+          rateCents: Math.round(r.rate * 100),
+          isDefault: r.isDefault,
+          defaultHours: r.defaultHours,
+          isActive: r.isActive,
+        })),
+      );
       setLaborRateIdx(newIndex);
       setAddRateOpen(false);
     });
@@ -827,6 +853,14 @@ export function RoIntakeForm({
       });
       if (res.ok) {
         onCreated?.(res.id);
+        if (pendingCannedJobId) {
+          const addRes = await addCannedJobToRepairOrder(res.id, pendingCannedJobId);
+          if (!addRes.ok) {
+            setError(`Repair order created, but canned job could not be added: ${addRes.error}`);
+            router.push(`/repair-orders/${res.id}/estimate`);
+            return;
+          }
+        }
         router.push(`/repair-orders/${res.id}/estimate`);
       } else {
         setError(res.error);
@@ -1002,6 +1036,12 @@ export function RoIntakeForm({
             </div>
           </div>
         </header>
+
+        {pendingCannedJobId ? (
+          <div className="shrink-0 border-b border-brand-light/50 bg-brand-light/15 px-5 py-2.5 text-sm text-brand-navy sm:px-6">
+            A saved canned job will be added to this estimate after you create the repair order.
+          </div>
+        ) : null}
 
         <div className="min-h-0 flex-1 overflow-y-auto">
           <div className="flex flex-col gap-5 p-5 sm:p-6 lg:flex-row lg:items-stretch">

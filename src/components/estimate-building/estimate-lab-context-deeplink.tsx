@@ -27,7 +27,7 @@ function DeeplinkInner() {
       if (action === "history") ctx.openCustomerHistory();
       else if (action === "messages") ctx.openMessages();
       else if (action === "payment") ctx.openDrawer("payment");
-      else ctx.openVehicleSpecs();
+      else ctx.openVehicleDetails();
     };
 
     // Messages host registers on mount — defer one frame.
@@ -42,7 +42,7 @@ function DeeplinkInner() {
   return null;
 }
 
-/** Opens customer drawer / messages / specs when landing from job board quick actions (?ctx=). */
+/** Opens customer drawer / messages / vehicle details when landing from job board quick actions (?ctx=). */
 export function EstimateLabContextDeeplink() {
   return (
     <Suspense fallback={null}>

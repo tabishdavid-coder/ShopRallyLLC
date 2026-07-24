@@ -9,6 +9,7 @@ import { RelativeTime } from "@/components/ui/relative-time";
 import { cn } from "@/lib/utils";
 import { customerDisplayName, formatCents } from "@/lib/format";
 import {
+  RO_STATUS,
   type BoardColumn,
   type JobCard as JobCardData,
 } from "@/lib/job-board";
@@ -151,6 +152,7 @@ export function JobCard({
   column,
   columnTheme,
   openHref,
+  onSendApproval,
 }: {
   card: JobCardData;
   menu?: React.ReactNode;
@@ -160,6 +162,8 @@ export function JobCard({
   columnTheme?: JobBoardColumnTheme;
   /** Override RO open href (workflow board). */
   openHref?: string;
+  /** Open authorize / send-for-approval dialog when estimate is not yet authorized. */
+  onSendApproval?: () => void;
 }) {
   const ctx = useJobBoardContextOptional();
   const auth = authorizationKind(card);
@@ -189,6 +193,12 @@ export function JobCard({
   const sent = Boolean(card.approvalSentAt);
   const viewed = Boolean(card.estimateViewedAt);
   const cardStyle = theme ? jobBoardCardStageStyle(theme.hex) : undefined;
+  const showSendApproval =
+    Boolean(onSendApproval) &&
+    !card.authorizedAt &&
+    !card.paymentPosted &&
+    card.status !== RO_STATUS.COMPLETED &&
+    card.status !== RO_STATUS.INVOICED;
 
   const historyTarget = {
     customerId: card.customer.id,
@@ -243,7 +253,7 @@ export function JobCard({
         </div>
       </div>
 
-      {/* Who + vehicle + plate pill */}
+      {/* Who + vehicle + plate — plate slot always reserved for equal tile height */}
       <div className="job-board-card-identity">
         <p className="job-board-card-customer-line">
           <button
@@ -261,11 +271,13 @@ export function JobCard({
           {phone ? <span className="job-board-card-phone">{phone}</span> : null}
         </p>
         <p className="job-board-card-vehicle">{ymm}</p>
-        {plate ? <span className="job-board-card-plate">{plate}</span> : null}
+        <div className="job-board-card-plate-slot">
+          {plate ? <span className="job-board-card-plate">{plate}</span> : null}
+        </div>
       </div>
 
-      {/* Soft status pill + optional cue */}
-      <div className="flex flex-wrap items-center gap-1.5">
+      {/* Soft status pill + optional cue + send-approval CTA */}
+      <div className="job-board-card-status-row">
         <span className={statusPill.className} style={statusPill.style}>
           {statusPill.label}
         </span>
@@ -279,6 +291,20 @@ export function JobCard({
               </>
             ) : null}
           </span>
+        ) : null}
+        {showSendApproval ? (
+          <button
+            type="button"
+            className="job-board-card-send-auth"
+            onClick={(e) => {
+              stopCardNav(e);
+              onSendApproval?.();
+            }}
+            onPointerDown={stopCardNav}
+          >
+            <Send className="size-3 shrink-0" aria-hidden />
+            {sent ? "Resend approval" : "Send approval"}
+          </button>
         ) : null}
       </div>
 

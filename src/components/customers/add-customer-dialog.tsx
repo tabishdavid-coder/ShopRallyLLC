@@ -6,13 +6,11 @@ import {
   Building2,
   FileText,
   Globe,
-  Info,
   Mail,
   MapPin,
   Phone,
   Save,
   Tag,
-  Truck,
   User,
   UserPlus,
   Users,
@@ -22,6 +20,14 @@ import {
   validateCustomerForm,
   type CustomerFormType,
 } from "@/components/customers/customer-form-shared";
+import {
+  CUSTOMER_INTAKE_FIELD,
+  CustomerIntakeFieldLabel,
+  CustomerIntakeFormSection,
+  CustomerIntakeIconInput,
+  CustomerIntakeIconSelect,
+  CustomerIntakeTypeTabs,
+} from "@/components/customers/customer-intake-form-chrome";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -38,16 +44,17 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+import { TooltipProvider } from "@/components/ui/tooltip";
 import { US_STATES } from "@/lib/platform-shop-form";
 import { formatPhoneInput } from "@/lib/phone";
 import { cn } from "@/lib/utils";
 import { createCustomer } from "@/server/actions/customers";
+
+const fieldClass = CUSTOMER_INTAKE_FIELD;
+const FormSection = CustomerIntakeFormSection;
+const FieldLabel = CustomerIntakeFieldLabel;
+const IconInput = CustomerIntakeIconInput;
+const IconSelect = CustomerIntakeIconSelect;
 
 export type CustomerPrefill = {
   firstName?: string;
@@ -96,118 +103,12 @@ const EMPTY: Form = {
   notes: "",
 };
 
-const fieldClass =
-  "h-10 rounded-md border-[#d0d5dd] bg-white pl-9 text-sm shadow-none placeholder:text-muted-foreground/70 focus-visible:border-brand-orange/50 focus-visible:ring-brand-orange/20";
-
 function autoDisplayName(
   type: CustomerFormType,
   form: Pick<Form, "firstName" | "lastName" | "company">,
 ) {
   if (type === "business" && form.company.trim()) return form.company.trim();
   return `${form.firstName} ${form.lastName}`.trim();
-}
-
-function FormSection({
-  icon: Icon,
-  title,
-  children,
-}: {
-  icon: React.ComponentType<{ className?: string }>;
-  title: string;
-  children: ReactNode;
-}) {
-  return (
-    <section className="space-y-4">
-      <div className="flex items-center gap-2">
-        <Icon className="size-4 text-brand-orange" />
-        <h3 className="text-sm font-semibold text-foreground">{title}</h3>
-      </div>
-      <div className="space-y-4">{children}</div>
-    </section>
-  );
-}
-
-function FieldLabel({
-  label,
-  required,
-  optional,
-  info,
-  className,
-}: {
-  label: string;
-  required?: boolean;
-  optional?: boolean;
-  info?: string;
-  className?: string;
-}) {
-  return (
-    <div className={cn("mb-1.5 flex items-center gap-1", className)}>
-      <label className="text-xs font-medium text-muted-foreground">
-        {label}
-        {required ? <span className="text-destructive"> *</span> : null}
-        {optional ? (
-          <span className="font-normal text-muted-foreground/80"> (Optional)</span>
-        ) : null}
-      </label>
-      {info ? (
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <button
-              type="button"
-              className="inline-flex text-muted-foreground/70 hover:text-muted-foreground"
-              aria-label={`${label} info`}
-            >
-              <Info className="size-3.5" />
-            </button>
-          </TooltipTrigger>
-          <TooltipContent side="top" className="max-w-xs text-left">
-            {info}
-          </TooltipContent>
-        </Tooltip>
-      ) : null}
-    </div>
-  );
-}
-
-function IconInput({
-  icon: Icon,
-  className,
-  ...props
-}: React.ComponentProps<typeof Input> & {
-  icon: React.ComponentType<{ className?: string }>;
-}) {
-  return (
-    <div className="relative">
-      <Icon className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground/60" />
-      <Input className={cn(fieldClass, className)} {...props} />
-    </div>
-  );
-}
-
-function IconSelect({
-  icon: Icon,
-  value,
-  onValueChange,
-  placeholder,
-  children,
-}: {
-  icon: React.ComponentType<{ className?: string }>;
-  value: string;
-  onValueChange: (v: string) => void;
-  placeholder?: string;
-  children: ReactNode;
-}) {
-  return (
-    <div className="relative">
-      <Icon className="pointer-events-none absolute left-3 top-1/2 z-10 size-4 -translate-y-1/2 text-muted-foreground/60" />
-      <Select value={value || undefined} onValueChange={onValueChange}>
-        <SelectTrigger className={cn(fieldClass, "w-full")}>
-          <SelectValue placeholder={placeholder} />
-        </SelectTrigger>
-        <SelectContent>{children}</SelectContent>
-      </Select>
-    </div>
-  );
 }
 
 function OrangeToggle({
@@ -238,48 +139,6 @@ function OrangeToggle({
         <span className="block size-5 shrink-0 rounded-full bg-white shadow-[0_1px_3px_rgba(0,0,0,0.25)] ring-1 ring-black/5" />
       </button>
       {label ? <span className="text-sm font-medium text-foreground">{label}</span> : null}
-    </div>
-  );
-}
-
-function CustomerTypeTabs({
-  type,
-  onChange,
-}: {
-  type: CustomerFormType;
-  onChange: (type: CustomerFormType) => void;
-}) {
-  const tabs: {
-    id: CustomerFormType;
-    label: string;
-    icon: React.ComponentType<{ className?: string }>;
-  }[] = [
-    { id: "person", label: "Regular Customer", icon: User },
-    { id: "business", label: "Fleet Account", icon: Truck },
-  ];
-
-  return (
-    <div className="flex gap-8 border-b border-[#eaecf0] px-6">
-      {tabs.map((tab) => {
-        const active = type === tab.id;
-        const Icon = tab.icon;
-        return (
-          <button
-            key={tab.id}
-            type="button"
-            onClick={() => onChange(tab.id)}
-            className={cn(
-              "flex items-center gap-2 border-b-2 px-1 py-3 text-sm font-medium transition-colors",
-              active
-                ? "border-brand-orange text-brand-orange"
-                : "border-transparent text-muted-foreground hover:text-foreground",
-            )}
-          >
-            <Icon className="size-4" />
-            {tab.label}
-          </button>
-        );
-      })}
     </div>
   );
 }
@@ -461,7 +320,9 @@ export function AddCustomerDialog({
             </div>
           </div>
 
-          <CustomerTypeTabs type={type} onChange={setType} />
+          <div className="px-6">
+            <CustomerIntakeTypeTabs type={type} onChange={setType} />
+          </div>
 
           <div className="min-h-0 flex-1 overflow-y-auto bg-white px-6 py-5">
             <div className="space-y-7">

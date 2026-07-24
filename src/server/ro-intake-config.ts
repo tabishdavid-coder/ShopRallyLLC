@@ -22,15 +22,25 @@ export async function loadRoIntakeConfig(shopId?: string): Promise<RoIntakeConfi
         where: { id },
         select: { laborRateCents: true, defaultMarketingOptIn: true, roAdvanced: true },
       }),
-      prisma.laborRate.findMany({ where: { shopId: id }, orderBy: { sortOrder: "asc" } }),
+      prisma.shopLaborItem.findMany({
+        where: { shopId: id, isActive: true },
+        orderBy: [{ sortOrder: "asc" }, { name: "asc" }],
+      }),
       getLeadSourceNames(),
       getCustomerTagNames(),
     ]);
 
     const fallback = shop?.laborRateCents ?? 15000;
     const laborRates = rates.length
-      ? rates.map((r) => ({ name: r.name, rateCents: r.rateCents, isDefault: r.isDefault }))
-      : [{ name: "Standard labor rate", rateCents: fallback, isDefault: true }];
+      ? rates.map((r) => ({
+          id: r.id,
+          name: r.name,
+          rateCents: r.rateCents,
+          isDefault: r.isDefault,
+          defaultHours: r.defaultHours,
+          isActive: r.isActive,
+        }))
+      : [{ name: "Standard labor rate", rateCents: fallback, isDefault: true, defaultHours: 1, isActive: true }];
 
     return {
       laborRates,

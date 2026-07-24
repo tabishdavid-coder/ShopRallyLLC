@@ -5,15 +5,21 @@ import { z } from "zod";
 
 import { prisma } from "@/db/client";
 import { getAppUrl } from "@/lib/app-url";
-import { DEFAULT_SMS_OPT_OUT_FOOTER, deriveShopSmsSetupStatus, type ShopSmsSetupStatus } from "@/lib/sms-constants";
+import { DEFAULT_SMS_OPT_OUT_FOOTER, deriveShopSmsSetupStatus, effectiveTwilioPhoneNumber, type ShopSmsSetupStatus } from "@/lib/sms-constants";
 import { getShopId } from "@/lib/shop";
 import { normalizePhoneE164 } from "@/lib/phone";
 import { canUseReleasedFeature } from "@/lib/subscription";
 import { PLANS } from "@/lib/plans";
-import { AgreementType } from "@/generated/prisma";
+import { AgreementType, PlatformAuditEventType } from "@/generated/prisma";
 import { shopHasCurrentAgreement } from "@/server/legal";
 import type { ShopActionResult } from "@/server/actions/shop";
+import { getCurrentUser } from "@/lib/platform";
+import { recordPlatformAuditEvent } from "@/server/platform/audit";
 import { listConversations, getCustomerMessageStub, type ConversationRow } from "@/server/messages-inbox";
+import {
+  getMessageThreadContext,
+  type MessageThreadContext,
+} from "@/server/messages-thread-context";
 import {
   listMessages as listMessagesService,
   markThreadRead,
@@ -22,6 +28,78 @@ import { twilioPlatformConfigured } from "@/server/services/sms";
 import { getSmsWebhookUrl, getVoiceWebhookUrl } from "@/server/actions/platform-sms";
 import { listShopVoiceCallLogs, type VoiceCallLogRow } from "@/server/voice-call-log";
 import { gates } from "@/server/permission-gates";
+
+const SmsSetupRequestInput = z.object({
+  landlineNumber: z.string().trim().min(7).max(30),
+  preferredAreaCode: z.string().trim().max(3).optional(),
+  notes: z.string().trim().max(2000).optional(),
+});
+
+export async function submitSmsSetupRequest(
+  input: z.infer<typeof SmsSetupRequestInput>,
+): Promise<ShopActionResult> {
+  const parsed = SmsSetupRequestInput.safeParse(input);
+  if (!parsed.success) {
+    return { ok: false, error: parsed.error.issues[0]?.message ?? "Invalid input." };
+  }
+
+  const shopId = await getShopId();
+  const denied = await gates.employeesManage(shopId);
+  if (denied) return denied;
+
+  const shop = await prisma.shop.findFirst({
+    where: { id: shopId },
+    select: {
+      id: true,
+      name: true,
+      platformId: true,
+      twilioPhoneNumber: true,
+      smsSetupRequestedAt: true,
+    },
+  });
+  if (!shop) return { ok: false, error: "Shop not found." };
+  if (shop.twilioPhoneNumber?.trim() && effectiveTwilioPhoneNumber(shop.twilioPhoneNumber)) {
+    return {
+      ok: false,
+      error: "Your shop already has an SMS number assigned. Complete setup in Step 1 below.",
+    };
+  }
+
+  const landline = parsed.data.landlineNumber.trim();
+  const areaCode = parsed.data.preferredAreaCode?.replace(/\D/g, "").slice(0, 3) || null;
+  const notes = parsed.data.notes?.trim() || null;
+  const requestedAt = new Date();
+
+  await prisma.shop.update({
+    where: { id: shopId },
+    data: {
+      landlineNumber: landline,
+      smsPreferredAreaCode: areaCode,
+      smsSetupRequestNotes: notes,
+      smsSetupRequestedAt: requestedAt,
+    },
+  });
+
+  const user = await getCurrentUser();
+  await recordPlatformAuditEvent({
+    platformId: shop.platformId,
+    shopId,
+    eventType: PlatformAuditEventType.SMS_NUMBER_REQUESTED,
+    actorUserId: user.id.startsWith("stub-") ? null : user.id,
+    actorEmail: user.email,
+    metadata: {
+      shopName: shop.name,
+      landlineNumber: landline,
+      preferredAreaCode: areaCode,
+      notes,
+      requestedAt: requestedAt.toISOString(),
+    },
+  });
+
+  revalidatePath("/settings/communications/phone-sms");
+  revalidatePath("/platform/shops");
+  return { ok: true };
+}
 
 const MessagingSettingsInput = z.object({
   landlineNumber: z.string().trim().max(30).optional(),
@@ -40,6 +118,9 @@ export type MessagingSettings = {
   smsOptOutFooter: string | null;
   smsEnabled: boolean;
   smsConfiguredAt: Date | null;
+  smsSetupRequestedAt: Date | null;
+  smsPreferredAreaCode: string | null;
+  smsSetupRequestNotes: string | null;
   setupStatus: ShopSmsSetupStatus;
   platformTwilioConfigured: boolean;
   webhookUrl: string;
@@ -64,10 +145,14 @@ export async function getMessagingSettings(): Promise<MessagingSettings> {
       smsOptOutFooter: DEFAULT_SMS_OPT_OUT_FOOTER,
       smsEnabled: false,
       smsConfiguredAt: null,
+      smsSetupRequestedAt: null,
+      smsPreferredAreaCode: null,
+      smsSetupRequestNotes: null,
       setupStatus: deriveShopSmsSetupStatus({
         landlineNumber: null,
         twilioPhoneNumber: null,
         smsEnabled: false,
+        smsSetupRequestedAt: null,
       }),
       platformTwilioConfigured: twilioPlatformConfigured(),
       webhookUrl: "",
@@ -93,6 +178,9 @@ export async function getMessagingSettings(): Promise<MessagingSettings> {
         smsOptOutFooter: true,
         smsEnabled: true,
         smsConfiguredAt: true,
+        smsSetupRequestedAt: true,
+        smsPreferredAreaCode: true,
+        smsSetupRequestNotes: true,
         aiSmsAgentEnabled: true,
         aiVoiceAgentEnabled: true,
       },
@@ -112,6 +200,7 @@ export async function getMessagingSettings(): Promise<MessagingSettings> {
     landlineNumber: shop?.landlineNumber ?? null,
     twilioPhoneNumber: shop?.twilioPhoneNumber ?? null,
     smsEnabled: shop?.smsEnabled ?? false,
+    smsSetupRequestedAt: shop?.smsSetupRequestedAt ?? null,
   };
 
   return {
@@ -121,6 +210,9 @@ export async function getMessagingSettings(): Promise<MessagingSettings> {
     smsOptOutFooter: shop?.smsOptOutFooter ?? DEFAULT_SMS_OPT_OUT_FOOTER,
     smsEnabled: row.smsEnabled,
     smsConfiguredAt: shop?.smsConfiguredAt ?? null,
+    smsSetupRequestedAt: row.smsSetupRequestedAt,
+    smsPreferredAreaCode: shop?.smsPreferredAreaCode ?? null,
+    smsSetupRequestNotes: shop?.smsSetupRequestNotes ?? null,
     setupStatus: deriveShopSmsSetupStatus(row),
     platformTwilioConfigured: twilioPlatformConfigured(),
     webhookUrl,
@@ -292,4 +384,13 @@ export async function openConversation(customerId: string) {
   await markThreadRead(shopId, customerId);
   revalidatePath("/messages");
   return listMessagesService({ shopId, customerId });
+}
+
+export async function loadMessageThreadContext(
+  customerId: string,
+): Promise<MessageThreadContext | null> {
+  const shopId = await getShopId();
+  const denied = await gates.customersMessage(shopId);
+  if (denied) return null;
+  return getMessageThreadContext(shopId, customerId);
 }

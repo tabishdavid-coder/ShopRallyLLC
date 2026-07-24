@@ -27,6 +27,10 @@ export type PlatformShopRow = {
   twilioPhoneNumber: string | null;
   smsEnabled: boolean;
   smsSetupStatus: ShopSmsSetupStatus;
+  smsSetupRequestedAt: Date | null;
+  smsPreferredAreaCode: string | null;
+  smsSetupRequestNotes: string | null;
+  landlineNumber: string | null;
   lastSmsAt: Date | null;
   stripeConnectStatus: StripeConnectStatus;
   stripeConnectAccountId: string | null;
@@ -54,6 +58,9 @@ export async function listPlatformShops(): Promise<PlatformShopRow[]> {
       twilioPhoneNumber: true,
       smsEnabled: true,
       landlineNumber: true,
+      smsSetupRequestedAt: true,
+      smsPreferredAreaCode: true,
+      smsSetupRequestNotes: true,
       stripeConnectStatus: true,
       stripeConnectAccountId: true,
       _count: { select: { customers: true, repairOrders: true } },
@@ -90,7 +97,16 @@ export async function listPlatformShops(): Promise<PlatformShopRow[]> {
     email: s.email,
     twilioPhoneNumber: s.twilioPhoneNumber,
     smsEnabled: s.smsEnabled,
-    smsSetupStatus: deriveShopSmsSetupStatus(s),
+    smsSetupStatus: deriveShopSmsSetupStatus({
+      landlineNumber: s.landlineNumber,
+      twilioPhoneNumber: s.twilioPhoneNumber,
+      smsEnabled: s.smsEnabled,
+      smsSetupRequestedAt: s.smsSetupRequestedAt,
+    }),
+    smsSetupRequestedAt: s.smsSetupRequestedAt,
+    smsPreferredAreaCode: s.smsPreferredAreaCode,
+    smsSetupRequestNotes: s.smsSetupRequestNotes,
+    landlineNumber: s.landlineNumber,
     lastSmsAt: lastSmsByShop.get(s.id) ?? null,
     stripeConnectStatus: s.stripeConnectStatus,
     stripeConnectAccountId: s.stripeConnectAccountId,

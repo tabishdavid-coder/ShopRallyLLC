@@ -1,9 +1,21 @@
 # Dev 3031 — build state (ShopRallyCRM)
 
-Last updated: 2026-07-20 (AI multi-job split)
+Last updated: 2026-07-24 (OEM automation labor primary)
 
 > **Canonical dev:** **`ShopRally/`** folder only — `npm run dev` → :3031. See `docs/SHOPRALLY-DEV.md`.
 > Do **not** develop shop CRM in the sibling `karvio/` folder (legacy platform fork).
+
+## Active session — OEM automation labor (Pro/Elite primary)
+
+**Release key:** `motorLabor` (plan + `_release`) — gates **OEM automation primary** and **MOTOR fallback** on Pro/Elite only. Starter unchanged.
+
+**TypeScript resolver:** `src/server/services/oem-labor-resolver.ts` — mirrors Python `DataResolver.get_labor_estimate` (TTL cache → optional FastAPI → SQL `LaborOperation` avg → 1.0 hr default).
+
+**Wired:** `lookupLaborSuggestion()` OEM block before MOTOR; Labor Book init `oemLaborPrimary`; badges `OEM BOOK` / `OEM · verify`.
+
+**Env:** `OEM_AUTOMATION_URL` or `OEM_AUTOMATION_SERVICE_URL` (optional `:8090` FastAPI). Platform health: `/platform/system`.
+
+**Test shop (Pro):** `shop_demo` (In & Out AutoHaus) — set `plan=PROFESSIONAL` + release `motorLabor=true`; search "brake pads" on a YMM vehicle → `dataSource: oem_sql_average` or cached row.
 
 ## Active session — Ignition (Core) market go-live
 
@@ -26,6 +38,7 @@ npm run dev
 
 ## Done
 
+- [x] **OEM automation labor — Pro/Elite primary (2026-07-24)** — Jul 24 OEM pipeline is the primary labor lookup for Pro/Elite (`oemLaborPrimaryForShop` → `motorLabor` release key). TypeScript `oem-labor-resolver.ts` (Prisma SQL avg + in-memory TTL + optional FastAPI). `lookupLaborSuggestion` tries OEM before MOTOR; Starter/Core unchanged. Labor Book UI: "OEM Labor Guide" chrome + `OEM BOOK` badges; MOTOR demoted to fallback. Wiring tab unchanged.
 - [x] **AI job split — multi-repair intake (2026-07-20)** — Freeform / shop-notes AI now emits **one job per independent repair** when text lists multiple services (prompt + `splitMergedRepairRequests` heuristic). Canonical test: `"water pump and battery replacement"` → 2 suggested jobs (Water pump replacement + Battery replacement), not one 2.8 hr mega-job. Same safety net on Smart RO intake labor lines. Module: `src/lib/split-repair-requests.ts`.
 - [x] **Job edit Labor Book → Job with AI (2026-07-20)** — In estimate job-card edit footer (Tekmetric + lab layouts), replaced **Labor Book** with **Job with AI** (`CreateJobAiTrigger` dialog + horizontal review). Reuses `parseShopNotesWithAi` / `applyShopNotesProposals`. Gated via `freeformRoIntake` + `aiSuite` release — disabled chip + tooltip when AI Plus off (Core) or wrong plan. Labor Book remains on Pro toolbar / `/quick-labor` only.
 - [x] **Vehicle spec UX + AI audit (2026-07-18)** — SnagIt frame analysis (Tekmetric C2451C6F ~13.6s fluids sidebar; AutoLeap E329F843 ~16.7s spec modal) + ShopRally capability matrix. Memory: `agents/ShopRallyCRM/VEHICLE-SPEC-AI-MEMORY.md`. No implementation yet; next = YMM→EPA catalog enrichment without VIN gate.

@@ -133,10 +133,10 @@ function HitRow({
           <span
             className={cn(
               "shrink-0 rounded-full px-1.5 py-px text-[9px] font-semibold uppercase tracking-wide",
-              sourceBadgeClass(hit.source),
+              sourceBadgeClass(hit.source, hit.dataSource),
             )}
           >
-            {sourceBadgeLabel(hit.source)}
+            {sourceBadgeLabel(hit.source, hit.dataSource)}
           </span>
         </div>
         {!compact && hit.categoryPath ? (

@@ -51,6 +51,7 @@ import {
   type LaborTier,
 } from "@/lib/matrix";
 import type { JobEditDraft } from "@/components/repair-order/estimate-selection-context";
+import { estimatePartLineTypeFromDb, estimatePartLineTypeToDb } from "@/lib/part-line-types";
 import { cn } from "@/lib/utils";
 import { saveJob, deleteJob, setJobTax } from "@/server/actions/estimate";
 import type { DraggableAttributes } from "@dnd-kit/core";
@@ -141,8 +142,10 @@ type PartRow = {
   /** Per-line tax flag; independent of sibling part rows. */
   taxable?: boolean;
   sortOrder?: number;
-  /** Inline type picker — Part, Tire, Sublet, Hazardous, Other (UI until persisted). */
+  /** Inline type picker — Part, Tire, Sublet, Hazardous, Other. */
   lineType?: "part" | "tire" | "sublet" | "hazardous" | "other";
+  inventoryPartId?: string | null;
+  tireStockId?: string | null;
 };
 
 /** Split persisted description into name + additional details (newline-separated). */
@@ -160,6 +163,23 @@ function joinPartDesc(
   const extra = (details ?? "").trim();
   if (!extra) return d;
   return d ? `${d}\n${extra}` : extra;
+}
+
+function partLinesForSave(parts: PartRow[], partsTaxable: boolean) {
+  return parts.map((p) => ({
+    id: p.id,
+    brand: p.brand || null,
+    description: joinPartDesc(p.description, p.details),
+    partNumber: p.partNumber || null,
+    quantity: p.quantity,
+    costCents: p.costCents,
+    retailCents: p.retailCents,
+    discountCents: p.discountCents ?? 0,
+    taxable: p.taxable ?? partsTaxable,
+    lineType: estimatePartLineTypeToDb(p.lineType ?? "part"),
+    inventoryPartId: p.inventoryPartId ?? null,
+    tireStockId: p.tireStockId ?? null,
+  }));
 }
 
 const TEKMETRIC_PART_TYPES: PartFamilyType[] = PART_FAMILY_LINE_TYPES.filter(
@@ -293,20 +313,27 @@ function newLaborRow(baseRateCents: number, laborTiers: LaborTier[], taxable = t
   return base;
 }
 
-function newPartRow(partTiers: PartTier[], taxable = true): PartRow {
+function newPartRow(
+  partTiers: PartTier[],
+  taxable = true,
+  lineType: PartFamilyType = "part",
+): PartRow {
   const base: PartRow = {
     brand: "",
     description: "",
     details: "",
     partNumber: "",
-    quantity: 1,
+    quantity: lineType === "tire" ? 4 : 1,
     costCents: 0,
     retailCents: 0,
     discountCents: 0,
     taxable,
+    lineType,
+    inventoryPartId: null,
+    tireStockId: null,
   };
   if (partTiers.length > 0) {
-    return applyPartMatrixRow({ ...base, usePartMatrix: true }, partTiers);
+    return { ...applyPartMatrixRow({ ...base, usePartMatrix: true }, partTiers), lineType };
   }
   return base;
 }
@@ -508,7 +535,9 @@ export function EstimateJobCard({
       authorized: p.authorized,
       taxable: "taxable" in p && typeof p.taxable === "boolean" ? p.taxable : job.partsTaxable,
       sortOrder: p.sortOrder ?? i + initialLabor.length,
-      lineType: "part",
+      lineType: estimatePartLineTypeFromDb("lineType" in p ? p.lineType : "PART"),
+      inventoryPartId: "inventoryPartId" in p ? (p.inventoryPartId ?? null) : null,
+      tireStockId: "tireStockId" in p ? (p.tireStockId ?? null) : null,
       usePartMatrix: inferPartMatrixMode(
         { costCents: p.costCents, retailCents: p.retailCents },
         partTiers,
@@ -691,7 +720,7 @@ export function EstimateJobCard({
 
   function addInlinePartRow(lineType: PartFamilyType = "part") {
     if (!canEdit) return;
-    const row = { ...newPartRow(partTiers, job.partsTaxable), lineType };
+    const row = { ...newPartRow(partTiers, job.partsTaxable, lineType), lineType };
     if (editing) {
       setParts((rows) => [...rows, row]);
       setCollapsed(false);
@@ -782,17 +811,7 @@ export function EstimateJobCard({
           taxable: l.taxable ?? job.laborTaxable,
           technicianId: l.technicianId ?? null,
         })),
-        partLines: parts.map((p) => ({
-          id: p.id,
-          brand: p.brand || null,
-          description: joinPartDesc(p.description, p.details),
-          partNumber: p.partNumber || null,
-          quantity: p.quantity,
-          costCents: p.costCents,
-          retailCents: p.retailCents,
-          discountCents: p.discountCents ?? 0,
-          taxable: p.taxable ?? job.partsTaxable,
-        })),
+        partLines: partLinesForSave(parts, job.partsTaxable),
       });
       if (res.ok) {
         onDraftChange?.(job.id, null);
@@ -828,17 +847,7 @@ export function EstimateJobCard({
           taxable: l.taxable ?? job.laborTaxable,
           technicianId: l.technicianId ?? null,
         })),
-        partLines: parts.map((p) => ({
-          id: p.id,
-          brand: p.brand || null,
-          description: joinPartDesc(p.description, p.details),
-          partNumber: p.partNumber || null,
-          quantity: p.quantity,
-          costCents: p.costCents,
-          retailCents: p.retailCents,
-          discountCents: p.discountCents ?? 0,
-          taxable: p.taxable ?? job.partsTaxable,
-        })),
+        partLines: partLinesForSave(parts, job.partsTaxable),
       });
       if (res.ok) {
         onDraftChange?.(job.id, null);

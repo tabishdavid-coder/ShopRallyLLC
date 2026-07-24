@@ -1518,13 +1518,15 @@
     text-align: center;
   }
 
-  /* White card — mock hierarchy + stage accent dot */
+  /* White card — mock hierarchy + stage accent dot.
+     Fixed height so Estimates / WIP / Completed tiles align across columns. */
   .job-board-card {
     position: relative;
     display: flex;
-    min-height: 0;
+    height: 12.75rem;
+    min-height: 12.75rem;
     flex-direction: column;
-    gap: 0.55rem;
+    gap: 0.5rem;
     overflow: hidden;
     border-radius: calc(var(--jb-radius, 0.5rem) + 0.05rem);
     border: 1px solid var(--jb-line, #dce3ed);
@@ -1660,6 +1662,24 @@
     display: flex;
     flex-direction: column;
     gap: 0.2rem;
+    /* Name + vehicle + plate row always reserved */
+    min-height: 3.85rem;
+  }
+
+  .job-board-card-plate-slot {
+    display: flex;
+    min-height: 1.25rem;
+    align-items: center;
+  }
+
+  .job-board-card-status-row {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.375rem;
+    min-height: 1.5rem;
+    max-height: 2.85rem;
+    overflow: hidden;
   }
 
   .job-board-card-customer-line {
@@ -1721,19 +1741,51 @@
     color: var(--jb-slate, #5a6f8c);
   }
 
-  /* Sparse cue sits above the action/money baseline when present */
   .job-board-card-cue {
     min-width: 0;
-    margin-top: -0.15rem;
   }
 
-  /* Quiet icons left · money right — one baseline, no footer strip chrome */
+  /* Compact send-for-approval CTA — visible without dominating the card */
+  .job-board-card-send-auth {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.28rem;
+    height: 1.4rem;
+    padding: 0 0.5rem;
+    border-radius: 0.25rem;
+    border: 1px solid color-mix(in oklab, var(--jb-navy, #16588e) 32%, transparent);
+    background: color-mix(in oklab, var(--jb-light, #81c4ff) 28%, white);
+    font-size: 0.6875rem;
+    font-weight: 650;
+    letter-spacing: 0.01em;
+    line-height: 1;
+    color: var(--jb-navy, #16588e);
+    white-space: nowrap;
+    cursor: pointer;
+    transition:
+      background 120ms ease,
+      border-color 120ms ease,
+      color 120ms ease;
+  }
+
+  .job-board-card-send-auth:hover {
+    border-color: color-mix(in oklab, var(--jb-navy, #16588e) 55%, transparent);
+    background: color-mix(in oklab, var(--jb-light, #81c4ff) 42%, white);
+    color: color-mix(in oklab, var(--jb-navy, #16588e) 92%, black);
+  }
+
+  .job-board-card-send-auth:focus-visible {
+    outline: 2px solid color-mix(in oklab, var(--jb-navy, #16588e) 45%, transparent);
+    outline-offset: 1px;
+  }
+
+  /* Quiet icons left · money right — pinned to card bottom */
   .job-board-card-footer-row {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 0.5rem;
-    margin-top: 0.05rem;
+    margin-top: auto;
     min-height: 1.75rem;
   }
 
@@ -1762,9 +1814,11 @@
     display: flex;
     flex-direction: column;
     align-items: flex-end;
+    justify-content: flex-end;
     gap: 0.15rem;
     flex-shrink: 0;
     margin-left: auto;
+    min-height: 2rem;
   }
 
   .job-board-card-due-label {
@@ -1772,6 +1826,7 @@
     font-weight: 500;
     font-variant-numeric: tabular-nums;
     color: var(--jb-faint, #8a9bb3);
+    min-height: 0.875rem;
   }
 
   .job-board-card-total {
@@ -1841,21 +1896,120 @@
     border-radius: 0 !important;
   }
 
-  /* SMS threads — outbound uses navy tint (orange primary is CTAs only; poor contrast on long text) */
+  /*
+   * Messages workspace — Palette C mock (#0B1F3B / #1E7FE0 / #FF7A1A / #F4F6F9).
+   * Scope: conversation list | thread | context rail only (not app chrome).
+   */
+  .msg-workspace {
+    --msg-navy: #0b1f3b;
+    --msg-azure: #1e7fe0;
+    --msg-azure-2: #0f6bcb;
+    --msg-azure-tint: #eaf3fe;
+    --msg-orange: #ff7a1a;
+    --msg-orange-2: #e86a10;
+    --msg-bg: #f4f6f9;
+    --msg-border: #e4e9f1;
+    --msg-border-2: #d7deea;
+    --msg-text: #101b2d;
+    --msg-text-2: #5b6a82;
+    --msg-text-3: #93a1b5;
+    --msg-green: #16a34a;
+    color: var(--msg-text);
+    background: var(--msg-bg);
+  }
+
+  .msg-avatar {
+    @apply flex size-9 shrink-0 items-center justify-center rounded-full text-[13px] font-bold text-white;
+  }
+  .msg-avatar-lg {
+    @apply size-[52px] text-[17px];
+  }
+  .msg-avatar-azure {
+    background: linear-gradient(160deg, var(--msg-azure), #144c8e);
+  }
+  .msg-avatar-orange {
+    background: linear-gradient(160deg, var(--msg-orange), #b5490b);
+  }
+  .msg-avatar-navy {
+    background: linear-gradient(160deg, #294a76, var(--msg-navy));
+  }
+
+  .msg-thread-canvas {
+    background:
+      radial-gradient(circle at 100% 0%, rgb(30 127 224 / 0.04), transparent 45%),
+      var(--msg-bg);
+  }
+
+  .msg-date-separator,
+  .msg-sys-pill {
+    @apply inline-flex items-center rounded-full border px-3 py-1 text-[11px] font-semibold tracking-wide;
+    border-color: var(--msg-border-2);
+    background: #fff;
+    color: var(--msg-text-3);
+  }
+
   .msg-bubble-outbound {
-    @apply max-w-[80%] rounded-lg border border-brand-navy/15 border-l-[3px] border-l-brand-light bg-brand-navy/[0.06] px-3 py-1.5 text-sm text-brand-navy;
+    border-radius: 16px;
+    border-bottom-right-radius: 5px;
+    padding: 10px 13px;
+    font-size: 13.5px;
+    line-height: 1.45;
+    color: #fff;
+    background: linear-gradient(165deg, var(--msg-azure), var(--msg-azure-2));
+    box-shadow: 0 1px 2px rgb(16 27 45 / 0.06);
   }
 
   .msg-bubble-outbound-meta {
-    @apply mt-0.5 text-[10px] text-muted-foreground;
+    @apply mt-1 flex items-center gap-1 px-0.5 text-[10.5px] font-medium;
+    color: var(--msg-text-3);
   }
 
   .msg-bubble-inbound {
-    @apply max-w-[80%] rounded-lg border bg-card px-3 py-1.5 text-sm text-foreground;
+    border-radius: 16px;
+    border-bottom-left-radius: 5px;
+    border: 1px solid var(--msg-border);
+    background: #fff;
+    padding: 10px 13px;
+    font-size: 13.5px;
+    line-height: 1.45;
+    color: var(--msg-text);
+    box-shadow: 0 1px 2px rgb(16 27 45 / 0.05);
   }
 
   .msg-bubble-inbound-meta {
-    @apply mt-0.5 text-[10px] text-muted-foreground;
+    @apply mt-1 px-0.5 text-[10.5px] font-medium;
+    color: var(--msg-text-3);
+  }
+
+  .msg-send-btn {
+    @apply flex size-[34px] shrink-0 items-center justify-center rounded-full text-white disabled:opacity-40;
+    background: linear-gradient(160deg, var(--msg-orange), var(--msg-orange-2));
+    box-shadow: 0 6px 14px -6px rgb(255 122 26 / 0.6);
+  }
+  .msg-send-btn:disabled {
+    box-shadow: none;
+  }
+  .msg-send-btn:not(:disabled):hover {
+    filter: brightness(1.04);
+  }
+
+  .msg-primary-btn {
+    @apply flex w-full items-center justify-center gap-1.5 rounded-[10px] px-3 py-2.5 text-[13px] font-bold text-white disabled:opacity-50;
+    background: linear-gradient(180deg, var(--msg-orange), var(--msg-orange-2));
+    box-shadow: 0 8px 18px -9px rgb(255 122 26 / 0.6);
+  }
+  .msg-primary-btn:not(:disabled):hover {
+    filter: brightness(1.03);
+  }
+
+  .msg-ai-card {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    padding: 11px 12px;
+    border-radius: 11px;
+    background: linear-gradient(155deg, #eff6ff, #f6f1ff);
+    border: 1px dashed #c9dcf7;
   }
 
   /* Master CRM release review — highlight planned UI on live tour */

@@ -4,14 +4,19 @@ import { stripReleaseFromPlanFeatures } from "@/lib/release-flags";
 /**
  * Public pricing strategy (2026 Q3): phase-one launch sells a single plan (**Ignition**).
  * Pro & Elite stay in the catalog for platform ops — hidden from public marketing until phase two.
- * Internal enums: STARTER / PROFESSIONAL / ENTERPRISE (STARTER displays as **Core** in CRM;
- * public marketing may use `marketingName` e.g. Ignition).
+ *
+ * **One plan, three names (interchangeable):**
+ * - **Ignition** = marketing / GTM (`marketingName`)
+ * - **Core** = in-app CRM label (`name`)
+ * - **STARTER** = Prisma / `ShopPlan` enum / platform assign value
+ * Agents and docs must treat Ignition = Core = STARTER as the same plan.
  */
 export type PlanFeature =
   | "cannedJobs"
   | "partsTech"
   | "laborGuide"
   | "motorLabor"
+  | "wiringDiagrams"
   | "customerEmail"
   | "customerSms"
   /** Carfax service history on vehicles / ROs — Ignition and above. */
@@ -113,20 +118,20 @@ export type PlanDefinition = {
   features: PlanFeatureSet;
 };
 
-/** Labor tiers — Core = shop library; Pro+ includes licensed MOTOR. */
+/** Labor tiers — Core = shop library; Pro+ = OEM Labor Guide primary (MOTOR fallback). */
 export const LABOR_PLAN_COPY = {
   ignitionHighlight: "Shop library & estimate tooling",
-  momentumHighlight: "Licensed MOTOR labor data",
+  momentumHighlight: "OEM Labor Guide (MOTOR fallback)",
   comparisonByPlan: {
     STARTER: "Shop library",
-    PROFESSIONAL: "Licensed MOTOR",
-    ENTERPRISE: "Licensed MOTOR",
+    PROFESSIONAL: "OEM Labor Guide",
+    ENTERPRISE: "OEM Labor Guide",
   } satisfies Record<ShopPlan, string>,
   billingIgnition: "Shop library & estimate tooling",
-  billingMomentum: "Licensed MOTOR labor data",
-  featuresIgnition: "Licensed MOTOR on Pro+",
+  billingMomentum: "OEM Labor Guide (Pro/Elite)",
+  featuresIgnition: "OEM Labor Guide on Pro+",
   faqAnswer:
-    "Licensed MOTOR labor data is included on Pro and Elite — flat-rate guides and procedures in the estimate. Ignition uses the shop labor library. OEM specs and fluid capacities are on Pro+.",
+    "Pro and Elite include the OEM Labor Guide — platform SQL averages as the primary BOOK source, with licensed MOTOR as fallback. Ignition uses the shop labor library. OEM specs and fluid capacities are on Pro+.",
 } as const;
 
 /** VIN / plate decode packaging — Ignition = unlimited free NHTSA VIN; plate→VIN is Pro+. */
@@ -231,11 +236,11 @@ export const PLATFORM_MODULES = [
   },
   {
     id: "labor",
-    name: "Labor Book",
+    name: "OEM Labor Guide",
     description:
-      "Licensed MOTOR labor data is included on Pro and Elite. Ignition uses the shop labor library. Ignition includes unlimited NHTSA VIN decode. Pro and Elite add plate lookup plus OEM specs and fluid capacities.",
+      "Pro and Elite get the OEM Labor Guide — platform SQL averages as the primary BOOK source, with licensed MOTOR as fallback. Ignition uses the shop labor library. Pro and Elite add plate lookup plus OEM specs and fluid capacities.",
     icon: "wrench" as const,
-    pricingNote: "Licensed MOTOR on Pro+",
+    pricingNote: "OEM Labor Guide on Pro+",
   },
   {
     id: "insights",
@@ -580,6 +585,7 @@ const starterFeatures: PlanFeatureSet = {
   partsTech: true,
   laborGuide: true,
   motorLabor: false,
+  wiringDiagrams: false,
   customerEmail: true,
   /** Two-way SMS included on Ignition/Core (price includes messaging). Still env + release gated. */
   customerSms: true,
@@ -616,6 +622,7 @@ const professionalFeatures: PlanFeatureSet = {
   partsTech: true,
   laborGuide: true,
   motorLabor: true,
+  wiringDiagrams: true,
   customerEmail: true,
   customerSms: true,
   carfax: true,
@@ -651,6 +658,7 @@ const EliteFeatures: PlanFeatureSet = {
   partsTech: true,
   laborGuide: true,
   motorLabor: true,
+  wiringDiagrams: true,
   customerEmail: true,
   customerSms: true,
   carfax: true,
@@ -947,7 +955,7 @@ export const COMPARISON_ROWS: {
     values: LABOR_PLAN_COPY.comparisonByPlan,
   },
   {
-    label: "MOTOR labor data",
+    label: "OEM Labor Guide (Pro/Elite)",
     values: { STARTER: false, PROFESSIONAL: true, ENTERPRISE: true },
   },
   {

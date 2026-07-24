@@ -192,8 +192,12 @@ export async function updateVehicle(
       color: d.color ?? null,
       unitNumber: d.unitNumber ?? null,
       notes: d.notes ?? null,
-      tireSizeFront: d.tireSizeFront?.trim() || null,
-      tireSizeRear: d.tireSizeRear?.trim() || null,
+      ...(d.tireSizeFront !== undefined
+        ? { tireSizeFront: d.tireSizeFront?.trim() || null }
+        : {}),
+      ...(d.tireSizeRear !== undefined
+        ? { tireSizeRear: d.tireSizeRear?.trim() || null }
+        : {}),
       decodedData: d.decodedData ? (d.decodedData as object) : undefined,
       ...(ymmeChanged ? { recallsCache: Prisma.DbNull } : {}),
     },

@@ -32,7 +32,11 @@ import {
   ymmVehicleKeysForPromote,
   type LaborVehicle,
 } from "@/lib/labor-vehicle-key";
-import { motorEnabledForShop } from "@/server/labor-entitlement";
+import { motorEnabledForShop, oemLaborPrimaryForShop } from "@/server/labor-entitlement";
+import {
+  getOemLaborEstimate,
+  oemEstimateToSuggestion,
+} from "@/server/services/oem-labor-resolver";
 import {
   resolveLaborSuggestionWithFallback,
   reauditCachedSuggestion,
@@ -55,6 +59,10 @@ import {
   isLaborCatalogServiceEnabled,
 } from "@/server/services/labor-guide-catalog";
 import { isMotorLaborEnabled } from "@/server/services/motor/motor-config";
+import {
+  getAutomotiveDataFreshness,
+  type DataFreshness,
+} from "@/server/platform/oem-automation";
 
 /**
  * Persistent labor-guide cache.
@@ -96,6 +104,12 @@ export function laborQueryKey(request: string): string {
   return normalize(request);
 }
 
+async function attachFreshnessToLookup(lookup: LaborLookup): Promise<LaborLookup> {
+  if (lookup.dataFreshness) return lookup;
+  const { freshness, warning } = await getAutomotiveDataFreshness({ cached: lookup.cached });
+  return { ...lookup, dataFreshness: freshness, freshnessWarning: warning };
+}
+
 export type LaborLookup = {
   suggestion: LaborSuggestion;
   /** True when served from the table (no AI call this request). */
@@ -105,6 +119,9 @@ export type LaborLookup = {
   dataSource?: string;
   categoryPath?: string;
   motorAssignment?: MotorNodeAssignment | null;
+  /** OEM pipeline freshness — live | cached | stale */
+  dataFreshness?: DataFreshness;
+  freshnessWarning?: string;
 };
 
 export type LaborLookupOptions = MotorLaborContext & {
@@ -387,13 +404,46 @@ export async function lookupLaborSuggestion(
     const reaudit = reauditCachedSuggestion(raw, request, {
       skipClassify: existing.motorApplicationId != null,
     });
-    return {
+    return attachFreshnessToLookup({
       suggestion: reaudit.suggestion,
       cached: true,
       auditWarnings: reaudit.auditWarnings,
       dataSource: existing.dataSource ?? undefined,
-    };
+    });
     }
+  }
+
+  // OEM automation labor — primary for Pro/Elite (motorLabor + release). MOTOR/AI fall back when OEM misses.
+  if (options.shopId && (await oemLaborPrimaryForShop(options.shopId))) {
+    const oem = await getOemLaborEstimate(vehicle, request);
+    if (oem.dataSource !== "oem_default_1hr") {
+      const suggestion = oemEstimateToSuggestion(oem, request);
+      const dataSource = oem.dataSource;
+      const audit = reauditCachedSuggestion(suggestion, request);
+      await upsertLaborCacheRows(vehicle, queryKey, {
+        queryText: request,
+        ...fromSuggestion(suggestion, dataSource),
+        source: "catalog",
+        model: "oem-automation",
+        dataSource,
+        baseVehicleId: baseVehicleId ?? null,
+        motorSubGroupId: options.motorSubGroupId ?? null,
+        motorGroupId: options.motorGroupId ?? null,
+        motorSystemId: options.motorSystemId ?? null,
+      });
+      return attachFreshnessToLookup({
+        suggestion: audit.suggestion,
+        cached: oem.cacheHit,
+        auditWarnings: [
+          ...(audit.auditWarnings ?? []),
+          ...(oem.warning ? [oem.warning] : []),
+        ],
+        dataSource,
+        dataFreshness: oem.meta.health_status,
+        freshnessWarning: oem.warning,
+      });
+    }
+    // oem_default_1hr — no SQL match; fall through to MOTOR → shop history → AI.
   }
 
   // MOTOR catalog application match (licensed hours — never AI override)
@@ -420,11 +470,11 @@ export async function lookupLaborSuggestion(
           where: { id: motorCached.id },
           data: { hitCount: { increment: 1 } },
         });
-        return {
+        return attachFreshnessToLookup({
           suggestion: toSuggestion(motorCached),
           cached: true,
           dataSource: motorCached.dataSource ?? "motor_ewt",
-        };
+        });
       }
 
       const catalogSuggestion = motorCatalogAppToSuggestion(catalogApp);
@@ -440,11 +490,11 @@ export async function lookupLaborSuggestion(
         motorGroupId: catalogApp.motorGroupId,
         motorSystemId: catalogApp.motorSystemId,
       });
-      return {
+      return attachFreshnessToLookup({
         suggestion: catalogSuggestion,
         cached: true,
         dataSource: "motor_ewt",
-      };
+      });
     }
   }
 
@@ -464,7 +514,11 @@ export async function lookupLaborSuggestion(
         motorGroupId: options.motorGroupId ?? null,
         motorSystemId: options.motorSystemId ?? null,
       });
-      return { suggestion: catalogSuggestion, cached: true, dataSource: catalogDataSource };
+      return attachFreshnessToLookup({
+        suggestion: catalogSuggestion,
+        cached: true,
+        dataSource: catalogDataSource,
+      });
     }
   }
 
@@ -482,11 +536,11 @@ export async function lookupLaborSuggestion(
       motorGroupId: options.motorGroupId ?? null,
       motorSystemId: options.motorSystemId ?? null,
     });
-    return {
+    return attachFreshnessToLookup({
       suggestion: shopHistory.suggestion,
       cached: false,
       dataSource: "shop_history",
-    };
+    });
   }
 
   // AI first-principles / AI-DRAFT is parked by default (pivot to MOTOR). MOTOR (above)
@@ -523,14 +577,16 @@ export async function lookupLaborSuggestion(
     motorSystemId: resolved.motorAssignment?.motorSystemId ?? options.motorSystemId ?? null,
   });
 
-  return {
+  return attachFreshnessToLookup({
     suggestion,
-    cached: false,
+    cached: resolved.cached,
     auditWarnings: resolved.auditWarnings,
     dataSource,
     categoryPath: resolved.motorAssignment?.categoryPath,
     motorAssignment: resolved.motorAssignment,
-  };
+    dataFreshness: resolved.dataFreshness,
+    freshnessWarning: resolved.freshnessWarning,
+  });
 }
 
 /** Map a stored row back to the LaborSuggestion shape the UI/action expect. */

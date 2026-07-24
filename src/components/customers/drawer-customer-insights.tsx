@@ -10,7 +10,7 @@ import type { CustomerInsightsView } from "@/server/customer-insights";
 const EMPTY_VIEW: CustomerInsightsView = { kind: "empty", reason: "no_ros" };
 
 /**
- * Expanded AI Insights card for the customer drawer Profile tab.
+ * Slim AI Insights banner for the customer lifecycle drawer Profile tab.
  */
 export function DrawerCustomerInsightsCard({
   customerId,
@@ -41,24 +41,24 @@ export function DrawerCustomerInsightsCard({
   if (!drawerOpen) return null;
 
   return (
-    <div className="mb-4">
+    <div className="mb-1">
       {loadError ? (
-        <div className="rounded-lg border border-destructive/30 bg-destructive/5 px-4 py-3 text-xs text-destructive">
+        <div className="rounded-md border border-destructive/30 bg-destructive/5 px-3 py-2 text-xs text-destructive">
           {loadError}
         </div>
       ) : null}
 
       {loading && !insights && !loadError ? (
-        <div className="flex items-center gap-2 rounded-lg border border-[#DDE5EF] bg-white px-4 py-6 text-xs text-[#5B7295]">
-          <Loader2 className="size-4 animate-spin text-[#E86A10]" />
+        <div className="flex items-center gap-2 rounded-md border border-brand-light/40 bg-brand-light/15 px-3 py-2.5 text-xs text-muted-foreground">
+          <Loader2 className="size-3.5 animate-spin text-brand-navy" />
           Loading AI insights…
         </div>
       ) : null}
 
       {insights ? (
-        <CustomerInsightsPanel customerId={customerId} initial={insights} drawer />
+        <CustomerInsightsPanel customerId={customerId} initial={insights} drawer banner />
       ) : !loading && !loadError ? (
-        <CustomerInsightsPanel customerId={customerId} initial={EMPTY_VIEW} drawer />
+        <CustomerInsightsPanel customerId={customerId} initial={EMPTY_VIEW} drawer banner />
       ) : null}
     </div>
   );

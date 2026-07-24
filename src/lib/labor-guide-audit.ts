@@ -3,7 +3,7 @@ import {
   matchAssemblyRule,
   type AssemblyRule,
 } from "@/lib/labor-guide-assembly-rules";
-import type { LaborSuggestion } from "@/server/services/labor-guide";
+import type { LaborSuggestion } from "@/lib/labor-guide-types";
 
 export type LaborAuditContext = {
   request: string;

@@ -9,6 +9,11 @@ import { SaveCannedJobInput, SaveJobAsCannedJobInput } from "@/lib/canned-job-sc
 import { getShopMatrices, shopLaborRate, shopPartRetail } from "@/server/pricing-matrix";
 import { recomputeRoTotals } from "@/server/estimate";
 import { getCannedJob, listCannedJobsForPicker, type CannedJobDetail } from "@/server/canned-jobs";
+import { getInventoryParts, type InventoryPartRow } from "@/server/inventory";
+import { getTireStockList, type TireStockRow } from "@/server/tire-stock";
+import { ROStatus } from "@/generated/prisma";
+import { customerDisplayName } from "@/lib/format";
+import { formatVehicleDisplayLabel } from "@/lib/vehicle-display";
 import { gates } from "@/server/permission-gates";
 
 export type CannedJobResult = { ok: true; id?: string } | { ok: false; error: string };
@@ -46,13 +51,15 @@ export async function saveCannedJob(raw: unknown): Promise<CannedJobResult> {
   const denied = await gates.cannedJobsManage(shopId);
   if (denied) return { ok: false, error: denied.error };
 
-  if (!d.laborLines.length) {
-    return { ok: false, error: "Add at least one labor line." };
+  if (!d.laborLines.length && !d.inspectionLines.length) {
+    return { ok: false, error: "Add at least one labor or inspection line." };
   }
 
   const keepLabor = d.laborLines.filter((l) => l.id).map((l) => l.id!) as string[];
   const keepParts = d.partLines.filter((p) => p.id).map((p) => p.id!) as string[];
   const keepFees = d.feeLines.filter((f) => f.id).map((f) => f.id!) as string[];
+  const keepDiscounts = d.discountLines.filter((f) => f.id).map((f) => f.id!) as string[];
+  const keepInspections = d.inspectionLines.filter((f) => f.id).map((f) => f.id!) as string[];
 
   if (d.id) {
     const existing = await prisma.cannedJob.findFirst({ where: { id: d.id, shopId }, select: { id: true } });
@@ -76,6 +83,12 @@ export async function saveCannedJob(raw: unknown): Promise<CannedJobResult> {
       }),
       prisma.cannedJobFeeLine.deleteMany({
         where: { cannedJobId: d.id, id: { notIn: keepFees.length ? keepFees : ["_none_"] } },
+      }),
+      prisma.cannedJobDiscountLine.deleteMany({
+        where: { cannedJobId: d.id, id: { notIn: keepDiscounts.length ? keepDiscounts : ["_none_"] } },
+      }),
+      prisma.cannedJobInspectionLine.deleteMany({
+        where: { cannedJobId: d.id, id: { notIn: keepInspections.length ? keepInspections : ["_none_"] } },
       }),
       ...d.laborLines.map((l, i) =>
         l.id
@@ -104,11 +117,14 @@ export async function saveCannedJob(raw: unknown): Promise<CannedJobResult> {
           ? prisma.cannedJobPartLine.updateMany({
               where: { id: p.id, cannedJobId: d.id, shopId },
               data: {
+                lineType: p.lineType,
                 brand: p.brand ?? null,
                 description: p.description,
                 partNumber: p.partNumber ?? null,
                 costCents: p.costCents,
                 quantity: p.quantity,
+                inventoryPartId: p.inventoryPartId ?? null,
+                tireStockId: p.tireStockId ?? null,
                 sortOrder: i,
               },
             })
@@ -116,11 +132,14 @@ export async function saveCannedJob(raw: unknown): Promise<CannedJobResult> {
               data: {
                 shopId,
                 cannedJobId: d.id!,
+                lineType: p.lineType,
                 brand: p.brand ?? null,
                 description: p.description,
                 partNumber: p.partNumber ?? null,
                 costCents: p.costCents,
                 quantity: p.quantity,
+                inventoryPartId: p.inventoryPartId ?? null,
+                tireStockId: p.tireStockId ?? null,
                 sortOrder: i,
               },
             }),
@@ -149,6 +168,56 @@ export async function saveCannedJob(raw: unknown): Promise<CannedJobResult> {
                 amount: f.amount,
                 capCents: f.capCents ?? null,
                 taxable: f.taxable,
+                sortOrder: i,
+              },
+            }),
+      ),
+      ...d.discountLines.map((disc, i) =>
+        disc.id
+          ? prisma.cannedJobDiscountLine.updateMany({
+              where: { id: disc.id, cannedJobId: d.id, shopId },
+              data: {
+                name: disc.name,
+                method: disc.method,
+                base: disc.base,
+                amount: disc.amount,
+                sortOrder: i,
+              },
+            })
+          : prisma.cannedJobDiscountLine.create({
+              data: {
+                shopId,
+                cannedJobId: d.id!,
+                name: disc.name,
+                method: disc.method,
+                base: disc.base,
+                amount: disc.amount,
+                sortOrder: i,
+              },
+            }),
+      ),
+      ...d.inspectionLines.map((ins, i) =>
+        ins.id
+          ? prisma.cannedJobInspectionLine.updateMany({
+              where: { id: ins.id, cannedJobId: d.id, shopId },
+              data: {
+                name: ins.name,
+                description: ins.description ?? null,
+                inspectionTemplateId: ins.inspectionTemplateId ?? null,
+                hours: ins.hours,
+                flatAmountCents: ins.flatAmountCents ?? null,
+                sortOrder: i,
+              },
+            })
+          : prisma.cannedJobInspectionLine.create({
+              data: {
+                shopId,
+                cannedJobId: d.id!,
+                name: ins.name,
+                description: ins.description ?? null,
+                inspectionTemplateId: ins.inspectionTemplateId ?? null,
+                hours: ins.hours,
+                flatAmountCents: ins.flatAmountCents ?? null,
                 sortOrder: i,
               },
             }),
@@ -184,11 +253,14 @@ export async function saveCannedJob(raw: unknown): Promise<CannedJobResult> {
       partLines: {
         create: d.partLines.map((p, i) => ({
           shopId,
+          lineType: p.lineType,
           brand: p.brand ?? null,
           description: p.description,
           partNumber: p.partNumber ?? null,
           costCents: p.costCents,
           quantity: p.quantity,
+          inventoryPartId: p.inventoryPartId ?? null,
+          tireStockId: p.tireStockId ?? null,
           sortOrder: i,
         })),
       },
@@ -201,6 +273,27 @@ export async function saveCannedJob(raw: unknown): Promise<CannedJobResult> {
           amount: f.amount,
           capCents: f.capCents ?? null,
           taxable: f.taxable,
+          sortOrder: i,
+        })),
+      },
+      discountLines: {
+        create: d.discountLines.map((disc, i) => ({
+          shopId,
+          name: disc.name,
+          method: disc.method,
+          base: disc.base,
+          amount: disc.amount,
+          sortOrder: i,
+        })),
+      },
+      inspectionLines: {
+        create: d.inspectionLines.map((ins, i) => ({
+          shopId,
+          name: ins.name,
+          description: ins.description ?? null,
+          inspectionTemplateId: ins.inspectionTemplateId ?? null,
+          hours: ins.hours,
+          flatAmountCents: ins.flatAmountCents ?? null,
           sortOrder: i,
         })),
       },
@@ -257,6 +350,76 @@ export async function fetchCannedJobsForPicker(opts?: { q?: string; category?: s
   return listCannedJobsForPicker(shopId, opts);
 }
 
+export type OpenEstimateRoRow = {
+  id: string;
+  number: number;
+  customerLabel: string;
+  vehicleLabel: string;
+  jobCount: number;
+};
+
+export type OpenEstimateRosResult =
+  | { ok: true; rows: OpenEstimateRoRow[] }
+  | { ok: false; error: string };
+
+/** Open estimate ROs for canned job "Add to RO" picker (tenant-scoped). */
+export async function fetchOpenEstimateRepairOrdersForPicker(opts?: {
+  q?: string;
+  limit?: number;
+}): Promise<OpenEstimateRosResult> {
+  try {
+    const shopId = await getShopId();
+    const denied = await gates.estimateEdit(shopId);
+    if (denied) return { ok: false, error: denied.error };
+
+    const q = opts?.q?.trim() ?? "";
+    const limit = Math.min(Math.max(opts?.limit ?? 40, 1), 80);
+    const and: Record<string, unknown>[] = [{ shopId, status: ROStatus.ESTIMATE }];
+
+    if (q) {
+      const asNumber = Number(q.replace(/\D/g, ""));
+      and.push({
+        OR: [
+          { customer: { firstName: { contains: q, mode: "insensitive" } } },
+          { customer: { lastName: { contains: q, mode: "insensitive" } } },
+          { customer: { company: { contains: q, mode: "insensitive" } } },
+          { vehicle: { make: { contains: q, mode: "insensitive" } } },
+          { vehicle: { model: { contains: q, mode: "insensitive" } } },
+          { vehicle: { plate: { contains: q, mode: "insensitive" } } },
+          ...(Number.isFinite(asNumber) && asNumber > 0 ? [{ number: asNumber }] : []),
+        ],
+      });
+    }
+
+    const ros = await prisma.repairOrder.findMany({
+      where: { AND: and },
+      orderBy: [{ updatedAt: "desc" }, { number: "desc" }],
+      take: limit,
+      select: {
+        id: true,
+        number: true,
+        customer: { select: { firstName: true, lastName: true, company: true } },
+        vehicle: { select: { year: true, make: true, model: true, trim: true } },
+        _count: { select: { jobs: true } },
+      },
+    });
+
+    return {
+      ok: true,
+      rows: ros.map((ro) => ({
+        id: ro.id,
+        number: ro.number,
+        customerLabel: customerDisplayName(ro.customer),
+        vehicleLabel: formatVehicleDisplayLabel(ro.vehicle),
+        jobCount: ro._count.jobs,
+      })),
+    };
+  } catch (err) {
+    console.error("[fetchOpenEstimateRepairOrdersForPicker]", err);
+    return { ok: false, error: "Could not load open repair orders." };
+  }
+}
+
 export type ShopFeeTemplateRow = {
   name: string;
   method: "PERCENT" | "FIXED";
@@ -290,6 +453,54 @@ export async function fetchShopFeeTemplatesForPicker(): Promise<ShopFeeTemplates
   } catch (err) {
     console.error("[fetchShopFeeTemplatesForPicker]", err);
     return { ok: false, error: "Could not load shop fee templates." };
+  }
+}
+
+export type InventoryPartsPickerResult =
+  | { ok: true; parts: InventoryPartRow[]; total: number }
+  | { ok: false; error: string };
+
+/** Parts inventory rows for canned job builder part-line picker. */
+export async function fetchInventoryPartsForPicker(opts?: {
+  q?: string;
+  page?: number;
+}): Promise<InventoryPartsPickerResult> {
+  try {
+    const shopId = await getShopId();
+    const result = await getInventoryParts({
+      shopId,
+      q: opts?.q,
+      page: opts?.page ?? 1,
+      perPage: 50,
+    });
+    return { ok: true, parts: result.rows, total: result.total };
+  } catch (err) {
+    console.error("[fetchInventoryPartsForPicker]", err);
+    return { ok: false, error: "Could not load parts inventory." };
+  }
+}
+
+export type TireStockPickerResult =
+  | { ok: true; tires: TireStockRow[]; total: number }
+  | { ok: false; error: string };
+
+/** Tire stock rows for canned job builder tire-line picker. */
+export async function fetchTireStockForPicker(opts?: {
+  q?: string;
+  page?: number;
+}): Promise<TireStockPickerResult> {
+  try {
+    const shopId = await getShopId();
+    const result = await getTireStockList({
+      shopId,
+      q: opts?.q,
+      page: opts?.page ?? 1,
+      perPage: 50,
+    });
+    return { ok: true, tires: result.rows, total: result.total };
+  } catch (err) {
+    console.error("[fetchTireStockForPicker]", err);
+    return { ok: false, error: "Could not load tire stock." };
   }
 }
 
@@ -330,11 +541,14 @@ export async function duplicateCannedJob(id: string): Promise<CannedJobResult> {
       partLines: {
         create: source.partLines.map((p, i) => ({
           shopId,
+          lineType: p.lineType,
           brand: p.brand,
           description: p.description,
           partNumber: p.partNumber,
           costCents: p.costCents,
           quantity: p.quantity,
+          inventoryPartId: p.inventoryPartId,
+          tireStockId: p.tireStockId,
           sortOrder: i,
         })),
       },
@@ -347,6 +561,27 @@ export async function duplicateCannedJob(id: string): Promise<CannedJobResult> {
           amount: f.amount,
           capCents: f.capCents,
           taxable: f.taxable,
+          sortOrder: i,
+        })),
+      },
+      discountLines: {
+        create: source.discountLines.map((d, i) => ({
+          shopId,
+          name: d.name,
+          method: d.method,
+          base: d.base,
+          amount: d.amount,
+          sortOrder: i,
+        })),
+      },
+      inspectionLines: {
+        create: source.inspectionLines.map((ins, i) => ({
+          shopId,
+          name: ins.name,
+          description: ins.description,
+          inspectionTemplateId: ins.inspectionTemplateId,
+          hours: ins.hours,
+          flatAmountCents: ins.flatAmountCents,
           sortOrder: i,
         })),
       },
@@ -386,6 +621,8 @@ export async function addCannedJobToRepairOrder(
         laborLines: { orderBy: { sortOrder: "asc" } },
         partLines: { orderBy: { sortOrder: "asc" } },
         feeLines: { orderBy: { sortOrder: "asc" } },
+        discountLines: { orderBy: { sortOrder: "asc" } },
+        inspectionLines: { orderBy: { sortOrder: "asc" } },
       },
     }),
   ]);
@@ -403,6 +640,23 @@ export async function addCannedJobToRepairOrder(
   });
   const sortOrder = (lastJob?.sortOrder ?? 0) + 1;
 
+  function laborFromTemplateLine(l: {
+    description: string;
+    hours: number;
+    flatAmountCents: number | null;
+  }) {
+    const rateCents = shopLaborRate(baseRateCents, l.hours, laborTiers);
+    const totalCents = l.flatAmountCents ?? Math.round(l.hours * rateCents);
+    const effectiveRateCents = l.hours > 0 ? Math.round(totalCents / l.hours) : rateCents;
+    return {
+      shopId,
+      description: l.description,
+      hours: l.hours,
+      rateCents: effectiveRateCents,
+      totalCents,
+    };
+  }
+
   await prisma.$transaction(async (tx) => {
     const job = await tx.job.create({
       data: {
@@ -412,28 +666,34 @@ export async function addCannedJobToRepairOrder(
         note: template.description,
         sortOrder,
         laborLines: {
-          create: template.laborLines.map((l) => {
-            const rateCents = shopLaborRate(baseRateCents, l.hours, laborTiers);
-            const totalCents =
-              l.flatAmountCents ?? Math.round(l.hours * rateCents);
-            const effectiveRateCents =
-              l.hours > 0 ? Math.round(totalCents / l.hours) : rateCents;
-            return {
-              shopId,
-              description: l.description,
-              hours: l.hours,
-              rateCents: effectiveRateCents,
-              totalCents,
-            };
-          }),
+          create: [
+            ...template.laborLines.map((l) => laborFromTemplateLine(l)),
+            ...template.inspectionLines.map((ins) =>
+              laborFromTemplateLine({
+                description: ins.description?.trim()
+                  ? `${ins.name} — ${ins.description.trim()}`
+                  : ins.name,
+                hours: ins.hours,
+                flatAmountCents: ins.flatAmountCents,
+              }),
+            ),
+          ],
         },
         partLines: {
           create: template.partLines.map((p) => {
             const retailCents = shopPartRetail(p.costCents, partTiers);
+            const typePrefix =
+              p.lineType === "TIRE"
+                ? "Tire: "
+                : p.lineType === "SUBLET"
+                  ? "Sublet: "
+                  : p.lineType === "OTHER"
+                    ? "Other: "
+                    : "";
             return {
               shopId,
               brand: p.brand,
-              description: p.description,
+              description: typePrefix + p.description,
               partNumber: p.partNumber,
               quantity: p.quantity,
               costCents: p.costCents,
@@ -452,6 +712,17 @@ export async function addCannedJobToRepairOrder(
             amount: f.amount,
             capCents: f.capCents,
             taxable: f.taxable,
+            sortOrder: i,
+          })),
+        },
+        discounts: {
+          create: template.discountLines.map((d, i) => ({
+            shopId,
+            repairOrderId,
+            name: d.name,
+            method: d.method,
+            base: d.base,
+            amount: d.amount,
             sortOrder: i,
           })),
         },

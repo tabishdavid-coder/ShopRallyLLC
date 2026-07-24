@@ -64,6 +64,7 @@ export async function loadEstimateContextDrawerData(
         status: ro.status,
         totalCents: ro.totalCents,
         createdAt: ro.createdAt.toISOString(),
+        vehicleId: ro.vehicleId,
         vehicleLabel: ro.vehicleLabel,
         balanceCents: ro.balanceCents,
       })),

@@ -39,6 +39,7 @@ import {
   platformShopHealthLabel,
   platformShopHealthStyles,
 } from "@/lib/platform-shop-health";
+import { effectiveTwilioPhoneNumber } from "@/lib/sms-constants";
 import {
   BILLING_STATUS,
   SHOP_PLAN,
@@ -62,10 +63,12 @@ function SmsStatusPill({
   smsEnabled,
   setupStatus,
   twilioPhoneNumber,
+  smsSetupRequestedAt,
 }: {
   smsEnabled: boolean;
   setupStatus: PlatformShopRow["smsSetupStatus"];
   twilioPhoneNumber: string | null;
+  smsSetupRequestedAt: Date | null;
 }) {
   if (setupStatus === "configured") {
     return (
@@ -79,9 +82,16 @@ function SmsStatusPill({
   }
   if (setupStatus === "pending_port") {
     return (
-      <span className="inline-flex rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-medium text-amber-800">
-        Pending port
-      </span>
+      <div className="space-y-0.5">
+        <span className="inline-flex rounded-full bg-amber-100 px-2 py-0.5 text-[11px] font-medium text-amber-800">
+          {smsSetupRequestedAt ? "Request pending" : "Pending port"}
+        </span>
+        {smsSetupRequestedAt ? (
+          <p className="text-[10px] text-muted-foreground">
+            Requested {fmtDateTime(smsSetupRequestedAt)}
+          </p>
+        ) : null}
+      </div>
     );
   }
   return (
@@ -375,6 +385,7 @@ export function PlatformShopsTable({
                     smsEnabled={shop.smsEnabled}
                     setupStatus={shop.smsSetupStatus}
                     twilioPhoneNumber={shop.twilioPhoneNumber}
+                    smsSetupRequestedAt={shop.smsSetupRequestedAt}
                   />
                   {shop.lastSmsAt ? (
                     <p className="mt-0.5 text-[10px] text-muted-foreground">
@@ -389,11 +400,18 @@ export function PlatformShopsTable({
                     onClick={() => {
                       setSmsShop(shop);
                       setSmsAssignNumber(shop.twilioPhoneNumber ?? "");
-                      setSmsAreaCode(shop.state?.replace(/\D/g, "").slice(0, 3) ?? "");
+                      setSmsAreaCode(
+                        shop.smsPreferredAreaCode ??
+                          shop.state?.replace(/\D/g, "").slice(0, 3) ??
+                          "",
+                      );
                       setError(null);
                     }}
                   >
                     Manage SMS
+                    {shop.smsSetupRequestedAt && !effectiveTwilioPhoneNumber(shop.twilioPhoneNumber)
+                      ? " •"
+                      : ""}
                   </Button>
                 </td>
                 <td className="px-4 py-3">
@@ -488,9 +506,36 @@ export function PlatformShopsTable({
                 Platform-managed Twilio number for this shop. Provisioning buys a local number and
                 configures SMS + Voice inbound webhooks automatically.
               </p>
-              {smsShop.twilioPhoneNumber ? (
+              {smsShop.smsSetupRequestedAt && !effectiveTwilioPhoneNumber(smsShop.twilioPhoneNumber) ? (
+                <div className="rounded-md border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-950">
+                  <p className="font-medium">Shop setup request pending</p>
+                  <dl className="mt-2 grid gap-1 text-xs">
+                    <div>
+                      <dt className="inline text-muted-foreground">Landline: </dt>
+                      <dd className="inline">{smsShop.landlineNumber ?? "—"}</dd>
+                    </div>
+                    <div>
+                      <dt className="inline text-muted-foreground">Area code: </dt>
+                      <dd className="inline">{smsShop.smsPreferredAreaCode ?? "—"}</dd>
+                    </div>
+                    {smsShop.smsSetupRequestNotes ? (
+                      <div>
+                        <dt className="text-muted-foreground">Notes</dt>
+                        <dd className="mt-0.5 whitespace-pre-wrap">{smsShop.smsSetupRequestNotes}</dd>
+                      </div>
+                    ) : null}
+                    <div>
+                      <dt className="inline text-muted-foreground">Requested: </dt>
+                      <dd className="inline">{fmtDateTime(smsShop.smsSetupRequestedAt)}</dd>
+                    </div>
+                  </dl>
+                </div>
+              ) : null}
+              {effectiveTwilioPhoneNumber(smsShop.twilioPhoneNumber) ? (
                 <div className="space-y-2">
-                  <p className="font-mono text-sm">{smsShop.twilioPhoneNumber}</p>
+                  <p className="font-mono text-sm">
+                    {effectiveTwilioPhoneNumber(smsShop.twilioPhoneNumber)}
+                  </p>
                   <Button
                     type="button"
                     variant="outline"
@@ -517,7 +562,7 @@ export function PlatformShopsTable({
               </div>
               <Button
                 className="bg-brand-navy"
-                disabled={pending || Boolean(smsShop.twilioPhoneNumber)}
+                disabled={pending || Boolean(effectiveTwilioPhoneNumber(smsShop.twilioPhoneNumber))}
                 onClick={() => provisionSms(smsShop.id)}
               >
                 {pending ? <Loader2 className="size-4 animate-spin" /> : null}

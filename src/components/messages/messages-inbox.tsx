@@ -3,30 +3,51 @@
 import { useEffect, useMemo, useRef, useState, useTransition } from "react";
 import Link from "next/link";
 import {
-  FileText,
+  Car,
+  Check,
+  CheckCheck,
   Loader2,
   MessageSquare,
+  PanelRight,
   Paperclip,
+  Phone,
   Plus,
   Search,
   Send,
-  User,
 } from "lucide-react";
 
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import { JobBoardHistoryProvider } from "@/components/job-board/job-board-history-provider";
+import { MessagesThreadContextRail } from "@/components/messages/messages-thread-context-rail";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { useSmsUiEnabled } from "@/lib/shop-capabilities";
 import { customerInitials } from "@/lib/format";
+import { formatPhoneInput } from "@/lib/phone";
 import type { ConversationRow } from "@/server/messages-inbox";
+import type { MessageThreadContext } from "@/server/messages-thread-context";
 import type { MessageRow } from "@/lib/messaging-types";
 import { sendText } from "@/server/actions/messaging";
-import { openConversation } from "@/server/actions/messaging-settings";
+import {
+  loadMessageThreadContext,
+  openConversation,
+} from "@/server/actions/messaging-settings";
 import { cn } from "@/lib/utils";
 import { fmtDate, fmtDateTime, toDate } from "@/lib/datetime";
 
-function fmtTime(d: Date | string) {
-  return fmtDateTime(d);
+const QUICK_REPLIES = [
+  "Your vehicle is ready for pickup!",
+  "Running about 15 minutes behind today — thanks for your patience.",
+  "Thanks so much — see you then!",
+  "What time works best for you this week?",
+] as const;
+
+const SMS_SEGMENT = 160;
+
+type AvatarTone = "azure" | "orange" | "navy";
+
+function avatarTone(id: string): AvatarTone {
+  let h = 0;
+  for (let i = 0; i < id.length; i++) h = (h + id.charCodeAt(i) * (i + 1)) % 3;
+  return (["azure", "orange", "navy"] as const)[h]!;
 }
 
 function fmtListTime(d: Date | string) {
@@ -43,6 +64,10 @@ function fmtListTime(d: Date | string) {
   return fmtDateTime(d, { month: "short", day: "numeric" });
 }
 
+function fmtBubbleTime(d: Date | string) {
+  return fmtDateTime(d, { hour: "numeric", minute: "2-digit", hour12: true });
+}
+
 function fmtDateSeparator(d: Date | string) {
   return fmtDate(d, { month: "short", day: "numeric", year: "numeric" });
 }
@@ -55,6 +80,14 @@ function sameDay(a: Date | string, b: Date | string) {
     da.getMonth() === db.getMonth() &&
     da.getDate() === db.getDate()
   );
+}
+
+function vehicleLine(ctx: MessageThreadContext | null): string | null {
+  const v = ctx?.primaryVehicle;
+  if (!v) return null;
+  const base = [v.year, v.make, v.model].filter(Boolean).join(" ");
+  if (!base) return null;
+  return v.trim ? `${base} ${v.trim}` : base;
 }
 
 export function MessagesInbox({
@@ -73,15 +106,24 @@ export function MessagesInbox({
     return initial[0]?.customerId ?? null;
   });
   const [messages, setMessages] = useState<MessageRow[]>([]);
+  const [threadContext, setThreadContext] = useState<MessageThreadContext | null>(null);
+  const [contextLoading, setContextLoading] = useState(false);
   const [body, setBody] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
   const [filter, setFilter] = useState<"all" | "unread">("all");
+  const [mobileDetailsOpen, setMobileDetailsOpen] = useState(false);
   const [pending, start] = useTransition();
   const threadEndRef = useRef<HTMLDivElement>(null);
 
   const selected = conversations.find((c) => c.customerId === selectedId) ?? null;
+  const selectedTone = selected ? avatarTone(selected.customerId) : "azure";
+  const selectedVehicle = vehicleLine(threadContext);
+  const openRo =
+    threadContext?.openRepairOrders.find((ro) => ro.status === "ESTIMATE") ??
+    threadContext?.openRepairOrders[0] ??
+    null;
 
   const filtered = useMemo(() => {
     const q = search.trim().toLowerCase();
@@ -101,11 +143,19 @@ export function MessagesInbox({
   }, [initial]);
 
   useEffect(() => {
+    setMobileDetailsOpen(false);
+    setBody("");
+    setError(null);
+  }, [selectedId]);
+
+  useEffect(() => {
     if (!selectedId) {
       setMessages([]);
+      setThreadContext(null);
       return;
     }
     setLoading(true);
+    setContextLoading(true);
     openConversation(selectedId)
       .then((m) => {
         setMessages(m);
@@ -117,6 +167,11 @@ export function MessagesInbox({
       })
       .catch((e) => setError(e instanceof Error ? e.message : "Could not load thread."))
       .finally(() => setLoading(false));
+
+    loadMessageThreadContext(selectedId)
+      .then(setThreadContext)
+      .catch(() => setThreadContext(null))
+      .finally(() => setContextLoading(false));
   }, [selectedId]);
 
   useEffect(() => {
@@ -161,8 +216,17 @@ export function MessagesInbox({
     );
   }
 
+  const charCount = body.length;
+  const initials = selected
+    ? customerInitials({
+        firstName: selected.customerFirstName,
+        lastName: selected.customerLastName,
+      })
+    : "";
+
   return (
-    <div className="flex h-full min-h-0 flex-col overflow-hidden">
+    <JobBoardHistoryProvider>
+    <div className="msg-workspace flex h-full min-h-0 flex-col overflow-hidden">
       {mockMode ? (
         <div className="shrink-0 border-b border-amber-200 bg-amber-50 px-4 py-2 text-sm text-amber-900">
           <strong>Demo mode.</strong> Twilio is not configured — messages are stored locally and
@@ -174,286 +238,411 @@ export function MessagesInbox({
         </div>
       ) : null}
 
-      <div className="flex min-h-0 flex-1 overflow-hidden border-t bg-card">
-        <div
+      <div className="flex min-h-0 flex-1 overflow-hidden">
+        {/* Column 1 — conversation list */}
+        <section
           className={cn(
-            "flex w-full shrink-0 flex-col border-r sm:w-72 md:w-80 lg:w-96",
+            "flex w-full shrink-0 flex-col border-r border-[var(--msg-border)] bg-white sm:w-[296px]",
             "min-h-0",
             selected && "hidden sm:flex",
           )}
         >
-          <div className="shrink-0 space-y-2 border-b px-3 py-3">
-            <div className="flex items-center justify-between gap-2">
-              <div>
-                <h2 className="font-semibold">Messages</h2>
-                <p className="text-[11px] text-muted-foreground">
-                  2-way SMS ·{" "}
-                  <Link href="/settings/communications/phone-sms" className="text-primary hover:underline">
-                    Phone settings
-                  </Link>
-                </p>
-              </div>
-              <Button size="sm" variant="outline" className="h-7 gap-1 text-xs" disabled title="Coming soon">
-                <Plus className="size-3" />
-                New
-              </Button>
-            </div>
-            <div className="relative min-w-0">
-              <Search className="absolute left-2.5 top-2.5 size-3.5 text-muted-foreground" />
-              <Input
-                placeholder="Search conversations…"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="h-9 pl-8 text-sm"
-              />
-            </div>
-            <div className="flex gap-1">
-              {(["all", "unread"] as const).map((f) => (
-                <button
-                  key={f}
-                  type="button"
-                  onClick={() => setFilter(f)}
-                  className={cn(
-                    "rounded-full px-2.5 py-0.5 text-xs font-medium transition-colors",
-                    filter === f
-                      ? "bg-primary text-primary-foreground"
-                      : "bg-muted text-muted-foreground hover:text-foreground",
-                  )}
-                >
-                  {f === "all" ? "All" : "Unread"}
-                </button>
-              ))}
-            </div>
+          <div className="flex shrink-0 items-center justify-between px-4 pb-2.5 pt-4">
+            <h2 className="text-base font-bold text-[var(--msg-text)]">Messages</h2>
+            <Button
+              size="sm"
+              variant="outline"
+              className="h-7 gap-1 rounded-[7px] border-[var(--msg-border-2)] bg-[var(--msg-bg)] px-2.5 text-xs font-semibold text-[var(--msg-text-2)] shadow-none hover:bg-[#EEF1F6]"
+              disabled
+              title="Coming soon"
+            >
+              <Plus className="size-3.5" strokeWidth={2.3} />
+              New
+            </Button>
           </div>
 
-          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+          <div className="mx-4 mb-2.5 flex items-center gap-1.5 rounded-lg border border-[var(--msg-border)] bg-[var(--msg-bg)] px-2.5 py-1.5">
+            <Search className="size-3.5 shrink-0 text-[var(--msg-text-3)]" />
+            <input
+              placeholder="Search conversations…"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="min-w-0 flex-1 bg-transparent text-[12.5px] text-[var(--msg-text)] outline-none placeholder:text-[var(--msg-text-3)]"
+            />
+          </div>
+
+          <div className="mx-4 mb-3 flex gap-1 rounded-[9px] bg-[var(--msg-bg)] p-0.5">
+            {(["all", "unread"] as const).map((f) => (
+              <button
+                key={f}
+                type="button"
+                onClick={() => setFilter(f)}
+                className={cn(
+                  "flex-1 rounded-[7px] py-1.5 text-center text-xs font-semibold transition-colors",
+                  filter === f
+                    ? "bg-white text-[var(--msg-text)] shadow-sm"
+                    : "bg-transparent text-[var(--msg-text-2)] hover:text-[var(--msg-text)]",
+                )}
+              >
+                {f === "all" ? "All" : "Unread"}
+              </button>
+            ))}
+          </div>
+
+          <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-2 pb-3">
             {filtered.length === 0 ? (
-              <p className="p-4 text-center text-sm text-muted-foreground">
+              <p className="p-4 text-center text-sm text-[var(--msg-text-2)]">
                 {conversations.length === 0
                   ? "No conversations yet. Text a customer from a repair order or wait for an inbound message."
                   : "No conversations match your search."}
               </p>
             ) : (
-              filtered.map((c) => (
-                <button
-                  key={c.customerId}
-                  type="button"
-                  onClick={() => setSelectedId(c.customerId)}
-                  className={cn(
-                    "flex w-full items-start gap-3 border-b px-3 py-3 text-left transition-colors hover:bg-accent/50",
-                    selectedId === c.customerId && "bg-accent/60",
-                  )}
-                >
-                  <Avatar className="size-9 shrink-0">
-                    <AvatarFallback className="bg-brand-navy/10 text-xs font-semibold text-brand-navy">
+              filtered.map((c) => {
+                const unread = c.unreadCount > 0;
+                const tone = avatarTone(c.customerId);
+                return (
+                  <button
+                    key={c.customerId}
+                    type="button"
+                    onClick={() => setSelectedId(c.customerId)}
+                    className={cn(
+                      "mb-0.5 flex w-full items-start gap-2.5 rounded-[10px] border px-2 py-2.5 text-left transition-colors",
+                      selectedId === c.customerId
+                        ? "border-[#D6E9FD] bg-[var(--msg-azure-tint)]"
+                        : "border-transparent hover:bg-[var(--msg-bg)]",
+                    )}
+                  >
+                    <span
+                      className={cn(
+                        "msg-avatar",
+                        tone === "azure" && "msg-avatar-azure",
+                        tone === "orange" && "msg-avatar-orange",
+                        tone === "navy" && "msg-avatar-navy",
+                      )}
+                    >
                       {customerInitials({
                         firstName: c.customerFirstName,
                         lastName: c.customerLastName,
                       })}
-                    </AvatarFallback>
-                  </Avatar>
-                  <div className="min-w-0 flex-1">
-                    <span className="flex items-center justify-between gap-2">
-                      <span className="truncate font-medium">{c.customerName}</span>
-                      <span className="flex shrink-0 items-center gap-1.5">
-                        {c.unreadCount > 0 ? (
-                          <span className="size-2 rounded-full bg-brand-navy" aria-label="Unread" />
-                        ) : null}
-                        <span className="text-[10px] text-muted-foreground">
+                    </span>
+                    <span className="min-w-0 flex-1">
+                      <span className="flex items-baseline justify-between gap-1.5">
+                        <span
+                          className={cn(
+                            "truncate text-[13.5px] text-[var(--msg-text)]",
+                            unread ? "font-bold" : "font-semibold",
+                          )}
+                        >
+                          {c.customerName}
+                        </span>
+                        <span
+                          className={cn(
+                            "shrink-0 text-[11px]",
+                            unread
+                              ? "font-bold text-[var(--msg-azure-2)]"
+                              : "text-[var(--msg-text-3)]",
+                          )}
+                        >
                           {fmtListTime(c.lastMessageAt)}
                         </span>
                       </span>
+                      <span
+                        className={cn(
+                          "mt-px block truncate text-xs",
+                          unread
+                            ? "font-medium text-[var(--msg-text)]"
+                            : "text-[var(--msg-text-2)]",
+                        )}
+                      >
+                        {c.lastBody}
+                      </span>
                     </span>
-                    <span className="line-clamp-2 text-xs text-muted-foreground">{c.lastBody}</span>
-                  </div>
-                </button>
-              ))
+                    {unread ? (
+                      <span
+                        className="mt-1.5 size-2 shrink-0 rounded-full bg-[var(--msg-azure)]"
+                        aria-label="Unread"
+                      />
+                    ) : null}
+                  </button>
+                );
+              })
             )}
           </div>
-        </div>
+        </section>
 
+        {/* Columns 2 + 3 — thread + context rail */}
         <div
           className={cn(
-            "flex min-h-0 min-w-0 flex-1 flex-col bg-background",
+            "flex min-h-0 min-w-0 flex-1 overflow-hidden",
             !selected && "hidden sm:flex",
           )}
         >
-          {selected ? (
-            <>
-              <div className="flex shrink-0 items-center gap-2 border-b px-3 py-2.5 sm:px-4 sm:py-3">
-                <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="h-8 shrink-0 px-2 text-xs sm:hidden"
-                  onClick={() => setSelectedId(null)}
-                >
-                  ← Back
-                </Button>
-                <div className="min-w-0 flex-1">
-                  <p className="font-medium">
-                    <Link
-                      href={`/customers?customer=${selected.customerId}`}
-                      className="hover:text-primary hover:underline"
-                    >
-                      {selected.customerName}
-                    </Link>
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {selected.customerPhone ?? "No phone"}
-                    {selected.repairOrderNumber ? (
-                      <>
-                        {" · "}
-                        <Link
-                          href={`/repair-orders/${selected.repairOrderId}/estimate`}
-                          className="text-primary hover:underline"
-                        >
-                          RO #{selected.repairOrderNumber}
-                        </Link>
-                      </>
+          <section className="msg-thread-canvas flex min-h-0 min-w-0 flex-1 flex-col">
+            {selected ? (
+              <>
+                <header className="flex shrink-0 items-center gap-3 border-b border-[var(--msg-border)] bg-white px-4 py-3.5 sm:px-5">
+                  <Button
+                    type="button"
+                    variant="ghost"
+                    size="sm"
+                    className="h-8 shrink-0 px-2 text-xs sm:hidden"
+                    onClick={() => setSelectedId(null)}
+                  >
+                    ← Back
+                  </Button>
+                  <span
+                    className={cn(
+                      "msg-avatar hidden sm:flex",
+                      selectedTone === "azure" && "msg-avatar-azure",
+                      selectedTone === "orange" && "msg-avatar-orange",
+                      selectedTone === "navy" && "msg-avatar-navy",
+                    )}
+                  >
+                    {initials}
+                  </span>
+                  <div className="min-w-0 flex-1 leading-snug">
+                    <p className="flex min-w-0 flex-wrap items-center gap-1.5 text-[14.5px] font-bold text-[var(--msg-text)]">
+                      <span className="truncate">{selected.customerName}</span>
+                      {selectedVehicle ? (
+                        <span className="inline-flex max-w-full items-center gap-1 truncate rounded-full border border-[var(--msg-border-2)] bg-[var(--msg-bg)] px-2 py-0.5 text-[11.5px] font-semibold text-[var(--msg-text-2)]">
+                          <Car className="size-3 shrink-0" />
+                          <span className="truncate">{selectedVehicle}</span>
+                        </span>
+                      ) : null}
+                    </p>
+                    <p className="truncate text-xs text-[var(--msg-text-2)]">
+                      {selected.customerPhone
+                        ? formatPhoneInput(selected.customerPhone)
+                        : "No phone on file"}
+                    </p>
+                  </div>
+                  <div className="ml-auto flex shrink-0 items-center gap-1.5">
+                    {selected.customerPhone ? (
+                      <a
+                        href={`tel:${selected.customerPhone}`}
+                        className="flex size-[34px] items-center justify-center rounded-lg text-[var(--msg-text-2)] hover:border hover:border-[var(--msg-border)] hover:bg-[var(--msg-bg)]"
+                        aria-label="Call customer"
+                      >
+                        <Phone className="size-4" />
+                      </a>
                     ) : null}
-                  </p>
-                </div>
-                <Button asChild size="sm" variant="ghost" className="hidden shrink-0 gap-1.5 text-xs sm:inline-flex">
-                  <Link href={`/customers?customer=${selected.customerId}`}>
-                    <User className="size-3.5" />
-                    Customer
-                  </Link>
-                </Button>
-              </div>
-
-              <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain bg-muted/20 px-3 py-3 sm:px-4">
-                <div className="flex min-h-full flex-col justify-end space-y-3">
-                {loading ? (
-                  <div className="flex flex-1 items-center justify-center gap-2 py-12 text-sm text-muted-foreground">
-                    <Loader2 className="size-4 animate-spin" /> Loading…
-                  </div>
-                ) : messages.length === 0 ? (
-                  <div className="flex flex-1 flex-col items-center justify-center gap-2 py-12 text-muted-foreground">
-                    <MessageSquare className="size-10 opacity-40" />
-                    <p className="text-sm">No messages in this thread.</p>
-                    <p className="text-xs">Send a text below to start the conversation.</p>
-                  </div>
-                ) : (
-                  messages.map((m, i) => {
-                    const prev = messages[i - 1];
-                    const showDate = !prev || !sameDay(m.createdAt, prev.createdAt);
-                    return (
-                      <div key={m.id}>
-                        {showDate ? (
-                          <p className="mb-2 text-center text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
-                            {fmtDateSeparator(m.createdAt)}
-                          </p>
-                        ) : null}
-                        <div
-                          className={cn(
-                            "flex",
-                            m.direction === "OUTBOUND" ? "justify-end" : "justify-start",
-                          )}
-                        >
-                          <div
-                            className={
-                              m.direction === "OUTBOUND"
-                                ? "msg-bubble-outbound"
-                                : "msg-bubble-inbound"
-                            }
-                          >
-                            <div className="whitespace-pre-wrap break-words">{m.body}</div>
-                            <div
-                              className={
-                                m.direction === "OUTBOUND"
-                                  ? "msg-bubble-outbound-meta"
-                                  : "msg-bubble-inbound-meta"
-                              }
-                            >
-                              {m.direction === "INBOUND" && selected.customerPhone
-                                ? `From: ${selected.customerPhone} · `
-                                : null}
-                              {fmtTime(m.createdAt)}
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    );
-                  })
-                )}
-                <div ref={threadEndRef} aria-hidden />
-                </div>
-              </div>
-
-              {error ? (
-                <p className="shrink-0 border-t bg-destructive/10 px-4 py-1.5 text-xs text-destructive">
-                  {error}
-                </p>
-              ) : null}
-
-              <div className="relative z-10 shrink-0 border-t bg-card p-3 pb-[max(0.75rem,env(safe-area-inset-bottom))]">
-                <div className="flex items-end gap-2">
-                  <textarea
-                    value={body}
-                    onChange={(e) => setBody(e.target.value)}
-                    onKeyDown={(e) => {
-                      if (e.key === "Enter" && !e.shiftKey) {
-                        e.preventDefault();
-                        send();
-                      }
-                    }}
-                    rows={2}
-                    placeholder="Type a message…"
-                    disabled={!selected.customerPhone}
-                    className="min-h-11 flex-1 resize-none rounded-md border border-input bg-background px-3 py-2.5 text-sm outline-none placeholder:text-placeholder-foreground focus:ring-1 focus:ring-ring disabled:opacity-50"
-                  />
-                  <div className="flex shrink-0 flex-col gap-1.5">
                     <Button
                       type="button"
-                      size="icon"
-                      variant="ghost"
-                      className="size-11"
+                      variant="outline"
+                      size="sm"
+                      className="h-8 shrink-0 gap-1.5 rounded-lg border-[var(--msg-border-2)] text-xs lg:hidden"
+                      onClick={() => setMobileDetailsOpen(true)}
+                    >
+                      <PanelRight className="size-3.5" />
+                      Details
+                    </Button>
+                  </div>
+                </header>
+
+                <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 py-5 sm:px-7">
+                  <div className="flex min-h-full flex-col justify-end gap-3.5">
+                    {loading ? (
+                      <div className="flex flex-1 items-center justify-center gap-2 py-12 text-sm text-[var(--msg-text-2)]">
+                        <Loader2 className="size-4 animate-spin" /> Loading…
+                      </div>
+                    ) : messages.length === 0 ? (
+                      <div className="flex flex-1 flex-col items-center justify-center gap-2 py-12 text-[var(--msg-text-2)]">
+                        <MessageSquare className="size-10 opacity-40" />
+                        <p className="text-sm font-medium">No messages in this thread.</p>
+                        <p className="text-xs">Send a text below to start the conversation.</p>
+                      </div>
+                    ) : (
+                      <>
+                        {messages[0] ? (
+                          <div className="mb-1 flex flex-col items-center gap-2.5 self-center">
+                            <span className="msg-sys-pill">
+                              Conversation started · {fmtDateSeparator(messages[0].createdAt)}
+                            </span>
+                          </div>
+                        ) : null}
+
+                        {openRo && selectedVehicle ? (
+                          <div className="mx-auto flex w-full max-w-[420px] items-center gap-2.5 rounded-xl border border-[var(--msg-border)] bg-white px-3.5 py-2.5 shadow-sm">
+                            <div className="flex size-8 shrink-0 items-center justify-center rounded-[9px] bg-[var(--msg-azure-tint)] text-[var(--msg-azure-2)]">
+                              <Car className="size-4" />
+                            </div>
+                            <p className="text-xs leading-snug text-[var(--msg-text-2)]">
+                              <b className="font-bold text-[var(--msg-text)]">{selectedVehicle}</b>
+                              {" — "}
+                              RO #{openRo.number}
+                              {openRo.status === "ESTIMATE" ? " estimate" : ""}
+                            </p>
+                          </div>
+                        ) : null}
+
+                        {messages.map((m, i) => {
+                          const prev = messages[i - 1];
+                          const showDate = i > 0 && (!prev || !sameDay(m.createdAt, prev.createdAt));
+                          const outbound = m.direction === "OUTBOUND";
+                          return (
+                            <div key={m.id}>
+                              {showDate ? (
+                                <div className="mb-3 flex justify-center">
+                                  <span className="msg-date-separator">
+                                    {fmtDateSeparator(m.createdAt)}
+                                  </span>
+                                </div>
+                              ) : null}
+                              <div
+                                className={cn(
+                                  "flex",
+                                  outbound ? "justify-end" : "justify-start",
+                                )}
+                              >
+                                <div
+                                  className={cn(
+                                    "flex max-w-[64%] flex-col",
+                                    outbound ? "items-end" : "items-start",
+                                  )}
+                                >
+                                  <div
+                                    className={
+                                      outbound ? "msg-bubble-outbound" : "msg-bubble-inbound"
+                                    }
+                                  >
+                                    <div className="whitespace-pre-wrap break-words">{m.body}</div>
+                                  </div>
+                                  <div
+                                    className={
+                                      outbound
+                                        ? "msg-bubble-outbound-meta"
+                                        : "msg-bubble-inbound-meta"
+                                    }
+                                  >
+                                    {outbound ? (
+                                      <>
+                                        {m.status === "delivered" || m.status === "read" ? (
+                                          <CheckCheck className="size-3 text-[var(--msg-azure)]" />
+                                        ) : (
+                                          <Check className="size-3" />
+                                        )}
+                                        <span>
+                                          {m.status === "failed"
+                                            ? "Failed"
+                                            : m.status === "delivered" || m.status === "read"
+                                              ? "Delivered"
+                                              : "Sent"}{" "}
+                                          · {fmtBubbleTime(m.createdAt)}
+                                        </span>
+                                      </>
+                                    ) : (
+                                      <span>{fmtBubbleTime(m.createdAt)}</span>
+                                    )}
+                                  </div>
+                                </div>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </>
+                    )}
+                    <div ref={threadEndRef} aria-hidden />
+                  </div>
+                </div>
+
+                {error ? (
+                  <p className="shrink-0 border-t border-destructive/20 bg-destructive/10 px-4 py-1.5 text-xs text-destructive">
+                    {error}
+                  </p>
+                ) : null}
+
+                <div className="relative z-10 shrink-0 border-t border-[var(--msg-border)] bg-white px-5 pb-[max(0.875rem,env(safe-area-inset-bottom))] pt-2.5">
+                  <div className="mb-2.5 flex gap-1.5 overflow-x-auto pb-0.5 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                    {QUICK_REPLIES.map((chip) => (
+                      <button
+                        key={chip}
+                        type="button"
+                        onClick={() => setBody(chip)}
+                        className="shrink-0 rounded-full border border-[var(--msg-border-2)] bg-[var(--msg-bg)] px-3 py-1.5 text-xs font-semibold text-[var(--msg-text-2)] transition-colors hover:border-[#D6E9FD] hover:bg-[var(--msg-azure-tint)] hover:text-[var(--msg-azure-2)]"
+                      >
+                        {chip}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="flex items-center gap-2 rounded-xl border border-[var(--msg-border)] bg-[var(--msg-bg)] py-1.5 pl-3 pr-2">
+                    <button
+                      type="button"
+                      className="flex size-8 shrink-0 items-center justify-center rounded-lg text-[var(--msg-text-3)] hover:bg-[#EAEEF4] hover:text-[var(--msg-text-2)]"
                       disabled
                       title="Attachments (coming soon)"
                       aria-label="Attach file"
                     >
                       <Paperclip className="size-4" />
-                    </Button>
-                    <Button
+                    </button>
+                    <input
+                      value={body}
+                      onChange={(e) => setBody(e.target.value)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" && !e.shiftKey) {
+                          e.preventDefault();
+                          send();
+                        }
+                      }}
+                      placeholder="Type a message…"
+                      disabled={!selected.customerPhone}
+                      className="min-w-0 flex-1 bg-transparent text-[13.5px] text-[var(--msg-text)] outline-none placeholder:text-[var(--msg-text-3)] disabled:opacity-50"
+                    />
+                    <button
                       type="button"
-                      size="icon"
-                      variant="ghost"
-                      className="size-11"
-                      disabled
-                      title="Templates (coming soon)"
-                      aria-label="Message templates"
-                    >
-                      <FileText className="size-4" />
-                    </Button>
-                    <Button
                       onClick={send}
                       disabled={pending || !body.trim() || !selected.customerPhone}
-                      size="icon"
-                      className="size-11"
+                      className="msg-send-btn"
                       aria-label="Send message"
                     >
                       {pending ? (
-                        <Loader2 className="size-4 animate-spin" />
+                        <Loader2 className="size-3.5 animate-spin" />
                       ) : (
-                        <Send className="size-4" />
+                        <Send className="size-3.5 -ml-px fill-current" />
                       )}
-                    </Button>
+                    </button>
+                  </div>
+                  <div
+                    className={cn(
+                      "flex justify-end px-1 pt-1 text-[10.5px]",
+                      charCount > SMS_SEGMENT
+                        ? "font-semibold text-[var(--msg-orange-2)]"
+                        : "text-[var(--msg-text-3)]",
+                    )}
+                  >
+                    {charCount} / {SMS_SEGMENT}
                   </div>
                 </div>
+              </>
+            ) : (
+              <div className="flex min-h-0 flex-1 items-center justify-center">
+                <div className="flex flex-col items-center gap-2 px-4 text-center text-[var(--msg-text-2)]">
+                  <MessageSquare className="size-10 opacity-40" />
+                  <p className="text-sm font-medium text-[var(--msg-text)]">Select a conversation</p>
+                  <p className="max-w-xs text-xs">
+                    Choose a thread on the left, or text a customer from their repair order.
+                  </p>
+                </div>
               </div>
-            </>
-          ) : (
-            <div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-2 px-4 text-center text-muted-foreground">
-              <MessageSquare className="size-10 opacity-40" />
-              <p className="text-sm font-medium">Select a conversation</p>
-              <p className="max-w-xs text-xs">
-                Choose a thread on the left, or text a customer from their repair order.
-              </p>
-            </div>
-          )}
+            )}
+          </section>
+
+          <MessagesThreadContextRail
+            selected={selected}
+            context={threadContext}
+            contextLoading={contextLoading}
+            avatarTone={selected ? selectedTone : undefined}
+            mockMode={mockMode}
+            mobileOpen={mobileDetailsOpen}
+            onMobileClose={() => setMobileDetailsOpen(false)}
+            onEstimateSent={() => {
+              if (selectedId) {
+                openConversation(selectedId).then(setMessages).catch(() => {});
+              }
+            }}
+          />
         </div>
       </div>
     </div>
+    </JobBoardHistoryProvider>
   );
 }

@@ -50,7 +50,7 @@ import {
 
 import { getShopId } from "@/lib/shop";
 
-import { motorEnabledForShop } from "@/server/labor-entitlement";
+import { motorEnabledForShop, oemLaborPrimaryForShop } from "@/server/labor-entitlement";
 
 import {
 
@@ -72,7 +72,7 @@ import { gates } from "@/server/permission-gates";
 
 
 
-export type LaborBookMotorSource = "motor" | "reference" | "shop";
+export type LaborBookMotorSource = "motor" | "reference" | "shop" | "oem";
 
 
 
@@ -87,6 +87,10 @@ export type LaborBookMotorInitResult =
       source: LaborBookMotorSource;
 
       catalogMode: LaborCatalogMode;
+
+      /** OEM automation is the primary labor lane (Pro/Elite). MOTOR is fallback. */
+
+      oemLaborPrimary: boolean;
 
       /** MOTOR data (licensed or sandbox overlay) is available for this vehicle. */
 
@@ -270,6 +274,8 @@ function referenceTaxonomyInit(
 
     catalogMode: "reference",
 
+    oemLaborPrimary: false,
+
     motorAvailable: false,
 
     aiEnabled: isLaborAiEnabled(),
@@ -279,6 +285,44 @@ function referenceTaxonomyInit(
     syncBanner: isLaborAiEnabled()
       ? "Shop labor guide — taxonomy browse + cache/AI hours. MOTOR sandbox disconnected."
       : "Shop labor guide — MOTOR sandbox disconnected. Load MOTOR test data (MOTOR_SANDBOX_CACHE=true) for BOOK hours.",
+
+  };
+
+}
+
+
+
+/** Pro/Elite OEM-primary init — taxonomy browse, MOTOR demoted to fallback. */
+
+function oemPrimaryLaborInit(
+
+  baseVehicleId: number | null,
+
+  motorAvailable: boolean,
+
+): Extract<LaborBookMotorInitResult, { ok: true }> {
+
+  return {
+
+    ok: true,
+
+    baseVehicleId,
+
+    source: "oem",
+
+    catalogMode: "reference",
+
+    oemLaborPrimary: true,
+
+    motorAvailable,
+
+    aiEnabled: isLaborAiEnabled(),
+
+    tree: mapMotorLaborSystemsToSidebar(MOTOR_LABOR_SYSTEMS),
+
+    syncBanner: motorAvailable
+      ? "OEM automation primary — platform SQL averages. MOTOR catalog available as fallback."
+      : "OEM automation primary — platform SQL averages. Enable MOTOR env for fallback BOOK times.",
 
   };
 
@@ -303,6 +347,8 @@ function shopLibraryInit(
     source: "shop",
 
     catalogMode: getLaborCatalogMode(),
+
+    oemLaborPrimary: false,
 
     motorAvailable: motorCatalogDataAvailable(),
 
@@ -651,15 +697,24 @@ export async function getLaborBookMotorInit(vehicleId: string): Promise<LaborBoo
 
 
 
+  const oemPrimary = await oemLaborPrimaryForShop(loaded.shopId);
+
   try {
     const motorOn = await motorEnabledForShop(loaded.shopId);
+    const baseVehicleId = await resolveMotorBaseVehicleId(toLaborServiceVehicle(loaded.vehicle));
+
+    // Pro/Elite: OEM automation primary — reference taxonomy + OEM chrome (not MOTOR-first).
+    if (oemPrimary) {
+      return oemPrimaryLaborInit(
+        baseVehicleId,
+        motorOn && motorCatalogDataAvailable(),
+      );
+    }
 
     // Core shops and shops without MOTOR entitlement use the shop reference guide.
     if (!motorCatalogDataAvailable() || !motorOn) {
       return referenceTaxonomyInit(null);
     }
-
-    const baseVehicleId = await resolveMotorBaseVehicleId(toLaborServiceVehicle(loaded.vehicle));
 
 
 
@@ -709,9 +764,11 @@ export async function getLaborBookMotorInit(vehicleId: string): Promise<LaborBoo
 
       source: "motor",
 
-      // Sandbox overlay is presented as the licensed MOTOR Catalog experience (BOOK tier).
+      // MOTOR catalog browse — fallback lane when OEM primary is off (legacy Pro path).
 
       catalogMode: "licensed",
+
+      oemLaborPrimary: false,
 
       motorAvailable: true,
 
@@ -729,6 +786,10 @@ export async function getLaborBookMotorInit(vehicleId: string): Promise<LaborBoo
 
       console.warn("[LaborBook] MOTOR init failed; falling back to reference taxonomy.", e);
 
+    }
+
+    if (oemPrimary) {
+      return oemPrimaryLaborInit(null, motorCatalogDataAvailable());
     }
 
     return referenceTaxonomyInit(null);

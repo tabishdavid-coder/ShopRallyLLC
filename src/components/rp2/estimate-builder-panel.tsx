@@ -19,6 +19,7 @@ import { parseApprovalSignature } from "@/lib/approval-signature";
 import { isEstimateEditable } from "@/lib/estimate-editable";
 import { EstimateActionToastProvider } from "@/components/repair-order/estimate-action-toast";
 import { EstimateLaborGuideShell } from "@/components/estimate-building/estimate-labor-guide-shell";
+import { roVehicleToQuickLaborVehicle } from "@/lib/tabish-friday-labor";
 import { EstimateWorkflowSummary } from "@/components/rp2/estimate-workflow-summary";
 import { RO_STATUS_PILL } from "@/lib/ro-status";
 import { Badge } from "@/components/ui/badge";
@@ -258,6 +259,7 @@ export async function EstimateBuilderPanel({ roId }: { roId: string }) {
           <EstimateLaborGuideShell
             roId={ro.id}
             vehicleId={ro.vehicleId}
+            initialVehicle={roVehicleToQuickLaborVehicle(v)}
             customerName={customerName}
             vehicleLabel={vehicleLabel}
             specLine={specLine}

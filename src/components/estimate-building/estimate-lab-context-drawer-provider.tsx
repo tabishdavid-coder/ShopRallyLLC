@@ -22,6 +22,7 @@ type DrawerProviderProps = {
   odometerNotWorking: boolean;
   canEdit: boolean;
   drawerData: EstimateContextDrawerData | null;
+  /** @deprecated Specs product removed — ignored if passed. */
   vehicleSpecs: EstimateLabVehicleSpecsBundle | null;
   paymentData: PaymentFinanceData | null;
   appointmentEmployees: { id: string; name: string }[];
@@ -33,8 +34,8 @@ type DrawerContextValue = {
   openDrawer: (tab: ContextDrawerTab) => void;
   openCustomerHistory: () => void;
   openMessages: () => void;
-  openVehicleSpecs: () => void;
-  registerOpenVehicleSpecs: (fn: (() => void) | null) => void;
+  /** Opens the Vehicles tab for identity edit (YMM / VIN / plate). */
+  openVehicleDetails: () => void;
   registerOpenMessages: (fn: (() => void) | null) => void;
 };
 
@@ -62,7 +63,7 @@ export function EstimateLabContextDrawerProvider({
   odometerNotWorking,
   canEdit,
   drawerData,
-  vehicleSpecs,
+  vehicleSpecs: _vehicleSpecs,
   paymentData,
   appointmentEmployees,
   defaultAppointmentDurationMins,
@@ -70,33 +71,24 @@ export function EstimateLabContextDrawerProvider({
 }: DrawerProviderProps) {
   const [drawerOpen, setDrawerOpen] = useState(false);
   const [drawerTab, setDrawerTab] = useState<ContextDrawerTab>("profile");
-  const [autoOpenSpecs, setAutoOpenSpecs] = useState(false);
-  const vehicleSpecsOpRef = useMemo(() => ({ current: null as (() => void) | null }), []);
   const messagesOpRef = useMemo(() => ({ current: null as (() => void) | null }), []);
 
-  const openDrawer = useCallback((tab: ContextDrawerTab, opts?: { autoOpenSpecs?: boolean }) => {
+  const openDrawer = useCallback((tab: ContextDrawerTab) => {
     setDrawerTab(tab);
-    setAutoOpenSpecs(Boolean(opts?.autoOpenSpecs));
     setDrawerOpen(true);
   }, []);
 
   const value = useMemo<DrawerContextValue>(
     () => ({
-      openDrawer: (tab) => openDrawer(tab),
+      openDrawer,
       openCustomerHistory: () => openDrawer("orders"),
       openMessages: () => messagesOpRef.current?.(),
-      openVehicleSpecs: () => {
-        if (vehicleSpecsOpRef.current) vehicleSpecsOpRef.current();
-        else openDrawer("vehicles", { autoOpenSpecs: true });
-      },
-      registerOpenVehicleSpecs: (fn) => {
-        vehicleSpecsOpRef.current = fn;
-      },
+      openVehicleDetails: () => openDrawer("vehicles"),
       registerOpenMessages: (fn) => {
         messagesOpRef.current = fn;
       },
     }),
-    [messagesOpRef, openDrawer, vehicleSpecsOpRef],
+    [messagesOpRef, openDrawer],
   );
 
   return (
@@ -104,15 +96,9 @@ export function EstimateLabContextDrawerProvider({
       {children}
       <EstimateLabContextDrawer
         open={drawerOpen}
-        onOpenChange={(next) => {
-          setDrawerOpen(next);
-          if (!next) setAutoOpenSpecs(false);
-        }}
+        onOpenChange={setDrawerOpen}
         tab={drawerTab}
-        onTabChange={(tab) => {
-          setDrawerTab(tab);
-          if (tab !== "vehicles") setAutoOpenSpecs(false);
-        }}
+        onTabChange={setDrawerTab}
         customer={customer}
         customerId={customerId}
         vehicle={vehicle}
@@ -122,11 +108,9 @@ export function EstimateLabContextDrawerProvider({
         odometerNotWorking={odometerNotWorking}
         canEdit={canEdit}
         initialData={drawerData}
-        vehicleSpecs={vehicleSpecs}
         paymentData={paymentData}
         appointmentEmployees={appointmentEmployees}
         defaultAppointmentDurationMins={defaultAppointmentDurationMins}
-        autoOpenSpecs={autoOpenSpecs}
       />
     </EstimateLabContextDrawerContext.Provider>
   );

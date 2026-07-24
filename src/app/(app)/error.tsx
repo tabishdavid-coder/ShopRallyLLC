@@ -32,7 +32,7 @@ export default function AppError({
         </h2>
         <p className="text-sm text-muted-foreground">
           {dbDown
-            ? "ShopRally couldn't reach the Neon database. The dev server may need a restart, or Neon may be waking from idle sleep."
+            ? "ShopRally couldn't reach the local database. Start Prisma Dev with npm run db:dev, then restart npm run dev."
             : "A server error occurred while loading this page."}
         </p>
         {error.digest ? (
@@ -50,9 +50,9 @@ export default function AppError({
       </div>
       {dbDown ? (
         <p className="max-w-sm text-xs text-muted-foreground">
-          Fix: stop the dev server (Ctrl+C), then run{" "}
-          <code className="rounded bg-muted px-1 py-0.5">npm run dev</code> in the{" "}
-          <code className="rounded bg-muted px-1 py-0.5">shoprally</code> folder.
+          Fix: Terminal 1 —{" "}
+          <code className="rounded bg-muted px-1 py-0.5">npm run db:dev</code> · Terminal 2 —{" "}
+          <code className="rounded bg-muted px-1 py-0.5">npm run dev</code>
         </p>
       ) : null}
     </div>

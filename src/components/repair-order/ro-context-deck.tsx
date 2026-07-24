@@ -29,8 +29,6 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { formatCents, customerDisplayName } from "@/lib/format";
 import { useSmsUiEnabled, useStripePaymentsUiEnabled } from "@/lib/shop-capabilities";
 import { parseApprovalSignature } from "@/lib/approval-signature";
-import type { VehicleSpecsView } from "@/lib/vehicle-specs-view";
-import { RoVehicleSpecsPanel } from "@/components/repair-order/ro-vehicle-specs-panel";
 import type { RepairOrderDetail } from "@/server/repair-order";
 import type { RoSidebarOptions } from "@/server/ro-sidebar-options";
 import {
@@ -202,12 +200,10 @@ export function RoContextDeck({
   ro,
   options,
   customerTags: _customerTags = [],
-  vehicleSpecs,
 }: {
   ro: RepairOrderDetail;
   options: RoSidebarOptions;
   customerTags?: string[];
-  vehicleSpecs: VehicleSpecsView;
 }) {
   const smsEnabled = useSmsUiEnabled();
   const stripeOnPlan = useStripePaymentsUiEnabled();
@@ -607,9 +603,6 @@ export function RoContextDeck({
                     />
                   </CollapsibleContent>
                 </Collapsible>
-                <RoVehicleSpecsPanel
-                  specs={vehicleSpecs}
-                />
               </>
             ) : null}
 

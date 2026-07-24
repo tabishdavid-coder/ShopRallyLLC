@@ -310,7 +310,7 @@ export function CreateJobAiReviewDialog({
           ) : null}
         </div>
 
-        <DialogFooter className="border-t border-border bg-muted/10 px-5 py-3 sm:justify-between">
+        <DialogFooter className="shrink-0 border-t border-border bg-muted/10 px-5 py-3 sm:justify-between">
           <Button
             type="button"
             variant="outline"

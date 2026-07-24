@@ -46,7 +46,28 @@ Set `MOTOR_ENABLED=false` to disable without removing code.
 | **:3004** | Legacy design-mode dev (`npm run dev:3004`) |
 | **:3030** | Isolated Autopilot preview (`npm run dev:3030`) |
 
-## OneDrive CSS cache gotcha
+## Local database (Prisma Dev)
+
+Local CRM uses **Prisma Dev** (`shoprally`) on TCP **51214** — not Neon.
+
+```powershell
+# Terminal 1 — database (leave running)
+npm run db:dev
+
+# Terminal 2 — CRM
+npm run dev
+```
+
+`.env` `DATABASE_URL` must include `sslmode=disable&pgbouncer=true&connection_limit=1` for Prisma Dev TCP.
+
+If CRM shows **database connection lost** / P1001:
+
+1. `npx prisma dev ls` — if `shoprally` says running but port 51214 fails, it's a **zombie**
+2. `npm run db:dev` — auto-detects zombie, runs `rm` + fresh start
+3. If schema is empty after recreate: `npx prisma db push` then `npm run db:seed`
+
+Neon backup stays in `.env` as commented `DATABASE_URL_NEON` — do not switch back unless quota restored.
+
 
 If `globals.css` / theme tokens look stale after edits: delete `.next` and `node_modules/.cache`, then restart dev.
 

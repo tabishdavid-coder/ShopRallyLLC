@@ -18,9 +18,9 @@ export async function getRoSidebarOptions(shopId: string) {
       },
       orderBy: [{ role: "asc" }, { user: { lastName: "asc" } }],
     }),
-    prisma.laborRate.findMany({
-      where: { shopId },
-      orderBy: { sortOrder: "asc" },
+    prisma.shopLaborItem.findMany({
+      where: { shopId, isActive: true },
+      orderBy: [{ sortOrder: "asc" }, { name: "asc" }],
       select: { name: true, rateCents: true, isDefault: true },
     }),
     getLeadSourceNames(),

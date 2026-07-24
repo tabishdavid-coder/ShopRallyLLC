@@ -6,11 +6,14 @@
 export const SMS_ENABLED =
   process.env.SMS_ENABLED !== "false" && process.env.NEXT_PUBLIC_SMS_ENABLED !== "false";
 
-/** True when all Twilio credentials are present (live send). */
+/**
+ * True when platform Twilio credentials are present (live send possible).
+ * Matches `twilioPlatformConfigured()` in sms.ts — SID + auth token only.
+ * Per-shop From number is separate (`Shop.twilioPhoneNumber`); do not require
+ * `TWILIO_FROM_NUMBER` (dev-only fallback).
+ */
 export function twilioConfigured(): boolean {
   return Boolean(
-    process.env.TWILIO_ACCOUNT_SID?.trim() &&
-      process.env.TWILIO_AUTH_TOKEN?.trim() &&
-      process.env.TWILIO_FROM_NUMBER?.trim(),
+    process.env.TWILIO_ACCOUNT_SID?.trim() && process.env.TWILIO_AUTH_TOKEN?.trim(),
   );
 }

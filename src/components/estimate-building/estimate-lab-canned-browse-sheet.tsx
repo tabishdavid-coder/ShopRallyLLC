@@ -23,7 +23,6 @@ import {
 
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
   DialogContent,
@@ -59,6 +58,7 @@ import {
 import {
   addCannedJobToRepairOrder,
   fetchCannedJobDetail,
+  fetchCannedJobsForPicker,
 } from "@/server/actions/canned-jobs";
 import { useEstimateActionToast } from "@/components/repair-order/estimate-action-toast";
 
@@ -80,10 +80,10 @@ function NavRow({
       type="button"
       onClick={onClick}
       className={cn(
-        "flex w-full items-center justify-between gap-2 border-b border-border/50 px-3 py-2.5 text-left text-sm transition-colors last:border-b-0",
+        "flex w-full items-center justify-between gap-2 rounded-md px-3 py-2.5 text-left text-sm transition-colors",
         active
-          ? "bg-brand-light/15 font-semibold text-brand-navy"
-          : "bg-white hover:bg-brand-light/8",
+          ? "bg-brand-navy/[0.06] font-semibold text-brand-navy"
+          : "text-foreground hover:bg-brand-navy/[0.03]",
       )}
     >
       <span className="truncate">{label}</span>
@@ -92,6 +92,14 @@ function NavRow({
         <ChevronRight className="size-3.5" />
       </span>
     </button>
+  );
+}
+
+function PreviewSectionLabel({ children }: { children: ReactNode }) {
+  return (
+    <p className="mb-1.5 text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground/80">
+      {children}
+    </p>
   );
 }
 
@@ -105,10 +113,13 @@ function PreviewTotalsBar({
   totalCents: number;
 }) {
   return (
-    <p className="mt-2 text-xs tabular-nums text-muted-foreground">
-      Labor {formatCents(laborCents)} · Parts {formatCents(partsCents)} ·{" "}
+    <div className="mt-5 flex flex-wrap items-baseline gap-x-3 gap-y-1 border-t border-[#eaecf0] pt-3 text-xs tabular-nums text-muted-foreground">
+      <span>Labor {formatCents(laborCents)}</span>
+      <span className="text-border">·</span>
+      <span>Parts {formatCents(partsCents)}</span>
+      <span className="text-border">·</span>
       <span className="font-semibold text-brand-navy">Total {formatCents(totalCents)}</span>
-    </p>
+    </div>
   );
 }
 
@@ -135,6 +146,7 @@ export function EstimateLabCannedBrowseSheet({
   const router = useRouter();
   const { toast } = useEstimateActionToast();
   const [q, setQ] = useState(initialQuery);
+  const [localJobs, setLocalJobs] = useState(jobs);
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [selectedSubcategory, setSelectedSubcategory] = useState<string | null>(null);
   const [selectedPosition, setSelectedPosition] = useState<string | null>(null);
@@ -147,6 +159,7 @@ export function EstimateLabCannedBrowseSheet({
   const [error, setError] = useState<string | null>(null);
   const detailCache = useRef(new Map<string, CannedJobDetail>());
   const fetchGen = useRef(0);
+  const listFetchGen = useRef(0);
 
   const searchActive = q.trim().length > 0;
 
@@ -186,13 +199,27 @@ export function EstimateLabCannedBrowseSheet({
   }, [searchActive, q, selectedCategory, selectedSubcategory, selectedPosition, selectedOperation]);
 
   const contextJobs = useMemo(() => {
-    if (searchActive) return filterCannedJobsByQuery(jobs, q);
+    if (searchActive) return filterCannedJobsByQuery(localJobs, q);
     if (!browseReady || !selectedSubcategory) return [];
-    return filterCannedJobsForBrowse(jobs, selectedSubcategory, selectedPosition, selectedOperation);
-  }, [searchActive, q, jobs, browseReady, selectedSubcategory, selectedPosition, selectedOperation]);
+    return filterCannedJobsForBrowse(
+      localJobs,
+      selectedSubcategory,
+      selectedPosition,
+      selectedOperation,
+    );
+  }, [
+    searchActive,
+    q,
+    localJobs,
+    browseReady,
+    selectedSubcategory,
+    selectedPosition,
+    selectedOperation,
+  ]);
 
   useEffect(() => {
     if (!open) return;
+    setLocalJobs(jobs);
     setQ(initialQuery);
     setSelectedCategory(null);
     setSelectedSubcategory(null);
@@ -203,7 +230,18 @@ export function EstimateLabCannedBrowseSheet({
     setPreviewLoading(false);
     setPreviewError(null);
     setError(null);
-  }, [open, initialQuery]);
+
+    // Live shop catalog (same CannedJob rows as Settings → /canned-jobs).
+    const gen = ++listFetchGen.current;
+    fetchCannedJobsForPicker()
+      .then((updated) => {
+        if (gen !== listFetchGen.current) return;
+        setLocalJobs(updated);
+      })
+      .catch(() => {
+        /* keep SSR snapshot */
+      });
+  }, [open, initialQuery, jobs]);
 
   useEffect(() => {
     if (browseStep !== "jobs") {
@@ -394,7 +432,7 @@ export function EstimateLabCannedBrowseSheet({
   function renderNavList(): ReactNode {
     if (browseStep === "category") {
       return (
-        <ul className="divide-y divide-border">
+        <ul className="space-y-0.5 px-2 pb-2">
           {LABOR_CATEGORY_TREE.map((cat) => (
             <li key={cat.id}>
               <NavRow label={cat.label} onClick={() => selectCategory(cat.id)} />
@@ -408,7 +446,7 @@ export function EstimateLabCannedBrowseSheet({
       const cat = selectedCategory ? laborCategoryById(selectedCategory) : null;
       if (!cat) return null;
       return (
-        <ul className="divide-y divide-border">
+        <ul className="space-y-0.5 px-2 pb-2">
           {cat.subcategories.map((sub) => (
             <li key={sub.id}>
               <NavRow label={sub.label} onClick={() => selectSubcategory(sub.id)} />
@@ -420,7 +458,7 @@ export function EstimateLabCannedBrowseSheet({
 
     if (browseStep === "position" && selectedSubcategory) {
       return (
-        <ul className="divide-y divide-border">
+        <ul className="space-y-0.5 px-2 pb-2">
           {positionFacetsForSubcategory(selectedSubcategory).map((pos) => (
             <li key={pos.id}>
               <NavRow label={pos.label} onClick={() => selectPosition(pos.id)} />
@@ -432,7 +470,7 @@ export function EstimateLabCannedBrowseSheet({
 
     if (browseStep === "operation" && selectedSubcategory) {
       return (
-        <ul className="divide-y divide-border">
+        <ul className="space-y-0.5 px-2 pb-2">
           {operationFacetsForSubcategory(selectedSubcategory).map((op) => (
             <li key={op.id}>
               <NavRow label={op.label} onClick={() => selectOperation(op.id)} />
@@ -445,16 +483,21 @@ export function EstimateLabCannedBrowseSheet({
     if (browseStep === "jobs") {
       if (contextJobs.length === 0) {
         return (
-          <div className="px-3 py-8 text-center text-sm text-muted-foreground">
-            {searchActive
-              ? "No canned jobs match your search."
-              : "No shop templates in this category yet — try another path or create one in Settings."}
+          <div className="px-4 py-10 text-center">
+            <p className="text-sm font-medium text-brand-navy">
+              {searchActive ? "No matches" : "No templates here"}
+            </p>
+            <p className="mt-1 text-xs text-muted-foreground">
+              {searchActive
+                ? "Try another search or browse by system."
+                : "Try another path, or create a template in Settings."}
+            </p>
           </div>
         );
       }
 
       return (
-        <ul className="divide-y divide-border" role="listbox" aria-label="Canned jobs">
+        <ul className="space-y-0.5 px-2 pb-2" role="listbox" aria-label="Canned jobs">
           {contextJobs.map((j) => {
             const est = estimateCannedJobSummaryTotal(j, baseRateCents, partTiers, laborTiers);
             const active = j.id === selectedId;
@@ -462,8 +505,10 @@ export function EstimateLabCannedBrowseSheet({
               <li key={j.id}>
                 <div
                   className={cn(
-                    "flex items-center gap-2 px-2 py-1.5",
-                    active ? "bg-brand-light/15 ring-1 ring-inset ring-brand-navy/25" : "hover:bg-muted/50",
+                    "flex items-center gap-2 rounded-md px-2 py-2 transition-colors",
+                    active
+                      ? "bg-brand-navy/[0.06]"
+                      : "hover:bg-brand-navy/[0.03]",
                   )}
                 >
                   <button
@@ -474,8 +519,15 @@ export function EstimateLabCannedBrowseSheet({
                     onDoubleClick={() => addJobById(j)}
                     className="min-w-0 flex-1 truncate text-left"
                   >
-                    <span className="block truncate text-sm font-medium text-foreground">{j.name}</span>
-                    <span className="block truncate text-[11px] text-muted-foreground">
+                    <span
+                      className={cn(
+                        "block truncate text-sm",
+                        active ? "font-semibold text-brand-navy" : "font-medium text-foreground",
+                      )}
+                    >
+                      {j.name}
+                    </span>
+                    <span className="mt-0.5 block truncate text-[11px] text-muted-foreground">
                       {j.laborHours.toFixed(1)}h · ~{formatCents(est.totalCents)}
                     </span>
                   </button>
@@ -483,7 +535,7 @@ export function EstimateLabCannedBrowseSheet({
                     type="button"
                     size="sm"
                     variant="outline"
-                    className="h-7 shrink-0 gap-1 border-brand-navy/30 px-2 text-xs text-brand-navy"
+                    className="h-7 shrink-0 gap-1 border-[#d0d5dd] px-2 text-xs font-medium text-brand-navy hover:bg-brand-navy/[0.04]"
                     disabled={pending}
                     onClick={() => addJobById(j)}
                   >
@@ -516,21 +568,42 @@ export function EstimateLabCannedBrowseSheet({
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="flex max-h-[min(720px,calc(100vh-2rem))] flex-col gap-0 overflow-hidden p-0 sm:max-w-4xl">
-        <div className="shrink-0 border-b px-5 py-3.5">
-          <DialogTitle className="text-lg font-semibold text-brand-navy">Browse job templates</DialogTitle>
-          <DialogDescription>Drill down by system · explicit Add only</DialogDescription>
-        </div>
-        <div className="grid min-h-0 flex-1 grid-cols-1 grid-rows-[minmax(0,1fr)_minmax(0,1fr)] md:grid-cols-[minmax(280px,1.2fr)_minmax(260px,1fr)] md:grid-rows-1">
-          <section className="flex min-h-0 min-w-0 flex-col border-b border-border md:border-b-0 md:border-r">
-            <div className="shrink-0 space-y-2 border-b border-border p-3">
+      <DialogContent
+        showCloseButton={false}
+        className="flex max-h-[min(720px,calc(100vh-2rem))] flex-col gap-0 overflow-hidden p-0 sm:max-w-4xl"
+      >
+        <header className="flex shrink-0 items-start justify-between gap-3 border-b border-[#eaecf0] bg-white px-5 py-4 pr-4">
+          <div className="min-w-0 space-y-0.5">
+            <div className="flex items-center gap-2">
+              <Star className="size-4 shrink-0 text-brand-orange" aria-hidden />
+              <DialogTitle className="text-base font-semibold text-brand-navy">
+                Browse job templates
+              </DialogTitle>
+            </div>
+            <DialogDescription className="text-xs text-muted-foreground">
+              Drill down by system · explicit Add only
+            </DialogDescription>
+          </div>
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            className="mt-0.5 shrink-0 text-muted-foreground hover:bg-brand-navy/[0.04] hover:text-brand-navy"
+            onClick={() => onOpenChange(false)}
+            aria-label="Close"
+          >
+            <X className="size-4" />
+          </Button>
+        </header>
+        <div className="grid min-h-0 flex-1 grid-cols-1 grid-rows-[minmax(0,1fr)_minmax(0,1fr)] md:grid-cols-[minmax(280px,1.15fr)_minmax(280px,1fr)] md:grid-rows-1">
+          <section className="flex min-h-0 min-w-0 flex-col border-b border-[#eaecf0] bg-white md:border-b-0 md:border-r">
+            <div className="shrink-0 space-y-3 px-4 pt-4 pb-3">
               <div className="relative">
-                <Search className="pointer-events-none absolute top-2 left-2 size-3.5 text-muted-foreground" />
+                <Search className="pointer-events-none absolute top-2.5 left-2.5 size-3.5 text-muted-foreground" />
                 <Input
                   value={q}
                   onChange={(e) => setQ(e.target.value)}
                   placeholder="Search templates by name"
-                  className="h-8 w-full pl-7 text-sm"
+                  className="h-9 w-full border-[#d0d5dd] bg-white pl-8 text-sm shadow-none focus-visible:border-brand-navy/40 focus-visible:ring-brand-navy/15"
                 />
               </div>
 
@@ -539,7 +612,7 @@ export function EstimateLabCannedBrowseSheet({
                   <button
                     type="button"
                     onClick={resetBrowse}
-                    className="flex size-7 shrink-0 items-center justify-center rounded-md text-muted-foreground hover:bg-muted hover:text-brand-navy"
+                    className="flex size-7 shrink-0 items-center justify-center rounded-md text-muted-foreground hover:bg-brand-navy/[0.04] hover:text-brand-navy"
                     aria-label="Back to all systems"
                   >
                     <ArrowLeft className="size-3.5" />
@@ -575,10 +648,10 @@ export function EstimateLabCannedBrowseSheet({
                 </nav>
               </div>
 
-              <p className="text-[11px] font-semibold uppercase tracking-wide text-brand-navy/70">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.12em] text-muted-foreground/80">
                 {stepTitle}
                 {browseStep === "jobs" && contextJobs.length > 0 ? (
-                  <span className="ml-1 font-normal normal-case text-muted-foreground">
+                  <span className="ml-1 font-normal normal-case tracking-normal text-muted-foreground">
                     · {contextJobs.length} template{contextJobs.length === 1 ? "" : "s"}
                   </span>
                 ) : null}
@@ -588,10 +661,10 @@ export function EstimateLabCannedBrowseSheet({
             <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain">{renderNavList()}</div>
           </section>
 
-          <section className="flex min-h-0 min-w-0 flex-col bg-muted/20">
-            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain p-3">
+          <section className="flex min-h-0 min-w-0 flex-col bg-brand-navy/[0.02]">
+            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-5 py-4">
               {browseStep !== "jobs" || !selectedSummary ? (
-                <p className="text-sm text-muted-foreground">
+                <p className="pt-2 text-sm text-muted-foreground">
                   {browseStep === "jobs" && searchActive && contextJobs.length === 0
                     ? "No preview — adjust search or browse by system."
                     : browseStep !== "jobs"
@@ -600,103 +673,91 @@ export function EstimateLabCannedBrowseSheet({
                 </p>
               ) : (
                 <>
-                  <div className="flex flex-wrap items-baseline gap-x-2 gap-y-0.5">
-                    <h4 className="font-semibold text-foreground">{selectedSummary.name}</h4>
+                  <div className="space-y-1">
+                    <h4 className="text-base font-semibold text-brand-navy">
+                      {selectedSummary.name}
+                    </h4>
                     {selectedSummary.category ? (
-                      <Badge variant="outline" className="px-1.5 py-0 text-[10px] font-normal">
-                        {selectedSummary.category}
-                      </Badge>
+                      <p className="text-xs text-muted-foreground">{selectedSummary.category}</p>
+                    ) : null}
+                    {selectedSummary.description ? (
+                      <p className="line-clamp-2 text-xs leading-relaxed text-muted-foreground">
+                        {selectedSummary.description}
+                      </p>
                     ) : null}
                   </div>
-                  {selectedSummary.description ? (
-                    <p className="mt-0.5 line-clamp-2 text-xs text-muted-foreground">
-                      {selectedSummary.description}
-                    </p>
-                  ) : null}
 
                   {previewError ? (
-                    <div className="mt-2 flex items-start gap-1.5 rounded-md border border-destructive/30 bg-destructive/5 px-2 py-1.5 text-xs text-destructive">
+                    <div className="mt-4 flex items-start gap-1.5 rounded-md border border-destructive/25 bg-destructive/5 px-3 py-2 text-xs text-destructive">
                       <AlertCircle className="mt-0.5 size-3.5 shrink-0" />
                       <span>{previewError}</span>
                     </div>
                   ) : null}
 
                   {(preview?.laborLines.length || selectedSummary.laborLineCount > 0) && (
-                    <div className="mt-2 overflow-hidden rounded-md border border-border bg-card">
-                      <table className="w-full text-xs">
-                        <thead>
-                          <tr className="border-b border-border bg-muted/40 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-                            <th className="px-2 py-1 text-left font-medium">Labor</th>
-                            <th className="w-12 px-2 py-1 text-right font-medium">Hrs</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {preview?.laborLines.length ? (
-                            preview.laborLines.map((l) => (
-                              <tr key={l.id} className="border-b border-border/60 last:border-0">
-                                <td className="px-2 py-1">{l.description}</td>
-                                <td className="px-2 py-1 text-right tabular-nums text-muted-foreground">
-                                  {l.hours.toFixed(1)}
-                                </td>
-                              </tr>
-                            ))
-                          ) : previewLoading ? (
-                            <tr>
-                              <td colSpan={2} className="px-2 py-2 text-muted-foreground">
-                                <Loader2 className="mr-1 inline size-3 animate-spin" />
-                                Loading…
-                              </td>
-                            </tr>
-                          ) : (
-                            <tr>
-                              <td colSpan={2} className="px-2 py-1 text-muted-foreground">
-                                {selectedSummary.laborLineCount} line
-                                {selectedSummary.laborLineCount === 1 ? "" : "s"} ·{" "}
-                                {selectedSummary.laborHours.toFixed(1)}h
-                              </td>
-                            </tr>
-                          )}
-                        </tbody>
-                      </table>
+                    <div className="mt-5">
+                      <PreviewSectionLabel>Labor</PreviewSectionLabel>
+                      <ul className="divide-y divide-[#eaecf0]">
+                        {preview?.laborLines.length ? (
+                          preview.laborLines.map((l) => (
+                            <li
+                              key={l.id}
+                              className="flex items-start justify-between gap-3 py-2 text-sm"
+                            >
+                              <span className="min-w-0 line-clamp-2 break-words text-foreground">
+                                {l.description}
+                              </span>
+                              <span className="shrink-0 tabular-nums text-muted-foreground">
+                                {l.hours.toFixed(1)}h
+                              </span>
+                            </li>
+                          ))
+                        ) : previewLoading ? (
+                          <li className="flex items-center gap-1.5 py-2 text-sm text-muted-foreground">
+                            <Loader2 className="size-3 animate-spin" />
+                            Loading…
+                          </li>
+                        ) : (
+                          <li className="py-2 text-sm text-muted-foreground">
+                            {selectedSummary.laborLineCount} line
+                            {selectedSummary.laborLineCount === 1 ? "" : "s"} ·{" "}
+                            {selectedSummary.laborHours.toFixed(1)}h
+                          </li>
+                        )}
+                      </ul>
                     </div>
                   )}
 
                   {(preview?.partLines.length || selectedSummary.partLineCount > 0) && (
-                    <div className="mt-1.5 overflow-hidden rounded-md border border-border bg-card">
-                      <table className="w-full text-xs">
-                        <thead>
-                          <tr className="border-b border-border bg-muted/40 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
-                            <th className="px-2 py-1 text-left font-medium">Parts</th>
-                            <th className="w-10 px-2 py-1 text-right font-medium">Qty</th>
-                          </tr>
-                        </thead>
-                        <tbody>
-                          {preview?.partLines.length ? (
-                            preview.partLines.map((p) => (
-                              <tr key={p.id} className="border-b border-border/60 last:border-0">
-                                <td className="px-2 py-1">{p.description}</td>
-                                <td className="px-2 py-1 text-right tabular-nums text-muted-foreground">
-                                  ×{p.quantity}
-                                </td>
-                              </tr>
-                            ))
-                          ) : previewLoading ? (
-                            <tr>
-                              <td colSpan={2} className="px-2 py-2 text-muted-foreground">
-                                <Loader2 className="mr-1 inline size-3 animate-spin" />
-                                Loading…
-                              </td>
-                            </tr>
-                          ) : (
-                            <tr>
-                              <td colSpan={2} className="px-2 py-1 text-muted-foreground">
-                                {selectedSummary.partLineCount} part line
-                                {selectedSummary.partLineCount === 1 ? "" : "s"}
-                              </td>
-                            </tr>
-                          )}
-                        </tbody>
-                      </table>
+                    <div className="mt-5">
+                      <PreviewSectionLabel>Parts</PreviewSectionLabel>
+                      <ul className="divide-y divide-[#eaecf0]">
+                        {preview?.partLines.length ? (
+                          preview.partLines.map((p) => (
+                            <li
+                              key={p.id}
+                              className="flex items-start justify-between gap-3 py-2 text-sm"
+                            >
+                              <span className="min-w-0 line-clamp-2 break-words text-foreground">
+                                {p.description}
+                              </span>
+                              <span className="shrink-0 tabular-nums text-muted-foreground">
+                                ×{p.quantity}
+                              </span>
+                            </li>
+                          ))
+                        ) : previewLoading ? (
+                          <li className="flex items-center gap-1.5 py-2 text-sm text-muted-foreground">
+                            <Loader2 className="size-3 animate-spin" />
+                            Loading…
+                          </li>
+                        ) : (
+                          <li className="py-2 text-sm text-muted-foreground">
+                            {selectedSummary.partLineCount} part line
+                            {selectedSummary.partLineCount === 1 ? "" : "s"}
+                          </li>
+                        )}
+                      </ul>
                     </div>
                   )}
 
@@ -712,11 +773,11 @@ export function EstimateLabCannedBrowseSheet({
             </div>
           </section>
         </div>
-        <div className="shrink-0 border-t px-5 py-3">
-          {error ? <p className="mb-1.5 text-xs text-destructive">{error}</p> : null}
+        <div className="shrink-0 border-t border-[#eaecf0] bg-white px-5 py-3.5">
+          {error ? <p className="mb-2 text-xs text-destructive">{error}</p> : null}
           <Button
             size="sm"
-            className="h-9 w-full gap-1 bg-brand-navy hover:bg-brand-navy/90"
+            className="h-9 w-full gap-1.5 bg-brand-orange text-sm font-semibold text-white hover:bg-brand-orange/90"
             disabled={!selectedId || pending || browseStep !== "jobs"}
             onClick={addSelected}
           >

@@ -192,6 +192,12 @@ export const AP_SIDEBAR_NAV_GROUPS: ApNavGroup[] = [
         description: "Estimates, work in progress & completed ROs",
       },
       {
+        title: "Messages",
+        href: "/messages",
+        icon: MessageSquare,
+        description: "Customer SMS threads",
+      },
+      {
         title: "Appointments",
         href: "/appointments",
         icon: CalendarDays,
@@ -238,12 +244,6 @@ export const AP_SIDEBAR_NAV_GROUPS: ApNavGroup[] = [
         href: "/inventory",
         icon: Package,
         description: "Parts on hand & stock levels",
-      },
-      {
-        title: "Messages",
-        href: "/messages",
-        icon: MessageSquare,
-        description: "Customer SMS threads",
       },
       {
         title: "Google Reviews",

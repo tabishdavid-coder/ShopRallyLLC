@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useId, useMemo, useState, type ReactNode } from "react";
+import { useEffect, useId, useMemo, useState } from "react";
 import { Car, Info, Loader2, Palette, Plus, Save, Tag } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -13,10 +13,12 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipTrigger,
-} from "@/components/ui/tooltip";
+  VEHICLE_INTAKE_BTN_OUTLINE,
+  VEHICLE_INTAKE_BTN_PRIMARY,
+  VEHICLE_INTAKE_FIELD,
+  VehicleIntakeFieldLabel,
+  VehicleIntakeFormSection,
+} from "@/components/vehicles/vehicle-intake-form-chrome";
 import { useCorePlanShop } from "@/lib/shop-capabilities";
 import { cn } from "@/lib/utils";
 import { CAR_MAKES } from "@/lib/vehicle-makes";
@@ -39,22 +41,21 @@ export const US_STATE_NAMES: Record<string, string> = {
   WY: "Wyoming", DC: "District of Columbia",
 };
 
-const TRANSMISSION_OPTIONS = ["Automatic", "Manual", "CVT", "Dual-Clutch", "Other"] as const;
-const DRIVETRAIN_OPTIONS = ["FWD", "RWD", "AWD", "4WD", "4x4", "Other"] as const;
-const VEHICLE_COLORS = [
+export const TRANSMISSION_OPTIONS = ["Automatic", "Manual", "CVT", "Dual-Clutch", "Other"] as const;
+export const DRIVETRAIN_OPTIONS = ["FWD", "RWD", "AWD", "4WD", "4x4", "Other"] as const;
+export const VEHICLE_COLORS = [
   "Black", "White", "Silver", "Gray", "Red", "Blue", "Green", "Brown", "Beige", "Gold", "Orange", "Yellow", "Purple", "Other",
 ] as const;
+export const VEHICLE_NOTES_MAX = 500;
 const MILEAGE_UNITS = [
   { value: "miles", label: "Miles" },
   { value: "km", label: "Kilometers" },
 ] as const;
 
-const NOTES_MAX = 500;
+const NOTES_MAX = VEHICLE_NOTES_MAX;
 
-export const fieldClass =
-  "h-10 w-full rounded-none border border-[#d0d5dd] bg-white px-2.5 text-sm outline-none placeholder:text-muted-foreground/70 focus:border-brand-orange/50 focus:ring-3 focus:ring-brand-orange/20";
-
-const PANEL_CLASS = "rounded-none border border-[#eaecf0] bg-[#f9fafb] p-4";
+/** Alias for Add Vehicle dialog / callers — same as VEHICLE_INTAKE_FIELD. */
+export const fieldClass = VEHICLE_INTAKE_FIELD;
 
 export type VehicleFormData = {
   year: number | null;
@@ -171,64 +172,8 @@ export function vehicleFormFromDecoded(
   };
 }
 
-function FormSection({
-  icon: Icon,
-  title,
-  children,
-  className,
-}: {
-  icon: React.ComponentType<{ className?: string }>;
-  title: string;
-  children: ReactNode;
-  className?: string;
-}) {
-  return (
-    <section className={cn(PANEL_CLASS, "flex flex-col", className)}>
-      <div className="mb-4 flex items-center gap-2">
-        <Icon className="size-4 text-brand-orange" />
-        <h3 className="text-sm font-semibold text-foreground">{title}</h3>
-      </div>
-      <div className="flex min-h-0 flex-1 flex-col space-y-4">{children}</div>
-    </section>
-  );
-}
-
-function FieldLabel({
-  label,
-  required,
-  info,
-  className,
-}: {
-  label: string;
-  required?: boolean;
-  info?: string;
-  className?: string;
-}) {
-  return (
-    <div className={cn("mb-1.5 flex items-center gap-1", className)}>
-      <label className="text-xs font-medium text-muted-foreground">
-        {label}
-        {required ? <span className="text-destructive"> *</span> : null}
-      </label>
-      {info ? (
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <button
-              type="button"
-              className="inline-flex text-muted-foreground/70 hover:text-muted-foreground"
-              aria-label={`${label} info`}
-            >
-              <Info className="size-3.5" />
-            </button>
-          </TooltipTrigger>
-          <TooltipContent side="top" className="max-w-xs text-left">
-            {info}
-          </TooltipContent>
-        </Tooltip>
-      ) : null}
-    </div>
-  );
-}
+const FormSection = VehicleIntakeFormSection;
+const FieldLabel = VehicleIntakeFieldLabel;
 
 export function CreateVehicleForm({
   form,
@@ -743,7 +688,7 @@ export function CreateVehicleFormFooter({
         <Button
           type="button"
           variant="outline"
-          className="h-10 rounded-none border-[#d0d5dd] px-5 text-foreground hover:bg-muted/50"
+          className={VEHICLE_INTAKE_BTN_OUTLINE}
           onClick={onCancel}
           disabled={saving}
         >
@@ -753,7 +698,7 @@ export function CreateVehicleFormFooter({
           type="button"
           onClick={onSave}
           disabled={saving}
-          className="h-10 gap-2 rounded-none bg-brand-orange px-5 text-white hover:bg-brand-orange/90"
+          className={VEHICLE_INTAKE_BTN_PRIMARY}
         >
           {saving ? <Loader2 className="size-4 animate-spin" /> : <Save className="size-4" />}
           Save Vehicle

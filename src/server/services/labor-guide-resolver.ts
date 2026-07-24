@@ -29,6 +29,17 @@ import {
   type LaborSuggestion,
   type Vehicle,
 } from "@/server/services/labor-guide";
+import {
+  buildRedundancyMeta,
+  getAutomotiveDataFreshness,
+  type DataFreshness,
+  type RedundancyMeta,
+} from "@/server/platform/oem-automation";
+import {
+  getOemLaborEstimate,
+  oemEstimateToSuggestion,
+  type OemLaborEstimateResult,
+} from "@/server/services/oem-labor-resolver";
 
 export type MotorLaborContext = {
   baseVehicleId?: number | null;
@@ -51,6 +62,11 @@ export type ResolvedLaborLookup = {
     | "generic_fallback";
   motorAssignment?: MotorNodeAssignment | null;
   dataSource?: string;
+  /** OEM pipeline freshness — live | cached | stale */
+  dataFreshness?: DataFreshness;
+  freshnessWarning?: string;
+  /** Redundancy layer provenance */
+  redundancy?: RedundancyMeta;
 };
 
 function rowToSuggestion(row: {
@@ -191,6 +207,65 @@ async function tryNeighborCache(
   return null;
 }
 
+async function attachDataFreshness(result: ResolvedLaborLookup): Promise<ResolvedLaborLookup> {
+  const { freshness, warning } = await getAutomotiveDataFreshness({ cached: result.cached });
+  const source =
+    result.dataSource ??
+    (result.resolution === "neighbor_cache"
+      ? "neighbor_cache"
+      : result.resolution === "assembly_fallback"
+        ? "assembly_fallback"
+        : result.resolution === "generic_fallback"
+          ? "default_1hr"
+          : "ai");
+  return {
+    ...result,
+    dataFreshness: freshness,
+    freshnessWarning: warning,
+    redundancy: buildRedundancyMeta({
+      source,
+      fallbackUsed: result.resolution !== "ai" && result.resolution !== "exact_cache",
+      healthStatus: freshness,
+    }).meta,
+  };
+}
+
+/**
+ * OEM automation primary path — used when Pro/Elite entitlement is active.
+ * Returns null when shopId absent or Starter tier.
+ */
+export async function resolveOemPrimaryLabor(
+  vehicle: Vehicle,
+  request: string,
+  shopId?: string,
+): Promise<(ResolvedLaborLookup & { oemEstimate: OemLaborEstimateResult }) | null> {
+  if (!shopId) return null;
+  const { oemLaborPrimaryForShop } = await import("@/server/labor-entitlement");
+  if (!(await oemLaborPrimaryForShop(shopId))) return null;
+
+  const oem = await getOemLaborEstimate(vehicle, request);
+  const suggestion = oemEstimateToSuggestion(oem, request);
+  const resolution: ResolvedLaborLookup["resolution"] =
+    oem.dataSource === "oem_default_1hr" ? "generic_fallback" : "exact_cache";
+
+  const wrapped = auditWrap(suggestion, request, oem.cacheHit, resolution, {
+    dataSource: oem.dataSource,
+  });
+  if (oem.warning) {
+    wrapped.auditWarnings.unshift(oem.warning);
+  }
+
+  return {
+    ...(await attachDataFreshness({
+      ...wrapped,
+      dataFreshness: oem.meta.health_status,
+      freshnessWarning: oem.warning,
+      redundancy: oem.meta,
+    })),
+    oemEstimate: oem,
+  };
+}
+
 /**
  * AI + fallback ladder. Never throws — always returns a usable suggestion.
  * Caller persists to LaborOperation when appropriate.
@@ -245,10 +320,12 @@ export async function resolveLaborSuggestionWithFallback(
           : "ai_motor_scoped"
         : "ai_first_principles");
 
-    return auditWrap(ai, request, false, "ai", {
-      motorAssignment,
-      dataSource,
-    });
+    return attachDataFreshness(
+      auditWrap(ai, request, false, "ai", {
+        motorAssignment,
+        dataSource,
+      }),
+    );
   } catch {
     const neighbor = await tryNeighborCache(vehicle, request);
     if (neighbor) {
@@ -256,17 +333,17 @@ export async function resolveLaborSuggestionWithFallback(
       result.auditWarnings.unshift(
         "AI unavailable — using similar cached internal guide entry. Verify hours.",
       );
-      return result;
+      return attachDataFreshness(result);
     }
 
     const cls = classifyOperation(request, request);
     const fallback = assemblyFallbackSuggestion(request, cls.subcategoryId);
-    return {
+    return attachDataFreshness({
       suggestion: fallback.suggestion,
       cached: false,
       auditWarnings: fallback.warnings,
       resolution: fallback.ruleId ? "assembly_fallback" : "generic_fallback",
-    };
+    });
   }
 }
 

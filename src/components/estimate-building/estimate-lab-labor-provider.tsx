@@ -10,7 +10,8 @@ import {
   type ReactNode,
 } from "react";
 
-import { SmartLaborGuide } from "@/components/repair-order/smart-labor-guide";
+import { TabishFridayLaborDialog } from "@/components/labor/tabish-friday-labor-dialog";
+import type { QuickLaborVehicle } from "@/lib/quick-labor";
 import type { LaborCartLine } from "@/lib/labor-guide-types";
 
 type GuideLine = Omit<LaborCartLine, "key">;
@@ -42,6 +43,7 @@ export function EstimateLabLaborProvider({
   children,
   roId,
   vehicleId,
+  initialVehicle,
   customerName,
   vehicleLabel,
   specLine,
@@ -51,6 +53,8 @@ export function EstimateLabLaborProvider({
   children: ReactNode;
   roId: string;
   vehicleId: string;
+  /** RO vehicle — prefill Tabish Friday when VIN/YMM present; else decode gate inside dialog. */
+  initialVehicle?: QuickLaborVehicle | null;
   customerName: string;
   vehicleLabel: string;
   specLine: string;
@@ -92,18 +96,17 @@ export function EstimateLabLaborProvider({
   return (
     <EstimateLabLaborContext.Provider value={value}>
       {children}
-      <SmartLaborGuide
-        vehicleId={vehicleId}
+      <TabishFridayLaborDialog
+        open={open}
+        onOpenChange={handleOpenChange}
         roId={roId}
+        vehicleId={vehicleId}
+        initialVehicle={initialVehicle}
         customerName={customerName}
         vehicleLabel={vehicleLabel}
         specLine={specLine}
         mileageIn={mileageIn}
         odometerNotWorking={odometerNotWorking}
-        presentation="floating"
-        open={open}
-        onOpenChange={handleOpenChange}
-        hideTrigger
         addMode={addMode}
         onAddLines={addMode === "addLines" ? handleAddLines : undefined}
         submitLabel={addMode === "addLines" ? "Add to job" : undefined}

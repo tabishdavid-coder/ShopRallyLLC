@@ -108,3 +108,20 @@ export function buildRoAttachmentKey(opts: {
 export function newAttachmentId(): string {
   return createHash("sha256").update(randomBytes(24)).digest("hex").slice(0, 24);
 }
+
+export function newWiringDiagramId(): string {
+  return createHash("sha256").update(randomBytes(24)).digest("hex").slice(0, 24);
+}
+
+/** Tenant-scoped key for cached OEM wiring diagrams (shop-licensed — do not redistribute). */
+export function buildWiringDiagramKey(opts: {
+  shopId: string;
+  vehicleId: string;
+  diagramId: string;
+  wiringSystem: string;
+  ext: string;
+}): string {
+  const ext = opts.ext.startsWith(".") ? opts.ext.toLowerCase().replace(/[^\w.]/g, "") : `.${opts.ext.toLowerCase().replace(/[^\w.]/g, "")}`;
+  const safeSystem = opts.wiringSystem.toLowerCase().replace(/[^a-z0-9_]/g, "");
+  return `shops/${opts.shopId}/wiring/${opts.vehicleId}/${safeSystem}/${opts.diagramId}${ext}`;
+}
