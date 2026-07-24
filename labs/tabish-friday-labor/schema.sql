@@ -1,0 +1,320 @@
+-- =============================================================================
+-- Tabish Friday Labor — Proprietary Self-Correcting Labor Guide
+-- PostgreSQL 15+ DDL (standalone — not wired to ShopRally CRM)
+-- =============================================================================
+
+CREATE EXTENSION IF NOT EXISTS "pgcrypto";
+CREATE EXTENSION IF NOT EXISTS "vector";
+CREATE EXTENSION IF NOT EXISTS "pg_trgm";
+
+-- ---------------------------------------------------------------------------
+-- Enumerations
+-- ---------------------------------------------------------------------------
+
+CREATE TYPE chassis_tier AS ENUM ('1', '2', '3', '4', '5');
+-- 1 = open / simple packaging
+-- 2 = moderate density
+-- 3 = tight bay / transverse complexity
+-- 4 = performance / dual powertrain
+-- 5 = EV / heavy commercial packaging
+
+CREATE TYPE fitment_status AS ENUM (
+  'confirmed',
+  'estimated',
+  'pending_scrape',
+  'rejected'
+);
+
+CREATE TYPE labor_row_status AS ENUM (
+  'verified',
+  'estimated',
+  'provisional'
+);
+
+-- ---------------------------------------------------------------------------
+-- vehicle_taxonomy
+-- ---------------------------------------------------------------------------
+
+CREATE TABLE vehicle_taxonomy (
+  id              uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  model_year      smallint NOT NULL CHECK (model_year BETWEEN 1980 AND 2100),
+  make            text NOT NULL,
+  model           text NOT NULL,
+  engine_config   text NOT NULL,
+  chassis_tier    chassis_tier NOT NULL DEFAULT '1',
+  embedding       vector(384),
+  created_at      timestamptz NOT NULL DEFAULT now(),
+  updated_at      timestamptz NOT NULL DEFAULT now(),
+  CONSTRAINT uq_vehicle_taxonomy_natural UNIQUE (model_year, make, model, engine_config)
+);
+
+CREATE INDEX idx_vehicle_taxonomy_ymm
+  ON vehicle_taxonomy (model_year, make, model);
+
+CREATE INDEX idx_vehicle_taxonomy_trgm
+  ON vehicle_taxonomy USING gin ((make || ' ' || model || ' ' || engine_config) gin_trgm_ops);
+
+CREATE INDEX idx_vehicle_taxonomy_embedding
+  ON vehicle_taxonomy
+  USING ivfflat (embedding vector_cosine_ops)
+  WITH (lists = 100);
+
+COMMENT ON TABLE vehicle_taxonomy IS
+  'Normalized YMME registry for Tabish Friday Labor. Embedding powers L1 neighbor inherit.';
+COMMENT ON COLUMN vehicle_taxonomy.chassis_tier IS
+  'Packaging complexity 1 (open) … 5 (EV/HD). Drives chassis multiplier scaling.';
+
+-- ---------------------------------------------------------------------------
+-- service_categories  (Main → Sub → Component → Action)
+-- ---------------------------------------------------------------------------
+
+CREATE TABLE service_categories (
+  id          uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  parent_id   uuid REFERENCES service_categories (id) ON DELETE RESTRICT,
+  level       smallint NOT NULL CHECK (level BETWEEN 1 AND 4),
+  key         varchar(128) NOT NULL,
+  name        text NOT NULL,
+  sort_order  integer NOT NULL DEFAULT 0,
+  created_at  timestamptz NOT NULL DEFAULT now(),
+  CONSTRAINT uq_service_categories_level_key UNIQUE (level, key),
+  CONSTRAINT chk_service_categories_root CHECK (
+    (level = 1 AND parent_id IS NULL) OR (level > 1 AND parent_id IS NOT NULL)
+  )
+);
+
+CREATE INDEX idx_service_categories_parent ON service_categories (parent_id);
+CREATE INDEX idx_service_categories_level ON service_categories (level);
+
+COMMENT ON TABLE service_categories IS
+  'Hierarchical repair tree: level 1 Main System → 2 Sub → 3 Component → 4 Action.';
+
+-- ---------------------------------------------------------------------------
+-- service_operations  (billable leaves bound to level-4 categories)
+-- ---------------------------------------------------------------------------
+
+CREATE TABLE service_operations (
+  id              uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  category_id     uuid NOT NULL REFERENCES service_categories (id) ON DELETE RESTRICT,
+  operation_code  varchar(160) NOT NULL,
+  description     text NOT NULL,
+  standard_hours  numeric(5, 2) NOT NULL DEFAULT 0 CHECK (standard_hours >= 0),
+  created_at      timestamptz NOT NULL DEFAULT now(),
+  CONSTRAINT uq_service_operations_code UNIQUE (operation_code)
+);
+
+CREATE INDEX idx_service_operations_code ON service_operations (operation_code);
+CREATE INDEX idx_service_operations_category ON service_operations (category_id);
+
+-- Enforce category_id points at a level-4 node
+CREATE OR REPLACE FUNCTION enforce_operation_category_level()
+RETURNS trigger
+LANGUAGE plpgsql
+AS $$
+DECLARE
+  lvl smallint;
+BEGIN
+  SELECT level INTO lvl FROM service_categories WHERE id = NEW.category_id;
+  IF lvl IS DISTINCT FROM 4 THEN
+    RAISE EXCEPTION 'service_operations.category_id must reference a level-4 Action category';
+  END IF;
+  RETURN NEW;
+END;
+$$;
+
+CREATE TRIGGER trg_service_operations_level
+  BEFORE INSERT OR UPDATE OF category_id ON service_operations
+  FOR EACH ROW EXECUTE FUNCTION enforce_operation_category_level();
+
+COMMENT ON TABLE service_operations IS
+  'Billable operations. category_id must be a level-4 Action node.';
+
+-- ---------------------------------------------------------------------------
+-- manufacturers / parts_catalog
+-- ---------------------------------------------------------------------------
+
+CREATE TABLE manufacturers (
+  id    uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  name  text NOT NULL,
+  CONSTRAINT uq_manufacturers_name UNIQUE (name)
+);
+
+CREATE TABLE parts_catalog (
+  id               uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  part_number      text NOT NULL,
+  manufacturer_id  uuid NOT NULL REFERENCES manufacturers (id) ON DELETE RESTRICT,
+  description      text NOT NULL DEFAULT '',
+  unit_cost        numeric(12, 2) NOT NULL DEFAULT 0 CHECK (unit_cost >= 0),
+  list_price       numeric(12, 2) NOT NULL DEFAULT 0 CHECK (list_price >= 0),
+  category_hint    text,
+  is_active        boolean NOT NULL DEFAULT true,
+  created_at       timestamptz NOT NULL DEFAULT now(),
+  CONSTRAINT uq_parts_catalog_pn_mfr UNIQUE (part_number, manufacturer_id)
+);
+
+CREATE INDEX idx_parts_catalog_active ON parts_catalog (is_active) WHERE is_active;
+CREATE INDEX idx_parts_catalog_hint ON parts_catalog (category_hint);
+
+COMMENT ON TABLE parts_catalog IS
+  'Manufacturer SKU index independent of vehicle fitment.';
+
+-- ---------------------------------------------------------------------------
+-- vehicle_part_fitment
+-- ---------------------------------------------------------------------------
+
+CREATE TABLE vehicle_part_fitment (
+  id                 uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  vehicle_id         uuid NOT NULL REFERENCES vehicle_taxonomy (id) ON DELETE CASCADE,
+  operation_id       uuid NOT NULL REFERENCES service_operations (id) ON DELETE RESTRICT,
+  part_id            uuid NOT NULL REFERENCES parts_catalog (id) ON DELETE RESTRICT,
+  quantity_required  numeric(10, 3) NOT NULL DEFAULT 1 CHECK (quantity_required > 0),
+  variant_flags      jsonb NOT NULL DEFAULT '{}'::jsonb,
+  fitment_status     fitment_status NOT NULL DEFAULT 'confirmed',
+  created_at         timestamptz NOT NULL DEFAULT now(),
+  CONSTRAINT uq_vehicle_part_fitment UNIQUE (vehicle_id, operation_id, part_id)
+);
+
+CREATE INDEX idx_vpf_vehicle_op ON vehicle_part_fitment (vehicle_id, operation_id);
+CREATE INDEX idx_vpf_status ON vehicle_part_fitment (fitment_status);
+CREATE INDEX idx_vpf_flags ON vehicle_part_fitment USING gin (variant_flags);
+
+COMMENT ON TABLE vehicle_part_fitment IS
+  'M:N vehicle × operation × part. pending_scrape rows enqueue OEM catalog sweeps.';
+
+-- ---------------------------------------------------------------------------
+-- labor_time_matrix  (self-correcting)
+-- ---------------------------------------------------------------------------
+
+CREATE TABLE labor_time_matrix (
+  id                uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  vehicle_id        uuid NOT NULL REFERENCES vehicle_taxonomy (id) ON DELETE CASCADE,
+  operation_id      uuid NOT NULL REFERENCES service_operations (id) ON DELETE RESTRICT,
+  base_labor_hrs    numeric(5, 2) NOT NULL CHECK (base_labor_hrs >= 0),
+  telemetry_score   numeric(8, 3) NOT NULL DEFAULT 0,
+  sample_count      integer NOT NULL DEFAULT 0 CHECK (sample_count >= 0),
+  status            labor_row_status NOT NULL DEFAULT 'estimated',
+  confidence        numeric(4, 3) NOT NULL DEFAULT 0.500 CHECK (confidence BETWEEN 0 AND 1),
+  inherited_from_id uuid REFERENCES labor_time_matrix (id) ON DELETE SET NULL,
+  last_updated      timestamptz NOT NULL DEFAULT now(),
+  CONSTRAINT uq_labor_time_matrix UNIQUE (vehicle_id, operation_id)
+);
+
+CREATE INDEX idx_ltm_operation ON labor_time_matrix (operation_id);
+CREATE INDEX idx_ltm_status ON labor_time_matrix (status);
+CREATE INDEX idx_ltm_updated ON labor_time_matrix (last_updated);
+
+COMMENT ON TABLE labor_time_matrix IS
+  'Vehicle×operation hours. base_labor_hrs used for billing; telemetry_score EMA from closeouts.';
+
+CREATE TABLE labor_telemetry_events (
+  id                     uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  labor_time_matrix_id   uuid NOT NULL REFERENCES labor_time_matrix (id) ON DELETE CASCADE,
+  actual_hours           numeric(8, 3) NOT NULL CHECK (actual_hours >= 0),
+  previous_telemetry     numeric(8, 3),
+  new_telemetry          numeric(8, 3) NOT NULL,
+  created_at             timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE INDEX idx_lte_matrix ON labor_telemetry_events (labor_time_matrix_id, created_at DESC);
+
+-- ---------------------------------------------------------------------------
+-- shop_config / chassis_multipliers
+-- ---------------------------------------------------------------------------
+
+CREATE TABLE shop_config (
+  id          uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  region      text NOT NULL,
+  shop_rate   numeric(8, 2) NOT NULL CHECK (shop_rate > 0),
+  updated_at  timestamptz NOT NULL DEFAULT now(),
+  CONSTRAINT uq_shop_config_region UNIQUE (region)
+);
+
+INSERT INTO shop_config (region, shop_rate) VALUES
+  ('Albany/Capital Region', 145.00);
+
+COMMENT ON TABLE shop_config IS
+  'Regional shop labor rates. Billing reads ONLY from here + labor_time_matrix.';
+
+CREATE TABLE chassis_multipliers (
+  from_tier   chassis_tier NOT NULL,
+  to_tier     chassis_tier NOT NULL,
+  multiplier  numeric(6, 4) NOT NULL CHECK (multiplier > 0),
+  notes       text,
+  PRIMARY KEY (from_tier, to_tier)
+);
+
+INSERT INTO chassis_multipliers (from_tier, to_tier, multiplier, notes) VALUES
+  ('1', '1', 1.0000, 'identity'),
+  ('1', '2', 1.0500, 'moderate packaging'),
+  ('1', '3', 1.1800, 'tight bay'),
+  ('1', '4', 1.3000, 'performance / dual powertrain'),
+  ('1', '5', 1.4500, 'EV / heavy commercial'),
+  ('2', '1', 0.9500, 'relax to open'),
+  ('2', '2', 1.0000, 'identity'),
+  ('2', '3', 1.1200, 'tighten'),
+  ('2', '4', 1.2200, 'performance step-up'),
+  ('2', '5', 1.3500, 'EV/HD step-up'),
+  ('3', '1', 0.8500, 'downscale open'),
+  ('3', '2', 0.9000, 'downscale moderate'),
+  ('3', '3', 1.0000, 'identity'),
+  ('3', '4', 1.1000, 'performance step-up'),
+  ('3', '5', 1.2200, 'EV/HD step-up'),
+  ('4', '4', 1.0000, 'identity'),
+  ('4', '5', 1.1200, 'EV/HD step-up'),
+  ('5', '5', 1.0000, 'identity'),
+  ('5', '3', 0.8200, 'downscale from EV/HD');
+
+COMMENT ON TABLE chassis_multipliers IS
+  'Strict tier→tier labor hour scaling for fallback interpolation.';
+
+-- ---------------------------------------------------------------------------
+-- scrape staging
+-- ---------------------------------------------------------------------------
+
+CREATE TABLE oem_scrape_staging (
+  id            uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  year          smallint NOT NULL,
+  make          text NOT NULL,
+  model         text NOT NULL,
+  engine        text,
+  source        text NOT NULL,
+  raw_payload   jsonb NOT NULL,
+  scraped_at    timestamptz NOT NULL DEFAULT now(),
+  normalized_at timestamptz
+);
+
+CREATE INDEX idx_oem_scrape_vehicle ON oem_scrape_staging (year, make, model);
+
+CREATE TABLE parts_scrape_jobs (
+  id            uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  vehicle_id    uuid NOT NULL REFERENCES vehicle_taxonomy (id) ON DELETE CASCADE,
+  operation_id  uuid NOT NULL REFERENCES service_operations (id) ON DELETE CASCADE,
+  status        text NOT NULL DEFAULT 'queued'
+                CHECK (status IN ('queued', 'running', 'done', 'failed')),
+  payload       jsonb NOT NULL DEFAULT '{}'::jsonb,
+  created_at    timestamptz NOT NULL DEFAULT now(),
+  finished_at   timestamptz
+);
+
+CREATE INDEX idx_parts_scrape_jobs_status ON parts_scrape_jobs (status);
+
+-- ---------------------------------------------------------------------------
+-- updated_at helper
+-- ---------------------------------------------------------------------------
+
+CREATE OR REPLACE FUNCTION set_updated_at()
+RETURNS trigger
+LANGUAGE plpgsql
+AS $$
+BEGIN
+  NEW.updated_at := now();
+  RETURN NEW;
+END;
+$$;
+
+CREATE TRIGGER trg_vehicle_taxonomy_updated
+  BEFORE UPDATE ON vehicle_taxonomy
+  FOR EACH ROW EXECUTE FUNCTION set_updated_at();
+
+CREATE TRIGGER trg_shop_config_updated
+  BEFORE UPDATE ON shop_config
+  FOR EACH ROW EXECUTE FUNCTION set_updated_at();

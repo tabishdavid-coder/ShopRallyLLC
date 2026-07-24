@@ -5,7 +5,10 @@ Production blueprint for a **self-generating**, commercial-API-independent autom
 Start here: **[ARCHITECTURE.md](./ARCHITECTURE.md)** · implementation status: **[IMPLEMENTATION.md](./IMPLEMENTATION.md)**
 
 **Standalone Labor Guide mockup (no CRM / no login):**  
-`/lab/proprietary-taxonomy.html`
+`/lab/tabish-friday-labor.html` (primary) · `/lab/proprietary-taxonomy.html` (legacy alias)
+
+**Full standalone build (Tabish Friday Labor):**  
+`labs/tabish-friday-labor/` — schema, FastAPI, scraper, seed, billing (not wired to CRM)
 
 | Deliverable | Location |
 |-------------|----------|

@@ -1,0 +1,765 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Tabish Friday Labor — Proprietary Labor Guide</title>
+  <style>
+    :root {
+      --navy: #16588E;
+      --navy-deep: #0f3d63;
+      --light: #81C4FF;
+      --red: #E7222E;
+      --orange: #e85d04;
+      --bg: #f1f5f9;
+      --card: #fff;
+      --muted: #64748b;
+      --border: rgba(22, 88, 142, 0.14);
+      --emerald: #059669;
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; margin: 0; }
+    body {
+      font-family: "Segoe UI", ui-sans-serif, system-ui, sans-serif;
+      background: var(--bg);
+      color: #0f172a;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+
+    .test-bar {
+      flex: 0 0 auto;
+      display: flex; flex-wrap: wrap; align-items: center; gap: 10px;
+      padding: 8px 14px;
+      background: linear-gradient(90deg, var(--navy-deep), var(--navy));
+      color: #fff; font-size: 12px;
+    }
+    .test-bar strong { color: var(--light); }
+    .test-bar .sep { opacity: 0.4; }
+    .test-bar .note { margin-left: auto; opacity: 0.85; font-size: 11px; }
+
+    .shell {
+      flex: 1; min-height: 0;
+      display: flex; flex-direction: column;
+      margin: 10px; border: 1px solid var(--border);
+      border-radius: 12px; background: var(--card);
+      box-shadow: 0 10px 30px rgba(15, 61, 99, 0.08);
+      overflow: hidden;
+    }
+
+    .header {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(22, 88, 142, 0.03);
+    }
+    .header-row {
+      display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px;
+      margin-bottom: 8px;
+    }
+    .vehicle {
+      font-size: 14px; font-weight: 700; color: var(--navy);
+    }
+    .vehicle select {
+      margin-left: 8px; border: 1px solid var(--border); border-radius: 8px;
+      padding: 4px 8px; font-size: 12px; color: var(--navy); background: #fff;
+    }
+    .meta { font-size: 11px; color: var(--muted); }
+    .search-wrap { position: relative; }
+    .search-wrap input {
+      width: 100%; height: 34px; border: 1px solid var(--border); border-radius: 8px;
+      padding: 0 12px 0 32px; font-size: 13px; background: #fff;
+    }
+    .search-wrap .ico {
+      position: absolute; left: 10px; top: 50%; transform: translateY(-50%);
+      color: var(--muted); font-size: 13px;
+    }
+    .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+    .chip {
+      border: 1px solid var(--border); background: #fff; color: var(--navy);
+      border-radius: 999px; padding: 3px 10px; font-size: 11px; cursor: pointer;
+    }
+    .chip:hover, .chip.active { border-color: var(--orange); background: rgba(232, 93, 4, 0.08); }
+
+    .crumb {
+      display: flex; flex-wrap: wrap; align-items: center; gap: 4px;
+      padding: 8px 16px; border-bottom: 1px solid var(--border); font-size: 12px;
+    }
+    .crumb button {
+      border: 0; background: transparent; color: var(--muted); cursor: pointer; padding: 2px 4px;
+    }
+    .crumb button:hover { color: var(--navy); text-decoration: underline; }
+    .crumb button.here { color: var(--navy); font-weight: 700; }
+    .crumb .chev { color: rgba(22,88,142,0.3); font-size: 11px; }
+
+    .toast {
+      display: none; padding: 6px 16px; font-size: 12px;
+      background: #ecfdf5; color: #065f46; border-bottom: 1px solid #a7f3d0;
+    }
+    .toast.show { display: block; }
+
+    .body { flex: 1; min-height: 0; display: flex; }
+
+    .systems {
+      width: 210px; flex: 0 0 auto; overflow: auto;
+      border-right: 1px solid var(--border);
+      background: rgba(22, 88, 142, 0.02); padding: 8px;
+    }
+    .systems .lbl {
+      padding: 4px 6px; font-size: 10px; font-weight: 800; letter-spacing: 0.06em;
+      text-transform: uppercase; color: rgba(22,88,142,0.55); margin-bottom: 4px;
+    }
+    .sys-btn, .sub-btn, .comp-btn {
+      width: 100%; border: 0; background: transparent; text-align: left; cursor: pointer;
+      border-radius: 6px; color: var(--navy);
+    }
+    .sys-btn {
+      display: flex; align-items: center; gap: 4px;
+      padding: 6px 6px; font-size: 12px; font-weight: 600;
+    }
+    .sys-btn:hover, .sub-btn:hover, .comp-btn:hover { background: rgba(22,88,142,0.06); }
+    .subs { margin: 0 0 4px 10px; padding-left: 8px; border-left: 1px solid var(--border); }
+    .sub-btn { padding: 5px 8px; font-size: 11px; color: var(--muted); font-weight: 600; }
+    .comps { margin-left: 8px; }
+    .comp-btn { padding: 4px 8px; font-size: 11px; color: var(--muted); }
+    .comp-btn.active {
+      background: var(--orange); color: #fff; font-weight: 700;
+    }
+
+    .main {
+      flex: 1; min-width: 0; display: flex; flex-direction: column; padding: 12px;
+    }
+    .ops { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+    .op-pill {
+      border: 1px solid var(--border); border-radius: 999px; background: #fff;
+      padding: 3px 10px; font-size: 11px; color: var(--navy); cursor: pointer;
+    }
+    .op-pill.active { background: rgba(22,88,142,0.1); border-color: var(--navy); font-weight: 700; }
+    .empty {
+      margin: auto; color: var(--muted); font-size: 13px; text-align: center; padding: 24px;
+    }
+    .table-wrap {
+      flex: 1; min-height: 0; overflow: auto;
+      border: 1px solid var(--border); border-radius: 10px;
+    }
+    table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    thead th {
+      position: sticky; top: 0; background: rgba(22,88,142,0.05);
+      text-align: left; padding: 8px 10px; font-size: 10px; text-transform: uppercase;
+      letter-spacing: 0.04em; color: rgba(22,88,142,0.7); border-bottom: 1px solid var(--border);
+    }
+    tbody td { padding: 8px 10px; border-bottom: 1px solid rgba(22,88,142,0.08); vertical-align: middle; }
+    tbody tr { cursor: pointer; }
+    tbody tr:hover { background: rgba(129,196,255,0.12); }
+    tbody tr.selected { background: rgba(22,88,142,0.08); }
+    .path {
+      display: inline-block; border-radius: 999px; padding: 2px 7px;
+      font-size: 10px; font-weight: 800; letter-spacing: 0.02em;
+    }
+    .path.L0_EXACT { background: #d1fae5; color: #065f46; }
+    .path.L2_CHASSIS { background: #ffedd5; color: #9a3412; }
+    .path.L4_PENDING { background: #fee2e2; color: #991b1b; }
+    .hrs { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-weight: 700; text-align: right; }
+    .add {
+      border: 1px solid var(--border); background: #fff; color: var(--navy);
+      border-radius: 8px; width: 28px; height: 28px; cursor: pointer; font-weight: 800;
+    }
+    .add:hover { background: var(--navy); color: #fff; }
+    .add:disabled { opacity: 0.35; cursor: not-allowed; }
+
+    .rail {
+      width: 280px; flex: 0 0 auto; border-left: 1px solid var(--border);
+      display: flex; flex-direction: column; background: #fafcff;
+    }
+    .rail h3 {
+      margin: 0; padding: 10px 12px; font-size: 12px; color: var(--navy);
+      border-bottom: 1px solid var(--border); background: rgba(22,88,142,0.04);
+    }
+    .rail .panel { padding: 12px; border-bottom: 1px solid var(--border); font-size: 12px; }
+    .rail .k { font-size: 10px; font-weight: 800; text-transform: uppercase; color: var(--muted); }
+    .rail .v { margin-top: 3px; font-weight: 700; color: var(--navy); }
+    .rail .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; }
+    .cart { flex: 1; min-height: 0; overflow: auto; padding: 10px 12px; }
+    .cart-item {
+      display: flex; justify-content: space-between; gap: 8px;
+      padding: 8px 0; border-bottom: 1px solid rgba(22,88,142,0.08); font-size: 11px;
+    }
+    .cart-foot {
+      padding: 12px; border-top: 1px solid var(--border); background: #fff;
+    }
+    .totals { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+    .totals > div { background: #f1f5f9; border-radius: 8px; padding: 8px; text-align: center; }
+    .totals .big { background: var(--navy); color: #fff; grid-column: 1 / -1; }
+    .totals .lbl { font-size: 10px; opacity: 0.75; text-transform: uppercase; font-weight: 800; }
+    .totals .num { margin-top: 2px; font: 700 16px/1.1 ui-monospace, monospace; }
+    .primary {
+      width: 100%; border: 0; border-radius: 10px; background: var(--navy); color: #fff;
+      font-weight: 700; font-size: 13px; padding: 10px; cursor: pointer;
+    }
+    .primary:disabled { opacity: 0.4; cursor: not-allowed; }
+    .trust {
+      margin-top: 8px; font-size: 10px; color: var(--muted); line-height: 1.35;
+    }
+  </style>
+</head>
+<body>
+  <div class="test-bar">
+    <strong>TABISH FRIDAY LABOR</strong>
+    <span class="sep">|</span>
+    <span>Self-correcting Labor Guide — standalone lab (not wired to ShopRally CRM / MOTOR)</span>
+    <span class="note">Fixture data · Albany/Capital Region $145/hr</span>
+  </div>
+
+  <div class="shell">
+    <div class="header">
+      <div class="header-row">
+        <div>
+          <div class="vehicle">
+            <span id="vehicleLabel">2015 Honda Accord · 2.4L</span>
+            <select id="vehicleSelect" aria-label="Demo vehicle">
+              <option value="accord">2015 Honda Accord · 2.4L (tier 2)</option>
+              <option value="civic">2012 Honda Civic · 1.8L I4 (tier 1)</option>
+              <option value="rivian">2024 Rivian R1T · Dual Motor (tier 5)</option>
+            </select>
+          </div>
+          <div class="meta" id="chassisMeta">Chassis tier: 2 · shop rate Albany/Capital Region $145.00/hr</div>
+        </div>
+        <div class="meta">Proprietary taxonomy browse · clicks <span id="clicks">0</span></div>
+      </div>
+      <div class="search-wrap">
+        <span class="ico">⌕</span>
+        <input id="search" placeholder="Search proprietary labor guide…" />
+      </div>
+      <div class="chips" id="chips"></div>
+    </div>
+
+    <nav class="crumb" id="crumb"></nav>
+    <div class="toast" id="toast"></div>
+
+    <div class="body">
+      <aside class="systems" id="systems"></aside>
+
+      <main class="main">
+        <div class="ops" id="ops"></div>
+        <div class="table-wrap" id="tableHost">
+          <div class="empty" id="empty">Pick a system component or search above.</div>
+        </div>
+      </main>
+
+      <aside class="rail">
+        <h3>Selected operation</h3>
+        <div class="panel" id="detail">
+          <div class="k">Nothing selected</div>
+          <div class="v" style="font-weight:500;color:var(--muted);margin-top:6px">
+            Choose a row to inspect resolve path, factory hours, and parts placeholder.
+          </div>
+        </div>
+        <h3>Estimate cart (mock)</h3>
+        <div class="cart" id="cart"></div>
+        <div class="cart-foot">
+          <div class="totals">
+            <div>
+              <div class="lbl">Hours</div>
+              <div class="num" id="totHours">0.00</div>
+            </div>
+            <div>
+              <div class="lbl">Rate</div>
+              <div class="num">$145</div>
+            </div>
+            <div class="big">
+              <div class="lbl">Labor total</div>
+              <div class="num" id="totMoney">$0.00</div>
+            </div>
+          </div>
+          <button class="primary" id="addEstimate" type="button" disabled>Add to estimate (mock)</button>
+          <div class="trust">Tabish Friday Labor — billing math is local to this lab. No CRM write path. Hours from fixture matrix / chassis scale — never from MOTOR/ALLDATA or LLM.</div>
+        </div>
+      </aside>
+    </div>
+  </div>
+
+  <script>
+    const RATE_CENTS = 14500; // Albany/Capital Region $145.00
+
+    const VEHICLES = {
+      accord: {
+        label: "2015 Honda Accord · 2.4L",
+        chassis: "2",
+        seedChassis: "1",
+        seedHours: 1.0,
+        mode: "L2", // miss exact → chassis scale
+      },
+      civic: {
+        label: "2012 Honda Civic · 1.8L I4",
+        chassis: "1",
+        seedChassis: "1",
+        seedHours: 1.0,
+        mode: "L0",
+      },
+      rivian: {
+        label: "2024 Rivian R1T · Dual Motor",
+        chassis: "5",
+        seedChassis: "1",
+        seedHours: 1.0,
+        mode: "L2", // 1→5 multiplier 1.45
+      },
+    };
+
+    // Matches sql/schema.sql chassis_multipliers seed (from tier 1)
+    const MULTIPLIERS = {
+      "1": { "1": 1, "2": 1.05, "3": 1.18, "4": 1.3, "5": 1.45 },
+      "2": { "1": 0.95, "2": 1, "3": 1.12, "4": 1.22, "5": 1.35 },
+    };
+
+    const TREE = [
+      {
+        id: "BRAKES",
+        label: "Brakes",
+        subs: [
+          {
+            id: "BRAKES.FRONT",
+            label: "Front",
+            comps: [
+              { id: "BRAKES.FRONT.PADS", label: "Pads" },
+              { id: "BRAKES.FRONT.ROTORS", label: "Rotors" },
+            ],
+          },
+          {
+            id: "BRAKES.REAR",
+            label: "Rear",
+            comps: [
+              { id: "BRAKES.REAR.PADS", label: "Pads" },
+              { id: "BRAKES.REAR.ROTORS", label: "Rotors" },
+            ],
+          },
+        ],
+      },
+      {
+        id: "ENGINE",
+        label: "Engine",
+        subs: [
+          {
+            id: "ENGINE.OIL",
+            label: "Oil service",
+            comps: [{ id: "ENGINE.OIL.FILTER", label: "Oil & filter" }],
+          },
+        ],
+      },
+    ];
+
+    const ACTIONS = [
+      { id: "R_AND_R", label: "R&R" },
+      { id: "REPLACE", label: "Replace" },
+      { id: "INSPECT", label: "Inspect" },
+    ];
+
+    const JOB_DEFS = [
+      { comp: "BRAKES.FRONT.PADS", action: "R_AND_R", name: "Brake Pads — Remove & Replace", pos: "FRONT", base: 1.0, flags: ["premium"] },
+      { comp: "BRAKES.FRONT.PADS", action: "INSPECT", name: "Brake Pads — Inspect", pos: "FRONT", base: 0.3, flags: [] },
+      { comp: "BRAKES.FRONT.ROTORS", action: "R_AND_R", name: "Brake Rotors — Remove & Replace", pos: "FRONT", base: 1.4, flags: ["coated"] },
+      { comp: "BRAKES.REAR.PADS", action: "R_AND_R", name: "Brake Pads — Remove & Replace", pos: "REAR", base: 1.1, flags: ["ceramic", "premium"] },
+      { comp: "BRAKES.REAR.ROTORS", action: "R_AND_R", name: "Brake Rotors — Remove & Replace", pos: "REAR", base: 1.5, flags: [] },
+      { comp: "ENGINE.OIL.FILTER", action: "REPLACE", name: "Engine Oil & Filter — Replace", pos: "ALL", base: 0.5, flags: ["oem"] },
+    ];
+
+    const CHIPS = [
+      { label: "Front pads", comp: "BRAKES.FRONT.PADS", action: "R_AND_R" },
+      { label: "Front rotors", comp: "BRAKES.FRONT.ROTORS", action: "R_AND_R" },
+      { label: "Rear pads", comp: "BRAKES.REAR.PADS", action: "R_AND_R" },
+      { label: "Oil & filter", comp: "ENGINE.OIL.FILTER", action: "REPLACE" },
+    ];
+
+    const state = {
+      vehicleId: "accord",
+      expanded: new Set(["BRAKES"]),
+      systemId: "BRAKES",
+      subId: "BRAKES.FRONT",
+      compId: "BRAKES.FRONT.PADS",
+      actionId: "R_AND_R",
+      search: "",
+      selectedJobId: null,
+      cart: [],
+      clicks: 0,
+    };
+
+    function money(cents) { return "$" + (cents / 100).toFixed(2); }
+    function bump() {
+      state.clicks += 1;
+      document.getElementById("clicks").textContent = String(state.clicks);
+    }
+
+    function resolveHours(base) {
+      const v = VEHICLES[state.vehicleId];
+      if (v.mode === "L0") {
+        return { path: "L0_EXACT", hours: base, multiplier: 1, note: "Exact matrix hit for this vehicle" };
+      }
+      if (v.mode === "L2") {
+        const m = MULTIPLIERS[v.seedChassis][v.chassis];
+        const hours = Math.round(base * m * 1000) / 1000;
+        return {
+          path: "L2_CHASSIS",
+          hours,
+          multiplier: m,
+          note: `Inherited from ${v.seedChassis} seed × ${m.toFixed(2)}`,
+        };
+      }
+      return { path: "L4_PENDING", hours: null, multiplier: null, note: "No seed / multiplier — pending curation" };
+    }
+
+    function partsCategory(job) {
+      if (job.comp.includes(".PADS")) {
+        const material = job.flags.includes("ceramic") ? "CERAMIC" : "STANDARD";
+        const tier = job.flags.includes("premium") ? "PREMIUM" : "STANDARD";
+        return `BRAKE_PAD_${job.pos}_${material}_${tier}`;
+      }
+      if (job.comp.includes(".ROTORS")) return `BRAKE_ROTOR_${job.pos}_STANDARD`;
+      if (job.comp.includes("OIL.FILTER")) return "OIL_FILTER_OEM";
+      return "GENERIC_PART";
+    }
+
+    function jobsForView() {
+      const q = state.search.trim().toLowerCase();
+      let rows = JOB_DEFS.map((d) => {
+        const resolved = resolveHours(d.base);
+        return {
+          id: `${d.comp}.${d.action}`,
+          ...d,
+          key: `${d.comp}.${d.action}`,
+          ...resolved,
+        };
+      });
+      if (q) {
+        rows = rows.filter((r) =>
+          r.name.toLowerCase().includes(q) ||
+          r.key.toLowerCase().includes(q) ||
+          r.pos.toLowerCase().includes(q)
+        );
+      } else if (state.compId) {
+        rows = rows.filter((r) => r.comp === state.compId && r.action === state.actionId);
+      } else {
+        rows = [];
+      }
+      return rows;
+    }
+
+    function findNodeLabels() {
+      const sys = TREE.find((t) => t.id === state.systemId);
+      const sub = sys?.subs.find((s) => s.id === state.subId);
+      const comp = sub?.comps.find((c) => c.id === state.compId);
+      return {
+        system: sys?.label,
+        sub: sub?.label,
+        comp: comp?.label,
+        action: ACTIONS.find((a) => a.id === state.actionId)?.label,
+      };
+    }
+
+    function renderChips() {
+      const root = document.getElementById("chips");
+      root.innerHTML = "";
+      for (const c of CHIPS) {
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "chip" + (state.compId === c.comp && state.actionId === c.action && !state.search ? " active" : "");
+        btn.textContent = c.label;
+        btn.onclick = () => {
+          const [sys, sub] = c.comp.split(".").slice(0, 2);
+          // BRAKES.FRONT.PADS → system BRAKES, sub BRAKES.FRONT
+          const parts = c.comp.split(".");
+          state.systemId = parts[0];
+          state.subId = parts.slice(0, 2).join(".");
+          state.compId = c.comp;
+          state.actionId = c.action;
+          state.expanded = new Set([state.systemId]);
+          state.search = "";
+          document.getElementById("search").value = "";
+          state.selectedJobId = null;
+          bump();
+          paint();
+        };
+        root.appendChild(btn);
+      }
+    }
+
+    function renderSystems() {
+      const root = document.getElementById("systems");
+      root.innerHTML = `<div class="lbl">Systems</div>`;
+      for (const sys of TREE) {
+        const open = state.expanded.has(sys.id);
+        const sysBtn = document.createElement("button");
+        sysBtn.type = "button";
+        sysBtn.className = "sys-btn";
+        sysBtn.innerHTML = `<span>${open ? "▾" : "▸"}</span><span>${sys.label}</span>`;
+        sysBtn.onclick = () => {
+          state.expanded = open ? new Set() : new Set([sys.id]);
+          state.systemId = sys.id;
+          bump();
+          paint();
+        };
+        root.appendChild(sysBtn);
+
+        if (open) {
+          const wrap = document.createElement("div");
+          wrap.className = "subs";
+          for (const sub of sys.subs) {
+            const subBtn = document.createElement("button");
+            subBtn.type = "button";
+            subBtn.className = "sub-btn";
+            subBtn.textContent = sub.label;
+            subBtn.onclick = () => {
+              state.systemId = sys.id;
+              state.subId = sub.id;
+              state.compId = sub.comps[0]?.id ?? null;
+              state.actionId = "R_AND_R";
+              if (state.compId === "ENGINE.OIL.FILTER") state.actionId = "REPLACE";
+              state.search = "";
+              document.getElementById("search").value = "";
+              state.selectedJobId = null;
+              bump();
+              paint();
+            };
+            wrap.appendChild(subBtn);
+
+            if (state.subId === sub.id) {
+              const comps = document.createElement("div");
+              comps.className = "comps";
+              for (const comp of sub.comps) {
+                const cBtn = document.createElement("button");
+                cBtn.type = "button";
+                cBtn.className = "comp-btn" + (state.compId === comp.id && !state.search ? " active" : "");
+                cBtn.textContent = comp.label;
+                cBtn.onclick = () => {
+                  state.compId = comp.id;
+                  state.selectedJobId = null;
+                  bump();
+                  paint();
+                };
+                comps.appendChild(cBtn);
+              }
+              wrap.appendChild(comps);
+            }
+          }
+          root.appendChild(wrap);
+        }
+      }
+    }
+
+    function renderCrumb() {
+      const root = document.getElementById("crumb");
+      const v = VEHICLES[state.vehicleId];
+      const labels = findNodeLabels();
+      const parts = [v.label];
+      if (!state.search) {
+        if (labels.system) parts.push(labels.system);
+        if (labels.sub) parts.push(labels.sub);
+        if (labels.comp) parts.push(labels.comp);
+        if (labels.action && state.compId) parts.push(labels.action);
+      } else {
+        parts.push(`Search “${state.search.trim()}”`);
+      }
+      root.innerHTML = parts.map((p, i) => {
+        const here = i === parts.length - 1 ? " here" : "";
+        const chev = i > 0 ? `<span class="chev">›</span>` : "";
+        return `${chev}<button type="button" class="${here}" data-i="${i}">${p}</button>`;
+      }).join("");
+      root.querySelectorAll("button").forEach((btn) => {
+        btn.onclick = () => {
+          const i = Number(btn.dataset.i);
+          if (i <= 0) {
+            state.compId = null;
+            state.subId = null;
+          } else if (i === 1) {
+            state.subId = null;
+            state.compId = null;
+          } else if (i === 2) {
+            state.compId = null;
+          }
+          state.search = "";
+          document.getElementById("search").value = "";
+          bump();
+          paint();
+        };
+      });
+    }
+
+    function renderOps() {
+      const root = document.getElementById("ops");
+      root.innerHTML = "";
+      if (state.search || !state.compId) return;
+      const available = ACTIONS.filter((a) => JOB_DEFS.some((j) => j.comp === state.compId && j.action === a.id));
+      for (const a of available) {
+        const b = document.createElement("button");
+        b.type = "button";
+        b.className = "op-pill" + (state.actionId === a.id ? " active" : "");
+        b.textContent = a.label;
+        b.onclick = () => {
+          state.actionId = a.id;
+          state.selectedJobId = null;
+          bump();
+          paint();
+        };
+        root.appendChild(b);
+      }
+    }
+
+    function renderTable() {
+      const host = document.getElementById("tableHost");
+      const rows = jobsForView();
+      if (!rows.length) {
+        host.innerHTML = `<div class="empty" id="empty">${
+          state.search || state.compId
+            ? "No operations for this filter."
+            : "Pick a system component or search above."
+        }</div>`;
+        return;
+      }
+      host.innerHTML = `
+        <table>
+          <thead>
+            <tr>
+              <th>Operation</th>
+              <th>Pos</th>
+              <th>Resolve</th>
+              <th style="text-align:right">Hrs</th>
+              <th style="text-align:center">+</th>
+            </tr>
+          </thead>
+          <tbody id="tbody"></tbody>
+        </table>`;
+      const tbody = host.querySelector("#tbody");
+      for (const row of rows) {
+        const tr = document.createElement("tr");
+        if (state.selectedJobId === row.id) tr.classList.add("selected");
+        const hrs = row.hours == null ? "—" : row.hours.toFixed(2);
+        tr.innerHTML = `
+          <td>
+            <div style="font-weight:600;color:var(--navy)">${row.name}</div>
+            <div class="mono" style="color:var(--muted);font-size:10px;margin-top:2px">${row.key}</div>
+          </td>
+          <td>${row.pos}</td>
+          <td><span class="path ${row.path}">${row.path}</span></td>
+          <td class="hrs">${hrs}</td>
+          <td style="text-align:center">
+            <button class="add" ${row.hours == null ? "disabled" : ""} title="Add to cart">+</button>
+          </td>`;
+        tr.onclick = (e) => {
+          if (e.target.closest(".add")) return;
+          state.selectedJobId = row.id;
+          bump();
+          paint();
+        };
+        tr.querySelector(".add").onclick = (e) => {
+          e.stopPropagation();
+          if (row.hours == null) return;
+          if (!state.cart.some((c) => c.id === row.id)) {
+            state.cart.push(row);
+          }
+          state.selectedJobId = row.id;
+          bump();
+          paint();
+        };
+        tbody.appendChild(tr);
+      }
+    }
+
+    function renderDetail() {
+      const root = document.getElementById("detail");
+      const rows = jobsForView();
+      const row = rows.find((r) => r.id === state.selectedJobId) || rows[0];
+      if (!row) {
+        root.innerHTML = `<div class="k">Nothing selected</div>
+          <div class="v" style="font-weight:500;color:var(--muted);margin-top:6px">
+            Choose a row to inspect resolve path, factory hours, and parts placeholder.
+          </div>`;
+        return;
+      }
+      if (!state.selectedJobId) state.selectedJobId = row.id;
+      const partsStatus = row.path === "L4_PENDING" ? "PENDING_REVIEW" : "PLACEHOLDER_ENQUEUED";
+      const cat = partsCategory(row);
+      const lineCents = row.hours == null ? null : Math.round(row.hours * RATE_CENTS);
+      root.innerHTML = `
+        <div class="k">Operation</div>
+        <div class="v">${row.name}</div>
+        <div class="mono" style="color:var(--muted);margin-top:4px">${row.key}</div>
+        <div style="margin-top:10px" class="k">Resolve path</div>
+        <div style="margin-top:4px"><span class="path ${row.path}">${row.path}</span></div>
+        <div style="margin-top:6px;color:var(--muted)">${row.note}</div>
+        <div style="margin-top:10px" class="k">Factory / scaled hours</div>
+        <div class="v mono">${row.hours == null ? "—" : row.hours.toFixed(3) + " hr"}</div>
+        <div style="margin-top:10px" class="k">Labor @ Albany/Capital Region</div>
+        <div class="v mono">${lineCents == null ? "—" : money(lineCents)}</div>
+        <div style="margin-top:10px" class="k">Parts fitment</div>
+        <div class="v" style="font-size:12px">${partsStatus}</div>
+        <div class="mono" style="margin-top:4px;background:#f1f5f9;padding:6px 8px;border-radius:8px">${cat}</div>
+        <div style="margin-top:8px;color:var(--muted);font-size:11px">
+          Variant flags: ${row.flags.length ? row.flags.join(", ") : "none"}
+        </div>`;
+    }
+
+    function renderCart() {
+      const root = document.getElementById("cart");
+      if (!state.cart.length) {
+        root.innerHTML = `<div style="color:var(--muted);font-size:12px;padding:8px 0">Cart empty — use + on a billable row.</div>`;
+      } else {
+        root.innerHTML = state.cart.map((c) => `
+          <div class="cart-item">
+            <div>
+              <div style="font-weight:600;color:var(--navy)">${c.name}</div>
+              <div style="color:var(--muted)">${c.path} · ${c.hours.toFixed(2)} hr</div>
+            </div>
+            <div class="mono">${money(Math.round(c.hours * RATE_CENTS))}</div>
+          </div>`).join("");
+      }
+      const hours = state.cart.reduce((s, c) => s + c.hours, 0);
+      const cents = Math.round(hours * RATE_CENTS);
+      document.getElementById("totHours").textContent = hours.toFixed(2);
+      document.getElementById("totMoney").textContent = money(cents);
+      document.getElementById("addEstimate").disabled = state.cart.length === 0;
+    }
+
+    function paint() {
+      const v = VEHICLES[state.vehicleId];
+      document.getElementById("vehicleLabel").textContent = v.label;
+      document.getElementById("chassisMeta").textContent =
+        `Chassis tier: ${v.chassis} · shop rate Albany/Capital Region $145.00/hr · Tabish Friday Labor fixtures`;
+      renderChips();
+      renderSystems();
+      renderCrumb();
+      renderOps();
+      renderTable();
+      renderDetail();
+      renderCart();
+    }
+
+    document.getElementById("vehicleSelect").onchange = (e) => {
+      state.vehicleId = e.target.value;
+      state.cart = [];
+      state.selectedJobId = null;
+      bump();
+      paint();
+    };
+
+    document.getElementById("search").oninput = (e) => {
+      state.search = e.target.value;
+      state.selectedJobId = null;
+      if (state.search.trim()) bump();
+      paint();
+    };
+
+    document.getElementById("addEstimate").onclick = () => {
+      if (!state.cart.length) return;
+      const hrs = state.cart.reduce((s, c) => s + c.hours, 0);
+      const toast = document.getElementById("toast");
+      toast.textContent = `Mock only — would add ${state.cart.length} line(s) (${hrs.toFixed(2)} hr / ${money(Math.round(hrs * RATE_CENTS))}). No CRM write.`;
+      toast.classList.add("show");
+      state.cart = [];
+      bump();
+      paint();
+      setTimeout(() => toast.classList.remove("show"), 3200);
+    };
+
+    // Default into Front Pads R&R so the preview is immediately useful
+    paint();
+  </script>
+</body>
+</html>

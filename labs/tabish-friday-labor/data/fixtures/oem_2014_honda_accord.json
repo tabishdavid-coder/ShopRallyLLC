@@ -1,0 +1,14 @@
+{
+  "category_paths": [
+    ["Brakes", "Front", "Pads", "Remove & Replace"],
+    ["Brakes", "Front", "Rotors", "Remove & Replace"],
+    ["Brakes", "Rear", "Pads", "Remove & Replace"],
+    ["Engine", "Lubrication", "Oil Filter", "Replace"],
+    ["Suspension", "Front", "Strut", "Remove & Replace"]
+  ],
+  "leaf_parts": [
+    {"part_number": "45022-T2A-A00", "description": "Pad set, front"},
+    {"part_number": "45251-T2A-A00", "description": "Disc, front"},
+    {"part_number": "15400-PLM-A02", "description": "Oil filter"}
+  ]
+}
