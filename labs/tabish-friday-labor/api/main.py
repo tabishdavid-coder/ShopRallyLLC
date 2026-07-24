@@ -1,5 +1,6 @@
 """
-Tabish Friday Labor — API entrypoint (labor guide + fluid capacities).
+Tabish Friday Labor — API entrypoint
+(labor guide + fluids + associations + diagrams + procedures).
 
 Run:
   uvicorn api.main:app --host 127.0.0.1 --port 8791
