@@ -8,6 +8,10 @@ Endpoints:
   GET  /vehicles/search?q=
   GET  /vehicles/{id}/operations
   GET  /vehicles/{id}/operations/{operation_id}/addons
+  GET  /vehicles/{id}/operations/{operation_id}/diagrams
+  GET  /vehicles/{id}/operations/{operation_id}/procedures
+  POST /procedures/submit
+  POST /procedures/{id}/vote
   POST /vehicles/{id}/labor/bulk-estimate
   GET  /vehicles/{id}/fluids
   POST /vehicles                    (VIN/YMME upsert → background fluid harvest)
@@ -17,6 +21,10 @@ Endpoints:
   POST /repair-orders/{id}/close
   POST /technician/note
   GET  /billing/estimate
+
+Frontend guidelines (labor guide UI comments echoed in API responses):
+  - Tabs: Labor | Add-ons | Diagrams | Procedures
+  - When a diagram is available, display it inline; use lazy loading if multiple.
 """
 
 from __future__ import annotations
@@ -57,6 +65,8 @@ from src.fallback_engine import (  # noqa: E402
     parts_scrape_worker,
 )
 from src.llm_parser import (  # noqa: E402
+    extract_procedure_from_note,
+    extract_procedure_from_note_offline,
     parse_technician_intent,
     parse_technician_intent_offline_demo,
 )
@@ -151,6 +161,29 @@ class RepairOrderCloseIn(BaseModel):
     vehicle_id: UUID | None = None
     lines: list[RepairOrderLineIn] = Field(default_factory=list)
     run_learner: bool = True
+
+
+class ProcedureStepIn(BaseModel):
+    step_number: int = Field(ge=1)
+    instruction: str = Field(min_length=1, max_length=4000)
+    torque_spec: str | None = None
+    tool: str | None = None
+    image_url: str | None = None
+
+
+class ProcedureSubmitIn(BaseModel):
+    """Technician-submitted procedure (UI → procedures table)."""
+
+    operation_id: UUID
+    vehicle_id: UUID | None = None
+    title: str = Field(min_length=1, max_length=255)
+    steps: list[ProcedureStepIn] = Field(min_length=1, max_length=80)
+    author: str | None = Field(default=None, max_length=100)
+    require_approval: bool = True
+
+
+class ProcedureVoteIn(BaseModel):
+    voter_key: str = Field(min_length=1, max_length=120, description="Tech id / session key")
 
 
 def _queue_fluid_harvest(vehicle_id: str) -> None:
@@ -392,11 +425,58 @@ async def technician_note(body: TechnicianNoteIn) -> dict[str, Any]:
             }
         )
 
+    # Optional: detect step-by-step tech contribution for procedures KB
+    if settings.openai_api_key:
+        procedure_extract = extract_procedure_from_note(body.text)
+    else:
+        procedure_extract = extract_procedure_from_note_offline(body.text)
+
+    proposed_procedure_id = None
+    if procedure_extract.get("is_procedure") and procedure_extract.get("steps"):
+        op_hint = procedure_extract.get("operation_hint")
+        op_for_proc = None
+        if op_hint:
+            op_for_proc = fetch_one(
+                "SELECT id FROM service_operations WHERE operation_code = %s",
+                (op_hint,),
+            )
+        if not op_for_proc and resolved_ops:
+            for ro in resolved_ops:
+                if ro.get("operation_id"):
+                    op_for_proc = {"id": ro["operation_id"]}
+                    break
+        if op_for_proc:
+            row = execute_returning(
+                """
+                INSERT INTO procedures (
+                  operation_id, vehicle_id, title, steps, author, source, is_approved
+                ) VALUES (
+                  %s::uuid, %s::uuid, %s, %s::jsonb, %s, 'tech_contribution', false
+                )
+                RETURNING id
+                """,
+                (
+                    str(op_for_proc["id"]),
+                    str(vehicle_row["id"]) if vehicle_row else None,
+                    (procedure_extract.get("title") or "Tech contribution")[:255],
+                    json.dumps(procedure_extract["steps"]),
+                    "technician",
+                ),
+            )
+            if row:
+                proposed_procedure_id = int(row["id"])
+
     return {
         "intent": intent,
         "vehicle": vehicle_row,
         "operations": resolved_ops,
+        "procedure_extract": procedure_extract,
+        "proposed_procedure_id": proposed_procedure_id,
         "notes": "LLM/offline parser never supplies hours or rates; billing uses DB only.",
+        "_ui": {
+            "tabs": ["Labor", "Add-ons", "Diagrams", "Procedures"],
+            "hint": "Step-by-step notes are proposed for Procedures (admin approval).",
+        },
     }
 
 
@@ -622,6 +702,255 @@ def vehicle_labor_bulk_estimate(
     if not vehicle:
         raise HTTPException(404, "vehicle not found")
     return bulk_estimate_hours(vehicle_id, list(body.operation_ids))
+
+
+@app.get("/vehicles/{vehicle_id}/operations/{operation_id}/diagrams")
+def vehicle_operation_diagrams(vehicle_id: UUID, operation_id: UUID) -> dict[str, Any]:
+    """
+    OEM exploded-view diagrams for the operation (and its category).
+
+    Frontend guidelines:
+      - Labor guide UI tabs: Labor | Add-ons | Diagrams | Procedures
+      - When a diagram is available, display it inline (prefer local_path, else image_url)
+      - Lazy-load images when multiple diagrams are returned
+    """
+    vehicle = fetch_one("SELECT id FROM vehicle_taxonomy WHERE id = %s", (str(vehicle_id),))
+    if not vehicle:
+        raise HTTPException(404, "vehicle not found")
+    op = fetch_one(
+        "SELECT id, category_id, operation_code, description FROM service_operations WHERE id = %s",
+        (str(operation_id),),
+    )
+    if not op:
+        raise HTTPException(404, "operation not found")
+
+    rows = fetch_all(
+        """
+        SELECT id, category_id, operation_id, vehicle_id, image_url, local_path,
+               source, caption, captured_at
+        FROM diagrams
+        WHERE operation_id = %s::uuid
+           OR (
+                category_id = %s::uuid
+                AND (vehicle_id IS NULL OR vehicle_id = %s::uuid)
+              )
+           OR (
+                vehicle_id = %s::uuid
+                AND operation_id IS NULL
+                AND category_id IS NULL
+              )
+        ORDER BY
+          CASE WHEN operation_id = %s::uuid THEN 0 ELSE 1 END,
+          captured_at DESC
+        LIMIT 40
+        """,
+        (
+            str(operation_id),
+            str(op["category_id"]),
+            str(vehicle_id),
+            str(vehicle_id),
+            str(operation_id),
+        ),
+    )
+    diagrams = [
+        {
+            "id": int(r["id"]),
+            "image_url": r["image_url"],
+            "local_path": r["local_path"],
+            "source": r["source"],
+            "caption": r["caption"],
+            "captured_at": r["captured_at"].isoformat() if r.get("captured_at") else None,
+            "category_id": str(r["category_id"]) if r.get("category_id") else None,
+            "operation_id": str(r["operation_id"]) if r.get("operation_id") else None,
+        }
+        for r in rows
+    ]
+    return {
+        "vehicle_id": str(vehicle_id),
+        "operation_id": str(operation_id),
+        "operation_code": op["operation_code"],
+        "diagrams": diagrams,
+        "count": len(diagrams),
+        "_ui": {
+            "tabs": ["Labor", "Add-ons", "Diagrams", "Procedures"],
+            "active_tab": "Diagrams",
+            "display": "inline",
+            "lazy_load": True,
+            "prefer_field": "local_path",
+            "fallback_field": "image_url",
+            "empty_hint": "No OEM diagram cached yet — run OEM scrape or scripts/resync_diagrams.py",
+        },
+    }
+
+
+@app.get("/vehicles/{vehicle_id}/operations/{operation_id}/procedures")
+def vehicle_operation_procedures(
+    vehicle_id: UUID,
+    operation_id: UUID,
+    source: str | None = Query(
+        default=None,
+        description="Optional filter: scraped | tech_contribution | TSB | seed",
+    ),
+    limit: int = Query(default=10, ge=1, le=50),
+) -> dict[str, Any]:
+    """
+    Best approved procedures (highest votes, then most recent).
+
+    Frontend guidelines:
+      - Procedures tab lists ranked guides; show steps as an ordered checklist
+      - Surface source badge (scraped / tech / TSB) and vote control
+    """
+    vehicle = fetch_one("SELECT id FROM vehicle_taxonomy WHERE id = %s", (str(vehicle_id),))
+    if not vehicle:
+        raise HTTPException(404, "vehicle not found")
+    op = fetch_one(
+        "SELECT id, operation_code, description FROM service_operations WHERE id = %s",
+        (str(operation_id),),
+    )
+    if not op:
+        raise HTTPException(404, "operation not found")
+
+    params: list[Any] = [str(operation_id), str(vehicle_id)]
+    source_sql = ""
+    if source:
+        source_sql = " AND p.source = %s"
+        params.append(source)
+    params.append(limit)
+
+    rows = fetch_all(
+        f"""
+        SELECT p.id, p.operation_id, p.vehicle_id, p.title, p.steps, p.author,
+               p.source, p.votes, p.is_approved, p.created_at
+        FROM procedures p
+        WHERE p.operation_id = %s::uuid
+          AND p.is_approved = true
+          AND (p.vehicle_id IS NULL OR p.vehicle_id = %s::uuid)
+          {source_sql}
+        ORDER BY p.votes DESC, p.created_at DESC
+        LIMIT %s
+        """,
+        tuple(params),
+    )
+    procedures = [
+        {
+            "id": int(r["id"]),
+            "title": r["title"],
+            "steps": r["steps"],
+            "author": r["author"],
+            "source": r["source"],
+            "votes": int(r["votes"] or 0),
+            "vehicle_id": str(r["vehicle_id"]) if r.get("vehicle_id") else None,
+            "created_at": r["created_at"].isoformat() if r.get("created_at") else None,
+        }
+        for r in rows
+    ]
+    return {
+        "vehicle_id": str(vehicle_id),
+        "operation_id": str(operation_id),
+        "operation_code": op["operation_code"],
+        "procedures": procedures,
+        "count": len(procedures),
+        "_ui": {
+            "tabs": ["Labor", "Add-ons", "Diagrams", "Procedures"],
+            "active_tab": "Procedures",
+            "sort": "votes_desc_then_recent",
+            "vote_endpoint": "POST /procedures/{id}/vote",
+            "submit_endpoint": "POST /procedures/submit",
+        },
+    }
+
+
+@app.post("/procedures/submit")
+def procedures_submit(body: ProcedureSubmitIn) -> dict[str, Any]:
+    """Technician UI submit — stored as tech_contribution (approval optional)."""
+    op = fetch_one(
+        "SELECT id FROM service_operations WHERE id = %s",
+        (str(body.operation_id),),
+    )
+    if not op:
+        raise HTTPException(404, "operation not found")
+    if body.vehicle_id:
+        vehicle = fetch_one(
+            "SELECT id FROM vehicle_taxonomy WHERE id = %s",
+            (str(body.vehicle_id),),
+        )
+        if not vehicle:
+            raise HTTPException(404, "vehicle not found")
+
+    steps = [s.model_dump(mode="json") for s in body.steps]
+    row = execute_returning(
+        """
+        INSERT INTO procedures (
+          operation_id, vehicle_id, title, steps, author, source, is_approved
+        ) VALUES (
+          %s::uuid, %s::uuid, %s, %s::jsonb, %s, 'tech_contribution', %s
+        )
+        RETURNING id, is_approved
+        """,
+        (
+            str(body.operation_id),
+            str(body.vehicle_id) if body.vehicle_id else None,
+            body.title,
+            json.dumps(steps),
+            body.author or "technician",
+            not body.require_approval,
+        ),
+    )
+    assert row
+    return {
+        "ok": True,
+        "id": int(row["id"]),
+        "is_approved": bool(row["is_approved"]),
+        "source": "tech_contribution",
+        "_ui": {
+            "tabs": ["Labor", "Add-ons", "Diagrams", "Procedures"],
+            "toast": "Procedure submitted"
+            + (" — pending approval" if body.require_approval else ""),
+        },
+    }
+
+
+@app.post("/procedures/{procedure_id}/vote")
+def procedures_vote(procedure_id: int, body: ProcedureVoteIn) -> dict[str, Any]:
+    """Upvote a procedure (one vote per voter_key)."""
+    proc = fetch_one("SELECT id, votes FROM procedures WHERE id = %s", (procedure_id,))
+    if not proc:
+        raise HTTPException(404, "procedure not found")
+
+    existing = fetch_one(
+        "SELECT id FROM procedure_votes WHERE procedure_id = %s AND voter_key = %s",
+        (procedure_id, body.voter_key.strip()),
+    )
+    if existing:
+        return {
+            "ok": True,
+            "id": procedure_id,
+            "votes": int(proc["votes"] or 0),
+            "already_voted": True,
+        }
+
+    execute(
+        """
+        INSERT INTO procedure_votes (procedure_id, voter_key)
+        VALUES (%s, %s)
+        """,
+        (procedure_id, body.voter_key.strip()),
+    )
+    updated = execute_returning(
+        """
+        UPDATE procedures
+        SET votes = votes + 1, updated_at = now()
+        WHERE id = %s
+        RETURNING votes
+        """,
+        (procedure_id,),
+    )
+    return {
+        "ok": True,
+        "id": procedure_id,
+        "votes": int(updated["votes"]) if updated else int(proc["votes"] or 0) + 1,
+        "already_voted": False,
+    }
 
 
 @app.post("/associations/learn")

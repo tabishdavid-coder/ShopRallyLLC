@@ -1,0 +1,11 @@
+{
+  "group": "Brakes",
+  "operation": "Front Brake Pad R&R",
+  "labor_hours": 0.8,
+  "title": "Front Brake Pads",
+  "image": "fixture://partsouq/honda/accord/2014/brakes/front-pads.png",
+  "parts": [
+    {"ref": "1", "part_number": "45022-T2A-A00", "name": "PAD SET, FR."},
+    {"ref": "2", "part_number": "45251-SDA-A01", "name": "SHIM SET"}
+  ]
+}

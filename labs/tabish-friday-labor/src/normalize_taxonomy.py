@@ -173,11 +173,29 @@ def normalize_scrape_result(
                 (vehicle_id, op_ids[0], str(part["id"])),
             )
 
+    # Exploded OEM diagrams (fixture-first; local cache)
+    diagram_info: dict[str, Any] = {}
+    try:
+        from oem_scraper.pipeline import capture_and_persist_for_vehicle
+
+        diagram_info = capture_and_persist_for_vehicle(
+            year,
+            make,
+            model,
+            engine if engine != "UNSPECIFIED" else None,
+            vehicle_id=vehicle_id,
+            operation_id=op_ids[0] if op_ids else None,
+        )
+    except Exception as exc:  # noqa: BLE001
+        logger.info("diagram capture skipped: %s", exc)
+        diagram_info = {"ok": False, "error": str(exc)}
+
     return {
         "vehicle_id": vehicle_id,
         "categories_upserted": cat_count,
         "operations_upserted": len(op_ids),
         "parts_upserted": part_count,
+        "diagrams": diagram_info,
     }
 
 

@@ -229,6 +229,197 @@ def parse_technician_intent_offline_demo(raw_text: str, valid_operation_keys: li
     return _gate_operations(result, valid_operation_keys).model_dump(mode="json")
 
 
+# ---------------------------------------------------------------------------
+# Technician note → repair procedure extraction
+# ---------------------------------------------------------------------------
+
+PROCEDURE_FROM_NOTE_SCHEMA: dict[str, Any] = {
+    "name": "tech_note_procedure",
+    "strict": True,
+    "schema": {
+        "type": "object",
+        "additionalProperties": False,
+        "properties": {
+            "is_procedure": {"type": "boolean"},
+            "title": {"type": ["string", "null"]},
+            "operation_hint": {"type": ["string", "null"]},
+            "steps": {
+                "type": "array",
+                "items": {
+                    "type": "object",
+                    "additionalProperties": False,
+                    "properties": {
+                        "step_number": {"type": "integer"},
+                        "instruction": {"type": "string"},
+                        "torque_spec": {"type": ["string", "null"]},
+                        "tool": {"type": ["string", "null"]},
+                        "image_url": {"type": ["string", "null"]},
+                    },
+                    "required": [
+                        "step_number",
+                        "instruction",
+                        "torque_spec",
+                        "tool",
+                        "image_url",
+                    ],
+                },
+            },
+            "confidence": {"type": "number"},
+        },
+        "required": ["is_procedure", "title", "operation_hint", "steps", "confidence"],
+    },
+}
+
+PROCEDURE_NOTE_SYSTEM = """You identify whether a technician note contains a step-by-step
+repair procedure. If yes, extract ordered steps with optional torque_spec and tool.
+If the note is only a brief intent (e.g. "front pads on 15 accord"), set is_procedure=false
+and steps=[]. Never invent prices or labor hours. JSON only.
+"""
+
+
+class ProcedureStepOut(BaseModel):
+    step_number: int
+    instruction: str
+    torque_spec: str | None = None
+    tool: str | None = None
+    image_url: str | None = None
+
+
+class ProcedureFromNoteOut(BaseModel):
+    is_procedure: bool = False
+    title: str | None = None
+    operation_hint: str | None = None
+    steps: list[ProcedureStepOut] = Field(default_factory=list)
+    confidence: float = 0.0
+
+
+def extract_procedure_from_note_offline(raw_text: str) -> dict[str, Any]:
+    """
+    Deterministic detector for numbered / step-wise tech notes (no LLM).
+    Returns structured procedure JSON matching the LLM schema.
+    """
+    text = (raw_text or "").strip()
+    if not text:
+        return ProcedureFromNoteOut(is_procedure=False, confidence=0.0).model_dump(mode="json")
+
+    steps: list[ProcedureStepOut] = []
+    torque_re = re.compile(r"(\d+(?:\.\d+)?\s*(?:ft-?lbs?|N[·.]?m|nm))", re.I)
+    for ln in text.splitlines():
+        ln = ln.strip()
+        m = re.match(r"^(?:step\s*)?(\d+)[.)]\s*(.+)$", ln, flags=re.I)
+        if not m:
+            continue
+        instruction = m.group(2).strip()
+        tm = torque_re.search(instruction)
+        steps.append(
+            ProcedureStepOut(
+                step_number=int(m.group(1)),
+                instruction=instruction,
+                torque_spec=tm.group(1) if tm else None,
+            )
+        )
+
+    # Also accept "then / next / finally" prose with ≥3 action sentences
+    if len(steps) < 2:
+        sentences = re.split(r"(?<=[.!;])\s+", text)
+        actionish = [
+            s.strip()
+            for s in sentences
+            if re.search(
+                r"\b(remove|install|torque|loosen|raise|compress|reinstall|bleed|replace)\b",
+                s,
+                re.I,
+            )
+            and len(s.strip()) > 20
+        ]
+        if len(actionish) >= 3:
+            steps = [
+                ProcedureStepOut(step_number=i + 1, instruction=s)
+                for i, s in enumerate(actionish[:12])
+            ]
+
+    is_proc = len(steps) >= 2
+    title = None
+    hint = None
+    low = text.lower()
+    if "pad" in low:
+        hint = "BRAKES.FRONT.PADS.R_AND_R"
+        title = "Tech procedure — front brake pads"
+    elif "rotor" in low:
+        hint = "BRAKES.FRONT.ROTORS.R_AND_R"
+        title = "Tech procedure — rotors"
+    elif is_proc:
+        title = "Tech-contributed procedure"
+
+    return ProcedureFromNoteOut(
+        is_procedure=is_proc,
+        title=title,
+        operation_hint=hint,
+        steps=steps if is_proc else [],
+        confidence=0.85 if is_proc else 0.1,
+    ).model_dump(mode="json")
+
+
+def extract_procedure_from_note(
+    raw_text: str,
+    *,
+    client: OpenAI | None = None,
+    model: str | None = None,
+) -> dict[str, Any]:
+    """
+    Use the LLM to identify if a tech note contains a step-by-step description.
+
+    Returns
+    -------
+    dict
+        {
+          is_procedure, title, operation_hint,
+          steps: [{step_number, instruction, torque_spec, tool, image_url}],
+          confidence
+        }
+
+    Persist with source='tech_contribution' (typically is_approved=false until review).
+    """
+    text = (raw_text or "").strip()
+    if not text:
+        raise ValueError("raw_text must be non-empty")
+
+    if not os.environ.get("OPENAI_API_KEY") and client is None:
+        return extract_procedure_from_note_offline(text)
+
+    from openai import OpenAI as _OpenAI
+
+    openai_client = client or _OpenAI(api_key=os.environ.get("OPENAI_API_KEY"))
+    model_name = model or os.environ.get("OPENAI_MODEL", "gpt-4o-mini")
+
+    try:
+        response = openai_client.chat.completions.create(
+            model=model_name,
+            temperature=0,
+            messages=[
+                {"role": "system", "content": PROCEDURE_NOTE_SYSTEM},
+                {"role": "user", "content": text[:8000]},
+            ],
+            response_format={
+                "type": "json_schema",
+                "json_schema": PROCEDURE_FROM_NOTE_SCHEMA,
+            },
+        )
+    except Exception as exc:  # noqa: BLE001
+        raise RuntimeError(f"LLM procedure extract failed: {exc}") from exc
+
+    content = response.choices[0].message.content
+    if not content:
+        raise RuntimeError("LLM returned empty procedure content")
+
+    try:
+        parsed = ProcedureFromNoteOut.model_validate(json.loads(content))
+    except (json.JSONDecodeError, ValidationError) as exc:
+        raise RuntimeError(f"Procedure extract failed schema validation: {exc}") from exc
+
+    return parsed.model_dump(mode="json")
+
+
 if __name__ == "__main__":
     sample = "swapped front pads on a 15 accord 2.4 — customer wants premium"
     keys = [
@@ -241,3 +432,10 @@ if __name__ == "__main__":
     else:
         out = parse_technician_intent_offline_demo(sample, keys)
     print(json.dumps(out, indent=2))
+    note = (
+        "1. Raise vehicle and remove wheels.\n"
+        "2. Remove caliper bolts and hang caliper.\n"
+        "3. Install pads; torque guide pins to 25 ft-lbs.\n"
+        "4. Reinstall wheels and torque to 80 ft-lbs."
+    )
+    print(json.dumps(extract_procedure_from_note(note), indent=2))

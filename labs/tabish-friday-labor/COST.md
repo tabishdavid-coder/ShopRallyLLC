@@ -63,3 +63,27 @@ Industry seed pairs bootstrap the UI (pads→rotors, timing belt→water pump, e
 
 - MOTOR / ProDemand add-on / “jobs often performed together” subscription fees  
 - Per-search commercial association APIs
+
+---
+
+## Exploded diagrams + repair procedures
+
+| Layer | Cost model | Notes |
+|-------|------------|-------|
+| OEM exploded diagrams | **$0** | Free public catalog illustrations (Partsouq / 7zap / RevolutionParts) cached under `staging/diagrams` + `media/diagrams`. No subscription DaaS. |
+| Diagram re-sync | **$0** | `scripts/resync_diagrams.py` refreshes URLs / local files. Fixture mode touches metadata only. |
+| Procedure scrape (DIY seed) | ~**$0.01 / guide** | One-time LLM structured extract (`gpt-4o-mini`). Offline HTML fixture path is **$0**. Heavy rate limits + robots.txt. |
+| Tech-contributed procedures | **$0** | Parsed from notes / UI submit → `source='tech_contribution'`. Votes + approval make the KB self-improving. |
+| Diagram / procedure lookups | **$0 / search** | Pure SQL on `diagrams` / `procedures`. |
+
+### Accuracy
+
+- Diagrams are OEM illustrations cached locally — accuracy equals the catalog source page; shops never pay per-view.
+- Scraped DIY procedures are a seed, not OEM TSBs. Prefer technician-approved / high-vote guides for shop SOP.
+- Shop contributions compound: every approved, upvoted procedure raises quality without renewing a procedure-library license.
+
+### What you do **not** pay
+
+- ALLDATA / Mitchell procedure library subscriptions  
+- Per-VIN exploded-diagram API fees  
+- Recurring “repair procedure DaaS” licenses

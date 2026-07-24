@@ -269,13 +269,55 @@ def scrape_vehicle(
     return ScrapeResult(year, make_norm, model_norm, engine, source, paths, parts)
 
 
+def _capture_diagrams_sidecar(result: ScrapeResult) -> dict[str, Any]:
+    """
+    Partsouq / 7zap / RevolutionParts diagram pass after catalog scrape.
+    Fixture-first; never blocks catalog persistence on failure.
+    """
+    try:
+        from oem_scraper.diagram_crawler import capture_diagrams_for_vehicle
+        from oem_scraper.pipeline import persist_diagrams_from_scrape
+
+        diagrams = capture_diagrams_for_vehicle(
+            result.year,
+            result.make,
+            result.model,
+            result.engine,
+            download=True,
+        )
+        # Also pull image URLs embedded in staging payload if present
+        fixture_group = settings.fixtures_dir / "partsouq_group_brakes.json"
+        if fixture_group.exists() and (
+            settings.scraper_mode != "live"
+            or "partsouq" in (result.source or "").lower()
+        ):
+            try:
+                from oem_scraper.pipeline import ingest_partsouq_group_fixture
+
+                ingest_partsouq_group_fixture(fixture_group)
+            except Exception as exc:  # noqa: BLE001
+                logger.info("partsouq group fixture ingest skipped: %s", exc)
+
+        try:
+            return persist_diagrams_from_scrape(diagrams, download=False)
+        except Exception as exc:  # noqa: BLE001
+            # Offline / no DB — still return capture summary
+            logger.info("diagram DB persist skipped: %s", exc)
+            return diagrams.as_dict()
+    except Exception as exc:  # noqa: BLE001
+        logger.info("diagram sidecar skipped: %s", exc)
+        return {"ok": False, "error": str(exc)}
+
+
 def persist_scrape_result(result: ScrapeResult) -> Path:
-    """Write JSON staging file + optional DB staging row."""
+    """Write JSON staging file + optional DB staging row + diagram sidecar."""
     settings.staging_dir.mkdir(parents=True, exist_ok=True)
     stamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
     fname = f"{result.year}_{result.make}_{result.model}_{stamp}.json".replace(" ", "_")
     path = settings.staging_dir / fname
-    path.write_text(json.dumps(result.as_dict(), indent=2), encoding="utf-8")
+    payload = result.as_dict()
+    payload["diagrams"] = _capture_diagrams_sidecar(result)
+    path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
 
     if execute is not None:
         try:
@@ -290,7 +332,7 @@ def persist_scrape_result(result: ScrapeResult) -> Path:
                     result.model,
                     result.engine,
                     result.source,
-                    json.dumps(result.as_dict()),
+                    json.dumps(payload),
                 ),
             )
         except Exception as exc:  # noqa: BLE001

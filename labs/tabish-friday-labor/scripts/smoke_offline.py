@@ -10,7 +10,14 @@ from pathlib import Path
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT))
 
-from src.llm_parser import parse_technician_intent_offline_demo  # noqa: E402
+from oem_scraper.diagram_crawler import (  # noqa: E402
+    capture_diagrams_for_vehicle,
+    extract_diagram_urls_from_payload,
+)
+from src.llm_parser import (  # noqa: E402
+    extract_procedure_from_note_offline,
+    parse_technician_intent_offline_demo,
+)
 from src.oem_scraper import scrape_vehicle  # noqa: E402
 from src.taxonomy_keys import path_to_keys  # noqa: E402
 from services.association_hours import compute_addon_hours  # noqa: E402
@@ -19,6 +26,7 @@ from services.fluid_harvest.fluid_normalizer import merge_fluid_sources  # noqa:
 from services.fluid_harvest.fluidcapacity_scraper import scrape_fluidcapacity  # noqa: E402
 from services.fluid_harvest.owner_manual_scraper import generate_pdf_urls  # noqa: E402
 from services.job_association_seeder import COMMON_ASSOCIATIONS  # noqa: E402
+from services.procedure_seeder import scrape_public_procedures  # noqa: E402
 
 
 def main() -> None:
@@ -85,7 +93,33 @@ def main() -> None:
     assert abs(combined - avg_combined) < 0.01
     assert len(COMMON_ASSOCIATIONS) >= 20
 
-    print("OK — Tabish Friday Labor offline smoke passed (labor + fluids + associations)")
+    # Exploded diagrams (fixture capture, no network)
+    diagrams = capture_diagrams_for_vehicle(2014, "Honda", "Accord", "3.5L V6", download=True)
+    assert diagrams.diagrams, "diagram fixtures required"
+    assert any(d.source == "partsouq" for d in diagrams.diagrams)
+    group = json.loads((ROOT / "data/fixtures/partsouq_group_brakes.json").read_text(encoding="utf-8"))
+    assert extract_diagram_urls_from_payload(group), "partsouq image field required"
+
+    # DIY procedure seed (fixture HTML, no DB write required)
+    proc_seed = scrape_public_procedures(2014, "Honda", "Accord", "3.5L V6")
+    assert proc_seed.get("ok")
+    assert proc_seed.get("sources"), "DIY fixture source required"
+    preview = proc_seed.get("preview") or {}
+    assert preview.get("is_procedure") and len(preview.get("steps") or []) >= 2
+
+    note_proc = extract_procedure_from_note_offline(
+        "1. Raise vehicle and remove wheels.\n"
+        "2. Remove caliper and hang it.\n"
+        "3. Install pads; torque guide pins to 25 ft-lbs.\n"
+        "4. Reinstall wheels; torque to 80 ft-lbs."
+    )
+    assert note_proc["is_procedure"] is True
+    assert len(note_proc["steps"]) >= 3
+
+    print(
+        "OK — Tabish Friday Labor offline smoke passed "
+        "(labor + fluids + associations + diagrams + procedures)"
+    )
     print(
         json.dumps(
             {
@@ -98,6 +132,9 @@ def main() -> None:
                     "combined_total_hours": combined,
                     "overlap_discount": overlap,
                 },
+                "diagrams_count": len(diagrams.diagrams),
+                "procedure_seed_sources": proc_seed.get("sources"),
+                "tech_note_procedure_steps": len(note_proc["steps"]),
             },
             indent=2,
         )

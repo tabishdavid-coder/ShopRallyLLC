@@ -1,0 +1,10 @@
+[
+  {
+    "image_url": "fixture://revolutionparts/honda/accord/2014/brakes/main.png",
+    "local_path": "media/diagrams/fixture_rp_brakes.svg",
+    "source": "revolutionparts",
+    "caption": "RevolutionParts — OEM parts diagram",
+    "operation_hint": "BRAKES.FRONT.ROTORS.R_AND_R",
+    "page_url": "https://example.revolutionparts.com/oem-parts/…"
+  }
+]
