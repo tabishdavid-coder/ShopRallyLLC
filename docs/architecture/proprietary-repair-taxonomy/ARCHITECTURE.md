@@ -4,7 +4,8 @@
 **Scope:** Self-generating automotive repair taxonomy + fitment, independent of commercial catalog APIs (MOTOR / Mitchell / ALLDATA / ACES subscriptions)  
 **Related DDL:** [`sql/001_vehicle_taxonomy_fitment_schema.sql`](./sql/001_vehicle_taxonomy_fitment_schema.sql)  
 **Intent middleware:** [`middleware/intent_fitment_parser.py`](./middleware/intent_fitment_parser.py)  
-**App engine:** `src/lib/proprietary-taxonomy/` · `src/server/services/proprietary-taxonomy/`  
+**App engine (not live-wired):** `src/lib/proprietary-taxonomy/` · `src/server/services/proprietary-taxonomy/`  
+**Standalone Labor Guide mockup:** `/lab/proprietary-taxonomy.html` (no CRM shell)  
 **Implementation tracker:** [`IMPLEMENTATION.md`](./IMPLEMENTATION.md)
 
 ---

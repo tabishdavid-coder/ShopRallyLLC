@@ -64,13 +64,6 @@ const TASKS: {
     status: "review" as const,
     description: "Blended Tekmetric + AutoLeap estimate builder — isolated until merge approval.",
   },
-  {
-    title: "Proprietary taxonomy & fitment",
-    href: "/lab/proprietary-taxonomy.html",
-    status: "review" as const,
-    description:
-      "Standalone lab (no login) — intent → L0/L2 resolve → parts placeholder → Texarkana billing.",
-  },
 ];
 
 export const metadata = { title: "Design review — ShopRally" };

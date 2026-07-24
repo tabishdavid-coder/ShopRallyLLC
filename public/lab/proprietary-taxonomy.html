@@ -3,481 +3,766 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>ShopRally — Proprietary taxonomy &amp; fitment mockup</title>
+  <title>ShopRally Lab — Proprietary Labor Guide (standalone)</title>
   <style>
     :root {
       --navy: #16588E;
       --navy-deep: #0f3d63;
       --light: #81C4FF;
       --red: #E7222E;
-      --bg: #eef3f8;
-      --card: #ffffff;
+      --orange: #e85d04;
+      --bg: #f1f5f9;
+      --card: #fff;
       --muted: #64748b;
-      --border: #d7e2ec;
+      --border: rgba(22, 88, 142, 0.14);
       --emerald: #059669;
-      --amber: #d97706;
     }
     * { box-sizing: border-box; }
+    html, body { height: 100%; margin: 0; }
     body {
-      margin: 0;
       font-family: "Segoe UI", ui-sans-serif, system-ui, sans-serif;
-      background:
-        radial-gradient(1200px 500px at 10% -10%, rgba(129,196,255,0.35), transparent 55%),
-        radial-gradient(900px 400px at 90% 0%, rgba(22,88,142,0.12), transparent 50%),
-        var(--bg);
+      background: var(--bg);
       color: #0f172a;
-      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
     }
-    .wrap { max-width: 1280px; margin: 0 auto; padding: 20px 16px 48px; }
-    .top {
-      display: flex; flex-wrap: wrap; gap: 10px; align-items: flex-start;
-      justify-content: space-between; margin-bottom: 16px;
+
+    .test-bar {
+      flex: 0 0 auto;
+      display: flex; flex-wrap: wrap; align-items: center; gap: 10px;
+      padding: 8px 14px;
+      background: linear-gradient(90deg, var(--navy-deep), var(--navy));
+      color: #fff; font-size: 12px;
     }
-    h1 { margin: 0; font-size: 22px; color: var(--navy); letter-spacing: -0.02em; }
-    .sub { margin: 4px 0 0; color: var(--muted); font-size: 13px; max-width: 720px; line-height: 1.45; }
-    .pill {
-      display: inline-flex; align-items: center; gap: 6px;
-      border: 1px solid rgba(22,88,142,0.25); background: rgba(129,196,255,0.15);
-      color: var(--navy); border-radius: 999px; padding: 4px 10px; font-size: 11px; font-weight: 700;
+    .test-bar strong { color: var(--light); }
+    .test-bar .sep { opacity: 0.4; }
+    .test-bar .note { margin-left: auto; opacity: 0.85; font-size: 11px; }
+
+    .shell {
+      flex: 1; min-height: 0;
+      display: flex; flex-direction: column;
+      margin: 10px; border: 1px solid var(--border);
+      border-radius: 12px; background: var(--card);
+      box-shadow: 0 10px 30px rgba(15, 61, 99, 0.08);
+      overflow: hidden;
     }
-    .scenarios { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0 16px; }
-    .scenario {
-      border: 1px solid var(--border); background: var(--card); border-radius: 10px;
-      padding: 10px 12px; text-align: left; cursor: pointer; min-width: 200px;
+
+    .header {
+      padding: 12px 16px;
+      border-bottom: 1px solid var(--border);
+      background: rgba(22, 88, 142, 0.03);
     }
-    .scenario.active { background: var(--navy); border-color: var(--navy); color: #fff; }
-    .scenario strong { display: block; font-size: 12px; }
-    .scenario span { display: block; margin-top: 3px; font-size: 11px; opacity: 0.8; }
-    .grid {
-      display: grid; gap: 14px;
-      grid-template-columns: 1fr;
+    .header-row {
+      display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 8px;
+      margin-bottom: 8px;
     }
-    @media (min-width: 1100px) {
-      .grid { grid-template-columns: 1.05fr 1fr 1.1fr; }
+    .vehicle {
+      font-size: 14px; font-weight: 700; color: var(--navy);
     }
-    .card {
-      background: var(--card); border: 1px solid var(--border); border-radius: 14px;
-      overflow: hidden; box-shadow: 0 8px 24px rgba(15, 61, 99, 0.06);
+    .vehicle select {
+      margin-left: 8px; border: 1px solid var(--border); border-radius: 8px;
+      padding: 4px 8px; font-size: 12px; color: var(--navy); background: #fff;
     }
-    .hd {
-      display: flex; align-items: center; gap: 8px;
-      padding: 10px 14px; color: #fff; background: var(--navy);
+    .meta { font-size: 11px; color: var(--muted); }
+    .search-wrap { position: relative; }
+    .search-wrap input {
+      width: 100%; height: 34px; border: 1px solid var(--border); border-radius: 8px;
+      padding: 0 12px 0 32px; font-size: 13px; background: #fff;
     }
-    .hd.slate { background: #1e293b; }
-    .hd.green { background: #047857; }
-    .hd h2 { margin: 0; font-size: 14px; }
-    .hd p { margin: 2px 0 0; font-size: 11px; opacity: 0.8; }
-    .body { padding: 14px; display: flex; flex-direction: column; gap: 12px; }
-    textarea {
-      width: 100%; min-height: 140px; resize: vertical;
-      border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px;
-      font: 12px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
-      background: #f8fafc;
+    .search-wrap .ico {
+      position: absolute; left: 10px; top: 50%; transform: translateY(-50%);
+      color: var(--muted); font-size: 13px;
     }
-    .note {
-      border: 1px dashed rgba(129,196,255,0.8); background: rgba(129,196,255,0.12);
-      border-radius: 10px; padding: 10px 12px; font-size: 11px; color: var(--navy);
+    .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+    .chip {
+      border: 1px solid var(--border); background: #fff; color: var(--navy);
+      border-radius: 999px; padding: 3px 10px; font-size: 11px; cursor: pointer;
     }
-    button.primary {
-      border: 0; border-radius: 10px; background: var(--navy); color: #fff;
-      font-weight: 700; font-size: 13px; padding: 10px 14px; cursor: pointer;
+    .chip:hover, .chip.active { border-color: var(--orange); background: rgba(232, 93, 4, 0.08); }
+
+    .crumb {
+      display: flex; flex-wrap: wrap; align-items: center; gap: 4px;
+      padding: 8px 16px; border-bottom: 1px solid var(--border); font-size: 12px;
     }
-    button.primary:hover { background: var(--navy-deep); }
-    .box {
-      border: 1px solid var(--border); background: #f8fafc; border-radius: 10px; padding: 10px 12px;
+    .crumb button {
+      border: 0; background: transparent; color: var(--muted); cursor: pointer; padding: 2px 4px;
     }
-    .box .lbl {
-      font-size: 10px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted);
+    .crumb button:hover { color: var(--navy); text-decoration: underline; }
+    .crumb button.here { color: var(--navy); font-weight: 700; }
+    .crumb .chev { color: rgba(22,88,142,0.3); font-size: 11px; }
+
+    .toast {
+      display: none; padding: 6px 16px; font-size: 12px;
+      background: #ecfdf5; color: #065f46; border-bottom: 1px solid #a7f3d0;
     }
-    .box .val { margin-top: 4px; font-size: 14px; font-weight: 700; color: var(--navy); }
-    .box .meta { margin-top: 2px; font-size: 12px; color: var(--muted); }
-    .flags { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
-    .flag {
-      border: 1px solid rgba(22,88,142,0.25); background: rgba(22,88,142,0.06);
-      color: var(--navy); border-radius: 999px; padding: 3px 8px; font: 10px/1 ui-monospace, monospace; font-weight: 700;
+    .toast.show { display: block; }
+
+    .body { flex: 1; min-height: 0; display: flex; }
+
+    .systems {
+      width: 210px; flex: 0 0 auto; overflow: auto;
+      border-right: 1px solid var(--border);
+      background: rgba(22, 88, 142, 0.02); padding: 8px;
     }
-    .flag.red {
-      border-color: rgba(231,34,46,0.35); background: rgba(231,34,46,0.06); color: var(--red);
+    .systems .lbl {
+      padding: 4px 6px; font-size: 10px; font-weight: 800; letter-spacing: 0.06em;
+      text-transform: uppercase; color: rgba(22,88,142,0.55); margin-bottom: 4px;
     }
-    pre {
-      margin: 0; max-height: 180px; overflow: auto; border-radius: 10px;
-      background: #020617; color: #6ee7b7; padding: 12px;
-      font: 10px/1.5 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+    .sys-btn, .sub-btn, .comp-btn {
+      width: 100%; border: 0; background: transparent; text-align: left; cursor: pointer;
+      border-radius: 6px; color: var(--navy);
     }
-    .steps { display: flex; flex-direction: column; gap: 8px; }
-    .step { display: flex; align-items: center; gap: 8px; font-size: 13px; }
-    .badge {
-      width: 28px; height: 28px; border-radius: 8px; display: grid; place-items: center;
-      font-size: 10px; font-weight: 800; background: #e2e8f0; color: var(--muted);
+    .sys-btn {
+      display: flex; align-items: center; gap: 4px;
+      padding: 6px 6px; font-size: 12px; font-weight: 600;
     }
-    .step.pass .badge { background: var(--emerald); color: #fff; }
-    .step.fail .badge { background: #cbd5e1; color: #64748b; text-decoration: line-through; }
-    .step.active .badge { background: var(--red); color: #fff; }
-    .step.pass .txt { color: #065f46; font-weight: 600; }
-    .step.active .txt { color: var(--red); font-weight: 600; }
-    .step.fail .txt, .step.skip .txt { color: var(--muted); }
-    .money {
-      display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; text-align: center;
+    .sys-btn:hover, .sub-btn:hover, .comp-btn:hover { background: rgba(22,88,142,0.06); }
+    .subs { margin: 0 0 4px 10px; padding-left: 8px; border-left: 1px solid var(--border); }
+    .sub-btn { padding: 5px 8px; font-size: 11px; color: var(--muted); font-weight: 600; }
+    .comps { margin-left: 8px; }
+    .comp-btn { padding: 4px 8px; font-size: 11px; color: var(--muted); }
+    .comp-btn.active {
+      background: var(--orange); color: #fff; font-weight: 700;
     }
-    .money > div { background: #f1f5f9; border-radius: 10px; padding: 12px 8px; }
-    .money .total { background: var(--navy); color: #fff; }
-    .money .k { font-size: 10px; font-weight: 800; text-transform: uppercase; opacity: 0.75; }
-    .money .v { margin-top: 4px; font: 700 18px/1.1 ui-monospace, monospace; }
-    .status {
-      margin-left: auto; border-radius: 999px; padding: 3px 8px; font-size: 10px; font-weight: 800;
-      background: rgba(255,255,255,0.18);
+
+    .main {
+      flex: 1; min-width: 0; display: flex; flex-direction: column; padding: 12px;
     }
-    .warn {
-      border: 1px solid rgba(231,34,46,0.3); background: rgba(231,34,46,0.06);
-      color: var(--red); border-radius: 10px; padding: 10px; font-size: 12px;
+    .ops { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+    .op-pill {
+      border: 1px solid var(--border); border-radius: 999px; background: #fff;
+      padding: 3px 10px; font-size: 11px; color: var(--navy); cursor: pointer;
     }
-    .ok { color: #065f46; font-size: 13px; }
-    .amber { color: #92400e; font-size: 13px; }
-    code.cat {
-      display: block; margin-top: 8px; background: #f1f5f9; border-radius: 8px;
-      padding: 8px 10px; font: 11px ui-monospace, monospace;
+    .op-pill.active { background: rgba(22,88,142,0.1); border-color: var(--navy); font-weight: 700; }
+    .empty {
+      margin: auto; color: var(--muted); font-size: 13px; text-align: center; padding: 24px;
+    }
+    .table-wrap {
+      flex: 1; min-height: 0; overflow: auto;
+      border: 1px solid var(--border); border-radius: 10px;
+    }
+    table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    thead th {
+      position: sticky; top: 0; background: rgba(22,88,142,0.05);
+      text-align: left; padding: 8px 10px; font-size: 10px; text-transform: uppercase;
+      letter-spacing: 0.04em; color: rgba(22,88,142,0.7); border-bottom: 1px solid var(--border);
+    }
+    tbody td { padding: 8px 10px; border-bottom: 1px solid rgba(22,88,142,0.08); vertical-align: middle; }
+    tbody tr { cursor: pointer; }
+    tbody tr:hover { background: rgba(129,196,255,0.12); }
+    tbody tr.selected { background: rgba(22,88,142,0.08); }
+    .path {
+      display: inline-block; border-radius: 999px; padding: 2px 7px;
+      font-size: 10px; font-weight: 800; letter-spacing: 0.02em;
+    }
+    .path.L0_EXACT { background: #d1fae5; color: #065f46; }
+    .path.L2_CHASSIS { background: #ffedd5; color: #9a3412; }
+    .path.L4_PENDING { background: #fee2e2; color: #991b1b; }
+    .hrs { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-weight: 700; text-align: right; }
+    .add {
+      border: 1px solid var(--border); background: #fff; color: var(--navy);
+      border-radius: 8px; width: 28px; height: 28px; cursor: pointer; font-weight: 800;
+    }
+    .add:hover { background: var(--navy); color: #fff; }
+    .add:disabled { opacity: 0.35; cursor: not-allowed; }
+
+    .rail {
+      width: 280px; flex: 0 0 auto; border-left: 1px solid var(--border);
+      display: flex; flex-direction: column; background: #fafcff;
+    }
+    .rail h3 {
+      margin: 0; padding: 10px 12px; font-size: 12px; color: var(--navy);
+      border-bottom: 1px solid var(--border); background: rgba(22,88,142,0.04);
+    }
+    .rail .panel { padding: 12px; border-bottom: 1px solid var(--border); font-size: 12px; }
+    .rail .k { font-size: 10px; font-weight: 800; text-transform: uppercase; color: var(--muted); }
+    .rail .v { margin-top: 3px; font-weight: 700; color: var(--navy); }
+    .rail .mono { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; }
+    .cart { flex: 1; min-height: 0; overflow: auto; padding: 10px 12px; }
+    .cart-item {
+      display: flex; justify-content: space-between; gap: 8px;
+      padding: 8px 0; border-bottom: 1px solid rgba(22,88,142,0.08); font-size: 11px;
+    }
+    .cart-foot {
+      padding: 12px; border-top: 1px solid var(--border); background: #fff;
+    }
+    .totals { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 10px; }
+    .totals > div { background: #f1f5f9; border-radius: 8px; padding: 8px; text-align: center; }
+    .totals .big { background: var(--navy); color: #fff; grid-column: 1 / -1; }
+    .totals .lbl { font-size: 10px; opacity: 0.75; text-transform: uppercase; font-weight: 800; }
+    .totals .num { margin-top: 2px; font: 700 16px/1.1 ui-monospace, monospace; }
+    .primary {
+      width: 100%; border: 0; border-radius: 10px; background: var(--navy); color: #fff;
+      font-weight: 700; font-size: 13px; padding: 10px; cursor: pointer;
+    }
+    .primary:disabled { opacity: 0.4; cursor: not-allowed; }
+    .trust {
+      margin-top: 8px; font-size: 10px; color: var(--muted); line-height: 1.35;
     }
   </style>
 </head>
 <body>
-  <div class="wrap">
-    <div class="top">
-      <div>
-        <span class="pill">Standalone lab · no CRM login</span>
-        <h1>Self-generating taxonomy &amp; fitment</h1>
-        <p class="sub">
-          Intent parse → labor fallback (L0–L2) → parts placeholder → Texarkana rate billing.
-          Open this file via <strong>/lab/proprietary-taxonomy.html</strong> — no Clerk / shop shell required.
-        </p>
+  <div class="test-bar">
+    <strong>STANDALONE LAB</strong>
+    <span class="sep">|</span>
+    <span>Proprietary Labor Guide mock — not wired to live CRM / MOTOR / Prisma</span>
+    <span class="note">Fixture data only · Texarkana rate $135/hr demo</span>
+  </div>
+
+  <div class="shell">
+    <div class="header">
+      <div class="header-row">
+        <div>
+          <div class="vehicle">
+            <span id="vehicleLabel">2015 Honda Accord · 2.4L</span>
+            <select id="vehicleSelect" aria-label="Demo vehicle">
+              <option value="accord">2015 Honda Accord · 2.4L (INLINE_4_PACKED)</option>
+              <option value="civic">2012 Honda Civic · 1.8L I4 (INLINE_4_OPEN)</option>
+              <option value="rivian">2024 Rivian R1T · Dual Motor (EV_SKATEBOARD)</option>
+            </select>
+          </div>
+          <div class="meta" id="chassisMeta">Chassis tier: INLINE_4_PACKED · shop rate Texarkana $135.00/hr</div>
+        </div>
+        <div class="meta">Proprietary taxonomy browse · clicks <span id="clicks">0</span></div>
       </div>
+      <div class="search-wrap">
+        <span class="ico">⌕</span>
+        <input id="search" placeholder="Search proprietary labor guide…" />
+      </div>
+      <div class="chips" id="chips"></div>
     </div>
 
-    <div class="scenarios" id="scenarios"></div>
+    <nav class="crumb" id="crumb"></nav>
+    <div class="toast" id="toast"></div>
 
-    <div class="grid">
-      <section class="card">
-        <div class="hd">
-          <div>
-            <h2>Technician notes</h2>
-            <p>Unstructured input → intent only</p>
-          </div>
-        </div>
-        <div class="body">
-          <textarea id="notes"></textarea>
-          <div class="note">
-            <strong>Trust boundary:</strong> parser may emit vehicle + allow-listed operation keys + variant flags.
-            It cannot set hours, rates, or invoice totals.
-          </div>
-          <button class="primary" id="resolveBtn" type="button">Parse intent &amp; resolve quote</button>
-        </div>
-      </section>
+    <div class="body">
+      <aside class="systems" id="systems"></aside>
 
-      <section class="card">
-        <div class="hd slate">
-          <div>
-            <h2>Intent middleware output</h2>
-            <p id="confidenceLine">Structured JSON only</p>
-          </div>
+      <main class="main">
+        <div class="ops" id="ops"></div>
+        <div class="table-wrap" id="tableHost">
+          <div class="empty" id="empty">Pick a system component or search above.</div>
         </div>
-        <div class="body">
-          <div class="box">
-            <div class="lbl">Vehicle</div>
-            <div class="val" id="vehicleTitle">—</div>
-            <div class="meta" id="vehicleMeta">—</div>
-          </div>
-          <div class="box">
-            <div class="lbl">Target operations</div>
-            <div class="meta" id="opsList" style="font-family:ui-monospace,monospace;color:#0f172a"></div>
-            <div id="rejected" style="margin-top:6px;color:var(--red);font-size:11px"></div>
-          </div>
-          <div class="box">
-            <div class="lbl">Variant / position flags</div>
-            <div class="flags" id="flags"></div>
-          </div>
-          <pre id="jsonOut">{}</pre>
-        </div>
-      </section>
+      </main>
 
-      <section style="display:flex;flex-direction:column;gap:14px">
-        <div class="card">
-          <div class="hd">
+      <aside class="rail">
+        <h3>Selected operation</h3>
+        <div class="panel" id="detail">
+          <div class="k">Nothing selected</div>
+          <div class="v" style="font-weight:500;color:var(--muted);margin-top:6px">
+            Choose a row to inspect resolve path, factory hours, and parts placeholder.
+          </div>
+        </div>
+        <h3>Estimate cart (mock)</h3>
+        <div class="cart" id="cart"></div>
+        <div class="cart-foot">
+          <div class="totals">
             <div>
-              <h2>Dynamic resolution</h2>
-              <p>Lookup chain provenance</p>
+              <div class="lbl">Hours</div>
+              <div class="num" id="totHours">0.00</div>
             </div>
-            <span class="status" id="pathBadge">—</span>
-          </div>
-          <div class="body">
-            <div class="steps" id="steps"></div>
-            <div class="meta" id="seedLine" style="font-size:12px;color:var(--muted)"></div>
-            <div id="pendingWarn" class="warn" style="display:none"></div>
-          </div>
-        </div>
-
-        <div class="card">
-          <div class="hd green">
             <div>
-              <h2>Unalterable labor total</h2>
-              <p>texarkana · $135.00/hr (13500¢)</p>
+              <div class="lbl">Rate</div>
+              <div class="num">$135</div>
+            </div>
+            <div class="big">
+              <div class="lbl">Labor total</div>
+              <div class="num" id="totMoney">$0.00</div>
             </div>
           </div>
-          <div class="body">
-            <div class="money" id="money">
-              <div><div class="k">Hours</div><div class="v" id="mHours">—</div></div>
-              <div><div class="k">Rate</div><div class="v" id="mRate">—</div></div>
-              <div class="total"><div class="k">Total</div><div class="v" id="mTotal">—</div></div>
-            </div>
-            <div style="font-size:11px;color:var(--muted)">Hours from labor_time_matrix · rate from shop preset · never from LLM</div>
-          </div>
+          <button class="primary" id="addEstimate" type="button" disabled>Add to estimate (mock)</button>
+          <div class="trust">Billing math is local to this HTML file. No CRM write path. Hours come from fixture matrix / chassis scale — never from a live model API.</div>
         </div>
-
-        <div class="card">
-          <div class="hd" style="background:#fff;color:var(--navy);border-bottom:1px solid var(--border)">
-            <div>
-              <h2>Parts fitment</h2>
-              <p style="color:var(--muted)">P0 hit → P1 placeholder → scrape</p>
-            </div>
-            <span class="status" id="partsBadge" style="background:rgba(22,88,142,0.1);color:var(--navy)">—</span>
-          </div>
-          <div class="body">
-            <div id="partsBody"></div>
-          </div>
-        </div>
-      </section>
+      </aside>
     </div>
   </div>
 
   <script>
-    const ALLOW = [
-      "BRAKES.FRONT.PADS.R_AND_R",
-      "BRAKES.FRONT.ROTORS.R_AND_R",
-      "BRAKES.REAR.PADS.R_AND_R",
-      "ENGINE.OIL.FILTER.REPLACE",
-    ];
+    const RATE_CENTS = 13500;
+
+    const VEHICLES = {
+      accord: {
+        label: "2015 Honda Accord · 2.4L",
+        chassis: "INLINE_4_PACKED",
+        seedChassis: "INLINE_4_OPEN",
+        seedHours: 1.0,
+        mode: "L2", // miss exact → chassis scale
+      },
+      civic: {
+        label: "2012 Honda Civic · 1.8L I4",
+        chassis: "INLINE_4_OPEN",
+        seedChassis: "INLINE_4_OPEN",
+        seedHours: 1.0,
+        mode: "L0",
+      },
+      rivian: {
+        label: "2024 Rivian R1T · Dual Motor",
+        chassis: "EV_SKATEBOARD",
+        seedChassis: "INLINE_4_OPEN",
+        seedHours: 1.0,
+        mode: "L4", // no multiplier row in demo → pending
+      },
+    };
 
     const MULTIPLIERS = {
       INLINE_4_OPEN: {
         INLINE_4_OPEN: 1,
         INLINE_4_PACKED: 1.1,
-        V6_MODERATE: 1.15,
         V6_TIGHT: 1.28,
         EV_SKATEBOARD: 1.4,
       },
     };
 
-    const SCENARIOS = [
+    const TREE = [
       {
-        id: "accord-pads-miss",
-        label: "Accord pads — L2 inherit",
-        blurb: "Cold fitment + chassis scale (I4 open → packed ×1.10)",
-        notes: "swapped out front pads on a 15 accord 2.4 and check if he needs the premium variant",
-        intent: {
-          vehicle: { year: 2015, make: "Honda", model: "Accord", engine_configuration: "2.4L", trim: null, drive_type: null },
-          target_operation_keys: ["BRAKES.FRONT.PADS.R_AND_R"],
-          parts_variant_flags: ["premium"],
-          position_hints: ["FRONT"],
-          confidence: 0.91,
-          unresolved_tokens: [],
-        },
-        chassis: "INLINE_4_PACKED",
-        seed: { label: "2012 Honda Civic 1.8L I4 (seed)", chassis: "INLINE_4_OPEN", factoryHours: 1.0 },
+        id: "BRAKES",
+        label: "Brakes",
+        subs: [
+          {
+            id: "BRAKES.FRONT",
+            label: "Front",
+            comps: [
+              { id: "BRAKES.FRONT.PADS", label: "Pads" },
+              { id: "BRAKES.FRONT.ROTORS", label: "Rotors" },
+            ],
+          },
+          {
+            id: "BRAKES.REAR",
+            label: "Rear",
+            comps: [
+              { id: "BRAKES.REAR.PADS", label: "Pads" },
+              { id: "BRAKES.REAR.ROTORS", label: "Rotors" },
+            ],
+          },
+        ],
       },
       {
-        id: "civic-exact",
-        label: "Civic pads — L0 exact",
-        blurb: "Historical matrix hit; no interpolation",
-        notes: "front brake pads r&r on 2012 civic 1.8",
-        intent: {
-          vehicle: { year: 2012, make: "Honda", model: "Civic", engine_configuration: "1.8L I4", trim: null, drive_type: "FWD" },
-          target_operation_keys: ["BRAKES.FRONT.PADS.R_AND_R"],
-          parts_variant_flags: ["ceramic"],
-          position_hints: ["FRONT"],
-          confidence: 0.96,
-          unresolved_tokens: [],
-        },
-        chassis: "INLINE_4_OPEN",
-        exactHit: { factoryHours: 1.0 },
-      },
-      {
-        id: "cold-pending",
-        label: "Unknown config — L4 pending",
-        blurb: "No seed neighbor → human/catalog queue",
-        notes: "rear pads on a 2024 rivian r1t dual motor — need premium ceramic",
-        intent: {
-          vehicle: { year: 2024, make: "Rivian", model: "R1T", engine_configuration: "Dual Motor", trim: null, drive_type: "AWD" },
-          target_operation_keys: ["BRAKES.REAR.PADS.R_AND_R", "FAKE.OP.FROM.MODEL"],
-          parts_variant_flags: ["premium", "ceramic"],
-          position_hints: ["REAR"],
-          confidence: 0.62,
-          unresolved_tokens: [],
-        },
-        chassis: "EV_SKATEBOARD",
+        id: "ENGINE",
+        label: "Engine",
+        subs: [
+          {
+            id: "ENGINE.OIL",
+            label: "Oil service",
+            comps: [{ id: "ENGINE.OIL.FILTER", label: "Oil & filter" }],
+          },
+        ],
       },
     ];
 
-    let activeId = SCENARIOS[0].id;
+    const ACTIONS = [
+      { id: "R_AND_R", label: "R&R" },
+      { id: "REPLACE", label: "Replace" },
+      { id: "INSPECT", label: "Inspect" },
+    ];
 
-    function money(cents) {
-      return "$" + (cents / 100).toFixed(2);
+    const JOB_DEFS = [
+      { comp: "BRAKES.FRONT.PADS", action: "R_AND_R", name: "Brake Pads — Remove & Replace", pos: "FRONT", base: 1.0, flags: ["premium"] },
+      { comp: "BRAKES.FRONT.PADS", action: "INSPECT", name: "Brake Pads — Inspect", pos: "FRONT", base: 0.3, flags: [] },
+      { comp: "BRAKES.FRONT.ROTORS", action: "R_AND_R", name: "Brake Rotors — Remove & Replace", pos: "FRONT", base: 1.4, flags: ["coated"] },
+      { comp: "BRAKES.REAR.PADS", action: "R_AND_R", name: "Brake Pads — Remove & Replace", pos: "REAR", base: 1.1, flags: ["ceramic", "premium"] },
+      { comp: "BRAKES.REAR.ROTORS", action: "R_AND_R", name: "Brake Rotors — Remove & Replace", pos: "REAR", base: 1.5, flags: [] },
+      { comp: "ENGINE.OIL.FILTER", action: "REPLACE", name: "Engine Oil & Filter — Replace", pos: "ALL", base: 0.5, flags: ["oem"] },
+    ];
+
+    const CHIPS = [
+      { label: "Front pads", comp: "BRAKES.FRONT.PADS", action: "R_AND_R" },
+      { label: "Front rotors", comp: "BRAKES.FRONT.ROTORS", action: "R_AND_R" },
+      { label: "Rear pads", comp: "BRAKES.REAR.PADS", action: "R_AND_R" },
+      { label: "Oil & filter", comp: "ENGINE.OIL.FILTER", action: "REPLACE" },
+    ];
+
+    const state = {
+      vehicleId: "accord",
+      expanded: new Set(["BRAKES"]),
+      systemId: "BRAKES",
+      subId: "BRAKES.FRONT",
+      compId: "BRAKES.FRONT.PADS",
+      actionId: "R_AND_R",
+      search: "",
+      selectedJobId: null,
+      cart: [],
+      clicks: 0,
+    };
+
+    function money(cents) { return "$" + (cents / 100).toFixed(2); }
+    function bump() {
+      state.clicks += 1;
+      document.getElementById("clicks").textContent = String(state.clicks);
     }
 
-    function partsCategory(opKey, flags, positions) {
-      const pos = (positions.find((p) => ["FRONT", "REAR"].includes(p)) || "ALL");
-      const material = flags.includes("ceramic") ? "CERAMIC" : "STANDARD";
-      const tier = flags.includes("premium") ? "PREMIUM" : flags.includes("economy") ? "ECONOMY" : "STANDARD";
-      if (opKey.endsWith(".PADS.R_AND_R")) return `BRAKE_PAD_${pos}_${material}_${tier}`;
-      if (opKey.endsWith(".ROTORS.R_AND_R")) return `BRAKE_ROTOR_${pos}_${tier}`;
-      return null;
-    }
-
-    function resolve(scenario) {
-      const intent = structuredClone(scenario.intent);
-      const kept = [];
-      const rejected = [];
-      for (const k of intent.target_operation_keys) {
-        (ALLOW.includes(k) ? kept : rejected).push(k);
+    function resolveHours(base) {
+      const v = VEHICLES[state.vehicleId];
+      if (v.mode === "L0") {
+        return { path: "L0_EXACT", hours: base, multiplier: 1, note: "Exact matrix hit for this vehicle" };
       }
-      intent.target_operation_keys = kept;
-      intent.unresolved_tokens = [...intent.unresolved_tokens, ...rejected];
+      if (v.mode === "L2") {
+        const m = MULTIPLIERS[v.seedChassis][v.chassis];
+        const hours = Math.round(base * m * 1000) / 1000;
+        return {
+          path: "L2_CHASSIS",
+          hours,
+          multiplier: m,
+          note: `Inherited from ${v.seedChassis} seed × ${m.toFixed(2)}`,
+        };
+      }
+      return { path: "L4_PENDING", hours: null, multiplier: null, note: "No seed / multiplier — pending curation" };
+    }
 
-      const steps = [
-        { id: "L0", label: "L0 Exact matrix", state: "skip" },
-        { id: "L1", label: "L1 Vector neighbor", state: "skip" },
-        { id: "L2", label: "L2 Chassis scale", state: "skip" },
-        { id: "L4", label: "L4 Pending review", state: "skip" },
-      ];
+    function partsCategory(job) {
+      if (job.comp.includes(".PADS")) {
+        const material = job.flags.includes("ceramic") ? "CERAMIC" : "STANDARD";
+        const tier = job.flags.includes("premium") ? "PREMIUM" : "STANDARD";
+        return `BRAKE_PAD_${job.pos}_${material}_${tier}`;
+      }
+      if (job.comp.includes(".ROTORS")) return `BRAKE_ROTOR_${job.pos}_STANDARD`;
+      if (job.comp.includes("OIL.FILTER")) return "OIL_FILTER_OEM";
+      return "GENERIC_PART";
+    }
 
-      let path = "L4_PENDING";
-      let hours = null;
-      let multiplier = null;
-      let seedLabel = null;
-
-      if (scenario.exactHit) {
-        steps[0].state = "pass";
-        path = "L0_EXACT";
-        hours = scenario.exactHit.factoryHours;
-        multiplier = 1;
-        seedLabel = `${intent.vehicle.year} ${intent.vehicle.make} ${intent.vehicle.model}`;
-      } else if (scenario.seed) {
-        steps[0].state = "fail";
-        steps[1].state = "fail";
-        const m = MULTIPLIERS[scenario.seed.chassis]?.[scenario.chassis];
-        if (m != null) {
-          steps[2].state = "pass";
-          path = "L2_CHASSIS";
-          multiplier = m;
-          hours = Math.round(scenario.seed.factoryHours * m * 1000) / 1000;
-          seedLabel = scenario.seed.label;
-        } else {
-          steps[2].state = "fail";
-          steps[3].state = "active";
-        }
+    function jobsForView() {
+      const q = state.search.trim().toLowerCase();
+      let rows = JOB_DEFS.map((d) => {
+        const resolved = resolveHours(d.base);
+        return {
+          id: `${d.comp}.${d.action}`,
+          ...d,
+          key: `${d.comp}.${d.action}`,
+          ...resolved,
+        };
+      });
+      if (q) {
+        rows = rows.filter((r) =>
+          r.name.toLowerCase().includes(q) ||
+          r.key.toLowerCase().includes(q) ||
+          r.pos.toLowerCase().includes(q)
+        );
+      } else if (state.compId) {
+        rows = rows.filter((r) => r.comp === state.compId && r.action === state.actionId);
       } else {
-        steps[0].state = "fail";
-        steps[1].state = "fail";
-        steps[2].state = "fail";
-        steps[3].state = "active";
+        rows = [];
       }
-
-      const rateCents = 13500;
-      const laborTotalCents = hours == null ? null : Math.round(hours * rateCents);
-      const opKey = kept[0] || "";
-      const cat = opKey ? partsCategory(opKey, intent.parts_variant_flags, intent.position_hints) : null;
-      let partsStatus = "PENDING_REVIEW";
-      if (scenario.id === "civic-exact") partsStatus = "HIT";
-      else if (cat && path !== "L4_PENDING") partsStatus = "PLACEHOLDER_ENQUEUED";
-
-      return { intent, rejected, steps, path, hours, multiplier, seedLabel, rateCents, laborTotalCents, cat, partsStatus };
+      return rows;
     }
 
-    function renderScenarios() {
-      const root = document.getElementById("scenarios");
+    function findNodeLabels() {
+      const sys = TREE.find((t) => t.id === state.systemId);
+      const sub = sys?.subs.find((s) => s.id === state.subId);
+      const comp = sub?.comps.find((c) => c.id === state.compId);
+      return {
+        system: sys?.label,
+        sub: sub?.label,
+        comp: comp?.label,
+        action: ACTIONS.find((a) => a.id === state.actionId)?.label,
+      };
+    }
+
+    function renderChips() {
+      const root = document.getElementById("chips");
       root.innerHTML = "";
-      for (const s of SCENARIOS) {
+      for (const c of CHIPS) {
         const btn = document.createElement("button");
         btn.type = "button";
-        btn.className = "scenario" + (s.id === activeId ? " active" : "");
-        btn.innerHTML = `<strong>${s.label}</strong><span>${s.blurb}</span>`;
+        btn.className = "chip" + (state.compId === c.comp && state.actionId === c.action && !state.search ? " active" : "");
+        btn.textContent = c.label;
         btn.onclick = () => {
-          activeId = s.id;
-          document.getElementById("notes").value = s.notes;
-          renderScenarios();
-          paint(resolve(s));
+          const [sys, sub] = c.comp.split(".").slice(0, 2);
+          // BRAKES.FRONT.PADS → system BRAKES, sub BRAKES.FRONT
+          const parts = c.comp.split(".");
+          state.systemId = parts[0];
+          state.subId = parts.slice(0, 2).join(".");
+          state.compId = c.comp;
+          state.actionId = c.action;
+          state.expanded = new Set([state.systemId]);
+          state.search = "";
+          document.getElementById("search").value = "";
+          state.selectedJobId = null;
+          bump();
+          paint();
         };
         root.appendChild(btn);
       }
     }
 
-    function paint(r) {
-      const v = r.intent.vehicle;
-      document.getElementById("confidenceLine").textContent =
-        `Structured JSON only — confidence ${Math.round(r.intent.confidence * 100)}%`;
-      document.getElementById("vehicleTitle").textContent = `${v.year} ${v.make} ${v.model}`;
-      const scenario = SCENARIOS.find((s) => s.id === activeId);
-      document.getElementById("vehicleMeta").textContent =
-        `${v.engine_configuration || "—"} · chassis ${scenario.chassis}`;
-      document.getElementById("opsList").innerHTML =
-        r.intent.target_operation_keys.map((k) => `<div>${k}</div>`).join("") || "None after allow-list gate";
-      document.getElementById("rejected").textContent =
-        r.rejected.length ? `Rejected: ${r.rejected.join(", ")}` : "";
-      const flags = document.getElementById("flags");
-      flags.innerHTML = "";
-      for (const f of r.intent.parts_variant_flags) {
-        const el = document.createElement("span");
-        el.className = "flag";
-        el.textContent = f;
-        flags.appendChild(el);
-      }
-      for (const p of r.intent.position_hints) {
-        const el = document.createElement("span");
-        el.className = "flag red";
-        el.textContent = p;
-        flags.appendChild(el);
-      }
-      document.getElementById("jsonOut").textContent = JSON.stringify(r.intent, null, 2);
+    function renderSystems() {
+      const root = document.getElementById("systems");
+      root.innerHTML = `<div class="lbl">Systems</div>`;
+      for (const sys of TREE) {
+        const open = state.expanded.has(sys.id);
+        const sysBtn = document.createElement("button");
+        sysBtn.type = "button";
+        sysBtn.className = "sys-btn";
+        sysBtn.innerHTML = `<span>${open ? "▾" : "▸"}</span><span>${sys.label}</span>`;
+        sysBtn.onclick = () => {
+          state.expanded = open ? new Set() : new Set([sys.id]);
+          state.systemId = sys.id;
+          bump();
+          paint();
+        };
+        root.appendChild(sysBtn);
 
-      document.getElementById("pathBadge").textContent = r.path;
-      document.getElementById("steps").innerHTML = r.steps.map((s) =>
-        `<div class="step ${s.state}"><div class="badge">${s.id}</div><div class="txt">${s.label}</div></div>`
-      ).join("");
+        if (open) {
+          const wrap = document.createElement("div");
+          wrap.className = "subs";
+          for (const sub of sys.subs) {
+            const subBtn = document.createElement("button");
+            subBtn.type = "button";
+            subBtn.className = "sub-btn";
+            subBtn.textContent = sub.label;
+            subBtn.onclick = () => {
+              state.systemId = sys.id;
+              state.subId = sub.id;
+              state.compId = sub.comps[0]?.id ?? null;
+              state.actionId = "R_AND_R";
+              if (state.compId === "ENGINE.OIL.FILTER") state.actionId = "REPLACE";
+              state.search = "";
+              document.getElementById("search").value = "";
+              state.selectedJobId = null;
+              bump();
+              paint();
+            };
+            wrap.appendChild(subBtn);
 
-      const seedLine = document.getElementById("seedLine");
-      if (r.seedLabel) {
-        seedLine.textContent = r.multiplier && r.multiplier !== 1
-          ? `Seed: ${r.seedLabel} → ×${r.multiplier.toFixed(2)} → ${r.hours.toFixed(3)} hr`
-          : `Seed: ${r.seedLabel}`;
-      } else seedLine.textContent = "";
-
-      const warn = document.getElementById("pendingWarn");
-      if (r.path === "L4_PENDING") {
-        warn.style.display = "block";
-        warn.textContent = "No vector neighbor or chassis multiplier seed — queued for catalog curation. Billing blocked.";
-      } else warn.style.display = "none";
-
-      document.getElementById("mHours").textContent = r.hours == null ? "—" : r.hours.toFixed(2);
-      document.getElementById("mRate").textContent = money(r.rateCents);
-      document.getElementById("mTotal").textContent = r.laborTotalCents == null ? "—" : money(r.laborTotalCents);
-
-      document.getElementById("partsBadge").textContent = r.partsStatus;
-      const pb = document.getElementById("partsBody");
-      if (r.partsStatus === "HIT") {
-        pb.innerHTML = `<div class="ok">✓ Cached SKU on vehicle_part_fitment (demo axle set)</div>`;
-      } else if (r.partsStatus === "PLACEHOLDER_ENQUEUED") {
-        pb.innerHTML = `<div class="amber">No fitment row — enqueued low-cost supplier sweep</div><code class="cat">${r.cat}</code>`;
-      } else {
-        pb.innerHTML = `<div style="color:var(--muted);font-size:13px">Parts resolution held until labor seed exists or curator maps category.</div>`;
+            if (state.subId === sub.id) {
+              const comps = document.createElement("div");
+              comps.className = "comps";
+              for (const comp of sub.comps) {
+                const cBtn = document.createElement("button");
+                cBtn.type = "button";
+                cBtn.className = "comp-btn" + (state.compId === comp.id && !state.search ? " active" : "");
+                cBtn.textContent = comp.label;
+                cBtn.onclick = () => {
+                  state.compId = comp.id;
+                  state.selectedJobId = null;
+                  bump();
+                  paint();
+                };
+                comps.appendChild(cBtn);
+              }
+              wrap.appendChild(comps);
+            }
+          }
+          root.appendChild(wrap);
+        }
       }
     }
 
-    const first = SCENARIOS[0];
-    document.getElementById("notes").value = first.notes;
-    renderScenarios();
-    paint(resolve(first));
+    function renderCrumb() {
+      const root = document.getElementById("crumb");
+      const v = VEHICLES[state.vehicleId];
+      const labels = findNodeLabels();
+      const parts = [v.label];
+      if (!state.search) {
+        if (labels.system) parts.push(labels.system);
+        if (labels.sub) parts.push(labels.sub);
+        if (labels.comp) parts.push(labels.comp);
+        if (labels.action && state.compId) parts.push(labels.action);
+      } else {
+        parts.push(`Search “${state.search.trim()}”`);
+      }
+      root.innerHTML = parts.map((p, i) => {
+        const here = i === parts.length - 1 ? " here" : "";
+        const chev = i > 0 ? `<span class="chev">›</span>` : "";
+        return `${chev}<button type="button" class="${here}" data-i="${i}">${p}</button>`;
+      }).join("");
+      root.querySelectorAll("button").forEach((btn) => {
+        btn.onclick = () => {
+          const i = Number(btn.dataset.i);
+          if (i <= 0) {
+            state.compId = null;
+            state.subId = null;
+          } else if (i === 1) {
+            state.subId = null;
+            state.compId = null;
+          } else if (i === 2) {
+            state.compId = null;
+          }
+          state.search = "";
+          document.getElementById("search").value = "";
+          bump();
+          paint();
+        };
+      });
+    }
 
-    document.getElementById("resolveBtn").onclick = () => {
-      const scenario = SCENARIOS.find((s) => s.id === activeId);
-      paint(resolve(scenario));
+    function renderOps() {
+      const root = document.getElementById("ops");
+      root.innerHTML = "";
+      if (state.search || !state.compId) return;
+      const available = ACTIONS.filter((a) => JOB_DEFS.some((j) => j.comp === state.compId && j.action === a.id));
+      for (const a of available) {
+        const b = document.createElement("button");
+        b.type = "button";
+        b.className = "op-pill" + (state.actionId === a.id ? " active" : "");
+        b.textContent = a.label;
+        b.onclick = () => {
+          state.actionId = a.id;
+          state.selectedJobId = null;
+          bump();
+          paint();
+        };
+        root.appendChild(b);
+      }
+    }
+
+    function renderTable() {
+      const host = document.getElementById("tableHost");
+      const rows = jobsForView();
+      if (!rows.length) {
+        host.innerHTML = `<div class="empty" id="empty">${
+          state.search || state.compId
+            ? "No operations for this filter."
+            : "Pick a system component or search above."
+        }</div>`;
+        return;
+      }
+      host.innerHTML = `
+        <table>
+          <thead>
+            <tr>
+              <th>Operation</th>
+              <th>Pos</th>
+              <th>Resolve</th>
+              <th style="text-align:right">Hrs</th>
+              <th style="text-align:center">+</th>
+            </tr>
+          </thead>
+          <tbody id="tbody"></tbody>
+        </table>`;
+      const tbody = host.querySelector("#tbody");
+      for (const row of rows) {
+        const tr = document.createElement("tr");
+        if (state.selectedJobId === row.id) tr.classList.add("selected");
+        const hrs = row.hours == null ? "—" : row.hours.toFixed(2);
+        tr.innerHTML = `
+          <td>
+            <div style="font-weight:600;color:var(--navy)">${row.name}</div>
+            <div class="mono" style="color:var(--muted);font-size:10px;margin-top:2px">${row.key}</div>
+          </td>
+          <td>${row.pos}</td>
+          <td><span class="path ${row.path}">${row.path}</span></td>
+          <td class="hrs">${hrs}</td>
+          <td style="text-align:center">
+            <button class="add" ${row.hours == null ? "disabled" : ""} title="Add to cart">+</button>
+          </td>`;
+        tr.onclick = (e) => {
+          if (e.target.closest(".add")) return;
+          state.selectedJobId = row.id;
+          bump();
+          paint();
+        };
+        tr.querySelector(".add").onclick = (e) => {
+          e.stopPropagation();
+          if (row.hours == null) return;
+          if (!state.cart.some((c) => c.id === row.id)) {
+            state.cart.push(row);
+          }
+          state.selectedJobId = row.id;
+          bump();
+          paint();
+        };
+        tbody.appendChild(tr);
+      }
+    }
+
+    function renderDetail() {
+      const root = document.getElementById("detail");
+      const rows = jobsForView();
+      const row = rows.find((r) => r.id === state.selectedJobId) || rows[0];
+      if (!row) {
+        root.innerHTML = `<div class="k">Nothing selected</div>
+          <div class="v" style="font-weight:500;color:var(--muted);margin-top:6px">
+            Choose a row to inspect resolve path, factory hours, and parts placeholder.
+          </div>`;
+        return;
+      }
+      if (!state.selectedJobId) state.selectedJobId = row.id;
+      const partsStatus = row.path === "L4_PENDING" ? "PENDING_REVIEW" : "PLACEHOLDER_ENQUEUED";
+      const cat = partsCategory(row);
+      const lineCents = row.hours == null ? null : Math.round(row.hours * RATE_CENTS);
+      root.innerHTML = `
+        <div class="k">Operation</div>
+        <div class="v">${row.name}</div>
+        <div class="mono" style="color:var(--muted);margin-top:4px">${row.key}</div>
+        <div style="margin-top:10px" class="k">Resolve path</div>
+        <div style="margin-top:4px"><span class="path ${row.path}">${row.path}</span></div>
+        <div style="margin-top:6px;color:var(--muted)">${row.note}</div>
+        <div style="margin-top:10px" class="k">Factory / scaled hours</div>
+        <div class="v mono">${row.hours == null ? "—" : row.hours.toFixed(3) + " hr"}</div>
+        <div style="margin-top:10px" class="k">Labor @ Texarkana</div>
+        <div class="v mono">${lineCents == null ? "—" : money(lineCents)}</div>
+        <div style="margin-top:10px" class="k">Parts fitment</div>
+        <div class="v" style="font-size:12px">${partsStatus}</div>
+        <div class="mono" style="margin-top:4px;background:#f1f5f9;padding:6px 8px;border-radius:8px">${cat}</div>
+        <div style="margin-top:8px;color:var(--muted);font-size:11px">
+          Variant flags: ${row.flags.length ? row.flags.join(", ") : "none"}
+        </div>`;
+    }
+
+    function renderCart() {
+      const root = document.getElementById("cart");
+      if (!state.cart.length) {
+        root.innerHTML = `<div style="color:var(--muted);font-size:12px;padding:8px 0">Cart empty — use + on a billable row.</div>`;
+      } else {
+        root.innerHTML = state.cart.map((c) => `
+          <div class="cart-item">
+            <div>
+              <div style="font-weight:600;color:var(--navy)">${c.name}</div>
+              <div style="color:var(--muted)">${c.path} · ${c.hours.toFixed(2)} hr</div>
+            </div>
+            <div class="mono">${money(Math.round(c.hours * RATE_CENTS))}</div>
+          </div>`).join("");
+      }
+      const hours = state.cart.reduce((s, c) => s + c.hours, 0);
+      const cents = Math.round(hours * RATE_CENTS);
+      document.getElementById("totHours").textContent = hours.toFixed(2);
+      document.getElementById("totMoney").textContent = money(cents);
+      document.getElementById("addEstimate").disabled = state.cart.length === 0;
+    }
+
+    function paint() {
+      const v = VEHICLES[state.vehicleId];
+      document.getElementById("vehicleLabel").textContent = v.label;
+      document.getElementById("chassisMeta").textContent =
+        `Chassis tier: ${v.chassis} · shop rate Texarkana $135.00/hr · standalone fixtures`;
+      renderChips();
+      renderSystems();
+      renderCrumb();
+      renderOps();
+      renderTable();
+      renderDetail();
+      renderCart();
+    }
+
+    document.getElementById("vehicleSelect").onchange = (e) => {
+      state.vehicleId = e.target.value;
+      state.cart = [];
+      state.selectedJobId = null;
+      bump();
+      paint();
     };
+
+    document.getElementById("search").oninput = (e) => {
+      state.search = e.target.value;
+      state.selectedJobId = null;
+      if (state.search.trim()) bump();
+      paint();
+    };
+
+    document.getElementById("addEstimate").onclick = () => {
+      if (!state.cart.length) return;
+      const hrs = state.cart.reduce((s, c) => s + c.hours, 0);
+      const toast = document.getElementById("toast");
+      toast.textContent = `Mock only — would add ${state.cart.length} line(s) (${hrs.toFixed(2)} hr / ${money(Math.round(hrs * RATE_CENTS))}). No CRM write.`;
+      toast.classList.add("show");
+      state.cart = [];
+      bump();
+      paint();
+      setTimeout(() => toast.classList.remove("show"), 3200);
+    };
+
+    // Default into Front Pads R&R so the preview is immediately useful
+    paint();
   </script>
 </body>
 </html>
