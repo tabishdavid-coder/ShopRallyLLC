@@ -1,0 +1,6 @@
+.venv/
+staging/**
+!staging/.gitkeep
+.env
+__pycache__/
+*.pyc

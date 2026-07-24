@@ -13,6 +13,8 @@ export type ShopCapabilities = {
   stripePayments: boolean;
   /** Licensed MOTOR Labor Book — Pro+ only. */
   motorLabor: boolean;
+  /** Tabish Friday Labor (proprietary EWT guide) — Pro+; release-gated. */
+  tabishFridayLabor: boolean;
   /** PartsTech / vendor parts lookup — included on Ignition (Core) and above. */
   partsTech: boolean;
   /** Growth Engine / marketing campaigns — Pro+ only. */
@@ -35,6 +37,7 @@ const DEFAULT: ShopCapabilities = {
   sms: false,
   stripePayments: false,
   motorLabor: false,
+  tabishFridayLabor: false,
   partsTech: false,
   marketingCampaigns: false,
   maintenancePrograms: false,
@@ -77,6 +80,17 @@ export function usePlanFeatures(): PlanFeatureSet {
 /** Licensed MOTOR Labor Book UI — Pro+. */
 export function useMotorLaborUiEnabled(): boolean {
   return useShopCapabilities().motorLabor;
+}
+
+/** Tabish Friday Labor guide UI — Pro+ (plan + release). */
+export function useTabishFridayLaborUiEnabled(): boolean {
+  return useShopCapabilities().tabishFridayLabor;
+}
+
+/** Labor Book entry points — MOTOR and/or Tabish Friday Labor. */
+export function useLaborBookUiEnabled(): boolean {
+  const caps = useShopCapabilities();
+  return caps.motorLabor || caps.tabishFridayLabor;
 }
 
 /** PartsTech / vendor parts lookup UI — Ignition+ when plan feature is on. */

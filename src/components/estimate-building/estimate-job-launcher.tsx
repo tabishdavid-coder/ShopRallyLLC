@@ -21,6 +21,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { TabishFridayLaborGuideDialog } from "@/components/labor-guide/tabish-friday-labor-guide";
 import { CannedJobPickerSheet } from "@/components/repair-order/canned-job-picker-sheet";
 import { SmartLaborGuide } from "@/components/repair-order/smart-labor-guide";
 import { RoAdjustmentToolbarButton } from "@/components/repair-order/ro-adjustment-toolbar-button";
@@ -28,7 +29,10 @@ import { addJob } from "@/server/actions/estimate";
 import { useEstimateActionToast } from "@/components/repair-order/estimate-action-toast";
 import type { CannedJobSummary } from "@/lib/canned-job-types";
 import type { LaborTier, PartTier } from "@/lib/matrix";
-import { useMotorLaborUiEnabled } from "@/lib/shop-capabilities";
+import {
+  useLaborBookUiEnabled,
+  useTabishFridayLaborUiEnabled,
+} from "@/lib/shop-capabilities";
 import { cn } from "@/lib/utils";
 
 type LauncherItem = {
@@ -82,10 +86,11 @@ export function EstimateJobLauncher({
   const [feeOpen, setFeeOpen] = useState(false);
   const [discountOpen, setDiscountOpen] = useState(false);
   const [pending, start] = useTransition();
-  const motorLaborOk = useMotorLaborUiEnabled();
+  const laborBookOk = useLaborBookUiEnabled();
+  const tfl = useTabishFridayLaborUiEnabled();
 
   const items: LauncherItem[] = [
-    ...(motorLaborOk
+    ...(laborBookOk
       ? [
           {
             id: "labor-guide",
@@ -227,19 +232,23 @@ export function EstimateJobLauncher({
         </DialogContent>
       </Dialog>
 
-      <SmartLaborGuide
-        vehicleId={vehicleId}
-        roId={roId}
-        customerName={customerName}
-        vehicleLabel={vehicleLabel}
-        specLine={specLine}
-        mileageIn={mileageIn}
-        odometerNotWorking={odometerNotWorking}
-        presentation="floating"
-        open={laborGuideOpen}
-        onOpenChange={setLaborGuideOpen}
-        hideTrigger
-      />
+      {tfl ? (
+        <TabishFridayLaborGuideDialog open={laborGuideOpen} onOpenChange={setLaborGuideOpen} />
+      ) : (
+        <SmartLaborGuide
+          vehicleId={vehicleId}
+          roId={roId}
+          customerName={customerName}
+          vehicleLabel={vehicleLabel}
+          specLine={specLine}
+          mileageIn={mileageIn}
+          odometerNotWorking={odometerNotWorking}
+          presentation="floating"
+          open={laborGuideOpen}
+          onOpenChange={setLaborGuideOpen}
+          hideTrigger
+        />
+      )}
 
       <CannedJobPickerSheet
         open={cannedOpen}

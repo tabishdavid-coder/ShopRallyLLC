@@ -1,0 +1,16 @@
+{
+  "url": "https://www.fluidcapacity.com/2020/ford/f-150/5.0l-v8/",
+  "year": 2020,
+  "make": "Ford",
+  "model": "F-150",
+  "engine": "5.0L V8",
+  "fluids": [
+    {"label": "Engine Oil", "category_key": "ENG_OIL", "capacity": 7.7, "capacity_unit": "qt", "fluid_type": "5W-20", "notes": "with filter"},
+    {"label": "Transmission Fluid", "category_key": "ATF", "capacity": 13.1, "capacity_unit": "qt", "fluid_type": "MERCON ULV", "notes": null},
+    {"label": "Brake Fluid", "category_key": "BRAKE_FLUID", "capacity": null, "capacity_unit": "qt", "fluid_type": "DOT 4 LV", "notes": null},
+    {"label": "Coolant", "category_key": "COOLANT", "capacity": 15.1, "capacity_unit": "qt", "fluid_type": "Motorcraft Orange", "notes": null},
+    {"label": "Differential Fluid", "category_key": "DIFF_FLUID", "capacity": 5.5, "capacity_unit": "qt", "fluid_type": "75W-85", "notes": "rear axle"},
+    {"label": "Transfer Case Fluid", "category_key": "TC_FLUID", "capacity": 1.5, "capacity_unit": "qt", "fluid_type": "MERCON LV", "notes": null},
+    {"label": "Washer Fluid", "category_key": "WASHER", "capacity": 4.2, "capacity_unit": "qt", "fluid_type": null, "notes": null}
+  ]
+}

@@ -1,0 +1,18 @@
+[
+  {
+    "image_url": "fixture://partsouq/honda/accord/2014/brakes/front-pads.png",
+    "local_path": "media/diagrams/fixture_partsouq_front_pads.svg",
+    "source": "partsouq",
+    "caption": "Partsouq — Front brake pads",
+    "operation_hint": "BRAKES.FRONT.PADS.R_AND_R",
+    "category_hint": "BRAKES.FRONT.PADS"
+  },
+  {
+    "image_url": "fixture://partsouq/honda/accord/2014/brakes/caliper.png",
+    "local_path": "media/diagrams/fixture_partsouq_caliper.svg",
+    "source": "partsouq",
+    "caption": "Partsouq — Front caliper",
+    "operation_hint": "BRAKES.FRONT.CALIPER.R_AND_R",
+    "category_hint": "BRAKES.FRONT.CALIPER"
+  }
+]

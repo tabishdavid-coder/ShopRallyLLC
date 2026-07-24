@@ -169,7 +169,7 @@ export function settingsUpgradeLabel(feature: PlanFeature): string {
 /** Features to show in Subscription → Feature gates (only entitled on current plan). */
 export function subscriptionFeatureLabelsForPlan(plan: ShopPlan): PlanFeature[] {
   const f = PLANS[plan].features;
-  const exclude = new Set<PlanFeature>(["multiLocation", "motorLabor"]);
+  const exclude = new Set<PlanFeature>(["multiLocation", "motorLabor", "tabishFridayLabor"]);
   return (Object.keys(f) as PlanFeature[]).filter(
     (key) => typeof f[key] === "boolean" && f[key] === true && !exclude.has(key),
   );

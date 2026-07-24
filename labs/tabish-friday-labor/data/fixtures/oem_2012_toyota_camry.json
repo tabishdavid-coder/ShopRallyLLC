@@ -1,0 +1,38 @@
+{
+  "category_paths": [
+    ["Brakes", "Front", "Pads", "Remove & Replace"],
+    ["Brakes", "Front", "Rotors", "Remove & Replace"],
+    ["Brakes", "Rear", "Pads", "Remove & Replace"],
+    ["Brakes", "Hydraulic", "Brake Fluid", "Flush"],
+    ["Engine", "Lubrication", "Oil Filter", "Replace"],
+    ["Engine", "Cooling", "Thermostat", "Remove & Replace"],
+    ["Engine", "Cooling", "Water Pump", "Remove & Replace"],
+    ["Engine", "Ignition", "Spark Plugs", "Replace"],
+    ["Engine", "Ignition", "Ignition Coils", "Remove & Replace"],
+    ["Suspension", "Front", "Strut", "Remove & Replace"],
+    ["Suspension", "Front", "Control Arm", "Remove & Replace"],
+    ["Suspension", "Front", "Sway Bar Link", "Remove & Replace"],
+    ["Suspension", "Rear", "Shock", "Remove & Replace"],
+    ["Steering", "Linkage", "Outer Tie Rod", "Remove & Replace"],
+    ["Steering", "Linkage", "Inner Tie Rod", "Remove & Replace"],
+    ["Drivetrain", "Transmission", "ATF Fluid", "Flush"],
+    ["Drivetrain", "Transmission", "Trans Filter", "Replace"],
+    ["Drivetrain", "Axle", "CV Axle", "Remove & Replace"],
+    ["Electrical", "Charging", "Alternator", "Remove & Replace"],
+    ["Electrical", "Charging", "Battery", "Replace"],
+    ["Electrical", "Starting", "Starter", "Remove & Replace"],
+    ["HVAC", "A/C", "Compressor", "Remove & Replace"],
+    ["HVAC", "A/C", "Recharge", "Diagnose"],
+    ["HVAC", "Heating", "Blower Motor", "Remove & Replace"],
+    ["Exhaust", "System", "Muffler", "Remove & Replace"],
+    ["Exhaust", "System", "O2 Sensor", "Remove & Replace"]
+  ],
+  "leaf_parts": [
+    {"part_number": "04465-33470", "description": "Pad kit, disc brake front"},
+    {"part_number": "43512-06090", "description": "Disc, front"},
+    {"part_number": "90915-YZZD3", "description": "Oil filter"},
+    {"part_number": "90919-01253", "description": "Spark plug"},
+    {"part_number": "27060-0H050", "description": "Alternator assy"},
+    {"part_number": "43420-06090", "description": "Drive shaft assy"}
+  ]
+}

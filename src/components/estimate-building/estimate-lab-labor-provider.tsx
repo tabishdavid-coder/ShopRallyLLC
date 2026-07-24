@@ -10,8 +10,10 @@ import {
   type ReactNode,
 } from "react";
 
+import { TabishFridayLaborGuideDialog } from "@/components/labor-guide/tabish-friday-labor-guide";
 import { SmartLaborGuide } from "@/components/repair-order/smart-labor-guide";
 import type { LaborCartLine } from "@/lib/labor-guide-types";
+import { useTabishFridayLaborUiEnabled } from "@/lib/shop-capabilities";
 
 type GuideLine = Omit<LaborCartLine, "key">;
 
@@ -57,6 +59,7 @@ export function EstimateLabLaborProvider({
   mileageIn?: number | null;
   odometerNotWorking?: boolean;
 }) {
+  const tfl = useTabishFridayLaborUiEnabled();
   const [open, setOpen] = useState(false);
   const [addMode, setAddMode] = useState<"createJob" | "addLines">("createJob");
   const onAddLinesRef = useRef<((lines: GuideLine[]) => void) | null>(null);
@@ -92,22 +95,26 @@ export function EstimateLabLaborProvider({
   return (
     <EstimateLabLaborContext.Provider value={value}>
       {children}
-      <SmartLaborGuide
-        vehicleId={vehicleId}
-        roId={roId}
-        customerName={customerName}
-        vehicleLabel={vehicleLabel}
-        specLine={specLine}
-        mileageIn={mileageIn}
-        odometerNotWorking={odometerNotWorking}
-        presentation="floating"
-        open={open}
-        onOpenChange={handleOpenChange}
-        hideTrigger
-        addMode={addMode}
-        onAddLines={addMode === "addLines" ? handleAddLines : undefined}
-        submitLabel={addMode === "addLines" ? "Add to job" : undefined}
-      />
+      {tfl ? (
+        <TabishFridayLaborGuideDialog open={open} onOpenChange={handleOpenChange} />
+      ) : (
+        <SmartLaborGuide
+          vehicleId={vehicleId}
+          roId={roId}
+          customerName={customerName}
+          vehicleLabel={vehicleLabel}
+          specLine={specLine}
+          mileageIn={mileageIn}
+          odometerNotWorking={odometerNotWorking}
+          presentation="floating"
+          open={open}
+          onOpenChange={handleOpenChange}
+          hideTrigger
+          addMode={addMode}
+          onAddLines={addMode === "addLines" ? handleAddLines : undefined}
+          submitLabel={addMode === "addLines" ? "Add to job" : undefined}
+        />
+      )}
     </EstimateLabLaborContext.Provider>
   );
 }

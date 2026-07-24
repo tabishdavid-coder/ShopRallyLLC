@@ -1,0 +1,38 @@
+{
+  "category_paths": [
+    ["Brakes", "Front", "Pads", "Remove & Replace"],
+    ["Brakes", "Front", "Rotors", "Remove & Replace"],
+    ["Brakes", "Front", "Caliper", "Remove & Replace"],
+    ["Brakes", "Rear", "Pads", "Remove & Replace"],
+    ["Brakes", "Hydraulic", "Brake Fluid", "Flush"],
+    ["Engine", "Lubrication", "Oil Filter", "Replace"],
+    ["Engine", "Cooling", "Thermostat", "Remove & Replace"],
+    ["Engine", "Cooling", "Water Pump", "Remove & Replace"],
+    ["Engine", "Ignition", "Spark Plugs", "Replace"],
+    ["Engine", "Timing", "Timing Belt", "Remove & Replace"],
+    ["Suspension", "Front", "Strut", "Remove & Replace"],
+    ["Suspension", "Front", "Control Arm", "Remove & Replace"],
+    ["Suspension", "Front", "Ball Joint", "Remove & Replace"],
+    ["Suspension", "Rear", "Shock", "Remove & Replace"],
+    ["Steering", "Linkage", "Outer Tie Rod", "Remove & Replace"],
+    ["Steering", "Power Assist", "Rack & Pinion", "Remove & Replace"],
+    ["Drivetrain", "Transmission", "ATF Fluid", "Flush"],
+    ["Drivetrain", "Axle", "CV Axle", "Remove & Replace"],
+    ["Drivetrain", "Axle", "Wheel Bearing", "Remove & Replace"],
+    ["Electrical", "Charging", "Alternator", "Remove & Replace"],
+    ["Electrical", "Charging", "Battery", "Replace"],
+    ["Electrical", "Starting", "Starter", "Remove & Replace"],
+    ["HVAC", "A/C", "Compressor", "Remove & Replace"],
+    ["HVAC", "Heating", "Heater Core", "Remove & Replace"],
+    ["Exhaust", "System", "Catalytic Converter", "Remove & Replace"],
+    ["Exhaust", "System", "O2 Sensor", "Remove & Replace"]
+  ],
+  "leaf_parts": [
+    {"part_number": "45022-T2A-A00", "description": "Pad set, front"},
+    {"part_number": "45251-T2A-A00", "description": "Disc, front"},
+    {"part_number": "15400-PLM-A02", "description": "Oil filter"},
+    {"part_number": "12290-R70-A01", "description": "Spark plug"},
+    {"part_number": "31100-R5A-A01", "description": "Alternator"},
+    {"part_number": "44306-T2A-A01", "description": "CV drive axle"}
+  ]
+}

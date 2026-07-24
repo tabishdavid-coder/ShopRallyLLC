@@ -39,6 +39,8 @@ export const MARKETING_PUBLIC_PREFIXES = [
   "/apple-icon",
   "/favicon.ico",
   "/brand",
+  /** Static HTML labs (design prototypes) — reviewable without CRM unlock. */
+  "/lab",
 ] as const;
 
 /**

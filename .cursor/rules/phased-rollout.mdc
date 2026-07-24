@@ -18,7 +18,7 @@ Full rules: `docs/PHASED-ROLLOUT.md` and `docs/MIGRATION-EXPAND-CONTRACT.md`.
 
 ## Modules
 
-`growthEngine` | `sms` | `motorLabor` | `partsTech` | `shopSite` | `websiteSeo` | `aiSuite`
+`growthEngine` | `sms` | `motorLabor` | `tabishFridayLabor` | `partsTech` | `shopSite` | `websiteSeo` | `aiSuite`
 
 Platform toggle: `/platform/shops/[id]` → Release flags.
 

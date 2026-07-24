@@ -15,7 +15,7 @@ import { useEstimateLabParts } from "@/components/estimate-building/estimate-lab
 import type { CannedJobSummary } from "@/lib/canned-job-types";
 import type { LaborTier, PartTier } from "@/lib/matrix";
 import {
-  useMotorLaborUiEnabled,
+  useLaborBookUiEnabled,
   usePartsTechUiEnabled,
 } from "@/lib/shop-capabilities";
 import { cn } from "@/lib/utils";
@@ -55,10 +55,10 @@ export function EstimateLabToolbar({
   const [browseQuery, setBrowseQuery] = useState("");
   const { openPartsMenu } = useEstimateLabParts();
   const { openLaborGuide } = useEstimateLabLabor();
-  const motorLaborOk = useMotorLaborUiEnabled();
+  const laborBookOk = useLaborBookUiEnabled();
   const partsTechOk = usePartsTechUiEnabled();
   /** Core: Labor Book / Parts lookup / Pro job launchers are off — canned search only. */
-  const showProActionCluster = motorLaborOk || partsTechOk;
+  const showProActionCluster = laborBookOk || partsTechOk;
 
   if (!canEdit) return null;
 
@@ -86,7 +86,7 @@ export function EstimateLabToolbar({
           role="group"
           aria-label="Quote actions"
         >
-          {motorLaborOk ? (
+          {laborBookOk ? (
             <button
               type="button"
               onClick={() => openLaborGuide()}

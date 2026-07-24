@@ -1,0 +1,31 @@
+{
+  "year": 2014,
+  "make": "Honda",
+  "model": "Accord",
+  "engine": "3.5L V6",
+  "diagrams": [
+    {
+      "image_url": "fixture://partsouq/honda/accord/2014/brakes/front-pads.png",
+      "local_path": "media/diagrams/fixture_partsouq_front_pads.svg",
+      "source": "partsouq",
+      "caption": "2014 Honda Accord — Front brake pads exploded view",
+      "category_hint": "BRAKES.FRONT.PADS",
+      "operation_hint": "BRAKES.FRONT.PADS.R_AND_R"
+    },
+    {
+      "image_url": "fixture://7zap/honda/accord/2014/brakes/illustration.png",
+      "local_path": "media/diagrams/fixture_7zap_brakes.svg",
+      "source": "7zap",
+      "caption": "2014 Honda Accord — Brake system illustration",
+      "category_hint": "BRAKES",
+      "operation_hint": "BRAKES.FRONT.PADS.R_AND_R"
+    },
+    {
+      "image_url": "fixture://revolutionparts/honda/accord/2014/brakes/main.png",
+      "local_path": "media/diagrams/fixture_rp_brakes.svg",
+      "source": "revolutionparts",
+      "caption": "2014 Honda Accord — OEM parts diagram",
+      "operation_hint": "BRAKES.FRONT.ROTORS.R_AND_R"
+    }
+  ]
+}

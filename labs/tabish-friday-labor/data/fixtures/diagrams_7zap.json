@@ -1,0 +1,11 @@
+[
+  {
+    "image_url": "fixture://7zap/honda/accord/2014/brakes/illustration.png",
+    "local_path": "media/diagrams/fixture_7zap_brakes.svg",
+    "source": "7zap",
+    "caption": "7zap — Brake system illustration",
+    "operation_hint": "BRAKES.FRONT.PADS.R_AND_R",
+    "category_hint": "BRAKES",
+    "page_url": "https://7zap.com/en/honda/…"
+  }
+]

@@ -12,6 +12,8 @@ export type PlanFeature =
   | "partsTech"
   | "laborGuide"
   | "motorLabor"
+  /** Proprietary Tabish Friday Labor guide (EWT UI) — Pro+; release-gated. */
+  | "tabishFridayLabor"
   | "customerEmail"
   | "customerSms"
   /** Carfax service history on vehicles / ROs — Ignition and above. */
@@ -580,6 +582,7 @@ const starterFeatures: PlanFeatureSet = {
   partsTech: true,
   laborGuide: true,
   motorLabor: false,
+  tabishFridayLabor: false,
   customerEmail: true,
   /** Two-way SMS included on Ignition/Core (price includes messaging). Still env + release gated. */
   customerSms: true,
@@ -616,6 +619,7 @@ const professionalFeatures: PlanFeatureSet = {
   partsTech: true,
   laborGuide: true,
   motorLabor: true,
+  tabishFridayLabor: true,
   customerEmail: true,
   customerSms: true,
   carfax: true,
@@ -651,6 +655,7 @@ const EliteFeatures: PlanFeatureSet = {
   partsTech: true,
   laborGuide: true,
   motorLabor: true,
+  tabishFridayLabor: true,
   customerEmail: true,
   customerSms: true,
   carfax: true,

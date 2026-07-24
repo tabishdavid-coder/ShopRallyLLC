@@ -2,14 +2,21 @@
 
 import { useState } from "react";
 
+import { TabishFridayLaborPage } from "@/components/labor-guide/tabish-friday-labor-guide";
 import { QuickLaborGuidePanel } from "@/components/quick-labor/quick-labor-guide-panel";
 import {
   QuickLaborVehicleLookup,
   type QuickLaborVehicleContext,
 } from "@/components/quick-labor/quick-labor-vehicle-lookup";
+import { useTabishFridayLaborUiEnabled } from "@/lib/shop-capabilities";
 
 export function QuickLaborView() {
+  const tfl = useTabishFridayLaborUiEnabled();
   const [context, setContext] = useState<QuickLaborVehicleContext | null>(null);
+
+  if (tfl) {
+    return <TabishFridayLaborPage />;
+  }
 
   return (
     <section className="flex min-h-0 flex-1 flex-col overflow-hidden rounded-xl border border-border/80 bg-card shadow-sm">
