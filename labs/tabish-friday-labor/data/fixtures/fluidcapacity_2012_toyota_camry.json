@@ -1,0 +1,14 @@
+{
+  "url": "https://www.fluidcapacity.com/2012/toyota/camry/2.5l-l4/",
+  "year": 2012,
+  "make": "Toyota",
+  "model": "Camry",
+  "engine": "2.5L I4",
+  "fluids": [
+    {"label": "Engine Oil", "category_key": "ENG_OIL", "capacity": 4.6, "capacity_unit": "qt", "fluid_type": "0W-20", "notes": "with filter"},
+    {"label": "Automatic Transmission Fluid", "category_key": "ATF", "capacity": 3.9, "capacity_unit": "qt", "fluid_type": "Toyota ATF WS", "notes": "refill approx"},
+    {"label": "Brake Fluid", "category_key": "BRAKE_FLUID", "capacity": null, "capacity_unit": "qt", "fluid_type": "DOT 3", "notes": null},
+    {"label": "Coolant / Antifreeze", "category_key": "COOLANT", "capacity": 7.1, "capacity_unit": "qt", "fluid_type": "Toyota SLLC", "notes": null},
+    {"label": "Washer Fluid", "category_key": "WASHER", "capacity": 3.7, "capacity_unit": "qt", "fluid_type": null, "notes": null}
+  ]
+}

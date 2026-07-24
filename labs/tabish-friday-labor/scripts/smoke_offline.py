@@ -13,6 +13,10 @@ sys.path.insert(0, str(ROOT))
 from src.llm_parser import parse_technician_intent_offline_demo  # noqa: E402
 from src.oem_scraper import scrape_vehicle  # noqa: E402
 from src.taxonomy_keys import path_to_keys  # noqa: E402
+from services.fluid_harvest.fluid_extractor import extract_fluids_from_pdf  # noqa: E402
+from services.fluid_harvest.fluid_normalizer import merge_fluid_sources  # noqa: E402
+from services.fluid_harvest.fluidcapacity_scraper import scrape_fluidcapacity  # noqa: E402
+from services.fluid_harvest.owner_manual_scraper import generate_pdf_urls  # noqa: E402
 
 
 def main() -> None:
@@ -42,8 +46,37 @@ def main() -> None:
     total = round(hours * rate * 1, 2)
     assert total == 159.5
 
-    print("OK — Tabish Friday Labor offline smoke passed")
-    print(json.dumps({"intent": intent, "scrape_source": scraped.source, "demo_total": total}, indent=2))
+    # Fluid harvest offline path (fixtures, no Postgres)
+    urls = generate_pdf_urls("Honda", "Accord", 2014, 2014)
+    assert urls, "OEM URL patterns required"
+
+    manual = ROOT / "data" / "fixtures" / "manuals" / "2014_honda_accord.txt"
+    stub_pdf = ROOT / "staging" / "owner_manuals" / "2014_honda_accord.pdf"
+    stub_pdf.parent.mkdir(parents=True, exist_ok=True)
+    stub_pdf.write_bytes(b"%PDF-1.4\n%fixture\n")
+    stub_pdf.with_suffix(".txt").write_text(manual.read_text(encoding="utf-8"), encoding="utf-8")
+    oem = extract_fluids_from_pdf(stub_pdf, "2014 Honda Accord")
+    assert any(f["category_key"] == "ENG_OIL" for f in oem["fluids"]), oem
+
+    fc = scrape_fluidcapacity(2014, "Honda", "Accord", "3.5L V6")
+    assert fc["fluids"], "fluidcapacity fixture required"
+    merged = merge_fluid_sources(oem["fluids"], fc["fluids"])
+    oil = next(m for m in merged if m.category_key == "ENG_OIL")
+    assert oil.confidence == 100, oil
+    assert abs(oil.capacity - 4.5) <= 0.15, oil
+
+    print("OK — Tabish Friday Labor offline smoke passed (labor + fluids)")
+    print(
+        json.dumps(
+            {
+                "intent": intent,
+                "scrape_source": scraped.source,
+                "demo_total": total,
+                "fluid_oil": {"capacity": oil.capacity, "confidence": oil.confidence, "source": oil.source},
+            },
+            indent=2,
+        )
+    )
 
 
 if __name__ == "__main__":

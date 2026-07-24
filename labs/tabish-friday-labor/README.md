@@ -13,22 +13,27 @@ labs/tabish-friday-labor/
 ├── requirements.txt
 ├── .env.example
 ├── docker-compose.yml
+├── api/main.py                    # FastAPI entry (labor + fluids)
+├── db/
+│   ├── schema.sql                 # Fluid capacities DDL (also appended to sql/)
+│   └── seed_fluids.py             # Seed Accord / Camry / F-150 fluids
+├── services/fluid_harvest/        # OEM PDF + fluidcapacity merge pipeline
 ├── sql/
-│   └── schema.sql                 # §1 PostgreSQL DDL + pgvector
+│   └── schema.sql                 # Labor + fluid PostgreSQL DDL + pgvector
 ├── config/
 │   └── settings.py
 ├── src/
-│   ├── llm_parser.py              # §2 Intent middleware
-│   ├── fallback_engine.py         # §3 Dynamic resolution + telemetry
-│   ├── billing_calculator.py      # §4 Strict billing SoC
-│   ├── oem_scraper.py             # §5 OEM scraper (fixture/live)
-│   ├── normalize_taxonomy.py      # §5 Normalization
-│   ├── labor_guide_api.py         # §6 FastAPI
-│   ├── seed_taxonomy.py           # §7 Seeding
+│   ├── llm_parser.py              # Intent middleware
+│   ├── fallback_engine.py
+│   ├── billing_calculator.py
+│   ├── oem_scraper.py
+│   ├── normalize_taxonomy.py
+│   ├── labor_guide_api.py         # FastAPI (canonical)
+│   ├── seed_taxonomy.py
 │   └── db.py
-├── data/fixtures/                 # Offline OEM scrape fixtures
-├── staging/                       # Scraped JSON landing zone
-├── static/index.html              # Labor Guide UI (standalone)
+├── data/fixtures/                 # OEM + fluidcapacity + manual text fixtures
+├── staging/                       # Scraped JSON / PDF landing zone
+├── static/index.html
 └── scripts/smoke_offline.py
 ```
 
@@ -45,10 +50,19 @@ docker compose up -d
 # (schema auto-loads from sql/schema.sql on first boot)
 
 python -m src.seed_taxonomy
-python -m src.labor_guide_api
+python -m db.seed_fluids            # OEM + fluidcapacity merge for seed vehicles
+python -m api.main                  # or: python -m src.labor_guide_api
 # → http://127.0.0.1:8791/          (UI)
 # → http://127.0.0.1:8791/docs      (OpenAPI)
+# → GET /vehicles/{id}/fluids
 ```
+
+### Fluid capacities
+
+- Harvest: owner's-manual PDF extract × fluidcapacity.com → `vehicle_fluid_specs`
+- New vehicles (`POST /vehicles`) queue a background harvest
+- Technician conflicts: `POST /fluids/discrepancy`
+- Lookups are pure SQL ($0); see [COST.md](./COST.md)
 
 ### Offline smoke (no Postgres / no OpenAI)
 

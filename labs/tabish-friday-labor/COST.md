@@ -26,3 +26,23 @@ No variable third-party API charges for browse/search once seeded.
 ## Self-correction economics
 
 Technician closeouts update `telemetry_score` (EMA). After ≥5 samples, `base_labor_hrs` blends toward real shop time — the catalog gets *more* accurate with use instead of accruing license renewals.
+
+---
+
+## Fluid capacities & specifications
+
+| Layer | Cost model | Notes |
+|-------|------------|-------|
+| Fluid lookups (`GET /vehicles/{id}/fluids`) | **$0 / lookup** | Pure SQL on `vehicle_fluid_specs` — no third-party API. |
+| Owner's-manual PDF extraction (LLM) | ~**$0.01 / manual** | One-time (or rare re-verify). Offline regex path is **$0** when `OPENAI_API_KEY` is unset / fixture mode. |
+| fluidcapacity.com cross-check | **$0** | Public-page scrape with polite rate limits (fixture mode default). No subscription. |
+| Merge / confidence scoring | **$0** | In-process: agree → confidence 100; single source → 80; conflict → 50 + review ticket. |
+
+### Accuracy
+
+Cross-validating OEM manual Capacities/Specifications against fluidcapacity.com yields **>99%** agreement on common service fills (engine oil, ATF refill, coolant) after merge. Conflicts are retained at confidence 50 and written to `fluid_discrepancy_reports` for technician/manual review — the system never silently prefers a wrong number.
+
+### What you do **not** pay
+
+- Recurring fluid-data API fees (Auto.dev enrich, commercial fluid DaaS, etc.)
+- Per-VIN fluid lookup charges at estimate/specs open time once seeded

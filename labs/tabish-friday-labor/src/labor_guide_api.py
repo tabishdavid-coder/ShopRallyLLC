@@ -7,6 +7,10 @@ Endpoints:
   GET  /health
   GET  /vehicles/search?q=
   GET  /vehicles/{id}/operations
+  GET  /vehicles/{id}/fluids
+  POST /vehicles                    (VIN/YMME upsert → background fluid harvest)
+  POST /fluids/discrepancy
+  POST /fluids/harvest/{vehicle_id}
   POST /technician/note
   GET  /billing/estimate
 """
@@ -14,6 +18,7 @@ Endpoints:
 from __future__ import annotations
 
 import asyncio
+import json
 import logging
 import sys
 from contextlib import asynccontextmanager
@@ -21,7 +26,7 @@ from pathlib import Path
 from typing import Any
 from uuid import UUID
 
-from fastapi import FastAPI, HTTPException, Query
+from fastapi import BackgroundTasks, FastAPI, HTTPException, Query
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import FileResponse
 from fastapi.staticfiles import StaticFiles
@@ -32,8 +37,11 @@ if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
 from config.settings import settings  # noqa: E402
+from services.fluid_harvest.fluid_normalizer import (  # noqa: E402
+    harvest_fluids_for_vehicle,
+)
 from src.billing_calculator import BillingCalculator  # noqa: E402
-from src.db import fetch_all, fetch_one  # noqa: E402
+from src.db import execute_returning, fetch_all, fetch_one  # noqa: E402
 from src.fallback_engine import (  # noqa: E402
     FallbackEngine,
     enqueue_parts_scrape_job,
@@ -43,6 +51,7 @@ from src.llm_parser import (  # noqa: E402
     parse_technician_intent,
     parse_technician_intent_offline_demo,
 )
+from src.normalize_taxonomy import ensure_vehicle  # noqa: E402
 
 logging.basicConfig(level=logging.INFO)
 log = logging.getLogger("tfl.api")
@@ -91,6 +100,37 @@ class BillingQuery(BaseModel):
     operation_id: UUID
     quantity: float = 1.0
     region: str | None = None
+
+
+class VehicleUpsertIn(BaseModel):
+    """VIN decode / manual YMME entry — triggers fluid harvest in background."""
+
+    year: int = Field(ge=1980, le=2100)
+    make: str = Field(min_length=1, max_length=80)
+    model: str = Field(min_length=1, max_length=80)
+    engine: str = Field(min_length=1, max_length=120)
+    chassis_tier: str = "2"
+    vin: str | None = Field(default=None, max_length=32)
+    harvest_fluids: bool = True
+
+
+class FluidDiscrepancyIn(BaseModel):
+    vehicle_id: UUID
+    fluid_category_key: str | None = None
+    observed_capacity: float | None = None
+    observed_unit: str = "qt"
+    observed_type: str | None = None
+    note: str = Field(min_length=1, max_length=4000)
+    created_by: str | None = None
+
+
+def _queue_fluid_harvest(vehicle_id: str) -> None:
+    """Background task body — runs harvest pipeline for a new/updated vehicle."""
+    try:
+        result = harvest_fluids_for_vehicle(vehicle_id, force=False)
+        log.info("background fluid harvest %s → %s", vehicle_id, result.get("ok"))
+    except Exception:  # noqa: BLE001
+        log.exception("background fluid harvest failed for %s", vehicle_id)
 
 
 @app.get("/health")
@@ -312,6 +352,141 @@ def billing_estimate(
         return calc.calculate_labor_line(vehicle_id, operation_id, quantity, region=region)
     except LookupError as exc:
         raise HTTPException(404, str(exc)) from exc
+
+
+@app.get("/vehicles/{vehicle_id}/fluids")
+def vehicle_fluids(vehicle_id: UUID) -> dict[str, Any]:
+    """Return all resolved fluid specs with confidence and source."""
+    vehicle = fetch_one("SELECT * FROM vehicle_taxonomy WHERE id = %s", (str(vehicle_id),))
+    if not vehicle:
+        raise HTTPException(404, "vehicle not found")
+
+    rows = fetch_all(
+        """
+        SELECT
+          s.id,
+          s.vehicle_id,
+          c.key AS category_key,
+          c.name AS category_name,
+          s.capacity,
+          s.capacity_unit,
+          s.fluid_type,
+          s.alternative_types,
+          s.notes,
+          s.source,
+          s.confidence,
+          s.last_verified,
+          s.created_at,
+          s.updated_at
+        FROM vehicle_fluid_specs s
+        JOIN fluid_categories c ON c.id = s.fluid_category_id
+        WHERE s.vehicle_id = %s
+        ORDER BY c.id, s.capacity
+        """,
+        (str(vehicle_id),),
+    )
+    return {
+        "vehicle": vehicle,
+        "fluids": rows,
+        "count": len(rows),
+        "notes": "Lookups are pure SQL ($0). Harvest is one-time OEM PDF + fluidcapacity merge.",
+    }
+
+
+@app.post("/vehicles")
+def upsert_vehicle(
+    body: VehicleUpsertIn,
+    background_tasks: BackgroundTasks,
+) -> dict[str, Any]:
+    """
+    Add / upsert a vehicle into vehicle_taxonomy (VIN decode or manual entry).
+    Queues fluid harvest so specs populate within minutes.
+    """
+    vehicle_id = ensure_vehicle(
+        body.year,
+        body.make.strip(),
+        body.model.strip(),
+        body.engine.strip(),
+        chassis_tier=body.chassis_tier,
+    )
+    if body.vin:
+        # Optional audit trail — stored on scrape log detail (no VIN column required)
+        execute_returning(
+            """
+            INSERT INTO fluid_scrape_log (vehicle_id, job_type, status, source, detail)
+            VALUES (%s, 'vin_upsert', 'done', 'api', %s::jsonb)
+            RETURNING id
+            """,
+            (vehicle_id, json.dumps({"vin": body.vin})),
+        )
+    queued = False
+    if body.harvest_fluids:
+        background_tasks.add_task(_queue_fluid_harvest, vehicle_id)
+        queued = True
+    return {
+        "ok": True,
+        "vehicle_id": vehicle_id,
+        "fluid_harvest_queued": queued,
+    }
+
+
+@app.post("/fluids/discrepancy")
+def fluid_discrepancy(body: FluidDiscrepancyIn) -> dict[str, Any]:
+    """Technician submits an observed capacity difference → review ticket."""
+    vehicle = fetch_one("SELECT id FROM vehicle_taxonomy WHERE id = %s", (str(body.vehicle_id),))
+    if not vehicle:
+        raise HTTPException(404, "vehicle not found")
+
+    cat_id = None
+    if body.fluid_category_key:
+        cat = fetch_one(
+            "SELECT id FROM fluid_categories WHERE key = %s",
+            (body.fluid_category_key.upper(),),
+        )
+        if not cat:
+            raise HTTPException(400, f"unknown fluid_category_key: {body.fluid_category_key}")
+        cat_id = int(cat["id"])
+
+    row = execute_returning(
+        """
+        INSERT INTO fluid_discrepancy_reports
+          (vehicle_id, fluid_category_id, observed_capacity, observed_unit,
+           observed_type, note, status, created_by)
+        VALUES (%s, %s, %s, %s, %s, %s, 'open', %s)
+        RETURNING *
+        """,
+        (
+            str(body.vehicle_id),
+            cat_id,
+            body.observed_capacity,
+            body.observed_unit,
+            body.observed_type,
+            body.note,
+            body.created_by,
+        ),
+    )
+    return {"ok": True, "report": row}
+
+
+@app.post("/fluids/harvest/{vehicle_id}")
+def fluids_harvest(
+    vehicle_id: UUID,
+    background_tasks: BackgroundTasks,
+    force: bool = Query(default=False),
+    sync: bool = Query(default=False),
+) -> dict[str, Any]:
+    """Manually (re)run fluid harvest for a vehicle."""
+    vehicle = fetch_one("SELECT id FROM vehicle_taxonomy WHERE id = %s", (str(vehicle_id),))
+    if not vehicle:
+        raise HTTPException(404, "vehicle not found")
+    if sync:
+        return harvest_fluids_for_vehicle(str(vehicle_id), force=force)
+
+    def _run() -> None:
+        harvest_fluids_for_vehicle(str(vehicle_id), force=force)
+
+    background_tasks.add_task(_run)
+    return {"ok": True, "queued": True, "vehicle_id": str(vehicle_id)}
 
 
 def main() -> None:
