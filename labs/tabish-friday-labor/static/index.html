@@ -209,7 +209,7 @@
 
     /* Right detail */
     .detail {
-      width: 260px; flex: 0 0 auto; border-left: 1px solid var(--motor-line);
+      width: 300px; flex: 0 0 auto; border-left: 1px solid var(--motor-line);
       background: #f7fafc; display: flex; flex-direction: column; overflow: auto;
     }
     .detail-h {
@@ -228,6 +228,56 @@
       padding: 9px 12px; font-size: 12px;
     }
     .btn-add:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    /* Frequently Combined Jobs */
+    .addons {
+      margin-top: 14px; border: 1px solid #b7d8d9; background: #fff;
+    }
+    .addons-h {
+      padding: 7px 10px; font-size: 10px; font-weight: 800; letter-spacing: 0.06em;
+      text-transform: uppercase; background: var(--motor-teal-soft); color: var(--motor-navy);
+      display: flex; justify-content: space-between; align-items: center; cursor: pointer;
+      user-select: none;
+    }
+    .addons-h span.meta { font-weight: 600; opacity: 0.75; letter-spacing: 0; text-transform: none; }
+    .addons-b { padding: 6px 8px 8px; }
+    .addons.collapsed .addons-b { display: none; }
+    .addon-row {
+      display: grid; grid-template-columns: 18px 1fr auto; gap: 8px; align-items: start;
+      padding: 7px 4px; border-bottom: 1px solid #e6edf2; font-size: 11px;
+    }
+    .addon-row:last-child { border-bottom: 0; }
+    .addon-row label { cursor: pointer; font-weight: 700; color: var(--motor-navy); }
+    .addon-row .sub { display: block; font-weight: 500; color: var(--muted); margin-top: 2px; font-size: 10px; }
+    .addon-row .addh { font-family: Consolas, monospace; font-weight: 800; color: var(--motor-green); white-space: nowrap; }
+    .addon-row .freq {
+      display: inline-block; margin-top: 3px; font-size: 9px; font-weight: 800;
+      background: #ffe8d5; color: #9a3412; padding: 1px 5px; border-radius: 2px;
+    }
+    .conf {
+      display: inline-block; font-size: 9px; font-weight: 800; padding: 2px 6px; border-radius: 2px;
+    }
+    .conf.c100 { background: #d9f0e3; color: #166534; }
+    .conf.c80 { background: #fff3cd; color: #854d0e; }
+    .conf.c50 { background: #fde2e2; color: #991b1b; }
+
+    .view-panel { display: none; flex: 1; min-height: 0; flex-direction: column; overflow: auto; }
+    .view-panel.on { display: flex; }
+    .fluids-wrap { padding: 14px; }
+    .fluids-wrap h2 { margin: 0 0 4px; font-size: 15px; color: var(--motor-navy); }
+    .fluids-wrap .subh { margin: 0 0 12px; font-size: 12px; color: var(--muted); }
+    .fluids-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px;
+    }
+    .fluid-card {
+      border: 1px solid var(--motor-line); background: #fff; padding: 10px 12px;
+    }
+    .fluid-card .cat { font-size: 10px; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+    .fluid-card .cap { margin-top: 4px; font-size: 18px; font-weight: 800; color: var(--motor-navy); font-family: Consolas, monospace; }
+    .fluid-card .type { margin-top: 4px; font-size: 12px; font-weight: 700; }
+    .fluid-card .meta { margin-top: 8px; font-size: 10px; color: var(--muted); display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+    .appbar .tab { cursor: pointer; }
+    .appbar .tab:hover { opacity: 1; }
 
     /* Bottom staging dock */
     .dock {
@@ -262,10 +312,10 @@
 <body>
   <header class="appbar">
     <div class="brand"><span class="mark">TFL</span> TABISH FRIDAY LABOR</div>
-    <div class="tab on">Estimated Work Times</div>
-    <div class="tab">Parts Fitment</div>
-    <div class="tab">Telemetry</div>
-    <div class="right">Standalone lab · not MOTOR-licensed data · Albany $145/hr</div>
+    <div class="tab on" data-view="ewt">Estimated Work Times</div>
+    <div class="tab" data-view="fluids">Fluid Specs</div>
+    <div class="tab" data-view="assoc">Combined Jobs</div>
+    <div class="right">Fluids · Associations · EWT · Albany $145/hr · $0 internal data</div>
   </header>
 
   <div class="workspace">
@@ -276,6 +326,9 @@
             <span id="vehicleLabel">2015 Honda Accord · 2.4L</span>
             <select id="vehicleSelect" aria-label="Vehicle">
               <option value="accord">2015 Honda Accord · 2.4L (tier 2)</option>
+              <option value="accord14">2014 Honda Accord · 3.5L V6 (tier 3)</option>
+              <option value="camry">2012 Toyota Camry · 2.5L I4 (tier 2)</option>
+              <option value="f150">2020 Ford F-150 · 5.0L V8 (tier 3)</option>
               <option value="civic">2012 Honda Civic · 1.8L I4 (tier 1)</option>
               <option value="rivian">2024 Rivian R1T · Dual Motor (tier 5)</option>
             </select>
@@ -294,7 +347,7 @@
     <nav class="crumb" id="crumb"></nav>
     <div class="toast" id="toast"></div>
 
-    <div class="body">
+    <div class="body view-panel on" id="viewEwt">
       <aside class="tax">
         <div class="tax-h">Taxonomy · System / Group / Component</div>
         <div id="systems"></div>
@@ -310,9 +363,17 @@
       <aside class="detail">
         <div class="detail-h">Application detail</div>
         <div class="detail-b" id="detail">
-          <div style="color:var(--muted)">Select an operation row to view base time, resolve path, and fitment placeholder.</div>
+          <div style="color:var(--muted)">Select an operation row to view base time, combined jobs, and fitment.</div>
         </div>
       </aside>
+    </div>
+
+    <div class="view-panel" id="viewFluids">
+      <div class="fluids-wrap" id="fluidsHost"></div>
+    </div>
+
+    <div class="view-panel" id="viewAssoc">
+      <div class="fluids-wrap" id="assocHost"></div>
     </div>
 
     <footer class="dock">
@@ -333,7 +394,32 @@
         chassis: "2",
         seedChassis: "1",
         seedHours: 1.0,
-        mode: "L2", // miss exact → chassis scale
+        mode: "L2",
+        fluidsKey: "accord15",
+      },
+      accord14: {
+        label: "2014 Honda Accord · 3.5L V6",
+        chassis: "3",
+        seedChassis: "1",
+        seedHours: 1.0,
+        mode: "L2",
+        fluidsKey: "accord14",
+      },
+      camry: {
+        label: "2012 Toyota Camry · 2.5L I4",
+        chassis: "2",
+        seedChassis: "1",
+        seedHours: 1.0,
+        mode: "L2",
+        fluidsKey: "camry",
+      },
+      f150: {
+        label: "2020 Ford F-150 · 5.0L V8",
+        chassis: "3",
+        seedChassis: "1",
+        seedHours: 1.0,
+        mode: "L2",
+        fluidsKey: "f150",
       },
       civic: {
         label: "2012 Honda Civic · 1.8L I4",
@@ -341,14 +427,94 @@
         seedChassis: "1",
         seedHours: 1.0,
         mode: "L0",
+        fluidsKey: "civic",
       },
       rivian: {
         label: "2024 Rivian R1T · Dual Motor",
         chassis: "5",
         seedChassis: "1",
         seedHours: 1.0,
-        mode: "L2", // 1→5 multiplier 1.45
+        mode: "L2",
+        fluidsKey: null,
       },
+    };
+
+    // OEM × fluidcapacity merge fixtures (confidence 100 when both agree)
+    const FLUIDS = {
+      accord14: [
+        { cat: "ENG_OIL", name: "Engine Oil", cap: 4.5, unit: "qt", type: "0W-20", source: "oem+fluidcapacity", conf: 100 },
+        { cat: "ATF", name: "Transmission Fluid", cap: 3.7, unit: "qt", type: "ATF DW-1", source: "oem+fluidcapacity", conf: 100 },
+        { cat: "COOLANT", name: "Coolant", cap: 6.9, unit: "qt", type: "Honda Type 2", source: "oem+fluidcapacity", conf: 100 },
+        { cat: "BRAKE_FLUID", name: "Brake Fluid", cap: null, unit: "qt", type: "DOT 3", source: "oem_manual", conf: 80 },
+        { cat: "WASHER", name: "Washer Fluid", cap: 2.6, unit: "qt", type: "—", source: "oem+fluidcapacity", conf: 100 },
+      ],
+      accord15: [
+        { cat: "ENG_OIL", name: "Engine Oil", cap: 4.4, unit: "qt", type: "0W-20", source: "oem+fluidcapacity", conf: 100 },
+        { cat: "ATF", name: "Transmission Fluid", cap: 3.5, unit: "qt", type: "ATF DW-1", source: "oem+fluidcapacity", conf: 100 },
+        { cat: "COOLANT", name: "Coolant", cap: 6.7, unit: "qt", type: "Honda Type 2", source: "oem_manual", conf: 80 },
+        { cat: "BRAKE_FLUID", name: "Brake Fluid", cap: null, unit: "qt", type: "DOT 3", source: "fluidcapacity", conf: 80 },
+        { cat: "WASHER", name: "Washer Fluid", cap: 2.6, unit: "qt", type: "—", source: "oem+fluidcapacity", conf: 100 },
+      ],
+      camry: [
+        { cat: "ENG_OIL", name: "Engine Oil", cap: 4.6, unit: "qt", type: "0W-20", source: "oem+fluidcapacity", conf: 100 },
+        { cat: "ATF", name: "Transmission Fluid", cap: 3.9, unit: "qt", type: "Toyota ATF WS", source: "oem+fluidcapacity", conf: 100 },
+        { cat: "COOLANT", name: "Coolant", cap: 7.1, unit: "qt", type: "Toyota SLLC", source: "oem+fluidcapacity", conf: 100 },
+        { cat: "BRAKE_FLUID", name: "Brake Fluid", cap: null, unit: "qt", type: "DOT 3", source: "oem_manual", conf: 80 },
+        { cat: "WASHER", name: "Washer Fluid", cap: 3.7, unit: "qt", type: "—", source: "oem+fluidcapacity", conf: 100 },
+      ],
+      f150: [
+        { cat: "ENG_OIL", name: "Engine Oil", cap: 7.7, unit: "qt", type: "5W-20", source: "oem+fluidcapacity", conf: 100 },
+        { cat: "ATF", name: "Transmission Fluid", cap: 13.1, unit: "qt", type: "MERCON ULV", source: "oem+fluidcapacity", conf: 100 },
+        { cat: "COOLANT", name: "Coolant", cap: 15.1, unit: "qt", type: "Motorcraft Orange", source: "oem+fluidcapacity", conf: 100 },
+        { cat: "DIFF_FLUID", name: "Differential Fluid", cap: 5.5, unit: "qt", type: "75W-85", source: "oem+fluidcapacity", conf: 100 },
+        { cat: "TC_FLUID", name: "Transfer Case Fluid", cap: 1.5, unit: "qt", type: "MERCON LV", source: "oem+fluidcapacity", conf: 100 },
+        { cat: "BRAKE_FLUID", name: "Brake Fluid", cap: null, unit: "qt", type: "DOT 4 LV", source: "oem_manual", conf: 80 },
+        { cat: "WASHER", name: "Washer Fluid", cap: 4.2, unit: "qt", type: "—", source: "oem+fluidcapacity", conf: 100 },
+      ],
+      civic: [
+        { cat: "ENG_OIL", name: "Engine Oil", cap: 3.9, unit: "qt", type: "0W-20", source: "oem+fluidcapacity", conf: 100 },
+        { cat: "ATF", name: "Transmission Fluid", cap: 2.8, unit: "qt", type: "ATF DW-1", source: "fluidcapacity", conf: 80 },
+        { cat: "COOLANT", name: "Coolant", cap: 5.6, unit: "qt", type: "Honda Type 2", source: "oem_manual", conf: 80 },
+      ],
+    };
+
+    // Primary job key → frequently combined add-ons (industry seed + overlap)
+    // additionalHours = combined − primary (overlap already applied)
+    const ASSOCIATIONS = {
+      "BRAKES.FRONT.PADS|R_AND_R": [
+        { key: "BRAKES.FRONT.ROTORS|R_AND_R", label: "Front rotors — R&R", standalone: 1.5, additional: 0.3, freq: 92, note: "1.2 hr overlap vs standalone" },
+        { key: "BRAKES.HYDRAULIC.FLUID|FLUSH", label: "Brake fluid flush", standalone: 0.8, additional: 0.5, freq: 78, note: "Often with pad jobs" },
+        { key: "BRAKES.FRONT.HARDWARE", label: "Hardware kit", standalone: 0.4, additional: 0.2, freq: 85, note: "Seed add-on", synthetic: { name: "Brake Hardware Kit — Replace", hours: 0.2, id: "synth-hw", key: "BRAKES.FRONT.HARDWARE.REPLACE", pos: "FRONT", path: "L0_EXACT", skill: "B", note: "Association seed" } },
+      ],
+      "ENGINE.IGNITION.SPARK_PLUGS|REPLACE": [
+        { key: "ENGINE.IGNITION.COILS|R_AND_R", label: "Ignition coils — R&R", standalone: 1.0, additional: 0.6, freq: 71, note: "Coil-on-plug access" },
+      ],
+      "ENGINE.TIMING.BELT|R_AND_R": [
+        { key: "ENGINE.COOLING.WATER_PUMP|R_AND_R", label: "Water pump — R&R", standalone: 2.8, additional: 1.3, freq: 88, note: "1.5 hr overlap when timing open" },
+        { key: "ENGINE.BELT.SERPENTINE", label: "Serpentine belt", standalone: 0.5, additional: 0.2, freq: 80, note: "Seed add-on", synthetic: { name: "Serpentine Belt — Replace", hours: 0.2, id: "synth-serp", key: "ENGINE.BELT.SERPENTINE.REPLACE", pos: "ALL", path: "L0_EXACT", skill: "B", note: "Association seed" } },
+      ],
+      "SUSPENSION.FRONT.STRUT|R_AND_R": [
+        { key: "SUSPENSION.FRONT.SWAY_LINK|R_AND_R", label: "Sway bar links — R&R", standalone: 0.6, additional: 0.35, freq: 74, note: "Access overlap" },
+      ],
+      "ENGINE.LUBE.OIL_FILTER|REPLACE": [
+        { key: "ENGINE.FILTER.CABIN", label: "Cabin air filter", standalone: 0.3, additional: 0.2, freq: 81, note: "Maintenance bundle", synthetic: { name: "Cabin Air Filter — Replace", hours: 0.2, id: "synth-cabin", key: "ENGINE.FILTER.CABIN_AIR.REPLACE", pos: "ALL", path: "L0_EXACT", skill: "B", note: "Association seed" } },
+        { key: "ENGINE.FILTER.AIR", label: "Engine air filter", standalone: 0.3, additional: 0.2, freq: 79, note: "Maintenance bundle", synthetic: { name: "Engine Air Filter — Replace", hours: 0.2, id: "synth-air", key: "ENGINE.FILTER.AIR.REPLACE", pos: "ALL", path: "L0_EXACT", skill: "B", note: "Association seed" } },
+      ],
+      "ELECTRICAL.CHARGING.ALTERNATOR|R_AND_R": [
+        { key: "ENGINE.BELT.SERPENTINE", label: "Serpentine belt", standalone: 0.5, additional: 0.25, freq: 86, note: "Belt off for alt R&R", synthetic: { name: "Serpentine Belt — Replace", hours: 0.25, id: "synth-serp2", key: "ENGINE.BELT.SERPENTINE.REPLACE", pos: "ALL", path: "L0_EXACT", skill: "B", note: "Association seed" } },
+      ],
+      "ELECTRICAL.CHARGING.BATTERY|REPLACE": [
+        { key: "ELECTRICAL.BATTERY.TERMINALS", label: "Terminal clean/service", standalone: 0.3, additional: 0.2, freq: 77, note: "Seed add-on", synthetic: { name: "Battery Terminals — Clean", hours: 0.2, id: "synth-term", key: "ELECTRICAL.BATTERY.TERMINALS.CLEAN", pos: "ALL", path: "L0_EXACT", skill: "B", note: "Association seed" } },
+      ],
+      "DRIVETRAIN.TRANSMISSION.FLUID|FLUSH": [
+        { key: "DRIVETRAIN.TRANSMISSION.FILTER|REPLACE", label: "Transmission filter", standalone: 1.0, additional: 0.6, freq: 69, note: "0.4 hr overlap" },
+      ],
+      "ENGINE.COOLING.RADIATOR|R_AND_R": [
+        { key: "ENGINE.COOLING.THERMOSTAT|R_AND_R", label: "Thermostat — R&R", standalone: 1.2, additional: 0.8, freq: 66, note: "Cooling system open" },
+      ],
+      "ENGINE.COOLING.WATER_PUMP|R_AND_R": [
+        { key: "ENGINE.COOLING.THERMOSTAT|R_AND_R", label: "Thermostat — R&R", standalone: 1.2, additional: 0.85, freq: 70, note: "Cooling system open" },
+      ],
     };
 
     // Matches sql/schema.sql chassis_multipliers seed (from tier 1)
@@ -646,6 +812,7 @@
 
     const state = {
       vehicleId: "accord",
+      view: "ewt",
       expanded: new Set(["BRAKES"]),
       systemId: "BRAKES",
       subId: "BRAKES.FRONT",
@@ -655,6 +822,8 @@
       search: "",
       selectedJobId: null,
       cart: [],
+      addonChecked: new Set(),
+      addonsOpen: true,
       clicks: 0,
     };
 
@@ -899,16 +1068,71 @@
       }
     }
 
+    function jobAssocKey(row) {
+      if (!row) return "";
+      const parts = row.key.split(".");
+      const action = parts[parts.length - 1];
+      const comp = parts.slice(0, -1).join(".");
+      return `${comp}|${action}`;
+    }
+
+    function addonsForRow(row) {
+      return ASSOCIATIONS[jobAssocKey(row)] || [];
+    }
+
+    function resolveAddonJob(addon) {
+      if (addon.synthetic) return { ...addon.synthetic, hours: addon.additional };
+      const found = JOB_DEFS.find((j) => `${j.comp}|${j.action}` === addon.key);
+      if (!found) return null;
+      const resolved = resolveHours(found.base);
+      return {
+        id: `${found.comp}.${found.action}`,
+        key: `${found.comp}.${found.action}`,
+        name: found.name,
+        pos: found.pos,
+        hours: addon.additional,
+        path: resolved.path,
+        skill: resolved.skill,
+        note: `Add-on (+${addon.additional.toFixed(2)} hr after ${addon.freq}% co-occurrence overlap)`,
+        isAddon: true,
+        addonOf: addon.key,
+      };
+    }
+
     function renderDetail() {
       const root = document.getElementById("detail");
       const rows = jobsForView();
       const row = rows.find((r) => r.id === state.selectedJobId) || rows[0];
       if (!row) {
-        root.innerHTML = `<div style="color:var(--muted)">Select an operation row to view base time, resolve path, and fitment placeholder.</div>`;
+        root.innerHTML = `<div style="color:var(--muted)">Select an operation row to view base time, combined jobs, and fitment.</div>`;
         return;
       }
       const cents = row.hours == null ? null : Math.round(row.hours * RATE_CENTS);
       const partsStatus = row.path === "L4_PENDING" ? "PENDING_REVIEW" : "PLACEHOLDER_ENQUEUED";
+      const addons = addonsForRow(row);
+      const addonsHtml = addons.length ? `
+        <div class="addons ${state.addonsOpen ? "" : "collapsed"}" id="addonsBox">
+          <div class="addons-h" id="addonsToggle">
+            Frequently Combined Jobs
+            <span class="meta">${addons.length} suggestion${addons.length === 1 ? "" : "s"} · shop telemetry</span>
+          </div>
+          <div class="addons-b">
+            ${addons.map((a) => {
+              const checked = state.addonChecked.has(a.key) ? "checked" : "";
+              return `<div class="addon-row">
+                <input type="checkbox" data-addon="${a.key}" id="ad_${a.key.replace(/[^a-z0-9]/gi,"_")}" ${checked} />
+                <label for="ad_${a.key.replace(/[^a-z0-9]/gi,"_")}">${a.label}
+                  <span class="sub">${a.note}</span>
+                  <span class="freq">${a.freq}% together</span>
+                </label>
+                <div class="addh">+${a.additional.toFixed(2)} hr</div>
+              </div>`;
+            }).join("")}
+          </div>
+        </div>` : `
+        <div class="kv"><div class="k">Frequently Combined Jobs</div>
+        <div class="v" style="font-weight:500;color:var(--muted)">No active associations for this operation yet — learner promotes pairs above 10% co-occurrence.</div></div>`;
+
       root.innerHTML = `
         <h3>${row.name}</h3>
         <div class="code">${row.key}</div>
@@ -917,14 +1141,96 @@
         <div class="kv"><div class="k">Resolve path</div><div class="v"><span class="status ${row.path}">${row.path}</span><div style="margin-top:4px;font-weight:500;color:var(--muted)">${row.note}</div></div></div>
         <div class="kv"><div class="k">Labor @ Albany/Capital Region</div><div class="v mono">${cents == null ? "—" : money(cents)}</div></div>
         <div class="kv"><div class="k">Parts fitment</div><div class="v">${partsStatus}<div class="mono" style="margin-top:4px;background:#fff;border:1px solid var(--motor-line);padding:6px">${partsCategory(row)}</div></div></div>
+        ${addonsHtml}
         <button class="btn-add" id="detailAdd" ${row.hours==null?"disabled":""}>Add application to staging</button>
       `;
       const btn = document.getElementById("detailAdd");
       if (btn) btn.onclick = () => {
         if (row.hours == null) return;
         if (!state.cart.some((c) => c.id === row.id)) state.cart.push(row);
+        // also stage checked add-ons
+        for (const a of addons) {
+          if (!state.addonChecked.has(a.key)) continue;
+          const job = resolveAddonJob(a);
+          if (job && !state.cart.some((c) => c.id === job.id)) state.cart.push(job);
+        }
         bump(); paint();
       };
+      const toggle = document.getElementById("addonsToggle");
+      if (toggle) toggle.onclick = () => { state.addonsOpen = !state.addonsOpen; paint(); };
+      root.querySelectorAll("[data-addon]").forEach((cb) => {
+        cb.onchange = () => {
+          const key = cb.dataset.addon;
+          if (cb.checked) state.addonChecked.add(key);
+          else state.addonChecked.delete(key);
+          const job = resolveAddonJob(addons.find((a) => a.key === key));
+          if (!job) return;
+          if (cb.checked) {
+            if (!state.cart.some((c) => c.id === job.id)) state.cart.push(job);
+            if (row.hours != null && !state.cart.some((c) => c.id === row.id)) state.cart.push(row);
+          } else {
+            state.cart = state.cart.filter((c) => c.id !== job.id);
+          }
+          bump(); paint();
+        };
+      });
+    }
+
+    function renderFluids() {
+      const host = document.getElementById("fluidsHost");
+      const v = VEHICLES[state.vehicleId];
+      const rows = (v.fluidsKey && FLUIDS[v.fluidsKey]) || [];
+      if (!rows.length) {
+        host.innerHTML = `<h2>Fluid Specs</h2>
+          <p class="subh">${v.label} — no harvested specs yet. POST /vehicles queues OEM PDF × fluidcapacity merge.</p>
+          <div class="empty">Background harvester populates vehicle_fluid_specs within minutes of VIN/YMME entry.</div>`;
+        return;
+      }
+      host.innerHTML = `
+        <h2>Fluid Specs</h2>
+        <p class="subh">${v.label} · OEM owner's manual × fluidcapacity.com · pure SQL lookups ($0)</p>
+        <div class="fluids-grid">
+          ${rows.map((f) => `
+            <div class="fluid-card">
+              <div class="cat">${f.name} · ${f.cat}</div>
+              <div class="cap">${f.cap == null ? "As needed" : f.cap.toFixed(1) + " " + f.unit}</div>
+              <div class="type">${f.type}</div>
+              <div class="meta">
+                <span class="conf c${f.conf}">${f.conf}% confidence</span>
+                <span>${f.source}</span>
+              </div>
+            </div>`).join("")}
+        </div>`;
+    }
+
+    function renderAssocGuide() {
+      const host = document.getElementById("assocHost");
+      const groups = Object.entries(ASSOCIATIONS);
+      host.innerHTML = `
+        <h2>Frequently Combined Jobs</h2>
+        <p class="subh">Industry seeds + shop telemetry learner. Suggests add-ons with overlap-aware additional hours — no MOTOR association fees.</p>
+        <table>
+          <thead><tr><th>Primary</th><th>Suggested add-on</th><th>Freq</th><th style="text-align:right">+ Hours</th></tr></thead>
+          <tbody>
+            ${groups.map(([primary, list]) => list.map((a) => `
+              <tr>
+                <td><div class="lit">${primary.replace("|", " · ")}</div></td>
+                <td>${a.label}<div class="code">${a.note}</div></td>
+                <td><span class="freq">${a.freq}%</span></td>
+                <td class="hrs">+${a.additional.toFixed(2)}</td>
+              </tr>`).join("")).join("")}
+          </tbody>
+        </table>`;
+    }
+
+    function setView(view) {
+      state.view = view;
+      document.querySelectorAll(".appbar .tab").forEach((t) => t.classList.toggle("on", t.dataset.view === view));
+      document.getElementById("viewEwt").classList.toggle("on", view === "ewt");
+      document.getElementById("viewFluids").classList.toggle("on", view === "fluids");
+      document.getElementById("viewAssoc").classList.toggle("on", view === "assoc");
+      document.getElementById("crumb").style.display = view === "ewt" ? "" : "none";
+      paint();
     }
 
     function renderDock() {
@@ -945,25 +1251,37 @@
     function paint() {
       const v = VEHICLES[state.vehicleId];
       document.getElementById("vehicleLabel").textContent = v.label;
+      const fluidN = (v.fluidsKey && FLUIDS[v.fluidsKey]) ? FLUIDS[v.fluidsKey].length : 0;
       document.getElementById("specStrip").innerHTML = `
         <span><b>Year/Make/Model</b> ${v.label}</span>
         <span><b>Chassis tier</b> ${v.chassis}</span>
-        <span><b>Drive</b> FWD/AWD demo</span>
-        <span><b>Clicks</b> ${state.clicks}</span>`;
+        <span><b>Fluid specs</b> ${fluidN ? fluidN + " harvested" : "pending"}</span>
+        <span><b>Associations</b> live</span>`;
       document.getElementById("configBand").textContent =
-        `Application config · chassis tier ${v.chassis} · shop rate Albany/Capital Region $145.00/hr · proprietary taxonomy (not MOTOR-licensed content)`;
-      renderChips();
-      renderSystems();
-      renderCrumb();
-      renderFilters();
-      renderTable();
-      renderDetail();
+        `Application config · chassis tier ${v.chassis} · shop rate Albany/Capital Region $145.00/hr · fluids + combined-jobs telemetry · not MOTOR-licensed content`;
+      if (state.view === "ewt") {
+        renderChips();
+        renderSystems();
+        renderCrumb();
+        renderFilters();
+        renderTable();
+        renderDetail();
+      } else if (state.view === "fluids") {
+        renderFluids();
+      } else {
+        renderAssocGuide();
+      }
       renderDock();
     }
+
+    document.querySelectorAll(".appbar .tab").forEach((t) => {
+      t.onclick = () => setView(t.dataset.view);
+    });
 
     document.getElementById("vehicleSelect").onchange = (e) => {
       state.vehicleId = e.target.value;
       state.cart = [];
+      state.addonChecked = new Set();
       state.selectedJobId = null;
       bump(); paint();
     };
