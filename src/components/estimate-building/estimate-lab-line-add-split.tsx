@@ -2,7 +2,7 @@
 
 import { Plus, Search, Wrench, ListTree } from "lucide-react";
 
-import { useMotorLaborUiEnabled, usePartsTechUiEnabled } from "@/lib/shop-capabilities";
+import { useLaborBookUiEnabled, usePartsTechUiEnabled } from "@/lib/shop-capabilities";
 import { cn } from "@/lib/utils";
 
 const BTN_BASE =
@@ -24,9 +24,9 @@ export function EstimateLabLineAddSplit({
   compact?: boolean;
   className?: string;
 }) {
-  const motorLaborOk = useMotorLaborUiEnabled();
+  const laborBookOk = useLaborBookUiEnabled();
   const partsTechOk = usePartsTechUiEnabled();
-  const lookupAllowed = kind === "labor" ? motorLaborOk : partsTechOk;
+  const lookupAllowed = kind === "labor" ? laborBookOk : partsTechOk;
 
   const size = compact
     ? "h-6 border-l border-brand-navy/15 px-1.5 text-[9px]"

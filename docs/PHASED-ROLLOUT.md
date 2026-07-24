@@ -48,6 +48,7 @@ DEV / Preview ──merge──► Prod (code present, flags OFF)
 | `growthEngine` | `/marketing/**` campaigns, automations, booking UI |
 | `sms` | Outbound `sendShopSms` + share-via-SMS |
 | `motorLabor` | MOTOR labor catalog / Labor Book MOTOR path |
+| `tabishFridayLabor` | Tabish Friday Labor EWT guide (Pro+ pilot; exact lab UI) |
 | `partsTech` | PartsTech punchout / live catalog actions |
 | `shopSite` | ShopSite editor / public site tooling |
 | `websiteSeo` | Growth Engine SEO / Local SEO tooling |
@@ -82,6 +83,7 @@ Stored on the shop as:
 | `RELEASE_KILL_GROWTH_ENGINE=1` | Growth Engine off |
 | `RELEASE_KILL_SMS=1` | SMS release path off (in addition to SMS_ENABLED) |
 | `RELEASE_KILL_MOTOR_LABOR=1` | MOTOR release off |
+| `RELEASE_KILL_TABISH_FRIDAY_LABOR=1` | Tabish Friday Labor release off |
 | `RELEASE_KILL_PARTS_TECH=1` | PartsTech release off |
 | `RELEASE_KILL_SHOP_SITE=1` | ShopSite release off |
 | `RELEASE_KILL_WEBSITE_SEO=1` | SEO release off |

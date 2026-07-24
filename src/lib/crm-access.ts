@@ -175,6 +175,8 @@ export function isPlanHiddenNavHref(
     stripePayments?: boolean;
     /** Licensed MOTOR Labor Book (`/quick-labor`) — Pro+. */
     motorLabor?: boolean;
+    /** Tabish Friday Labor guide (`/quick-labor`) — Pro+. */
+    tabishFridayLabor?: boolean;
   },
 ): boolean {
   if (isGrowthNavExemptHref(href)) return false;
@@ -194,10 +196,8 @@ export function isPlanHiddenNavHref(
   ) {
     return true;
   }
-  if (
-    flags.motorLabor === false &&
-    (href === "/quick-labor" || href.startsWith("/quick-labor/"))
-  ) {
+  const laborBookOk = Boolean(flags.motorLabor) || Boolean(flags.tabishFridayLabor);
+  if (!laborBookOk && (href === "/quick-labor" || href.startsWith("/quick-labor/"))) {
     return true;
   }
   return false;

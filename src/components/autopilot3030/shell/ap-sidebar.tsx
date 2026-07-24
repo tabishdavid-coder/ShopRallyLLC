@@ -340,6 +340,7 @@ export function ApSidebar({
     sms: caps.sms,
     stripePayments: caps.stripePayments,
     motorLabor: caps.motorLabor,
+    tabishFridayLabor: caps.tabishFridayLabor,
   };
   const [collapsed, setCollapsed] = useState(false);
 

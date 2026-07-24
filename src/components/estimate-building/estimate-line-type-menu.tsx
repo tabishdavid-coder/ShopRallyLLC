@@ -11,7 +11,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { LAB_INPUT_FLAT } from "@/components/estimate-building/estimate-lab-job-card-shell";
-import { useMotorLaborUiEnabled, usePartsTechUiEnabled } from "@/lib/shop-capabilities";
+import { useLaborBookUiEnabled, usePartsTechUiEnabled } from "@/lib/shop-capabilities";
 import { cn } from "@/lib/utils";
 
 export type InlineLineType =
@@ -128,12 +128,12 @@ export function EstimateLineTypeMenu({
   const label = INLINE_LINE_TYPE_OPTIONS.find((o) => o.value === value)?.label ?? value;
   const h = handlers ?? {};
   const menuScope = resolveScope(value, scope);
-  const motorLaborOk = useMotorLaborUiEnabled();
+  const laborBookOk = useLaborBookUiEnabled();
   const partsTechOk = usePartsTechUiEnabled();
 
   const openLaborGuide = h.onLaborFromGuide ?? h.onLaborFromCatalog;
   /** Actions are always available when handlers exist — not gated by current type. */
-  const showLaborGuide = motorLaborOk && Boolean(openLaborGuide);
+  const showLaborGuide = laborBookOk && Boolean(openLaborGuide);
   const showLaborCustom = Boolean(h.onCustomLabor);
   const showPartGuide = partsTechOk && Boolean(h.onPartFromGuide);
   const showPartCustom = Boolean(h.onCustomPart);

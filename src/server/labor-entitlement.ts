@@ -25,6 +25,20 @@ export async function shopPlanHasMotorLabor(shopId: string): Promise<boolean> {
   return canUseReleasedFeature(shopId, "motorLabor");
 }
 
+/** Pro+ Tabish Friday Labor guide (plan + release). Independent of MOTOR. */
+export async function shopPlanHasTabishFridayLabor(shopId: string): Promise<boolean> {
+  return canUseReleasedFeature(shopId, "tabishFridayLabor");
+}
+
+/** Labor Book route/UI: MOTOR and/or Tabish Friday Labor. */
+export async function shopPlanHasLaborBook(shopId: string): Promise<boolean> {
+  const [motor, tfl] = await Promise.all([
+    shopPlanHasMotorLabor(shopId),
+    shopPlanHasTabishFridayLabor(shopId),
+  ]);
+  return motor || tfl;
+}
+
 /** Two-layer effective gate: platform MOTOR data AND shop plan + release. */
 export async function motorEnabledForShop(shopId: string): Promise<boolean> {
   if (!platformMotorAvailable()) return false;

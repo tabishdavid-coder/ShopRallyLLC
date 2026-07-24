@@ -66,6 +66,7 @@ export function CrmShell({
     sms: false,
     stripePayments: false,
     motorLabor: false,
+    tabishFridayLabor: false,
     partsTech: false,
     marketingCampaigns: false,
     maintenancePrograms: false,

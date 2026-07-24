@@ -26,7 +26,7 @@ const HREF_PLAN_FEATURES: Partial<Record<string, SubscriptionFeature>> = {
   "/orders": "parts",
   "/vendors/integrations": "parts",
   "/maintenance-programs/subscribers": "maintenance_programs",
-  "/quick-labor": "motorLabor",
+  // `/quick-labor` — MOTOR or Tabish Friday Labor (see filterNavHrefsByPlan)
   "/payments": "stripePayments",
   "/payments/account": "stripePayments",
   "/payments/terminals": "stripePayments",
@@ -54,7 +54,7 @@ type PlanRouteGate = {
 const PLAN_ROUTE_GATES: PlanRouteGate[] = [
   { prefix: "/orders", feature: "parts", released: true },
   { prefix: "/vendors", feature: "parts", released: true },
-  { prefix: "/quick-labor", feature: "motorLabor", released: true },
+  // `/quick-labor` gated specially (MOTOR or Tabish Friday Labor)
   { prefix: "/payments", feature: "stripePayments" },
   { prefix: "/settings/booking", feature: "booking", released: true },
   { prefix: "/settings/markups", feature: "markupMatrices" },
@@ -71,8 +71,17 @@ const RELEASED_FEATURES = new Set<SubscriptionFeature>([
   "marketing_campaigns",
   "booking",
   "motorLabor",
+  "tabishFridayLabor",
   "sms",
 ]);
+
+async function canUseLaborBookRoute(shopId: string): Promise<boolean> {
+  const [motor, tfl] = await Promise.all([
+    canUseReleasedFeature(shopId, "motorLabor"),
+    canUseReleasedFeature(shopId, "tabishFridayLabor"),
+  ]);
+  return motor || tfl;
+}
 
 async function planAllowsFeature(
   shopId: string,
@@ -88,6 +97,9 @@ async function planAllowsFeature(
 async function filterNavHrefsByPlan(shopId: string, hrefs: string[]): Promise<string[]> {
   const results = await Promise.all(
     hrefs.map(async (href) => {
+      if (href === "/quick-labor") {
+        return { href, ok: await canUseLaborBookRoute(shopId) };
+      }
       const feature = HREF_PLAN_FEATURES[href];
       if (!feature) return { href, ok: true as const };
       const ok = await planAllowsFeature(shopId, feature, RELEASED_FEATURES.has(feature));
@@ -104,6 +116,10 @@ async function planAllowsPath(shopId: string, pathname: string): Promise<boolean
     pathname.startsWith("/vendors/integrations/google-reviews/")
   ) {
     return canUseFeature(shopId, "google_reviews");
+  }
+
+  if (pathname === "/quick-labor" || pathname.startsWith("/quick-labor/")) {
+    return canUseLaborBookRoute(shopId);
   }
 
   const sorted = [...PLAN_ROUTE_GATES].sort((a, b) => b.prefix.length - a.prefix.length);

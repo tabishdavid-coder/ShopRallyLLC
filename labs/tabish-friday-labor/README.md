@@ -1,7 +1,8 @@
 # Tabish Friday Labor
 
-**Standalone** proprietary, self-correcting automotive labor guide — independent of MOTOR / ALLDATA / paid catalog APIs.  
-**Not wired into ShopRally CRM** (no Prisma, no Clerk, no estimate write paths).
+**Standalone** proprietary, self-correcting automotive labor guide — independent of MOTOR / ALLDATA / paid catalog APIs.
+
+**CRM pilot (gated):** exact EWT UI is served at `/lab/tabish-friday-labor.html` and embedded in shop Labor Book (`/quick-labor` + estimate Labor Book dialog) when the shop is **Pro/Elite** and platform release flag `tabishFridayLabor` is ON. Backend Python/Postgres remains standalone (no estimate write-path changes).
 
 ## Folder hierarchy
 
