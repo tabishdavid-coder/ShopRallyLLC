@@ -261,8 +261,12 @@
     .conf.c80 { background: #fff3cd; color: #854d0e; }
     .conf.c50 { background: #fde2e2; color: #991b1b; }
 
-    .view-panel { display: none; flex: 1; min-height: 0; flex-direction: column; overflow: auto; }
+    /* View tabs — do NOT force column here; EWT body must stay row (tax | table | detail). */
+    .view-panel { display: none; flex: 1; min-height: 0; overflow: hidden; }
     .view-panel.on { display: flex; }
+    #viewEwt.view-panel.on { flex-direction: row; }
+    #viewFluids.view-panel.on,
+    #viewAssoc.view-panel.on { flex-direction: column; overflow: auto; }
     .fluids-wrap { padding: 14px; }
     .fluids-wrap h2 { margin: 0 0 4px; font-size: 15px; color: var(--motor-navy); }
     .fluids-wrap .subh { margin: 0 0 12px; font-size: 12px; color: var(--muted); }
