@@ -159,7 +159,7 @@
       box-shadow: inset 3px 0 0 var(--motor-amber);
     }
 
-    /* Center results */
+    /* Center results — ops table + combined jobs strip below */
     .main { flex: 1; min-width: 0; display: flex; flex-direction: column; background: #fff; }
     .filters {
       padding: 8px 12px; border-bottom: 1px solid var(--motor-line);
@@ -172,7 +172,28 @@
       padding: 3px 10px; font-size: 11px; cursor: pointer; border-radius: 999px;
     }
     .pill.on { background: var(--motor-navy); color: #fff; border-color: var(--motor-navy); }
-    .table-wrap { flex: 1; min-height: 0; overflow: auto; }
+    .table-wrap { flex: 1 1 48%; min-height: 140px; overflow: auto; }
+    .mid-addons {
+      flex: 0 1 42%; min-height: 120px; max-height: 46%;
+      overflow: auto; border-top: 2px solid var(--motor-navy);
+      background: linear-gradient(180deg, #f3f8f9, #eef4f6);
+    }
+    .mid-addons .addons { margin: 0; border: 0; background: transparent; }
+    .mid-addons .addons-h {
+      position: sticky; top: 0; z-index: 1;
+      border-bottom: 1px solid #b7d8d9;
+    }
+    .mid-addons .addons-b { padding: 8px 10px 12px; }
+    .mid-addons .addon-row {
+      grid-template-columns: 18px 1fr auto auto; gap: 10px; align-items: center;
+      padding: 8px 6px; background: #fff; border: 1px solid #e0eaf0;
+      border-radius: 2px; margin-bottom: 6px;
+    }
+    .mid-addons .addon-row:last-child { margin-bottom: 0; border-bottom: 1px solid #e0eaf0; }
+    .mid-addons-empty {
+      padding: 16px 14px; font-size: 12px; color: var(--muted); line-height: 1.45;
+    }
+    .mid-addons-empty strong { color: var(--motor-navy); }
     table { width: 100%; border-collapse: collapse; font-size: 12px; }
     thead th {
       position: sticky; top: 0; z-index: 1;
@@ -229,17 +250,15 @@
     }
     .btn-add:disabled { opacity: 0.4; cursor: not-allowed; }
 
-    /* Frequently Combined Jobs */
-    .addons {
-      margin-top: 14px; border: 1px solid #b7d8d9; background: #fff;
-    }
+    /* Frequently Combined Jobs (middle strip) */
+    .addons { border: 1px solid #b7d8d9; background: #fff; }
     .addons-h {
-      padding: 7px 10px; font-size: 10px; font-weight: 800; letter-spacing: 0.06em;
+      padding: 8px 12px; font-size: 10px; font-weight: 800; letter-spacing: 0.06em;
       text-transform: uppercase; background: var(--motor-teal-soft); color: var(--motor-navy);
-      display: flex; justify-content: space-between; align-items: center; cursor: pointer;
-      user-select: none;
+      display: flex; justify-content: space-between; align-items: center; gap: 10px;
+      cursor: pointer; user-select: none;
     }
-    .addons-h span.meta { font-weight: 600; opacity: 0.75; letter-spacing: 0; text-transform: none; }
+    .addons-h span.meta { font-weight: 600; opacity: 0.8; letter-spacing: 0; text-transform: none; }
     .addons-b { padding: 6px 8px 8px; }
     .addons.collapsed .addons-b { display: none; }
     .addon-row {
@@ -251,9 +270,14 @@
     .addon-row .sub { display: block; font-weight: 500; color: var(--muted); margin-top: 2px; font-size: 10px; }
     .addon-row .addh { font-family: Consolas, monospace; font-weight: 800; color: var(--motor-green); white-space: nowrap; }
     .addon-row .freq {
-      display: inline-block; margin-top: 3px; font-size: 9px; font-weight: 800;
-      background: #ffe8d5; color: #9a3412; padding: 1px 5px; border-radius: 2px;
+      display: inline-block; font-size: 9px; font-weight: 800;
+      background: #ffe8d5; color: #9a3412; padding: 2px 6px; border-radius: 2px; white-space: nowrap;
     }
+    .linkish {
+      border: 0; background: transparent; color: var(--motor-teal); font-weight: 700;
+      cursor: pointer; padding: 0; font-size: 11px; text-decoration: underline;
+    }
+    .detail-links { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 10px; }
     .conf {
       display: inline-block; font-size: 9px; font-weight: 800; padding: 2px 6px; border-radius: 2px;
     }
@@ -266,10 +290,51 @@
     .view-panel.on { display: flex; }
     #viewEwt.view-panel.on { flex-direction: row; }
     #viewFluids.view-panel.on,
-    #viewAssoc.view-panel.on { flex-direction: column; overflow: auto; }
+    #viewAssoc.view-panel.on,
+    #viewDiagrams.view-panel.on,
+    #viewProcedures.view-panel.on { flex-direction: column; overflow: auto; }
     .fluids-wrap { padding: 14px; }
     .fluids-wrap h2 { margin: 0 0 4px; font-size: 15px; color: var(--motor-navy); }
     .fluids-wrap .subh { margin: 0 0 12px; font-size: 12px; color: var(--muted); }
+    .diagram-grid {
+      display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px;
+    }
+    .diagram-card {
+      border: 1px solid var(--motor-line); background: #fff; overflow: hidden;
+    }
+    .diagram-card img {
+      display: block; width: 100%; height: 180px; object-fit: contain;
+      background: #f4f7fb; border-bottom: 1px solid var(--motor-line);
+    }
+    .diagram-card .cap { padding: 8px 10px; font-size: 12px; }
+    .diagram-card .cap b { color: var(--motor-navy); display: block; margin-bottom: 2px; }
+    .diagram-card .src {
+      font-size: 10px; font-weight: 800; letter-spacing: 0.04em; text-transform: uppercase; color: var(--muted);
+    }
+    .proc-list { display: flex; flex-direction: column; gap: 12px; }
+    .proc-card {
+      border: 1px solid var(--motor-line); background: #fff; padding: 12px 14px;
+    }
+    .proc-card .ph {
+      display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: baseline; justify-content: space-between;
+      margin-bottom: 8px;
+    }
+    .proc-card h3 { margin: 0; font-size: 14px; color: var(--motor-navy); }
+    .proc-meta { font-size: 11px; color: var(--muted); display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+    .proc-card ol { margin: 8px 0 0; padding-left: 20px; font-size: 12px; line-height: 1.45; }
+    .proc-card li { margin: 4px 0; }
+    .proc-card .torque { color: var(--motor-amber); font-weight: 700; font-family: Consolas, monospace; font-size: 11px; }
+    .vote-btn {
+      border: 1px solid #9fb4c3; background: #fff; color: var(--motor-navy);
+      font-weight: 800; font-size: 11px; padding: 4px 10px; cursor: pointer;
+    }
+    .vote-btn:hover { background: var(--motor-teal); color: #fff; border-color: var(--motor-teal); }
+    .src-badge {
+      display: inline-block; font-size: 9px; font-weight: 800; padding: 2px 6px; border-radius: 2px;
+      background: #e7f1f2; color: var(--motor-navy); text-transform: uppercase; letter-spacing: 0.04em;
+    }
+    .src-badge.tech { background: #ffe8d5; color: #9a3412; }
+    .src-badge.scraped { background: #d9f0e3; color: #166534; }
     .fluids-grid {
       display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px;
     }
@@ -316,10 +381,12 @@
 <body>
   <header class="appbar">
     <div class="brand"><span class="mark">TFL</span> TABISH FRIDAY LABOR</div>
-    <div class="tab on" data-view="ewt">Estimated Work Times</div>
+    <div class="tab on" data-view="ewt">Labor</div>
     <div class="tab" data-view="fluids">Fluid Specs</div>
     <div class="tab" data-view="assoc">Combined Jobs</div>
-    <div class="right">Fluids · Associations · EWT · Albany $145/hr · $0 internal data</div>
+    <div class="tab" data-view="diagrams">Diagrams</div>
+    <div class="tab" data-view="procedures">Procedures</div>
+    <div class="right">Labor · Fluids · Diagrams · Procedures · Albany $145/hr · $0 data</div>
   </header>
 
   <div class="workspace">
@@ -362,12 +429,15 @@
         <div class="table-wrap" id="tableHost">
           <div class="empty">Select a component in the taxonomy, or search above.</div>
         </div>
+        <section class="mid-addons" id="midAddons" aria-label="Frequently combined jobs">
+          <div class="mid-addons-empty">Select an operation above to see frequently combined jobs.</div>
+        </section>
       </main>
 
       <aside class="detail">
         <div class="detail-h">Application detail</div>
         <div class="detail-b" id="detail">
-          <div style="color:var(--muted)">Select an operation row to view base time, combined jobs, and fitment.</div>
+          <div style="color:var(--muted)">Select an operation row to view base time and fitment. Combined jobs appear under the table.</div>
         </div>
       </aside>
     </div>
@@ -378,6 +448,14 @@
 
     <div class="view-panel" id="viewAssoc">
       <div class="fluids-wrap" id="assocHost"></div>
+    </div>
+
+    <div class="view-panel" id="viewDiagrams">
+      <div class="fluids-wrap" id="diagramsHost"></div>
+    </div>
+
+    <div class="view-panel" id="viewProcedures">
+      <div class="fluids-wrap" id="proceduresHost"></div>
     </div>
 
     <footer class="dock">
@@ -479,6 +557,78 @@
         { cat: "ENG_OIL", name: "Engine Oil", cap: 3.9, unit: "qt", type: "0W-20", source: "oem+fluidcapacity", conf: 100 },
         { cat: "ATF", name: "Transmission Fluid", cap: 2.8, unit: "qt", type: "ATF DW-1", source: "fluidcapacity", conf: 80 },
         { cat: "COOLANT", name: "Coolant", cap: 5.6, unit: "qt", type: "Honda Type 2", source: "oem_manual", conf: 80 },
+      ],
+    };
+
+    // OEM exploded diagrams (fixture SVG placeholders — cached locally, $0)
+    const SVG_PAD = "data:image/svg+xml," + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="640" height="400" viewBox="0 0 640 400"><rect width="640" height="400" fill="#f4f7fb"/><text x="24" y="36" font-family="sans-serif" font-size="18" fill="#0b3d5c">OEM Exploded View</text><text x="24" y="60" font-family="sans-serif" font-size="13" fill="#555">Partsouq — Front brake pads</text><rect x="80" y="100" width="180" height="120" rx="8" fill="#7fd3d6" stroke="#0b3d5c"/><text x="110" y="170" font-family="sans-serif" font-size="14" fill="#0b3d5c">1 Pad set</text><rect x="320" y="120" width="140" height="80" rx="8" fill="#fff" stroke="#c45c26"/><text x="350" y="165" font-family="sans-serif" font-size="14" fill="#c45c26">2 Shim</text><line x1="260" y1="160" x2="320" y2="160" stroke="#333" stroke-dasharray="4 3"/></svg>`);
+    const SVG_ROTOR = "data:image/svg+xml," + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="640" height="400" viewBox="0 0 640 400"><rect width="640" height="400" fill="#f8fafc"/><text x="24" y="36" font-family="sans-serif" font-size="18" fill="#0b3d5c">7zap illustration</text><circle cx="300" cy="210" r="90" fill="none" stroke="#0b3d5c" stroke-width="6"/><rect x="250" y="180" width="100" height="60" rx="6" fill="#7fd3d6"/><text x="270" y="215" font-family="sans-serif" font-size="14" fill="#0b3d5c">Rotor</text></svg>`);
+    const SVG_ASM = "data:image/svg+xml," + encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" width="640" height="400" viewBox="0 0 640 400"><rect width="640" height="400" fill="#ffffff"/><text x="24" y="36" font-family="sans-serif" font-size="18" fill="#0b3d5c">RevolutionParts</text><polygon points="200,120 420,120 480,280 140,280" fill="#e8f3ff" stroke="#0b3d5c"/><text x="250" y="210" font-family="sans-serif" font-size="14" fill="#0b3d5c">Brake assembly</text></svg>`);
+
+    const DIAGRAMS = {
+      "BRAKES.FRONT.PADS.R_AND_R": [
+        { id: 1, source: "partsouq", caption: "Front brake pads — exploded view", src: SVG_PAD },
+        { id: 2, source: "7zap", caption: "Brake system illustration", src: SVG_ROTOR },
+      ],
+      "BRAKES.FRONT.ROTORS.R_AND_R": [
+        { id: 3, source: "revolutionparts", caption: "OEM brake assembly diagram", src: SVG_ASM },
+        { id: 2, source: "7zap", caption: "Brake system illustration", src: SVG_ROTOR },
+      ],
+      "BRAKES.FRONT.CALIPER.R_AND_R": [
+        { id: 1, source: "partsouq", caption: "Front caliper / pad group", src: SVG_PAD },
+      ],
+    };
+
+    // Shop procedure KB fixtures (scraped DIY + tech contributions)
+    const PROCEDURES = {
+      "BRAKES.FRONT.PADS.R_AND_R": [
+        {
+          id: 101, title: "2014–15 Honda Accord — Front brake pad R&R",
+          source: "scraped", author: "diy_scrape", votes: 12, approved: true,
+          steps: [
+            { n: 1, text: "Park on level ground, set the parking brake, loosen lug nuts." },
+            { n: 2, text: "Raise vehicle, support with jack stands, remove front wheels.", tool: "jack stands" },
+            { n: 3, text: "Remove lower caliper guide pin bolt; pivot caliper up — do not hang by hose.", tool: "14mm socket" },
+            { n: 4, text: "Slide out old pads; note wear-indicator orientation." },
+            { n: 5, text: "Compress caliper piston; install new pads with shims/grease.", tool: "C-clamp" },
+            { n: 6, text: "Torque guide pin bolt.", torque: "25 ft-lbs (34 N·m)" },
+            { n: 7, text: "Reinstall wheel; torque lug nuts in star pattern.", torque: "80 ft-lbs (108 N·m)" },
+            { n: 8, text: "Pump brake pedal until firm; road-test at low speed." },
+          ],
+        },
+        {
+          id: 102, title: "Tech tip — ceramic pads on Accord (shop note)",
+          source: "tech_contribution", author: "tech.j", votes: 5, approved: true,
+          steps: [
+            { n: 1, text: "Clean hub face; apply thin anti-seize on pad backs only (not friction)." },
+            { n: 2, text: "Bed-in: 8–10 moderate stops from 35 mph without full ABS." },
+            { n: 3, text: "Recheck lug torque after first heat cycle.", torque: "80 ft-lbs" },
+          ],
+        },
+      ],
+      "BRAKES.FRONT.ROTORS.R_AND_R": [
+        {
+          id: 201, title: "Front rotor R&R with pad service",
+          source: "scraped", author: "diy_scrape", votes: 7, approved: true,
+          steps: [
+            { n: 1, text: "Complete pad R&R steps through caliper support." },
+            { n: 2, text: "Remove caliper bracket bolts; set assembly aside." },
+            { n: 3, text: "Remove rotor; if stuck, use threaded holes with bolts evenly." },
+            { n: 4, text: "Clean hub; install new rotor; torque bracket bolts.", torque: "80 ft-lbs" },
+            { n: 5, text: "Reassemble pads/caliper; torque lugs.", torque: "80 ft-lbs" },
+          ],
+        },
+      ],
+      "ENGINE.LUBE.OIL_FILTER.REPLACE": [
+        {
+          id: 301, title: "Oil & filter — shop SOP",
+          source: "tech_contribution", author: "shop.sop", votes: 18, approved: true,
+          steps: [
+            { n: 1, text: "Warm engine briefly; drain oil into pan." },
+            { n: 2, text: "Replace filter; lube gasket; hand-tight + ¾ turn." },
+            { n: 3, text: "Refill to capacity; idle; check for leaks; recheck level." },
+          ],
+        },
       ],
     };
 
@@ -828,8 +978,26 @@
       cart: [],
       addonChecked: new Set(),
       addonsOpen: true,
+      votedProcedures: new Set(),
       clicks: 0,
     };
+
+    function selectedRow() {
+      const rows = jobsForView();
+      return rows.find((r) => r.id === state.selectedJobId) || rows[0] || null;
+    }
+
+    function diagramsForKey(opKey) {
+      if (DIAGRAMS[opKey]) return DIAGRAMS[opKey];
+      // Fall back to component-level matches
+      return Object.entries(DIAGRAMS)
+        .filter(([k]) => opKey && (k.startsWith(opKey.split(".").slice(0, 3).join(".")) || opKey.startsWith(k.split(".").slice(0, 3).join("."))))
+        .flatMap(([, list]) => list);
+    }
+
+    function proceduresForKey(opKey) {
+      return PROCEDURES[opKey] || [];
+    }
 
     function money(cents) { return "$" + (cents / 100).toFixed(2); }
     function bump() { state.clicks += 1; }
@@ -1103,65 +1271,7 @@
       };
     }
 
-    function renderDetail() {
-      const root = document.getElementById("detail");
-      const rows = jobsForView();
-      const row = rows.find((r) => r.id === state.selectedJobId) || rows[0];
-      if (!row) {
-        root.innerHTML = `<div style="color:var(--muted)">Select an operation row to view base time, combined jobs, and fitment.</div>`;
-        return;
-      }
-      const cents = row.hours == null ? null : Math.round(row.hours * RATE_CENTS);
-      const partsStatus = row.path === "L4_PENDING" ? "PENDING_REVIEW" : "PLACEHOLDER_ENQUEUED";
-      const addons = addonsForRow(row);
-      const addonsHtml = addons.length ? `
-        <div class="addons ${state.addonsOpen ? "" : "collapsed"}" id="addonsBox">
-          <div class="addons-h" id="addonsToggle">
-            Frequently Combined Jobs
-            <span class="meta">${addons.length} suggestion${addons.length === 1 ? "" : "s"} · shop telemetry</span>
-          </div>
-          <div class="addons-b">
-            ${addons.map((a) => {
-              const checked = state.addonChecked.has(a.key) ? "checked" : "";
-              return `<div class="addon-row">
-                <input type="checkbox" data-addon="${a.key}" id="ad_${a.key.replace(/[^a-z0-9]/gi,"_")}" ${checked} />
-                <label for="ad_${a.key.replace(/[^a-z0-9]/gi,"_")}">${a.label}
-                  <span class="sub">${a.note}</span>
-                  <span class="freq">${a.freq}% together</span>
-                </label>
-                <div class="addh">+${a.additional.toFixed(2)} hr</div>
-              </div>`;
-            }).join("")}
-          </div>
-        </div>` : `
-        <div class="kv"><div class="k">Frequently Combined Jobs</div>
-        <div class="v" style="font-weight:500;color:var(--muted)">No active associations for this operation yet — learner promotes pairs above 10% co-occurrence.</div></div>`;
-
-      root.innerHTML = `
-        <h3>${row.name}</h3>
-        <div class="code">${row.key}</div>
-        <div class="kv"><div class="k">Position / qualifier</div><div class="v">${row.pos}</div></div>
-        <div class="kv"><div class="k">Base / scaled time</div><div class="v mono">${row.hours == null ? "—" : row.hours.toFixed(3) + " hr"} · Skill ${row.skill || "B"}</div></div>
-        <div class="kv"><div class="k">Resolve path</div><div class="v"><span class="status ${row.path}">${row.path}</span><div style="margin-top:4px;font-weight:500;color:var(--muted)">${row.note}</div></div></div>
-        <div class="kv"><div class="k">Labor @ Albany/Capital Region</div><div class="v mono">${cents == null ? "—" : money(cents)}</div></div>
-        <div class="kv"><div class="k">Parts fitment</div><div class="v">${partsStatus}<div class="mono" style="margin-top:4px;background:#fff;border:1px solid var(--motor-line);padding:6px">${partsCategory(row)}</div></div></div>
-        ${addonsHtml}
-        <button class="btn-add" id="detailAdd" ${row.hours==null?"disabled":""}>Add application to staging</button>
-      `;
-      const btn = document.getElementById("detailAdd");
-      if (btn) btn.onclick = () => {
-        if (row.hours == null) return;
-        if (!state.cart.some((c) => c.id === row.id)) state.cart.push(row);
-        // also stage checked add-ons
-        for (const a of addons) {
-          if (!state.addonChecked.has(a.key)) continue;
-          const job = resolveAddonJob(a);
-          if (job && !state.cart.some((c) => c.id === job.id)) state.cart.push(job);
-        }
-        bump(); paint();
-      };
-      const toggle = document.getElementById("addonsToggle");
-      if (toggle) toggle.onclick = () => { state.addonsOpen = !state.addonsOpen; paint(); };
+    function bindAddonCheckboxes(root, row, addons) {
       root.querySelectorAll("[data-addon]").forEach((cb) => {
         cb.onchange = () => {
           const key = cb.dataset.addon;
@@ -1178,6 +1288,183 @@
           bump(); paint();
         };
       });
+    }
+
+    function renderMidAddons() {
+      const host = document.getElementById("midAddons");
+      const row = selectedRow();
+      if (!row) {
+        host.innerHTML = `<div class="mid-addons-empty">Select an operation above to see <strong>Frequently Combined Jobs</strong>.</div>`;
+        return;
+      }
+      const addons = addonsForRow(row);
+      if (!addons.length) {
+        host.innerHTML = `
+          <div class="addons">
+            <div class="addons-h">
+              Frequently Combined Jobs
+              <span class="meta">for ${row.name.split("—")[0].trim()}</span>
+            </div>
+            <div class="mid-addons-empty">No active associations for this operation yet — the learner promotes pairs above 10% co-occurrence from closed ROs.</div>
+          </div>`;
+        return;
+      }
+      host.innerHTML = `
+        <div class="addons ${state.addonsOpen ? "" : "collapsed"}" id="addonsBox">
+          <div class="addons-h" id="addonsToggle">
+            <span>Frequently Combined Jobs · ${row.name.split("—")[0].trim()}</span>
+            <span class="meta">${addons.length} suggestion${addons.length === 1 ? "" : "s"} · check to stage (+additional hrs)</span>
+          </div>
+          <div class="addons-b">
+            ${addons.map((a) => {
+              const checked = state.addonChecked.has(a.key) ? "checked" : "";
+              const id = "ad_" + a.key.replace(/[^a-z0-9]/gi, "_");
+              return `<div class="addon-row">
+                <input type="checkbox" data-addon="${a.key}" id="${id}" ${checked} />
+                <label for="${id}">${a.label}
+                  <span class="sub">${a.note}</span>
+                </label>
+                <span class="freq">${a.freq}% together</span>
+                <div class="addh">+${a.additional.toFixed(2)} hr</div>
+              </div>`;
+            }).join("")}
+          </div>
+        </div>`;
+      const toggle = document.getElementById("addonsToggle");
+      if (toggle) toggle.onclick = () => { state.addonsOpen = !state.addonsOpen; paint(); };
+      bindAddonCheckboxes(host, row, addons);
+    }
+
+    function renderDetail() {
+      const root = document.getElementById("detail");
+      const row = selectedRow();
+      if (!row) {
+        root.innerHTML = `<div style="color:var(--muted)">Select an operation row to view base time and fitment. Combined jobs appear under the table.</div>`;
+        return;
+      }
+      const cents = row.hours == null ? null : Math.round(row.hours * RATE_CENTS);
+      const partsStatus = row.path === "L4_PENDING" ? "PENDING_REVIEW" : "PLACEHOLDER_ENQUEUED";
+      const addons = addonsForRow(row);
+      const diagrams = diagramsForKey(row.key);
+      const procedures = proceduresForKey(row.key);
+
+      root.innerHTML = `
+        <h3>${row.name}</h3>
+        <div class="code">${row.key}</div>
+        <div class="kv"><div class="k">Position / qualifier</div><div class="v">${row.pos}</div></div>
+        <div class="kv"><div class="k">Base / scaled time</div><div class="v mono">${row.hours == null ? "—" : row.hours.toFixed(3) + " hr"} · Skill ${row.skill || "B"}</div></div>
+        <div class="kv"><div class="k">Resolve path</div><div class="v"><span class="status ${row.path}">${row.path}</span><div style="margin-top:4px;font-weight:500;color:var(--muted)">${row.note}</div></div></div>
+        <div class="kv"><div class="k">Labor @ Albany/Capital Region</div><div class="v mono">${cents == null ? "—" : money(cents)}</div></div>
+        <div class="kv"><div class="k">Parts fitment</div><div class="v">${partsStatus}<div class="mono" style="margin-top:4px;background:#fff;border:1px solid var(--motor-line);padding:6px">${partsCategory(row)}</div></div></div>
+        <div class="kv"><div class="k">Related</div>
+          <div class="detail-links">
+            <button type="button" class="linkish" id="gotoDiagrams">${diagrams.length ? diagrams.length + " diagram" + (diagrams.length === 1 ? "" : "s") : "Diagrams"}</button>
+            <button type="button" class="linkish" id="gotoProcedures">${procedures.length ? procedures.length + " procedure" + (procedures.length === 1 ? "" : "s") : "Procedures"}</button>
+            <span style="font-size:11px;color:var(--muted)">${addons.length ? addons.length + " combined below" : "no add-ons"}</span>
+          </div>
+        </div>
+        <button class="btn-add" id="detailAdd" ${row.hours==null?"disabled":""}>Add application to staging</button>
+      `;
+      const btn = document.getElementById("detailAdd");
+      if (btn) btn.onclick = () => {
+        if (row.hours == null) return;
+        if (!state.cart.some((c) => c.id === row.id)) state.cart.push(row);
+        for (const a of addons) {
+          if (!state.addonChecked.has(a.key)) continue;
+          const job = resolveAddonJob(a);
+          if (job && !state.cart.some((c) => c.id === job.id)) state.cart.push(job);
+        }
+        bump(); paint();
+      };
+      const gd = document.getElementById("gotoDiagrams");
+      if (gd) gd.onclick = () => setView("diagrams");
+      const gp = document.getElementById("gotoProcedures");
+      if (gp) gp.onclick = () => setView("procedures");
+    }
+
+    function renderDiagrams() {
+      const host = document.getElementById("diagramsHost");
+      const row = selectedRow();
+      const v = VEHICLES[state.vehicleId];
+      const opKey = row?.key;
+      const list = opKey ? diagramsForKey(opKey) : [];
+      // Also show catalog when nothing selected
+      const catalog = list.length ? list : Object.values(DIAGRAMS).flat();
+      const seen = new Set();
+      const unique = catalog.filter((d) => {
+        if (seen.has(d.id)) return false;
+        seen.add(d.id);
+        return true;
+      });
+      host.innerHTML = `
+        <h2>Exploded Parts Diagrams</h2>
+        <p class="subh">${v.label}${row ? " · " + row.name : ""} · OEM illustrations cached locally (Partsouq / 7zap / RevolutionParts) · $0</p>
+        ${!unique.length ? `<div class="empty">No diagrams cached for this operation yet. Run OEM scrape / scripts/resync_diagrams.py.</div>` : `
+        <div class="diagram-grid">
+          ${unique.map((d, i) => `
+            <div class="diagram-card">
+              <img src="${d.src}" alt="${d.caption}" loading="${i === 0 ? "eager" : "lazy"}" />
+              <div class="cap">
+                <b>${d.caption}</b>
+                <span class="src">${d.source} · local cache</span>
+              </div>
+            </div>`).join("")}
+        </div>`}
+        ${row ? `<p class="subh" style="margin-top:14px">Context from Labor selection · <button type="button" class="linkish" id="backLabor">← Back to Labor</button></p>` : ""}`;
+      const back = document.getElementById("backLabor");
+      if (back) back.onclick = () => setView("ewt");
+    }
+
+    function renderProcedures() {
+      const host = document.getElementById("proceduresHost");
+      const row = selectedRow();
+      const v = VEHICLES[state.vehicleId];
+      const opKey = row?.key;
+      let list = opKey ? proceduresForKey(opKey) : Object.values(PROCEDURES).flat();
+      list = [...list].sort((a, b) => (b.votes - a.votes) || (b.id - a.id));
+      host.innerHTML = `
+        <h2>Repair Procedures</h2>
+        <p class="subh">${v.label}${row ? " · " + row.name : ""} · Scraped DIY seed + tech contributions · upvote to rank · $0 after seed</p>
+        ${!list.length ? `<div class="empty">No approved procedures for this operation yet. Techs can submit via POST /procedures/submit or note parser.</div>` : `
+        <div class="proc-list">
+          ${list.map((p) => `
+            <article class="proc-card">
+              <div class="ph">
+                <h3>${p.title}</h3>
+                <button type="button" class="vote-btn" data-vote="${p.id}" ${state.votedProcedures.has(p.id) ? "disabled" : ""}>
+                  ▲ ${p.votes}${state.votedProcedures.has(p.id) ? " · voted" : ""}
+                </button>
+              </div>
+              <div class="proc-meta">
+                <span class="src-badge ${p.source === "tech_contribution" ? "tech" : "scraped"}">${p.source}</span>
+                <span>${p.author || "—"}</span>
+                <span>${p.steps.length} steps</span>
+              </div>
+              <ol>
+                ${p.steps.map((s) => `
+                  <li>${s.text}
+                    ${s.torque ? `<span class="torque"> · ${s.torque}</span>` : ""}
+                    ${s.tool ? `<span style="color:var(--muted)"> · ${s.tool}</span>` : ""}
+                  </li>`).join("")}
+              </ol>
+            </article>`).join("")}
+        </div>`}
+        ${row ? `<p class="subh" style="margin-top:14px"><button type="button" class="linkish" id="backLabor2">← Back to Labor</button></p>` : ""}`;
+      host.querySelectorAll("[data-vote]").forEach((btn) => {
+        btn.onclick = () => {
+          const id = Number(btn.dataset.vote);
+          if (state.votedProcedures.has(id)) return;
+          state.votedProcedures.add(id);
+          // Mutate fixture votes for demo
+          for (const arr of Object.values(PROCEDURES)) {
+            const hit = arr.find((x) => x.id === id);
+            if (hit) hit.votes += 1;
+          }
+          bump(); paint();
+        };
+      });
+      const back = document.getElementById("backLabor2");
+      if (back) back.onclick = () => setView("ewt");
     }
 
     function renderFluids() {
@@ -1233,6 +1520,8 @@
       document.getElementById("viewEwt").classList.toggle("on", view === "ewt");
       document.getElementById("viewFluids").classList.toggle("on", view === "fluids");
       document.getElementById("viewAssoc").classList.toggle("on", view === "assoc");
+      document.getElementById("viewDiagrams").classList.toggle("on", view === "diagrams");
+      document.getElementById("viewProcedures").classList.toggle("on", view === "procedures");
       document.getElementById("crumb").style.display = view === "ewt" ? "" : "none";
       paint();
     }
@@ -1260,20 +1549,25 @@
         <span><b>Year/Make/Model</b> ${v.label}</span>
         <span><b>Chassis tier</b> ${v.chassis}</span>
         <span><b>Fluid specs</b> ${fluidN ? fluidN + " harvested" : "pending"}</span>
-        <span><b>Associations</b> live</span>`;
+        <span><b>Diagrams / Procedures</b> local KB</span>`;
       document.getElementById("configBand").textContent =
-        `Application config · chassis tier ${v.chassis} · shop rate Albany/Capital Region $145.00/hr · fluids + combined-jobs telemetry · not MOTOR-licensed content`;
+        `Application config · chassis tier ${v.chassis} · Albany $145/hr · combined jobs under ops table · diagrams + procedures cached locally · not MOTOR-licensed`;
       if (state.view === "ewt") {
         renderChips();
         renderSystems();
         renderCrumb();
         renderFilters();
         renderTable();
+        renderMidAddons();
         renderDetail();
       } else if (state.view === "fluids") {
         renderFluids();
-      } else {
+      } else if (state.view === "assoc") {
         renderAssocGuide();
+      } else if (state.view === "diagrams") {
+        renderDiagrams();
+      } else if (state.view === "procedures") {
+        renderProcedures();
       }
       renderDock();
     }
