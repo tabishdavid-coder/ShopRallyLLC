@@ -1,5 +1,6 @@
-labs/tabish-friday-labor/.venv/
-labs/tabish-friday-labor/staging/*.json
-labs/tabish-friday-labor/.env
+.venv/
+staging/**
+!staging/.gitkeep
+.env
 __pycache__/
 *.pyc
